@@ -12,13 +12,9 @@
       url = "github:cachix/devenv/latest";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-doom-emacs = {
-      url = "github:nix-community/nix-doom-emacs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { nixpkgs, home-manager, devenv, nix-doom-emacs, ... }:
+  outputs = { nixpkgs, home-manager, devenv, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
@@ -34,7 +30,7 @@
 
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
-        modules = [ ./home.nix nix-doom-emacs.hmModule ];
+        modules = [ ./home.nix ];
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix

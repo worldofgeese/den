@@ -199,9 +199,4 @@
       "90B63AAB0529F8EA3DBAEA2B1608B9C111896671"
     ];
   };
-  programs.doom-emacs = {
-    enable = false;
-    doomPrivateDir = /home/taohansen/.doom.d;
-    extraPackages = with pkgs; [ fd findutils ripgrep nodejs ];
-  };
 }

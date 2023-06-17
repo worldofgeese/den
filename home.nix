@@ -29,6 +29,16 @@
     jetbrains-mono # packages that make Doom better
     gopass
     tdesktop
+    openshift
+    kubectl
+    kubectl-tree
+    kubie
+    krew
+    operator-sdk
+    microsoft-edge-beta
+    sops
+    azure-cli
+    httpie
     # # Adds the 'hello' command to your environment. It prints a friendly
     # # "Hello, world!" when run.
     # pkgs.hello
@@ -80,10 +90,8 @@
     BROWSER = "firefox";
     npm_config_prefix = "$HOME/.local";
   };
-  home.sessionPath = [
-    "$HOME/.garden/bin"
-    "$HOME/.config/emacs/bin"
-  ];
+  home.sessionPath =
+    [ "$HOME/.garden/bin" "$HOME/.config/emacs/bin" "$HOME/.krew/bin" ];
 
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
@@ -109,7 +117,7 @@
       disable = [ "nix" "node" "containers" "helm" ];
       cleanup = true;
       commands = {
-        "Run garbage collection on Nix store" = "nix-collect-garbage";
+        # "Run garbage collection on Nix store" = "nix-collect-garbage";
         "Update Manjaro" = "manjaro-update";
       };
     };
@@ -136,6 +144,8 @@
       [[ -f ~/.bashrc.backup ]] && . ~/.bashrc.backup
       source /home/taohansen/.config/op/plugins.sh
       source ~/.local/share/blesh/ble.sh
+      eval "$(github-copilot-cli alias -- "$0")"
+      [ -f ~/fubectl.source ] && source ~/fubectl.source
     '';
     profileExtra = ''
       [[ -f ~/.bash_profile.backup ]] && . ~/.bash_profile.backup
@@ -149,9 +159,7 @@
     };
   };
   programs.bat.enable = true;
-  programs.zoxide = {
-    enable = true;
-  };
+  programs.zoxide = { enable = true; };
   programs.atuin = {
     enable = true;
     settings = {
@@ -168,9 +176,7 @@
     settings.modal = true;
   };
   programs.jq.enable = true;
-  programs.navi = {
-    enable = true;
-  };
+  programs.navi = { enable = true; };
   programs.pet.enable = true;
   programs.ssh = {
     enable = true;
@@ -186,6 +192,10 @@
   };
   programs.starship = {
     enable = true;
+    settings = {
+      kubernetes = { disabled = false; };
+      nodejs = { disabled = true; };
+    };
   };
   services.gpg-agent = {
     enable = true;

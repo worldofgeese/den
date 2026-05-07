@@ -18,8 +18,14 @@
       url = "github:cachix/devenv/python-rewrite";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    agenix.url = "github:ryantm/agenix";
-    forgesync.url = "github:lukaswrz/forgesync";
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    forgesync = {
+      url = "github:lukaswrz/forgesync";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Use nix-on-droid's own tested nixpkgs + home-manager versions.
     # See: https://github.com/nix-community/nix-on-droid/issues/495
     # Remove these pins once nix-on-droid merges PR #529 (proot-termux update)

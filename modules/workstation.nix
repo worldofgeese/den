@@ -1,4 +1,4 @@
-{ den, inputs, ... }:
+{ den, ... }:
 {
   den.aspects.workstation = {
     homeManager = { pkgs, ... }: {

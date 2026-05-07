@@ -20,9 +20,11 @@
 
           doCheck = false;
 
-          nativeBuildInputs = [ final.pkg-config final.lld final.autoPatchelfHook ];
+          nativeBuildInputs = with final; [ pkg-config ]
+            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [ lld autoPatchelfHook ];
           nativeCheckInputs = [ final.git ];
-          buildInputs = [ final.sqlite final.openssl final.stdenv.cc.cc.lib ];
+          buildInputs = [ final.sqlite ]
+            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [ final.openssl final.stdenv.cc.cc.lib ];
 
           meta = {
             description = "Decapod CLI — repo-native governance kernel for AI agents";

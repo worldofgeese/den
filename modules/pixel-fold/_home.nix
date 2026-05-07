@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   home.stateVersion = "24.05";
@@ -37,6 +37,7 @@
   programs.git = {
     enable = true;
     userName = "Tao Hansen";
+    userEmail = "59834693+worldofgeese@users.noreply.github.com";
     extraConfig.init.defaultBranch = "main";
   };
 

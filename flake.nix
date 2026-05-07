@@ -15,7 +15,7 @@
     import-tree.url = "github:vic/import-tree";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     devenv = {
-      url = "github:cachix/devenv/python-rewrite";
+      url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     agenix = {

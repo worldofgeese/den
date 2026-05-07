@@ -179,6 +179,8 @@ Every `.nix` file under `modules/` is automatically imported as a top-level [fla
 - **`den.aspects.<name>`** — Reusable feature bundles with `.nixos`, `.darwin`, and `.homeManager` sub-attributes
 - **`den.default`** — Global settings applied to all hosts/homes
 
+**Exception:** pixel-fold bypasses the Den framework entirely because nix-on-droid requires its own `nixOnDroidConfiguration` builder that is incompatible with flake-parts host wiring. It uses a raw `flake.nixOnDroidConfigurations` output and does not receive global Den defaults or aspects.
+
 ### Module layout
 
 ```

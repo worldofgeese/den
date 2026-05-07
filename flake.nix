@@ -20,12 +20,12 @@
     };
     agenix.url = "github:ryantm/agenix";
     forgesync.url = "github:lukaswrz/forgesync";
-    # Pinned to last commit before glibc 2.42 broke proot pty handling
+    # Use nix-on-droid's own tested nixpkgs + home-manager versions.
     # See: https://github.com/nix-community/nix-on-droid/issues/495
     # Remove these pins once nix-on-droid merges PR #529 (proot-termux update)
-    nixpkgs-nod.url = "github:NixOS/nixpkgs/88d3861acdd3d2f0e361767018218e51810df8a1";
+    nixpkgs-nod.url = "github:NixOS/nixpkgs/5d874ac46894c896119bce68e758e9e80bdb28f1";
     home-manager-nod = {
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager/4de84265d7ec7634a69ba75028696d74de9a44a7";
       inputs.nixpkgs.follows = "nixpkgs-nod";
     };
     nix-on-droid = {

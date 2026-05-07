@@ -4,6 +4,7 @@ my-test-suite.log
 .decapod/data/*
 .decapod/.stfolder
 .decapod/workspaces
+.decapod/generated/
 .decapod/generated/*
 !.decapod/data/
 !.decapod/data/knowledge.promotions.jsonl

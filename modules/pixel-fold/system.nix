@@ -7,7 +7,7 @@
         overlays = [ inputs.nix-on-droid.overlays.default ];
       };
       modules = [
-        ({ pkgs, ... }: {
+        ({ pkgs, config, ... }: {
           system.stateVersion = "24.05";
           environment.etcBackupExtension = ".bak";
 
@@ -33,6 +33,15 @@
             eza
             vim
           ];
+
+          environment.loginShellInit = ''
+            if [ ! -f "$HOME/.ssh/sshd_host_ed25519_key" ]; then
+              ssh-keygen -t ed25519 -f "$HOME/.ssh/sshd_host_ed25519_key" -N ""
+            fi
+            if ! pgrep -x sshd > /dev/null 2>&1; then
+              sshd -p 8022 -h "$HOME/.ssh/sshd_host_ed25519_key"
+            fi
+          '';
 
           home-manager = {
             config = ./_home.nix;

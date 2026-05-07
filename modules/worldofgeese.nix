@@ -22,6 +22,12 @@
         settings = {
           user.email = "59834693+worldofgeese@users.noreply.github.com";
           user.name = "worldofgeese";
+          push.autoSetupRemote = true;
+          pull.rebase = true;
+          rebase.autosquash = true;
+          rebase.autostash = true;
+          fetch.prune = true;
+          diff.colorMoved = "zebra";
         };
       };
 

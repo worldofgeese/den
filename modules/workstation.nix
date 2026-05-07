@@ -49,7 +49,7 @@
             "Upgrade Guix System" =
               "sudo -i guix pull && sudo -E guix system reconfigure ~/.config/guix/system.scm";
             "Upgrade Guix Home then fetch Home Manager deps" =
-              "guix pull && guix home reconfigure ~/src/guix-config/home-configuration.scm && nix flake update --flake ~/.config/home-manager";
+              "guix pull && guix home reconfigure ~/.config/home-manager/guix/home-configuration.scm && nix flake update --flake ~/.config/home-manager";
           };
           misc = {
             disable = [ "nix" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" ];

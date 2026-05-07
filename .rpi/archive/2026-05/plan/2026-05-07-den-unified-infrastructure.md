@@ -1,7 +1,8 @@
 ---
+archived_date: "2026-05-07"
 date: 2026-05-07T18:05:39+02:00
 design: .rpi/designs/2026-05-07-den-unified-infrastructure.md
-status: active
+status: archived
 tags:
     - plan
     - nix

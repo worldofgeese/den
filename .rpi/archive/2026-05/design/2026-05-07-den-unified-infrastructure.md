@@ -1,7 +1,8 @@
 ---
+archived_date: "2026-05-07"
 date: 2026-05-07T17:54:54+02:00
 related_research: .rpi/research/2026-05-07-dendritic-unification-landscape.md
-status: active
+status: archived
 tags:
     - design
     - nix

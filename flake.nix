@@ -18,6 +18,8 @@
       url = "github:cachix/devenv/python-rewrite";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agenix.url = "github:ryantm/agenix";
+    forgesync.url = "github:lukaswrz/forgesync";
   };
 
   outputs = inputs:

@@ -81,6 +81,21 @@ modules/
     └── _home.nix        # Home Manager config (skipped by import-tree)
 ```
 
+## nix-on-droid pinning
+
+The pixel-fold configuration uses pinned versions of nixpkgs and home-manager
+(`nixpkgs-nod` and `home-manager-nod` inputs) rather than following the main
+nixpkgs-unstable. This works around a [proot pty bug](https://github.com/nix-community/nix-on-droid/issues/495)
+where glibc 2.42's `TCGETS2` ioctl causes "getting pseudoterminal attributes:
+Permission denied" during activation.
+
+The pins match nix-on-droid release-24.05's tested versions. Remove them once
+[PR #529](https://github.com/nix-community/nix-on-droid/pull/529) (proot-termux
+update) is merged and you can reinstall from a new bootstrap zip.
+
+**Important:** `nix-on-droid switch` must be run on-device (from the Nix-on-Droid
+app), not over SSH — the activation step requires a proper terminal.
+
 ## Secrets
 
 Secrets are managed with [agenix](https://github.com/ryantm/agenix). Encrypted `.age` files live in `secrets/` and are decrypted at activation time on the target host.

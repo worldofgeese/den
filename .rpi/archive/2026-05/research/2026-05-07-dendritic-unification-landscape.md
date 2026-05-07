@@ -1,10 +1,11 @@
 ---
+archived_date: "2026-05-07"
 branch: main
 date: 2026-05-07T17:53:10+02:00
 git_commit: 26557fe
 repository: home-manager
 researcher: Claude
-status: active
+status: archived
 tags:
     - research
     - nix

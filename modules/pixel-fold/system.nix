@@ -42,6 +42,6 @@
           };
         })
       ];
-      home-manager-path = inputs.home-manager.outPath;
+      home-manager-path = inputs.nix-on-droid.inputs.home-manager.outPath;
     };
 }

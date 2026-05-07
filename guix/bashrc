@@ -1,0 +1,50 @@
+[ -f "$HOME"/.nix-profile/etc/profile.d/hm-session-vars.sh ] && source "$HOME"/.nix-profile/etc/profile.d/hm-session-vars.sh
+
+case $- in
+  *i*) ;;
+    *) return;;
+esac
+
+source ~/.local/share/blesh/ble.sh --noattach
+
+export OSH='/home/worldofgeese/.oh-my-bash'
+OSH_THEME="font"
+OMB_USE_SUDO=true
+completions=(
+  git
+  ssh
+  helm
+  kubectl
+)
+aliases=(
+  general
+)
+plugins=(
+  git
+  bashmarks
+  kubectl
+  bu
+  battery
+  sudo
+  colored-man-pages
+)
+source "$OSH"/oh-my-bash.sh
+
+export GPG_TTY=$(tty)
+gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
+
+eval "$(atuin init bash)"
+eval "$(direnv hook bash)"
+eval "$(podman completion bash)"
+
+# ble.sh integrations (loaded deferred for fast startup)
+ble-import -d integration/fzf-completion
+ble-import -d integration/zoxide
+ble-import contrib/prompt-git
+ble-import -d contrib/prompt-elapsed
+ble-import -d contrib/config/execmark
+
+bleopt prompt_rps1='\q{contrib/git-info}'
+bleopt exec_elapsed_enabled='_ble_exec_time_tot>=3000'
+
+[[ ${BLE_VERSION-} ]] && ble-attach

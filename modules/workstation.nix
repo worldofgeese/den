@@ -47,7 +47,7 @@
         settings = {
           pre_commands = {
             "Upgrade Guix System" =
-              "sudo -i guix pull && sudo -E guix system reconfigure ~/.config/guix/system.scm";
+              "sudo -i guix pull && sudo -E guix system reconfigure ~/.config/home-manager/guix/system.scm";
             "Upgrade Guix Home then fetch Home Manager deps" =
               "guix pull && guix home reconfigure ~/.config/home-manager/guix/home-configuration.scm && nix flake update --flake ~/.config/home-manager";
           };

@@ -2,7 +2,7 @@
 {
   flake.nixOnDroidConfigurations.pixel-fold =
     inputs.nix-on-droid.lib.nixOnDroidConfiguration {
-      pkgs = import inputs.nixpkgs {
+      pkgs = import inputs.nixpkgs-nod {
         system = "aarch64-linux";
         overlays = [ inputs.nix-on-droid.overlays.default ];
       };

@@ -253,30 +253,30 @@
         "type": "github"
       }
     },
-    "home-manager_2": {
+    "home-manager-nod": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-nod"
         ]
       },
       "locked": {
-        "lastModified": 1778144356,
-        "narHash": "sha256-dGM+QCstz/DyLB68+JK5GWyMx4QSqmOJEVgZmy63d/g=",
+        "lastModified": 1726989464,
+        "narHash": "sha256-Vl+WVTJwutXkimwGprnEtXc/s/s8sMuXzqXaspIGlwM=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "e4419d3123b780d5f4c0bceeace450424387638c",
+        "rev": "2f23fa308a7c067e52dfcc30a0758f47043ec176",
         "type": "github"
       },
       "original": {
         "owner": "nix-community",
+        "ref": "release-24.05",
         "repo": "home-manager",
         "type": "github"
       }
     },
-    "home-manager_3": {
+    "home-manager_2": {
       "inputs": {
         "nixpkgs": [
-          "nix-on-droid",
           "nixpkgs"
         ]
       },
@@ -380,7 +380,9 @@
     },
     "nix-on-droid": {
       "inputs": {
-        "home-manager": "home-manager_3",
+        "home-manager": [
+          "home-manager-nod"
+        ],
         "nix-formatter-pack": "nix-formatter-pack",
         "nixpkgs": [
           "nixpkgs-nod"
@@ -711,6 +713,7 @@
         "flake-parts": "flake-parts",
         "forgesync": "forgesync",
         "home-manager": "home-manager_2",
+        "home-manager-nod": "home-manager-nod",
         "import-tree": "import-tree",
         "nix-on-droid": "nix-on-droid",
         "nixpkgs": "nixpkgs_3",

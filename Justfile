@@ -3,10 +3,11 @@
 default:
     @just --list
 
-# Deploy everything on mahakala (Home Manager + Guix Home)
+# Deploy everything on mahakala (Guix System + Guix Home + Home Manager)
 deploy-mahakala:
-    home-manager switch --flake .#worldofgeese
+    sudo guix system reconfigure guix/system.scm
     guix home reconfigure guix/home-configuration.scm
+    home-manager switch --flake .#worldofgeese
 
 # Deploy only Home Manager on mahakala
 deploy-mahakala-hm:

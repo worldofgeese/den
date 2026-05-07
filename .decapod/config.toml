@@ -1,0 +1,17 @@
+schema_version = "1.0.0"
+
+[init]
+specs = true
+diagram_style = "ascii"
+entrypoints = [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    "CODEX.md",
+]
+
+[repo]
+product_name = "home-manager"
+product_summary = "To quickly bring up my Home Manager config first install Nix then"
+architecture_direction = "Composable repository architecture with explicit boundaries and proof-backed delivery invariants."
+done_criteria = "Decapod validate passes, required tests pass, and promotion-relevant artifacts are present."

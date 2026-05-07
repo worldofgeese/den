@@ -6,11 +6,6 @@
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
       })
       (final: prev: {
-        _1password-gui = prev._1password-gui.override {
-          polkitPolicyOwners = [ "worldofgeese" ];
-        };
-      })
-      (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
           version = "0.47.27";

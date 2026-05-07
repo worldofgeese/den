@@ -3,9 +3,22 @@
 default:
     @just --list
 
-# Deploy Home Manager on mahakala (local x86_64 workstation)
+# Deploy everything on mahakala (Home Manager + Guix Home)
 deploy-mahakala:
     home-manager switch --flake .#worldofgeese
+    guix home reconfigure guix/home-configuration.scm
+
+# Deploy only Home Manager on mahakala
+deploy-mahakala-hm:
+    home-manager switch --flake .#worldofgeese
+
+# Deploy only Guix Home on mahakala
+deploy-mahakala-guix:
+    guix home reconfigure guix/home-configuration.scm
+
+# Reconfigure Guix System (requires sudo)
+deploy-mahakala-system:
+    sudo guix system reconfigure guix/system.scm
 
 # Deploy NixOS on paphos (remote server)
 deploy-paphos host="paphos":

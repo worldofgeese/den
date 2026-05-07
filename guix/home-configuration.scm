@@ -114,7 +114,8 @@
                (mkdir-p ssh-dir))
              (chmod ssh-dir #o700)
              (for-each (lambda (file)
-                         (chmod file #o600))
+                         (unless (symbolic-link? file)
+                           (chmod file #o600)))
                        (find-files ssh-dir #:directories? #f))))))
     (service home-gpg-agent-service-type
              (home-gpg-agent-configuration

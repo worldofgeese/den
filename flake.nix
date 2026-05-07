@@ -8,6 +8,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    darwin = {
+      url = "github:nix-darwin/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     import-tree.url = "github:vic/import-tree";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     devenv = {

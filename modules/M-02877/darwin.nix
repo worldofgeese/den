@@ -85,6 +85,7 @@
           "pulumi"
           "container"
           "jira-cli"
+          "rtk"
           "atlassian/acli/acli"
           "lego/tap/bob-cli"
           "lego/tap/mdc"

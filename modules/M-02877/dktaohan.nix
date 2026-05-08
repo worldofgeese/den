@@ -26,8 +26,8 @@
       ];
 
       home.shellAliases = {
-        "apply-M-02877" = "nix flake update --flake ~/.config/den && sudo -H darwin-rebuild switch --flake ~/.config/den#M-02877";
-        fleek-apply = "nix flake update --flake ~/.config/den && sudo -H darwin-rebuild switch --flake ~/.config/den#M-02877";
+        "apply-M-02877" = "nix flake update --flake ~/.config/home-manager && sudo -H darwin-rebuild switch --flake ~/.config/home-manager#M-02877";
+        fleek-apply = "nix flake update --flake ~/.config/home-manager && sudo -H darwin-rebuild switch --flake ~/.config/home-manager#M-02877";
         catp = "bat -P";
         cat = "bat";
         du = "dust";
@@ -490,7 +490,7 @@
             set_title = true;
           };
           commands = {
-            "Nix-Darwin" = "nix flake update --flake ~/.config/den && sudo -H darwin-rebuild switch --flake ~/.config/den#M-02877";
+            "Nix-Darwin" = "nix flake update --flake ~/.config/home-manager && sudo -H darwin-rebuild switch --flake ~/.config/home-manager#M-02877";
           };
         };
       };

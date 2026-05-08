@@ -2,6 +2,17 @@
 {
   den.aspects.M-02877 = {
     darwin = { config, lib, pkgs, ... }: {
+      imports = [ inputs.home-manager.darwinModules.home-manager ];
+
+      home-manager.useUserPackages = true;
+      home-manager.backupFileExtension = "hm-bak";
+      home-manager.users.dktaohan = {
+        imports = [
+          den.aspects.dktaohan.homeManager
+          den.aspects.devtools.homeManager
+        ];
+      };
+
       nix.enable = true;
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [
@@ -35,8 +46,8 @@
         enableSyntaxHighlighting = true;
         interactiveShellInit = ''
           autoload -Uz compinit && compinit
-          eval "$(saml2aws --completion-script-zsh)"
-          eval "$(eksctl completion zsh)"
+          eval "$(${pkgs.saml2aws}/bin/saml2aws --completion-script-zsh)"
+          eval "$(${pkgs.eksctl}/bin/eksctl completion zsh)"
         '';
       };
 
@@ -91,6 +102,7 @@
           "lego/tap/mdc"
         ];
         casks = [
+          "zed"
           "jordanbaird-ice"
           "alt-tab"
           "loop"

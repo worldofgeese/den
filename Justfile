@@ -27,7 +27,7 @@ deploy-paphos host="paphos":
 
 # Deploy nix-darwin on M-02877 (macOS)
 deploy-darwin:
-    darwin-rebuild switch --flake .#M-02877
+    sudo -H darwin-rebuild switch --flake .#M-02877
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:

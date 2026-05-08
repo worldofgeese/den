@@ -1,6 +1,6 @@
 { inputs, den, ... }:
 {
-  den.default.homeManager = { pkgs, ... }: {
+  den.aspects.devtools.homeManager = { pkgs, ... }: {
     nixpkgs.overlays = [
       (final: prev: {
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;

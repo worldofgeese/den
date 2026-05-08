@@ -3,6 +3,7 @@
   den.aspects.dktaohan = {
     includes = [
       den.aspects.ssh
+      den.aspects.devtools
     ];
 
     homeManager = { pkgs, lib, config, ... }: {
@@ -26,8 +27,6 @@
       ];
 
       home.shellAliases = {
-        "apply-M-02877" = "nix flake update --flake ~/.config/home-manager && sudo -H darwin-rebuild switch --flake ~/.config/home-manager#M-02877";
-        fleek-apply = "nix flake update --flake ~/.config/home-manager && sudo -H darwin-rebuild switch --flake ~/.config/home-manager#M-02877";
         catp = "bat -P";
         cat = "bat";
         du = "dust";
@@ -64,10 +63,9 @@
         yq-go
         cheat
         just
-        zed-editor
         exercism
         decapod
-        claude-code-bin
+        claude-code
         fd
         dust
         duf

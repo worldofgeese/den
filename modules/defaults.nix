@@ -1,7 +1,9 @@
 { den, ... }:
 {
   den.default = {
-    homeManager.home.stateVersion = "22.11";
+    homeManager = { lib, ... }: {
+      home.stateVersion = lib.mkDefault "22.11";
+    };
     includes = [ den._.define-user ];
   };
 

@@ -1,11 +1,12 @@
 { den, ... }:
 {
+  den.aspects.paphos = {
+    includes = [ den.aspects.ssh-server ];
+  };
+
   den.aspects.paphos.nixos = { pkgs, ... }: {
     networking.hostName = "paphos";
     networking.networkmanager.enable = true;
-
-    services.tailscale.enable = true;
-    services.openssh.enable = true;
 
     time.timeZone = "Europe/Copenhagen";
 

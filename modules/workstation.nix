@@ -1,6 +1,7 @@
 { den, ... }:
 {
   den.aspects.workstation = {
+    includes = [ den.aspects.devtools ];
     homeManager = { pkgs, ... }: {
       home.packages = with pkgs; [
         gopass

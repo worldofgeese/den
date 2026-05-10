@@ -10,6 +10,7 @@
       programs.home-manager.enable = true;
       fonts.fontconfig.enable = true;
       targets.genericLinux.enable = true;
+      targets.genericLinux.gpu.enable = true;
       xdg.mime.enable = false;
 
       programs.git = {
@@ -73,6 +74,13 @@
 
       programs.navi.enable = true;
       programs.pet.enable = true;
+
+      dconf.settings = {
+        "org/gnome/Console" = {
+          use-system-font = false;
+          custom-font = "JetBrains Mono 11";
+        };
+      };
     };
   };
 }

@@ -4,6 +4,7 @@
              (gnu services)
              (guix gexp)
              (gnu home services)
+             (gnu home services fontutils)
              (gnu home services gnupg)
              (gnu home services desktop)
              (gnu home services mpv)
@@ -21,9 +22,12 @@
 
 (home-environment
  (packages (specifications->packages
-            (list "git" 
+            (list "git"
                   "fd"
                   "openssh"
+                  ;; Gas City dependencies
+                  "tmux"
+                  "lsof"
                   ;; direnv managed by Nix Home Manager with shell integration
                   "openssl"
                   "curl"
@@ -43,8 +47,11 @@
                   "emacs-all-the-icons"
                   "steam"
                   "neovim"
-                  "font-jetbrains-mono"
-                  "font-google-noto" ;; display symbols normally in Doom Emacs
+                   "font-jetbrains-mono"
+                   "font-inter"
+                   "font-google-noto" ;; display symbols normally in Doom Emacs
+                   "font-noto-emoji"  ;; color emoji
+                   "font-nerd-symbols" ;; icon glyphs for Doom Emacs nerd-icons
                   "podman"
                   "kind"
                   "pinentry-gnome3"
@@ -129,7 +136,16 @@
 
     (simple-service 'custom-profile
                     home-shell-profile-service-type
-                    (list (plain-file "profile" "[ -f ~/.nix-profile/etc/profile.d/nix.sh ] && source ~/.nix-profile/etc/profile.d/nix.sh")))
+                    (list (plain-file "profile"
+                                      (string-append
+                                       "[ -f ~/.nix-profile/etc/profile.d/nix.sh ] && source ~/.nix-profile/etc/profile.d/nix.sh\n"
+                                       "# Distrobox: override Guix env vars that break container tooling\n"
+                                       "if [ -f /run/.containerenv ]; then\n"
+                                       "  export GIT_EXEC_PATH=/usr/lib/git-core\n"
+                                       "  export GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt\n"
+                                       "  export CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt\n"
+                                       "  [ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"\n"
+                                       "fi"))))
 
     (simple-service 'autostart-config
                     home-xdg-configuration-files-service-type
@@ -197,10 +213,124 @@
                "force-window=yes\n"
                "ytdl-format=bestvideo+bestaudio\n")))
 
+    (simple-service 'extended-fontconfig
+                    home-fontconfig-service-type
+                    (list
+                     ;; Additional font directories
+                     "~/.nix-profile/share/fonts"
+                     "~/.local/share/fonts"
+
+                     ;; Include system fontconfig conf.d for base rendering rules
+                     '(include "/run/current-system/profile/etc/fonts/conf.d")
+
+                     ;; Cache directories
+                     '(cachedir "~/.cache/fontconfig")
+                     '(cachedir "/var/cache/fontconfig")
+
+                     ;; === Rendering settings (ArchWiki "Hinted fonts" consensus) ===
+                     ;; Enable antialiasing
+                     '(match (@ (target "font"))
+                             (edit (@ (mode "assign") (name "antialias"))
+                                   (bool "true")))
+                     ;; Disable embedded bitmaps (prevents pixelated fallbacks)
+                     '(match (@ (target "font"))
+                             (edit (@ (mode "assign") (name "embeddedbitmap"))
+                                   (bool "false")))
+                     ;; Enable hinting
+                     '(match (@ (target "font"))
+                             (edit (@ (mode "assign") (name "hinting"))
+                                   (bool "true")))
+                     ;; Slight hinting (best balance of shape retention vs crispness)
+                     '(match (@ (target "font"))
+                             (edit (@ (mode "assign") (name "hintstyle"))
+                                   (const "hintslight")))
+                     ;; LCD filter for subpixel rendering
+                     '(match (@ (target "font"))
+                             (edit (@ (mode "assign") (name "lcdfilter"))
+                                   (const "lcddefault")))
+                     ;; Subpixel layout (RGB is most common)
+                     '(match (@ (target "font"))
+                             (edit (@ (mode "assign") (name "rgba"))
+                                   (const "rgb")))
+
+                     ;; === Re-enable embedded bitmaps for emoji ===
+                     '(match (@ (target "font"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "Noto Emoji"))
+                             (edit (@ (name "embeddedbitmap"))
+                                   (bool "true")))
+
+                     ;; === Hard-assign generic families (Omarchy style) ===
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "sans-serif"))
+                             (edit (@ (name "family") (mode "assign") (binding "strong"))
+                                   (string "Inter Variable")))
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "serif"))
+                             (edit (@ (name "family") (mode "assign") (binding "strong"))
+                                   (string "Noto Serif")))
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "monospace"))
+                             (edit (@ (name "family") (mode "assign") (binding "strong"))
+                                   (string "JetBrains Mono")))
+
+                     ;; === Map web/CSS font names to local equivalents ===
+                     '(alias
+                       (family "system-ui")
+                       (prefer (family "Inter Variable")))
+                     '(alias
+                       (family "ui-monospace")
+                       (default (family "monospace")))
+                     '(alias
+                       (family "-apple-system")
+                       (prefer (family "Inter Variable")))
+                     '(alias
+                       (family "BlinkMacSystemFont")
+                       (prefer (family "Inter Variable")))
+
+                     ;; === Emoji fallback for all generic families ===
+                     '(alias
+                       (family "sans-serif")
+                       (accept (family "Noto Emoji")))
+                     '(alias
+                       (family "serif")
+                       (accept (family "Noto Emoji")))
+                     '(alias
+                       (family "monospace")
+                       (accept (family "Noto Emoji")))
+
+                     ;; === Alias fixups (common misspellings) ===
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "mono"))
+                             (edit (@ (name "family") (mode "assign") (binding "same"))
+                                   (string "monospace")))
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "sans serif"))
+                             (edit (@ (name "family") (mode "assign") (binding "same"))
+                                   (string "sans-serif")))
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "sans"))
+                             (edit (@ (name "family") (mode "assign") (binding "same"))
+                                   (string "sans-serif")))
+                     '(match (@ (target "pattern"))
+                             (test (@ (qual "any") (name "family"))
+                                   (string "system ui"))
+                             (edit (@ (name "family") (mode "assign") (binding "same"))
+                                   (string "system-ui")))))
+
     (simple-service 'additional-env-vars-service
                     home-environment-variables-service-type
-                    `(("PATH" . "$HOME/.local/bin:$HOME/.config/emacs/bin:$HOME/.krew/bin:$PATH")
+                    `(                      ("PATH" . "$HOME/.nix-profile/bin:$HOME/.local/bin:$HOME/.config/emacs/bin:$HOME/.krew/bin:$PATH")
                       ("XDG_DATA_DIRS" . "$XDG_DATA_DIRS:$HOME/.local/share/flatpak/exports/share:$HOME/.nix-profile/share:$HOME/.local/share/fonts")
+                      ("FONTCONFIG_FILE" . "$HOME/.config/fontconfig/fonts.conf")
+                      ;; Fix blurry small text in Chromium/Electron apps on dark backgrounds
+                      ("FREETYPE_PROPERTIES" . "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0")
                       ("VISUAL" . "emacsclient")
                       ("BROWSER" . "flatpak run app.zen_browser.zen")
                       ("_JAVA_AWT_WM_NONREPARENTING" . "1")

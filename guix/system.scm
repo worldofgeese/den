@@ -135,6 +135,16 @@ COMMIT
 :OUTPUT ACCEPT
 COMMIT
 "))))
+    (simple-service 'nix-opengl-driver shepherd-root-service-type
+                    (list
+                     (shepherd-service
+                      (provision '(nix-opengl-driver))
+                      (documentation "Symlink /run/opengl-driver for Nix GPU apps (home-manager GPU module).")
+                      (one-shot? #t)
+                      (start #~(make-forkexec-constructor
+                                (list "/bin/sh" "-c"
+                                      "target=$(grep -oP '(?<=^new=)\\S+' /home/worldofgeese/.local/state/home-manager/gcroots/current-home/activate) && [ -d \"$target\" ] && ln -sfT \"$target\" /run/opengl-driver")))
+                      (stop #~(make-kill-destructor)))))
     (simple-service 'cgroup-setup shepherd-root-service-type
                     (list
                      (shepherd-service

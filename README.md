@@ -325,10 +325,6 @@ home-manager uninstall
 
 Uninstall the Nix-on-Droid app from Android settings.
 
-## Backups
-
-`mother-nix-files/backups/` contains archived configs from defunct machines for reference.
-
 ## Reference
 
 - [Home Manager manual](https://nix-community.github.io/home-manager/)

@@ -29,6 +29,7 @@
         claude-code
         uv
         decapod
+        beeper
       ];
 
       programs.gh = {
@@ -57,6 +58,7 @@
           };
           commands = {
             "Doom Emacs" = "doom upgrade --force";
+            "Homebrew (arch distrobox)" = "distrobox enter arch -- bash --login -c 'brew update && brew upgrade'";
           };
           post_commands = {
             "Garbage collect Nix" = "nix-collect-garbage -d";

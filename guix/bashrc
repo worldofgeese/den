@@ -29,6 +29,7 @@ plugins=(
   colored-man-pages
 )
 source "$OSH"/oh-my-bash.sh
+unalias gc 2>/dev/null
 
 export GPG_TTY=$(tty)
 gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1

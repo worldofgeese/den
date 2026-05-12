@@ -2,16 +2,8 @@
 {
   den.aspects.M-02877 = {
     darwin = { config, lib, pkgs, ... }: {
-      imports = [ inputs.home-manager.darwinModules.home-manager ];
-
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "hm-bak";
-      home-manager.users.dktaohan = {
-        imports = [
-          den.aspects.dktaohan.homeManager
-          den.aspects.devtools.homeManager
-        ];
-      };
 
       nix.enable = true;
       nixpkgs.config.allowUnfree = true;

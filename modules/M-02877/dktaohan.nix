@@ -2,14 +2,13 @@
 {
   den.aspects.dktaohan = {
     includes = [
+      den.batteries.define-user
+      den.batteries.primary-user
       den.aspects.ssh
       den.aspects.devtools
     ];
 
     homeManager = { pkgs, lib, config, ... }: {
-      home.username = "dktaohan";
-      home.homeDirectory = "/Users/dktaohan";
-      home.stateVersion = "25.05";
 
       programs.home-manager.enable = true;
       xdg.enable = true;

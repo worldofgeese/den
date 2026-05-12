@@ -156,6 +156,29 @@ just deploy-darwin   # or deploy-mahakala-hm, etc.
 just update-input nixpkgs
 ```
 
+### Updating den
+
+```bash
+# Update den to latest
+nix flake update den
+
+# Verify evaluation passes
+nix eval .#darwinConfigurations.M-02877.config.home-manager.users --apply builtins.attrNames
+
+# Build and switch
+darwin-rebuild build --flake .#M-02877
+sudo darwin-rebuild switch --flake .#M-02877
+```
+
+If eval fails after an update, check den's changelog and docs for migration notes:
+- https://github.com/denful/den/releases
+- https://den.oeiuwq.com
+
+Key things to know about our den usage:
+- `den.batteries.define-user` auto-sets `home.username` and `home.homeDirectory` based on host class
+- `den.schema.user.classes = [ "homeManager" ]` enables automatic HM forwarding for all users
+- Never manually import `darwinModules.home-manager` or wire `home-manager.users.<name>` — den handles forwarding from `den.aspects.<user>.homeManager` automatically
+
 ### Upgrading Lix (macOS)
 
 Lix comes from `pkgs.lixPackageSets.latest.lix`. Bump nixpkgs to get a newer Lix:

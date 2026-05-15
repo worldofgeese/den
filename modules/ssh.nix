@@ -5,6 +5,16 @@
       enable = true;
       enableDefaultConfig = false;
       matchBlocks = {
+        "*" = {
+          extraOptions = {
+            ControlMaster = "auto";
+            ControlPersist = "yes";
+          };
+        };
+        "github.com" = {
+          hostname = "github.com";
+          user = "git";
+        };
         paphos = {
           hostname = "paphos.hound-celsius.ts.net";
           user = "kypris";

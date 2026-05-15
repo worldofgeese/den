@@ -37,23 +37,21 @@
                   "ncurses"
                   "gnome-tweaks"
                   "ripgrep"
-                  ;; tools for gooseandquill.blog
-                  "tidy-html"
-                  "texlive-scheme-basic"
-                  "make"
-                  "python"
-                  ;; end tools for gooseandquill.blog
+                   ;; tools for gooseandquill.blog
+                   "tidy-html"
+                   "make"
+                   "python"
+                   ;; end tools for gooseandquill.blog
                   "emacs-guix"
                   "emacs-all-the-icons"
                   "steam"
-                  "neovim"
-                   "font-jetbrains-mono"
+                    "font-jetbrains-mono"
                    "font-inter"
                    "font-google-noto" ;; display symbols normally in Doom Emacs
                    "font-noto-emoji"  ;; color emoji
                    "font-nerd-symbols" ;; icon glyphs for Doom Emacs nerd-icons
-                  "podman"
-                  "kind"
+                  ;; podman provided by Guix System rootless-podman-service
+                  ;; kind and helm consolidated to Nix HM workstation aspect
                   "pinentry-gnome3"
                   "rsync"
                   ;; tools for EXWM
@@ -87,7 +85,7 @@
                   "ffmpeg"
                   "exercism"
                   "git-annex"
-                  "helm-kubernetes"
+                  ;; helm-kubernetes consolidated to Nix HM workstation aspect
                   "qbittorrent"
                   "distrobox"
 		  "qutebrowser"
@@ -96,8 +94,7 @@
                   "poppler"
                   "imagemagick"
                   "tesseract-ocr"
-                  "ungoogled-chromium"
-                  )))
+                   )))
 
 
  (services
@@ -138,7 +135,7 @@
                     home-shell-profile-service-type
                     (list (plain-file "profile"
                                       (string-append
-                                       "[ -f ~/.nix-profile/etc/profile.d/nix.sh ] && source ~/.nix-profile/etc/profile.d/nix.sh\n"
+                                       "[ -r ~/.nix-profile/etc/profile.d/nix.sh ] && source ~/.nix-profile/etc/profile.d/nix.sh\n"
                                        "# Distrobox: override Guix env vars that break container tooling\n"
                                        "if [ -f /run/.containerenv ]; then\n"
                                        "  export GIT_EXEC_PATH=/usr/lib/git-core\n"
@@ -162,6 +159,12 @@
                             ,(plain-file "containers-storage.conf"
                                          "[storage]\ndriver = \"overlay\"\n"))))
 
+    ;; Guix channels — single source of truth in this repo
+    (simple-service 'guix-channels
+                    home-xdg-configuration-files-service-type
+                    (list `("guix/channels.scm"
+                            ,(local-file "channels.scm"))))
+
     (service home-xdg-user-directories-service-type
              (home-xdg-user-directories-configuration
               (desktop "$HOME/Desktop")
@@ -173,14 +176,13 @@
               (pictures "$HOME/Pictures")
               (videos "$HOME/Videos")))
 
+    ;; Substituters and keys are in system.scm (nix-service-type extra-config).
+    ;; experimental-features must also be in user nix.conf for unprivileged nix commands.
     (simple-service 'nix-config
                     home-xdg-configuration-files-service-type
                     (list `("nix/nix.conf"
                             ,(plain-file "nix.conf"
-                                         (string-append
-                                          "extra-trusted-substituters = https://cache.floxdev.com https://devenv.cachix.org https://nixpkgs-python.cachix.org\n"
-                                          "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU=\n"
-                                          "experimental-features = nix-command flakes")))))
+                                         "experimental-features = nix-command flakes\n"))))
 
     (service home-xdg-mime-applications-service-type
              (home-xdg-mime-applications-configuration

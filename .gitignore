@@ -20,3 +20,17 @@ my-test-suite.log
 !.decapod/generated/specs/
 !.decapod/generated/specs/*.md
 !.decapod/generated/specs/.manifest.json
+
+# RPI workflow
+.opencode/
+
+# RPI workflow
+.claude/
+
+# RPI workflow
+.rpi/*
+!.rpi/specs/
+/.agent-shell/
+
+# CodeGraph index (generated)
+.codegraph/

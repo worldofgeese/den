@@ -1,100 +1,134 @@
-# AGENTS.md — Universal Agent Contract
+# AGENTS.md
 
-This is a Decapod-managed repository. **Strict Dependency: You are strictly bound to the Decapod control plane.**
+This file provides guidance to AI coding agents when working with this repository.
 
-This contract applies equally to Claude, Codex, Gemini, Cursor, Kilo, and any other agent operating here.
+## Project Overview
 
-## Mandatory Initialization
+This project follows Spec-Driven Development (SDD). Behavioral specs live in `.rpi/specs/` and serve as the source of truth for expected behavior. Always consult relevant specs before implementing or modifying features.
 
-```bash
-cargo install decapod
+<!-- TODO: Add brief project description -->
 
-decapod validate
-decapod docs ingest
-decapod session acquire
-decapod rpc --op agent.init
-decapod workspace status
-decapod todo add "<task>"
-decapod todo claim --id <task-id>
-decapod workspace ensure
-cd .decapod/workspaces/<your-worktree>
-decapod rpc --op context.resolve
+## Git Workflow
+
+When committing changes, always ask the user which files/directories to include before proposing commits. Never assume all unstaged/staged changes should be committed.
+
+## RPI Artifacts Directory
+
+This project uses a `.rpi/` directory for persistent context:
+
+```
+.rpi/
+├── research/      # Codebase research notes (optional, from /rpi-research)
+├── designs/       # Solution designs (created by /rpi-propose)
+├── plans/         # Implementation plans (created by /rpi-plan)
+├── specs/         # Living behavioral specs
+├── reviews/       # Verification reports
+├── diagnoses/     # Bug diagnosis post-mortems (created by /rpi-diagnose)
+├── archive/       # Archived completed artifacts
 ```
 
-## Control-Plane First Loop
+### Development Pipeline
 
-```bash
-# Discover what this binary actually supports in this repo
-decapod capabilities --format json
-decapod data schema --deterministic
+Workflow: Research → Propose → Plan → Implement → Verify
 
-# Resolve scoped governance context before implementation
-decapod docs search --query "<problem>" --op <op> --path <path> --tag <tag>
-decapod rpc --op context.scope --params '{"query":"<problem>","limit":8}'
+- **Research** (`/rpi-research`): Investigate the codebase. Optional.
+- **Propose** (`/rpi-propose`): Analyze trade-offs, write design + spec (behavioral contract). Approval gate.
+- **Plan** (`/rpi-plan`): Create phased implementation plan from approved spec.
+- **Implement** (`/rpi-implement`): Execute plan phase-by-phase with verification.
+- **Verify** (`/rpi-verify`): Validate spec conformance.
 
-# Convergence/proof surfaces (call when relevant)
-decapod workunit init --task-id <task-id> --intent-ref <intent>
-decapod govern capsule query --topic "<topic>" --scope interfaces --task-id <task-id>
-decapod eval plan --task-set-id <id> --task-ref <task-id> --model-id <model> --prompt-hash <hash> --judge-model-id <judge> --judge-prompt-hash <hash>
-```
+Each command suggests the next step. Start with `/rpi-propose` for features, `/rpi-plan` for bug fixes, `/rpi-research` when exploring.
 
-## Golden Rules (Non-Negotiable)
+## Development Conventions
 
-1. **MUST** refine intent with the user before inference-heavy work.
-2. **MUST NOT** work on main/master. **MUST** use `.decapod/workspaces/*`.
-3. **MUST** read `.decapod/config.toml` as user-editable project context and may update it when user intent changes.
-4. **MUST NOT** claim done without `decapod validate` passing.
-5. **MUST NOT** invent capabilities that are not exposed by the binary.
-6. **MUST** stop if requirements conflict, intent is ambiguous, or policy boundaries are unclear.
-7. **MUST** respect the Interface abstraction boundary.
+Before implementing any changes, always: 1) Read the current version of each file you plan to modify, 2) Run the existing test suite to establish a baseline, 3) Implement changes incrementally — one logical unit at a time, 4) Run tests after each unit. If tests fail, fix before proceeding. Do not batch all changes and test at the end.
+<!-- TODO: Add project-specific conventions -->
 
-## Invariants (Normative)
+When implementing a plan from `.rpi/plans/`, present intended changes for each phase before writing code. If a phase's success criteria are fully covered by automated checks (tests, linting, etc.), run them and proceed automatically when they pass. Only pause for manual verification when the plan includes manual verification items not covered by automated tests. Update checkboxes in the plan file as items complete, and resume from the first unchecked item if checkboxes already exist.
 
-These invariants are directly enforced by tests. Violations will cause CI failure.
+---
 
-- **INV-DAEMONLESS**: Decapod MUST NOT leave background processes running. (enforced by `tests/daemonless_lifecycle.rs`)
-- **INV-BOUNDED-VALIDATE**: `decapod validate` MUST terminate within bounded time. (enforced by `tests/validate_termination.rs`)
-- **INV-STORE-BOUNDARY**: Agents MUST NOT directly mutate `.decapod/*`; all access MUST use CLI. (enforced by validation gates)
-- **INV-SESSION-AUTH**: Mutations require active session with valid credentials. (enforced by session commands)
-- **INV-PROOF-GATED**: Workunit status `VERIFIED` MUST have passed proof-plan gates. (enforced by `tests/workunit_publish_gate.rs`)
-- **INV-WORKSPACE-ISOLATION**: Protected branches (main/master) MUST NOT be directly mutated. (enforced by workspace validation)
+# context-mode — MANDATORY routing rules
 
-## Safety Invariants
-- ✅ Router pointer: `core/DECAPOD.md`
-- ✅ Validation gate: `decapod validate`
-- ✅ Constitution ingestion gate: `decapod docs ingest`
-- ✅ Workspace status gate: `decapod workspace status`
-- ✅ Claim-before-work gate: `decapod todo claim --id <task-id>`
-- ✅ Session auth gate: `DECAPOD_SESSION_PASSWORD`
-- ✅ Workspace gate: Docker git workspaces
-- ✅ Privilege gate: request elevated permissions before Docker/container workspace commands
+context-mode MCP tools available. Rules protect context window from flooding. One unrouted command dumps 56 KB into context.
 
-## Universal Agent Operating Contract
+## Think in Code — MANDATORY
 
-**Doctrine:** Establish intent, shape context, bound mutation, and define proof before implementation.
+Analyze/count/filter/compare/search/parse/transform data: **write code** via `context-mode_ctx_execute(language, code)`, `console.log()` only the answer. Do NOT read raw data into context. PROGRAM the analysis, not COMPUTE it. Pure JavaScript — Node.js built-ins only (`fs`, `path`, `child_process`). `try/catch`, handle `null`/`undefined`. One script replaces ten tool calls.
 
-**Before:** Determine what's asked; identify files/modules; define scope; surface assumptions; create dependency-aware todos.
+## BLOCKED — do NOT attempt
 
-**During:** Avoid opportunistic rewrites; preserve behavior unless task requires change; stop before crossing subsystem boundaries; verify before completion.
+### curl / wget — BLOCKED
+Shell `curl`/`wget` intercepted and blocked. Do NOT retry.
+Use: `context-mode_ctx_fetch_and_index(url, source)` or `context-mode_ctx_execute(language: "javascript", code: "const r = await fetch(...)")`
 
-**After:** Report what changed, tested, not tested, and uncertainty. Ensure `decapod validate` passes.
+### Inline HTTP — BLOCKED
+`fetch('http`, `requests.get(`, `requests.post(`, `http.get(`, `http.request(` — intercepted. Do NOT retry.
+Use: `context-mode_ctx_execute(language, code)` — only stdout enters context
 
-## Decapod Governance
+### Direct web fetching — BLOCKED
+Use: `context-mode_ctx_fetch_and_index(url, source)` then `context-mode_ctx_search(queries)`
 
-Decapod is the repo-native control plane agents call on demand. It reduces wasted inference, prevents scope drift, enforces boundaries, and requires proof-backed completion.
+## REDIRECTED — use sandbox
 
-- **The agent performs the work.** Decapod does not implement or decide.
-- **Decapod governs the work.** It validates, tracks, and surfaces convergence proof.
-- **Decapod does not replace agents.** It makes Claude, Codex, OpenCode, Kilo, Pi, Cursor, and others more reliable by absorbing common deficiencies.
+### Shell (>20 lines output)
+Shell ONLY for: `git`, `mkdir`, `rm`, `mv`, `cd`, `ls`, `npm install`, `pip install`.
+Otherwise: `context-mode_ctx_batch_execute(commands, queries)` or `context-mode_ctx_execute(language: "shell", code: "...")`
 
-Call Decapod before editing. Let Decapod validate after editing.
+### File reading (for analysis)
+Reading to **edit** → reading correct. Reading to **analyze/explore/summarize** → `context-mode_ctx_execute_file(path, language, code)`.
 
-## Operating Notes
+### grep / search (large results)
+Use `context-mode_ctx_execute(language: "shell", code: "grep ...")` in sandbox.
 
-- Read `.decapod/config.toml` before planning; it captures project name, summary, architecture, primary languages, and agent entrypoint preferences.
-- Treat `.decapod/config.toml` as human-editable project context. You may update it when user intent or project direction changes.
-- Read `.decapod/OVERRIDE.md` when present; it is the repo-local place for constitution overrides.
-- Do not mutate Decapod-owned state under `.decapod/` directly; generated specs, data, workspaces, and sessions stay via decapod CLI.
-- Use `decapod docs show core/DECAPOD.md` for binding contracts; `decapod capabilities --format json` for available ops.
-- Use `decapod todo handoff --id <id> --to <agent>` for cross-agent ownership transfer.
-- Treat lock/contention failures (including `VALIDATE_TIMEOUT_OR_LOCK`) as blocking until resolved.
+## Tool selection
+
+0. **MEMORY**: `context-mode_ctx_search(sort: "timeline")` — after resume, check prior context before asking user.
+1. **GATHER**: `context-mode_ctx_batch_execute(commands, queries)` — runs all commands, auto-indexes, returns search. ONE call replaces 30+. Each command: `{label: "header", command: "..."}`.
+2. **FOLLOW-UP**: `context-mode_ctx_search(queries: ["q1", "q2", ...])` — all questions as array, ONE call (default relevance mode).
+3. **PROCESSING**: `context-mode_ctx_execute(language, code)` | `context-mode_ctx_execute_file(path, language, code)` — sandbox, only stdout enters context.
+4. **WEB**: `context-mode_ctx_fetch_and_index(url, source)` then `context-mode_ctx_search(queries)` — raw HTML never enters context.
+5. **INDEX**: `context-mode_ctx_index(content, source)` — store in FTS5 for later search.
+
+## Parallel I/O batches
+
+For multi-URL fetches or multi-API calls, **always** include `concurrency: N` (1-8):
+
+- `context-mode_ctx_batch_execute(commands: [3+ network commands], concurrency: 5)` — gh, curl, dig, docker inspect, multi-region cloud queries
+- `context-mode_ctx_fetch_and_index(requests: [{url, source}, ...], concurrency: 5)` — multi-URL batch fetch
+
+**Use concurrency 4-8** for I/O-bound work (network calls, API queries). **Keep concurrency 1** for CPU-bound (npm test, build, lint) or commands sharing state (ports, lock files, same-repo writes).
+
+GitHub API rate-limit: cap at 4 for `gh` calls.
+
+## Output
+
+Write artifacts to FILES — never inline. Return: file path + 1-line description.
+Descriptive source labels for `search(source: "label")`.
+
+## Session Continuity
+
+Skills, roles, and decisions persist for the entire session. Do not abandon them as the conversation grows.
+
+## Memory
+
+Session history is persistent and searchable. On resume, search BEFORE asking the user:
+
+| Need | Command |
+|------|---------|
+| What did we decide? | `context-mode_ctx_search(queries: ["decision"], source: "decision", sort: "timeline")` |
+| What constraints exist? | `context-mode_ctx_search(queries: ["constraint"], source: "constraint")` |
+
+DO NOT ask "what were we working on?" — SEARCH FIRST.
+If search returns 0 results, proceed as a fresh session.
+
+## ctx commands
+
+| Command | Action |
+|---------|--------|
+| `ctx stats` | Call `stats` MCP tool, display full output verbatim |
+| `ctx doctor` | Call `doctor` MCP tool, run returned shell command, display as checklist |
+| `ctx upgrade` | Call `upgrade` MCP tool, run returned shell command, display as checklist |
+| `ctx purge` | Call `purge` MCP tool with confirm: true. Warns before wiping knowledge base. |
+
+After /clear or /compact: knowledge base and session stats preserved. Use `ctx purge` to start fresh.

@@ -26,6 +26,10 @@
       url = "github:lukaswrz/forgesync";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    helium = {
+      url = "github:oxcl/nix-flake-helium-browser";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Use nix-on-droid's own tested nixpkgs + home-manager versions.
     # See: https://github.com/nix-community/nix-on-droid/issues/495
     # Remove these pins once nix-on-droid merges PR #529 (proot-termux update)

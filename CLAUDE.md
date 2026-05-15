@@ -1,53 +1,55 @@
-# CLAUDE.md - Agent Entrypoint
+# CLAUDE.md
 
-You are working in a Decapod-managed repository.
-See `AGENTS.md` for the universal contract.
+This file provides guidance to Claude Code when working with this repository.
 
-## Project Context
+## Project Overview
 
-- Read `.decapod/config.toml` before planning; it captures project name, summary, architecture, primary languages, and entrypoint preferences.
-- Treat `.decapod/config.toml` as human-editable project context. You may update it when user intent or project direction changes.
-- Read `.decapod/OVERRIDE.md` when present; it is the repo-local place for constitution overrides.
-- Do not mutate Decapod-owned state under `.decapod/` directly; use Decapod CLI surfaces for generated specs, data, workspaces, and sessions.
+This project follows Spec-Driven Development (SDD). Behavioral specs live in `.rpi/specs/` and serve as the source of truth for expected behavior. Always consult relevant specs before implementing or modifying features.
 
-## Quick Start
+<!-- TODO: Add brief project description -->
 
-```bash
-cargo install decapod
+## Git Workflow 
 
-decapod validate
-decapod docs ingest
-decapod session acquire
-decapod rpc --op agent.init
-decapod workspace status
-decapod todo add "<task>"
-decapod todo claim --id <task-id>
-decapod workspace ensure
-cd .decapod/workspaces/<your-worktree>
-decapod rpc --op context.resolve
+When committing changes, always ask the user which files/directories to include before proposing commits. Never assume all unstaged/staged changes should be committed.
+Watch for uncommitted work that should be preserved. Suggest a commit (via `/rpi-commit`) when the user moves on to a different topic with completed changes still uncommitted, or when the working diff grows large enough that it risks becoming hard to review as a single commit.
+
+## RPI Artifacts Directory
+
+This project uses a `.rpi/` directory for persistent context:
+
+```
+.rpi/
+├── research/      # Codebase research notes (optional, from /rpi-research)
+├── designs/       # Solution designs (created by /rpi-propose)
+├── plans/         # Implementation plans (created by /rpi-plan)
+├── specs/         # Living behavioral specs
+├── reviews/       # Verification reports
+├── diagnoses/     # Bug diagnosis post-mortems (created by /rpi-diagnose)
+├── archive/       # Archived completed artifacts
 ```
 
-## Control-Plane First
+### Development Pipeline
 
-```bash
-decapod capabilities --format json
-decapod rpc --op context.scope --params '{"query":"<problem>","limit":8}'
-decapod data schema --deterministic
-```
+Workflow: Research → Propose → Plan → Implement → Verify
 
-## Operating Mode
+- **Research** (`/rpi-research`): Investigate the codebase. Optional.
+- **Propose** (`/rpi-propose`): Analyze trade-offs, write design + spec (behavioral contract). Approval gate.
+- **Plan** (`/rpi-plan`): Create phased implementation plan from approved spec.
+- **Implement** (`/rpi-implement`): Execute plan phase-by-phase with verification.
+- **Verify** (`/rpi-verify`): Validate spec conformance.
+- **Diagnose** (`/rpi-diagnose`): Iterative root-cause analysis and fix for complex bugs. Optional.
+- **Explain** (`/rpi-explain`): Diff-scoped walkthrough of an implemented solution. Optional.
 
-- Use Docker git workspaces and execute in `.decapod/workspaces/*`.
-- Call `decapod workspace status` at startup and before implementation work.
-- request elevated permissions before Docker/container workspace commands.
-- `.decapod files are accessed only via decapod CLI`.
-- Read and update `.decapod/config.toml` as project context; use Decapod CLI for other `.decapod/` state.
-- Read `.decapod/OVERRIDE.md` for repo-local constitution overrides when present.
-- `DECAPOD_SESSION_PASSWORD` is required for session-scoped operations.
-- Read canonical router: `decapod docs show core/DECAPOD.md`.
-- Use shared aptitude memory for human-taught preferences across sessions/providers: `decapod data memory add|get` (aliases: `decapod data aptitude`).
-- Operator reference: `decapod docs show docs/PLAYBOOK.md`.
-- Capability authority: `decapod capabilities --format json`.
-- Scoped context feature: `decapod docs search --query "<problem>" --op <op>` or `decapod rpc --op context.scope`.
+Each command suggests the next step. Start with `/rpi-propose` for features, `/rpi-plan` for bug fixes, `/rpi-diagnose` for complex bugs, `/rpi-research` when exploring.
 
-Stop if requirements are ambiguous or conflicting.
+## Codebase Navigation
+
+When exploring unfamiliar code, check what navigation tools are available before falling back to text search. Structural overviews and definition lookups are more efficient than scanning files when you need to understand how a codebase is organized or where something is defined.
+
+## Development Conventions
+
+Before implementing any changes, always: 1) Read the current version of each file you plan to modify, 2) Run the existing test suite to establish a baseline, 3) Implement changes incrementally — one logical unit at a time, 4) Run tests after each unit. If tests fail, fix before proceeding. Do not batch all changes and test at the end.
+<!-- TODO: Add project-specific conventions -->
+
+When implementing a plan from `.rpi/plans/`, present intended changes for each phase before writing code. If a phase's success criteria are fully covered by automated checks (tests, linting, etc.), run them and proceed automatically when they pass. Only pause for manual verification when the plan includes manual verification items not covered by automated tests. Update checkboxes in the plan file as items complete, and resume from the first unchecked item if checkboxes already exist.
+

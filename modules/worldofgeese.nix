@@ -1,20 +1,39 @@
-{ den, ... }:
+{ den, inputs, ... }:
 {
   den.aspects.worldofgeese = {
-    includes = [ den._.primary-user ];
+    includes = [
+      den._.primary-user
+      den.aspects.gitcommon
+    ];
 
     homeManager = { pkgs, ... }: {
+      imports = [ inputs.helium.homeModules.default ];
       home.username = "worldofgeese";
       home.homeDirectory = "/home/worldofgeese";
 
+      home.packages = [
+        pkgs.nerd-fonts.fira-code
+      ];
+
       programs.home-manager.enable = true;
+      programs.helium = {
+        enable = true;
+        # Upstream uses --set FONTCONFIG_FILE which hard-overrides system fonts.
+        # Patch to --set-default so Guix Home's fontconfig takes precedence.
+        package = (pkgs.callPackage "${inputs.helium}/helium.nix" { }).overrideAttrs (old: {
+          preFixup = builtins.replaceStrings
+            [ "--set FONTCONFIG_FILE" ]
+            [ "--set-default FONTCONFIG_FILE" ]
+            old.preFixup;
+        });
+      };
       fonts.fontconfig.enable = true;
       targets.genericLinux.enable = true;
       targets.genericLinux.gpu.enable = true;
-      xdg.mime.enable = false;
+      xdg.mime.enable = true;
 
+      # Identity-specific git config (common settings from git-common aspect)
       programs.git = {
-        enable = true;
         signing = {
           signByDefault = true;
           key = "63D28F81460A224A";
@@ -23,12 +42,6 @@
         settings = {
           user.email = "59834693+worldofgeese@users.noreply.github.com";
           user.name = "worldofgeese";
-          push.autoSetupRemote = true;
-          pull.rebase = true;
-          rebase.autosquash = true;
-          rebase.autostash = true;
-          fetch.prune = true;
-          diff.colorMoved = "zebra";
         };
       };
 
@@ -40,24 +53,11 @@
         };
       };
 
-      programs.direnv = {
-        enable = true;
-        nix-direnv.enable = true;
-      };
+      # direnv, eza, bat, zoxide, jq, atuin, k9s now come from shared-devtools
+      # (included via workstation → shared-devtools)
 
-      programs.eza.enable = true;
-      programs.bat.enable = true;
-      programs.zoxide.enable = true;
-      programs.jq.enable = true;
-
-      programs.atuin = {
-        enable = true;
-        settings = {
-          auto_sync = true;
-          sync_frequency = "5m";
-          sync_address = "https://api.atuin.sh";
-          search_mode = "fuzzy";
-        };
+      programs.atuin.settings = {
+        sync_address = "https://api.atuin.sh";
       };
 
       programs.password-store = {
@@ -74,6 +74,36 @@
 
       programs.navi.enable = true;
       programs.pet.enable = true;
+
+      # Helium's upstream .desktop uses absolute Nix store paths for Exec and
+      # Icon, which GNOME on Guix System can't resolve. Override with PATH-
+      # relative command. Icon placed in local hicolor so GNOME can find it.
+      home.file.".local/share/icons/hicolor/256x256/apps/helium.png".source =
+        "${pkgs.callPackage "${inputs.helium}/helium.nix" { }}/share/icons/hicolor/256x256/apps/helium.png";
+
+      xdg.desktopEntries.helium = {
+        name = "Helium";
+        genericName = "Web Browser";
+        comment = "Access the Internet";
+        exec = "helium %U";
+        terminal = false;
+        icon = "helium";
+        categories = [ "Network" "WebBrowser" ];
+        mimeType = [
+          "text/html"
+          "application/xhtml+xml"
+          "x-scheme-handler/http"
+          "x-scheme-handler/https"
+        ];
+        startupNotify = true;
+        settings = {
+          StartupWMClass = "helium";
+        };
+        actions = {
+          new-window = { name = "New Window"; exec = "helium"; };
+          new-private-window = { name = "New Incognito Window"; exec = "helium --incognito"; };
+        };
+      };
 
       dconf.settings = {
         "org/gnome/Console" = {

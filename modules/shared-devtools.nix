@@ -41,9 +41,12 @@
 
       programs.k9s.enable = true;
 
-      # Pi extension: custom provider for Anthropic proxy
+      # Pi extension: custom provider for Anthropic proxy with full
+      # streaming implementation (supports reasoning/thinking blocks)
       home.file.".pi/agent/extensions/anthropic-proxy/index.js".text =
         builtins.readFile ../pi-extensions/anthropic-proxy/index.js;
+      home.file.".pi/agent/extensions/anthropic-proxy/package.json".text =
+        builtins.readFile ../pi-extensions/anthropic-proxy/package.json;
     };
   };
 }

@@ -1,0 +1,14 @@
+{
+  "name": "pi-extension-anthropic-proxy",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "pi": {
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0"
+  }
+}

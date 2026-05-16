@@ -7,7 +7,7 @@
     ];
     homeManager = { pkgs, ... }: {
       # Linux workstation-specific packages (shared tools come from shared-devtools)
-      home.packages = with pkgs; [
+      home.packages = (with pkgs; [
         gopass
         isort
         nixfmt
@@ -29,6 +29,9 @@
         opencode
         agent-browser
         beeper
+      ]) ++ [
+        # gc — Gas City CLI proxied to remote container on loving-kypris
+        (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
       ];
 
       programs.gh = {

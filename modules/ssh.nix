@@ -15,22 +15,28 @@
           hostname = "github.com";
           user = "git";
         };
+
+        # --- Tailnet hosts (MagicDNS: *.hound-celsius.ts.net) ---
+        loving-kypris = {
+          hostname = "loving-kypris.hound-celsius.ts.net";
+          user = "worldofgeese";
+        };
         paphos = {
           hostname = "paphos.hound-celsius.ts.net";
           user = "kypris";
+        };
+        mother = {
+          hostname = "mother.hound-celsius.ts.net";
+          port = 2235;
+          user = "taohansen";
         };
         pixel-fold = {
           hostname = "google-pixel-fold.hound-celsius.ts.net";
           port = 8022;
           user = "nix-on-droid";
         };
-        mother = {
-          hostname = "mother";
-          port = 2235;
-          user = "taohansen";
-        };
-        openclaw = {
-          hostname = "openclaw.hound-celsius.ts.net";
+        desktop = {
+          hostname = "desktop-6071t21.hound-celsius.ts.net";
           user = "worldofgeese";
         };
       };

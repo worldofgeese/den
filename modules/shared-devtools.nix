@@ -17,6 +17,7 @@
         just
         claude-code
         pi-coding-agent
+        rtk
         decapod
       ];
 

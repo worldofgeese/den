@@ -325,8 +325,11 @@ function streamAnthropicProxy(model, context, options) {
 
       if (!response.ok) {
         const errorBody = await response.text();
-        // Truncate error body to avoid leaking secrets if proxy echoes headers
-        const safeBody = errorBody.slice(0, MAX_ERROR_BODY_LENGTH);
+        // Redact API key from error body in case proxy echoes request headers
+        let safeBody = errorBody.slice(0, MAX_ERROR_BODY_LENGTH);
+        if (apiKey) {
+          safeBody = safeBody.replaceAll(apiKey, "[REDACTED]");
+        }
         throw new Error(`HTTP ${response.status}: ${safeBody}`);
       }
 

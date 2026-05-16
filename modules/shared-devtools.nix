@@ -47,6 +47,12 @@
         builtins.readFile ../pi-extensions/anthropic-proxy/index.js;
       home.file.".pi/agent/extensions/anthropic-proxy/package.json".text =
         builtins.readFile ../pi-extensions/anthropic-proxy/package.json;
+
+      # Pi settings: default to the proxy provider with Opus
+      home.file.".pi/agent/settings.json".text = builtins.toJSON {
+        provider = "anthropic-proxy";
+        model = "anthropic.claude-opus-4-6-v1";
+      };
     };
   };
 }

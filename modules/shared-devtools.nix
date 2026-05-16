@@ -16,6 +16,7 @@
         glab
         just
         claude-code
+        pi-coding-agent
         decapod
       ];
 
@@ -39,6 +40,10 @@
       };
 
       programs.k9s.enable = true;
+
+      # Pi extension: custom provider for Anthropic proxy
+      home.file.".pi/agent/extensions/anthropic-proxy/index.js".text =
+        builtins.readFile ../pi-extensions/anthropic-proxy/index.js;
     };
   };
 }

@@ -5,9 +5,8 @@
  * dependencies needed. Handles thinking/reasoning blocks correctly through
  * a LiteLLM/Bedrock proxy.
  *
- * Authentication (checked in order):
- *   1. MPS_API_KEY environment variable (recommended for most setups)
- *   2. gopass entry at dev/anthropic-proxy-key (if gopass is available)
+ * Authentication: MPS_API_KEY environment variable
+ * Models: loaded from models.json in this extension's directory
  *
  * Usage:
  *   MPS_API_KEY=<your-key> pi --provider anthropic-proxy
@@ -18,46 +17,73 @@ import {
   createAssistantMessageEventStream,
   calculateCost,
 } from "@mariozechner/pi-ai";
-import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // =============================================================================
 // Configuration
 // =============================================================================
 
 const BASE_URL = "https://models.assistant.legogroup.io/anthropic";
-const GOPASS_PATH = "dev/anthropic-proxy-key";
 const MAX_ERROR_BODY_LENGTH = 200;
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// =============================================================================
+// Models Configuration
+// =============================================================================
+
+
+
+function loadModels() {
+  const modelsPath = join(__dirname, "models.json");
+  try {
+    const raw = readFileSync(modelsPath, "utf-8");
+    const models = JSON.parse(raw);
+    if (!Array.isArray(models)) {
+      console.warn("[anthropic-proxy] models.json must be a JSON array. Got:", typeof models);
+      return [];
+    }
+    const valid = models.filter((m, i) => {
+      if (!m.id || !m.name || !m.maxTokens || !m.contextWindow) {
+        console.warn(`[anthropic-proxy] models.json[${i}] missing required field — skipping`);
+        return false;
+      }
+      if (typeof m.maxTokens !== "number" || m.maxTokens <= 0) {
+        console.warn(`[anthropic-proxy] models.json[${i}] "maxTokens" must be positive — skipping`);
+        return false;
+      }
+      return true;
+    });
+    console.log(`[anthropic-proxy] Loaded ${valid.length} model(s) from models.json`);
+    return valid;
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      console.warn(
+        "[anthropic-proxy] No models.json found at", modelsPath,
+        "\n  Copy models.example.json to models.json and configure your models."
+      );
+    } else {
+      console.warn("[anthropic-proxy] Failed to read models.json:", err.message);
+    }
+    return [];
+  }
+}
 
 // =============================================================================
 // Helpers
 // =============================================================================
 
-let _cachedApiKey = null;
-
 function getApiKey() {
-  if (_cachedApiKey) return _cachedApiKey;
-
-  // Option 1: Environment variable (simplest, works everywhere)
-  if (process.env.MPS_API_KEY) {
-    _cachedApiKey = process.env.MPS_API_KEY;
-    return _cachedApiKey;
+  const key = process.env.MPS_API_KEY;
+  if (!key) {
+    throw new Error(
+      "No API key found. Set the MPS_API_KEY environment variable.\n" +
+      "  export MPS_API_KEY=\"<account_id>:<secret>\""
+    );
   }
-
-  // Option 2: gopass (if available)
-  try {
-    _cachedApiKey = execSync(`gopass show -o ${GOPASS_PATH}`, {
-      encoding: "utf-8",
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
-    return _cachedApiKey;
-  } catch {
-    // gopass not installed or entry missing — fall through
-  }
-
-  throw new Error(
-    "No API key found. Set MPS_API_KEY environment variable, " +
-    `or store the key in gopass at '${GOPASS_PATH}'.`
-  );
+  return key;
 }
 
 function sanitizeSurrogates(text) {
@@ -219,7 +245,6 @@ async function* parseSSE(reader) {
 
 function cleanupBlocks(output) {
   for (const block of output.content) {
-    delete block._index;
     delete block._partialJson;
   }
 }
@@ -253,7 +278,7 @@ function streamAnthropicProxy(model, context, options) {
       const params = {
         model: model.id,
         messages: convertMessages(context.messages),
-        max_tokens: options?.maxTokens || Math.floor(model.maxTokens / 3),
+        max_tokens: options?.maxTokens ?? Math.floor(model.maxTokens / 3),
         stream: true,
       };
 
@@ -273,18 +298,19 @@ function streamAnthropicProxy(model, context, options) {
 
       // Add thinking if model supports it and level is set
       if (model.reasoning && context.thinkingLevel && context.thinkingLevel !== "off") {
-        // budget_tokens must be less than max_tokens; use 80% or max_tokens - 1024
+        // budget_tokens must be less than max_tokens and positive
+        const budget = Math.max(256, Math.min(
+          Math.floor(params.max_tokens * 0.8),
+          params.max_tokens - 1024
+        ));
         params.thinking = {
           type: "enabled",
-          budget_tokens: Math.min(
-            Math.floor(params.max_tokens * 0.8),
-            params.max_tokens - 1024
-          ),
+          budget_tokens: budget,
         };
         params.temperature = 1; // Required by Anthropic API when thinking is enabled
       }
 
-      const url = `${model.baseUrl}/v1/messages`;
+      const url = `${BASE_URL}/v1/messages`;
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -320,7 +346,7 @@ function streamAnthropicProxy(model, context, options) {
             output.usage.cacheWrite = usage.cache_creation_input_tokens || 0;
             output.usage.totalTokens =
               output.usage.input + output.usage.output + output.usage.cacheRead + output.usage.cacheWrite;
-            calculateCost(model, output.usage);
+            try { calculateCost(model, output.usage); } catch {}
           }
         } else if (event.type === "content_block_start") {
           const cb = event.content_block;
@@ -388,7 +414,7 @@ function streamAnthropicProxy(model, context, options) {
             output.usage.output = event.usage.output_tokens || output.usage.output;
             output.usage.totalTokens =
               output.usage.input + output.usage.output + output.usage.cacheRead + output.usage.cacheWrite;
-            calculateCost(model, output.usage);
+            try { calculateCost(model, output.usage); } catch {}
           }
         }
         // message_stop and ping events are intentionally ignored
@@ -414,40 +440,14 @@ function streamAnthropicProxy(model, context, options) {
 // =============================================================================
 
 export default function (pi) {
+  const models = loadModels();
+
   pi.registerProvider("anthropic-proxy", {
     name: "Anthropic Proxy",
     baseUrl: BASE_URL,
     apiKey: "managed-by-extension",
     api: "anthropic-proxy-api",
-    models: [
-      {
-        id: "anthropic.claude-opus-4-6-v1",
-        name: "Opus 4.6",
-        reasoning: true,
-        input: ["text", "image"],
-        cost: { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
-        contextWindow: 200000,
-        maxTokens: 128000,
-      },
-      {
-        id: "anthropic.claude-sonnet-4-6",
-        name: "Sonnet 4.6",
-        reasoning: true,
-        input: ["text", "image"],
-        cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
-        contextWindow: 200000,
-        maxTokens: 128000,
-      },
-      {
-        id: "anthropic.claude-haiku-4-5-20251001-v1:0",
-        name: "Haiku 4.5",
-        reasoning: false,
-        input: ["text", "image"],
-        cost: { input: 0.8, output: 4, cacheRead: 0.08, cacheWrite: 1 },
-        contextWindow: 200000,
-        maxTokens: 64000,
-      },
-    ],
+    models,
     streamSimple: streamAnthropicProxy,
   });
 }

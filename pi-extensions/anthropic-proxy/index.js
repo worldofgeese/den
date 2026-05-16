@@ -5,8 +5,12 @@
  * dependencies needed. Handles thinking/reasoning blocks correctly through
  * a LiteLLM/Bedrock proxy.
  *
+ * Authentication (checked in order):
+ *   1. MPS_API_KEY environment variable (recommended for most setups)
+ *   2. gopass entry at dev/anthropic-proxy-key (if gopass is available)
+ *
  * Usage:
- *   pi --provider anthropic-proxy
+ *   MPS_API_KEY=<your-key> pi --provider anthropic-proxy
  *   pi --provider anthropic-proxy --model "Opus 4.6"
  */
 
@@ -17,21 +21,43 @@ import {
 import { execSync } from "node:child_process";
 
 // =============================================================================
+// Configuration
+// =============================================================================
+
+const BASE_URL = "https://models.assistant.legogroup.io/anthropic";
+const GOPASS_PATH = "dev/anthropic-proxy-key";
+const MAX_ERROR_BODY_LENGTH = 200;
+
+// =============================================================================
 // Helpers
 // =============================================================================
 
+let _cachedApiKey = null;
+
 function getApiKey() {
+  if (_cachedApiKey) return _cachedApiKey;
+
+  // Option 1: Environment variable (simplest, works everywhere)
+  if (process.env.MPS_API_KEY) {
+    _cachedApiKey = process.env.MPS_API_KEY;
+    return _cachedApiKey;
+  }
+
+  // Option 2: gopass (if available)
   try {
-    return execSync("gopass show -o dev/anthropic-proxy-key", {
+    _cachedApiKey = execSync(`gopass show -o ${GOPASS_PATH}`, {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     }).trim();
-  } catch (e) {
-    if (process.env.MPS_API_KEY) return process.env.MPS_API_KEY;
-    throw new Error(
-      "Failed to retrieve API key from gopass. Ensure 'dev/anthropic-proxy-key' exists, or set MPS_API_KEY env var."
-    );
+    return _cachedApiKey;
+  } catch {
+    // gopass not installed or entry missing — fall through
   }
+
+  throw new Error(
+    "No API key found. Set MPS_API_KEY environment variable, " +
+    `or store the key in gopass at '${GOPASS_PATH}'.`
+  );
 }
 
 function sanitizeSurrogates(text) {
@@ -132,16 +158,40 @@ function convertMessages(messages) {
 async function* parseSSE(reader) {
   const decoder = new TextDecoder();
   let buffer = "";
+  let eventType = null;
 
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
 
+    if (done) {
+      // Flush decoder and process any remaining buffered data
+      buffer += decoder.decode();
+      if (buffer.trim()) {
+        const lines = buffer.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("event: ")) {
+            eventType = line.slice(7).trim();
+          } else if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") return;
+            try {
+              const parsed = JSON.parse(data);
+              if (eventType) parsed.type = eventType;
+              yield parsed;
+            } catch (e) {
+              console.warn("[anthropic-proxy] Failed to parse final SSE data:", data.slice(0, 80));
+            }
+            eventType = null;
+          }
+        }
+      }
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true });
     const lines = buffer.split("\n");
     buffer = lines.pop() || "";
 
-    let eventType = null;
     for (const line of lines) {
       if (line.startsWith("event: ")) {
         eventType = line.slice(7).trim();
@@ -152,7 +202,9 @@ async function* parseSSE(reader) {
           const parsed = JSON.parse(data);
           if (eventType) parsed.type = eventType;
           yield parsed;
-        } catch {}
+        } catch (e) {
+          console.warn("[anthropic-proxy] Failed to parse SSE data:", data.slice(0, 80));
+        }
         eventType = null;
       } else if (line === "") {
         eventType = null;
@@ -164,6 +216,13 @@ async function* parseSSE(reader) {
 // =============================================================================
 // Stream Implementation
 // =============================================================================
+
+function cleanupBlocks(output) {
+  for (const block of output.content) {
+    delete block._index;
+    delete block._partialJson;
+  }
+}
 
 function streamAnthropicProxy(model, context, options) {
   const stream = createAssistantMessageEventStream();
@@ -200,7 +259,7 @@ function streamAnthropicProxy(model, context, options) {
 
       // Add system prompt
       if (context.systemPrompt) {
-        params.system = [{ type: "text", text: context.systemPrompt }];
+        params.system = [{ type: "text", text: sanitizeSurrogates(context.systemPrompt) }];
       }
 
       // Add tools
@@ -214,6 +273,7 @@ function streamAnthropicProxy(model, context, options) {
 
       // Add thinking if model supports it and level is set
       if (model.reasoning && context.thinkingLevel && context.thinkingLevel !== "off") {
+        // budget_tokens must be less than max_tokens; use 80% or max_tokens - 1024
         params.thinking = {
           type: "enabled",
           budget_tokens: Math.min(
@@ -221,7 +281,7 @@ function streamAnthropicProxy(model, context, options) {
             params.max_tokens - 1024
           ),
         };
-        params.temperature = 1; // Required for thinking
+        params.temperature = 1; // Required by Anthropic API when thinking is enabled
       }
 
       const url = `${model.baseUrl}/v1/messages`;
@@ -239,12 +299,15 @@ function streamAnthropicProxy(model, context, options) {
 
       if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorBody}`);
+        // Truncate error body to avoid leaking secrets if proxy echoes headers
+        const safeBody = errorBody.slice(0, MAX_ERROR_BODY_LENGTH);
+        throw new Error(`HTTP ${response.status}: ${safeBody}`);
       }
 
       stream.push({ type: "start", partial: output });
 
-      const blocks = [];
+      // Map from SSE event index to block object for O(1) lookup
+      const blocksByIndex = new Map();
       const reader = response.body.getReader();
 
       for await (const event of parseSSE(reader)) {
@@ -261,76 +324,62 @@ function streamAnthropicProxy(model, context, options) {
           }
         } else if (event.type === "content_block_start") {
           const cb = event.content_block;
+          let block;
           if (cb.type === "text") {
-            output.content.push({ type: "text", text: "", _index: event.index });
+            block = { type: "text", text: "" };
+            output.content.push(block);
             stream.push({ type: "text_start", contentIndex: output.content.length - 1, partial: output });
           } else if (cb.type === "thinking") {
-            output.content.push({
-              type: "thinking",
-              thinking: "",
-              thinkingSignature: "",
-              _index: event.index,
-            });
+            block = { type: "thinking", thinking: "", thinkingSignature: "" };
+            output.content.push(block);
             stream.push({ type: "thinking_start", contentIndex: output.content.length - 1, partial: output });
           } else if (cb.type === "tool_use") {
-            output.content.push({
-              type: "toolCall",
-              id: cb.id,
-              name: cb.name,
-              arguments: {},
-              _partialJson: "",
-              _index: event.index,
-            });
+            block = { type: "toolCall", id: cb.id, name: cb.name, arguments: {}, _partialJson: "" };
+            output.content.push(block);
             stream.push({ type: "toolcall_start", contentIndex: output.content.length - 1, partial: output });
           }
-          blocks.push(output.content[output.content.length - 1]);
+          if (block) {
+            blocksByIndex.set(event.index, { block, contentIndex: output.content.length - 1 });
+          }
         } else if (event.type === "content_block_delta") {
-          const index = blocks.findIndex((b) => b._index === event.index);
-          const block = blocks[index];
-          if (!block) continue;
+          const entry = blocksByIndex.get(event.index);
+          if (!entry) continue;
+          const { block, contentIndex } = entry;
 
           if (event.delta.type === "text_delta" && block.type === "text") {
             block.text += event.delta.text;
-            stream.push({ type: "text_delta", contentIndex: index, delta: event.delta.text, partial: output });
+            stream.push({ type: "text_delta", contentIndex, delta: event.delta.text, partial: output });
           } else if (event.delta.type === "thinking_delta" && block.type === "thinking") {
             block.thinking += event.delta.thinking;
-            stream.push({
-              type: "thinking_delta",
-              contentIndex: index,
-              delta: event.delta.thinking,
-              partial: output,
-            });
+            stream.push({ type: "thinking_delta", contentIndex, delta: event.delta.thinking, partial: output });
           } else if (event.delta.type === "input_json_delta" && block.type === "toolCall") {
             block._partialJson += event.delta.partial_json;
             try {
               block.arguments = JSON.parse(block._partialJson);
             } catch {}
-            stream.push({
-              type: "toolcall_delta",
-              contentIndex: index,
-              delta: event.delta.partial_json,
-              partial: output,
-            });
+            stream.push({ type: "toolcall_delta", contentIndex, delta: event.delta.partial_json, partial: output });
           } else if (event.delta.type === "signature_delta" && block.type === "thinking") {
             block.thinkingSignature = (block.thinkingSignature || "") + event.delta.signature;
           }
         } else if (event.type === "content_block_stop") {
-          const index = blocks.findIndex((b) => b._index === event.index);
-          const block = blocks[index];
-          if (!block) continue;
+          const entry = blocksByIndex.get(event.index);
+          if (!entry) continue;
+          const { block, contentIndex } = entry;
 
-          delete block._index;
           if (block.type === "text") {
-            stream.push({ type: "text_end", contentIndex: index, content: block.text, partial: output });
+            stream.push({ type: "text_end", contentIndex, content: block.text, partial: output });
           } else if (block.type === "thinking") {
-            stream.push({ type: "thinking_end", contentIndex: index, content: block.thinking, partial: output });
+            stream.push({ type: "thinking_end", contentIndex, content: block.thinking, partial: output });
           } else if (block.type === "toolCall") {
             try {
               block.arguments = JSON.parse(block._partialJson);
-            } catch {}
+            } catch (e) {
+              console.warn("[anthropic-proxy] Failed to parse final tool arguments for", block.name);
+            }
             delete block._partialJson;
-            stream.push({ type: "toolcall_end", contentIndex: index, toolCall: block, partial: output });
+            stream.push({ type: "toolcall_end", contentIndex, toolCall: block, partial: output });
           }
+          blocksByIndex.delete(event.index);
         } else if (event.type === "message_delta") {
           if (event.delta?.stop_reason) {
             output.stopReason = mapStopReason(event.delta.stop_reason);
@@ -342,23 +391,16 @@ function streamAnthropicProxy(model, context, options) {
             calculateCost(model, output.usage);
           }
         }
+        // message_stop and ping events are intentionally ignored
       }
 
-      // Clean up internal properties
-      for (const block of output.content) {
-        delete block._index;
-        delete block._partialJson;
-      }
-
+      cleanupBlocks(output);
       stream.push({ type: "done", reason: output.stopReason, message: output });
       stream.end();
     } catch (error) {
-      for (const block of output.content) {
-        delete block._index;
-        delete block._partialJson;
-      }
+      cleanupBlocks(output);
       output.stopReason = options?.signal?.aborted ? "aborted" : "error";
-      output.errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+      output.errorMessage = error instanceof Error ? error.message : String(error);
       stream.push({ type: "error", reason: output.stopReason, error: output });
       stream.end();
     }
@@ -374,7 +416,7 @@ function streamAnthropicProxy(model, context, options) {
 export default function (pi) {
   pi.registerProvider("anthropic-proxy", {
     name: "Anthropic Proxy",
-    baseUrl: "https://models.assistant.legogroup.io/anthropic",
+    baseUrl: BASE_URL,
     apiKey: "managed-by-extension",
     api: "anthropic-proxy-api",
     models: [

@@ -34,6 +34,7 @@ unalias gc 2>/dev/null
 export _ZO_DOCTOR=0
 export GPG_TTY=$(tty)
 gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
+export MPS_API_KEY=$(gopass show -o dev/anthropic-proxy-key 2>/dev/null)
 
 # atuin and direnv shell integration managed by Nix Home Manager
 # (programs.atuin and programs.direnv inject into bashrc via HM)

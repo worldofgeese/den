@@ -27,6 +27,8 @@ import { fileURLToPath } from "node:url";
 
 const BASE_URL = "https://models.assistant.legogroup.io/anthropic";
 const MAX_ERROR_BODY_LENGTH = 200;
+const RETRY_DELAYS = [1000, 3000]; // 2 retries: 1s, 3s backoff
+const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503]);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -72,6 +74,104 @@ function loadModels() {
 }
 
 // =============================================================================
+// Context Size Estimation
+// =============================================================================
+
+/**
+ * Estimate token count for the request payload using chars/4 heuristic.
+ * This matches Pi's internal estimateTokens approach and is intentionally
+ * conservative (overestimates) to avoid false negatives.
+ */
+function estimateContextTokens(messages, systemPrompt, tools) {
+  let chars = 0;
+
+  // System prompt
+  if (systemPrompt) {
+    if (typeof systemPrompt === "string") {
+      chars += systemPrompt.length;
+    } else if (Array.isArray(systemPrompt)) {
+      for (const block of systemPrompt) {
+        if (block.text) chars += block.text.length;
+      }
+    }
+  }
+
+  // Messages
+  if (Array.isArray(messages)) {
+    for (const msg of messages) {
+      if (typeof msg.content === "string") {
+        chars += msg.content.length;
+      } else if (Array.isArray(msg.content)) {
+        for (const block of msg.content) {
+          if (block.type === "text" && block.text) {
+            chars += block.text.length;
+          } else if (block.type === "image" && block.source?.data) {
+            // Base64 images: ~0.75 bytes per char, estimate tokens conservatively
+            chars += block.source.data.length;
+          } else if (block.type === "thinking" && block.thinking) {
+            chars += block.thinking.length;
+          } else if (block.type === "tool_use") {
+            chars += JSON.stringify(block.input || {}).length;
+            chars += (block.name || "").length;
+          } else if (block.type === "tool_result") {
+            const content = block.content;
+            if (typeof content === "string") {
+              chars += content.length;
+            } else if (Array.isArray(content)) {
+              for (const item of content) {
+                if (item.text) chars += item.text.length;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Tool definitions
+  if (Array.isArray(tools)) {
+    for (const tool of tools) {
+      chars += (tool.name || "").length;
+      chars += (tool.description || "").length;
+      chars += JSON.stringify(tool.input_schema || {}).length;
+    }
+  }
+
+  // chars/4 is the standard heuristic (conservative overestimate)
+  return Math.ceil(chars / 4);
+}
+
+/**
+ * Patterns that indicate the proxy's generic error wrapping.
+ * These are errors where the actual cause is swallowed into a generic 500.
+ */
+const GENERIC_500_PATTERNS = [
+  /internal server error/i,
+  /all retry attempts failed/i,
+];
+
+/**
+ * Check if an HTTP error is likely a context overflow based on:
+ * 1. HTTP 500 status (proxy wraps errors generically)
+ * 2. Generic error message (not a specific, actionable error)
+ * 3. Estimated context size exceeds threshold
+ */
+function isLikelyContextOverflow(status, errorBody, estimatedTokens, contextWindow) {
+  // Only apply to 500s — other status codes have clear semantics
+  if (status !== 500) return false;
+
+  // Only apply when the error message is generic (proxy swallowed the real error)
+  const isGenericError = GENERIC_500_PATTERNS.some((p) => p.test(errorBody));
+  if (!isGenericError) return false;
+
+  // Only trigger when context is large enough that overflow is plausible
+  // 80% threshold: conservative to avoid false positives while catching real overflow
+  if (!contextWindow || estimatedTokens < contextWindow * 0.8) return false;
+
+  return true;
+}
+
+// =============================================================================
 // Helpers
 // =============================================================================
 
@@ -108,13 +208,15 @@ function mapStopReason(reason) {
 function convertContentBlocks(content) {
   const hasImages = content.some((c) => c.type === "image");
   if (!hasImages) {
-    return sanitizeSurrogates(content.map((c) => c.text).join("\n"));
+    return sanitizeSurrogates(content.filter((c) => c.text != null).map((c) => c.text).join("\n"));
   }
-  return content.map((c) =>
-    c.type === "text"
-      ? { type: "text", text: sanitizeSurrogates(c.text) }
-      : { type: "image", source: { type: "base64", media_type: c.mimeType, data: c.data } }
-  );
+  return content
+    .filter((c) => c.type === "text" || c.type === "image")
+    .map((c) =>
+      c.type === "text"
+        ? { type: "text", text: sanitizeSurrogates(c.text || "") }
+        : { type: "image", source: { type: "base64", media_type: c.mimeType, data: c.data } }
+    );
 }
 
 function convertMessages(messages) {
@@ -138,16 +240,18 @@ function convertMessages(messages) {
     } else if (msg.role === "assistant") {
       const blocks = [];
       for (const block of msg.content) {
-        if (block.type === "text" && block.text.trim()) {
+        if (block.type === "text" && block.text?.trim()) {
           blocks.push({ type: "text", text: sanitizeSurrogates(block.text) });
-        } else if (block.type === "thinking" && block.thinking.trim()) {
+        } else if (block.type === "thinking") {
+          // Always include thinking blocks with signatures (needed for multi-turn continuity)
           if (block.thinkingSignature) {
             blocks.push({
               type: "thinking",
-              thinking: sanitizeSurrogates(block.thinking),
+              thinking: sanitizeSurrogates(block.thinking || ""),
               signature: block.thinkingSignature,
             });
-          } else {
+          } else if (block.thinking?.trim()) {
+            // Thinking without signature: demote to text
             blocks.push({ type: "text", text: sanitizeSurrogates(block.thinking) });
           }
         } else if (block.type === "toolCall") {
@@ -159,8 +263,12 @@ function convertMessages(messages) {
           });
         }
       }
+      // Always include assistant messages to maintain alternation (API requires user/assistant alternation)
       if (blocks.length > 0) {
         params.push({ role: "assistant", content: blocks });
+      } else if (msg.content?.length > 0) {
+        // Preserve alternation: if all blocks were filtered, insert minimal text
+        params.push({ role: "assistant", content: [{ type: "text", text: "..." }] });
       }
     } else if (msg.role === "toolResult") {
       params.push({
@@ -282,36 +390,60 @@ function streamAnthropicProxy(model, context, options) {
         stream: true,
       };
 
-      // Add system prompt
+      // Add system prompt with prompt caching
       if (context.systemPrompt) {
-        params.system = [{ type: "text", text: sanitizeSurrogates(context.systemPrompt) }];
+        params.system = [{
+          type: "text",
+          text: sanitizeSurrogates(context.systemPrompt),
+          cache_control: { type: "ephemeral" },
+        }];
       }
 
-      // Add tools
+      // Add tools with prompt caching on the last tool
       if (context.tools?.length > 0) {
-        params.tools = context.tools.map((t) => ({
-          name: t.name,
-          description: t.description || "",
-          input_schema: t.parameters || { type: "object", properties: {} },
-        }));
+        params.tools = context.tools.map((t, i) => {
+          const tool = {
+            name: t.name,
+            description: t.description || "",
+            input_schema: t.parameters || { type: "object", properties: {} },
+          };
+          // Cache up to and including the last tool (Anthropic caches the prefix)
+          if (i === context.tools.length - 1) {
+            tool.cache_control = { type: "ephemeral" };
+          }
+          return tool;
+        });
       }
 
-      // Add thinking if model supports it and level is set
-      if (model.reasoning && context.thinkingLevel && context.thinkingLevel !== "off") {
-        // budget_tokens must be less than max_tokens and positive
-        const budget = Math.max(256, Math.min(
-          Math.floor(params.max_tokens * 0.8),
-          params.max_tokens - 1024
-        ));
-        params.thinking = {
-          type: "enabled",
-          budget_tokens: budget,
-        };
-        params.temperature = 1; // Required by Anthropic API when thinking is enabled
+      // Add thinking if model supports it and reasoning level is set
+      if (model.reasoning && options?.reasoning && options.reasoning !== "off") {
+        const defaultBudgets = { minimal: 1024, low: 4096, medium: 10240, high: 16384, xhigh: 32768 };
+        const budget = options?.thinkingBudgets?.[options.reasoning]
+          ?? defaultBudgets[options.reasoning]
+          ?? 10240;
+        // Ensure budget < max_tokens (API requirement)
+        const safeBudget = Math.min(budget, params.max_tokens - 1);
+        if (safeBudget > 0) {
+          params.thinking = {
+            type: "enabled",
+            budget_tokens: safeBudget,
+          };
+          params.temperature = 1; // Required by Anthropic API when thinking is enabled
+        }
+      }
+
+      // Fire onPayload hook before serialization (lets other extensions modify params)
+      try { options?.onPayload?.(params); } catch (e) {
+        console.warn("[anthropic-proxy] onPayload hook error:", e.message);
       }
 
       const url = `${BASE_URL}/v1/messages`;
-      const response = await fetch(url, {
+      // Combine Pi's abort signal with a 90s timeout (above proxy's 60s default)
+      const signals = [options?.signal, AbortSignal.timeout(90_000)].filter(Boolean);
+      const combinedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0];
+
+      const requestBody = JSON.stringify(params);
+      const requestOptions = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -319,28 +451,89 @@ function streamAnthropicProxy(model, context, options) {
           "anthropic-version": "2023-06-01",
           "anthropic-beta": "interleaved-thinking-2025-05-14",
         },
-        body: JSON.stringify(params),
-        signal: options?.signal,
-      });
+        body: requestBody,
+        signal: combinedSignal,
+      };
 
-      if (!response.ok) {
+      // Retry loop for transient errors
+      let response;
+      let lastError;
+      const retryDelays = [...RETRY_DELAYS]; // Copy so Retry-After doesn't mutate global
+      for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+        if (attempt > 0) {
+          if (combinedSignal?.aborted) break;
+          const delay = retryDelays[attempt - 1];
+          console.warn(`[anthropic-proxy] Retry ${attempt}/${retryDelays.length} after ${delay}ms`);
+          await new Promise((r) => setTimeout(r, delay));
+        }
+
+        response = await fetch(url, requestOptions);
+
+        // Fire onResponse hook (lets other extensions inspect headers)
+        try { options?.onResponse?.(response); } catch (e) {
+          console.warn("[anthropic-proxy] onResponse hook error:", e.message);
+        }
+
+        if (response.ok) break;
+
+        // Read error body for classification
         const errorBody = await response.text();
-        // Redact API key from error body in case proxy echoes request headers
         let safeBody = errorBody.slice(0, MAX_ERROR_BODY_LENGTH);
         if (apiKey) {
           safeBody = safeBody.replaceAll(apiKey, "[REDACTED]");
         }
-        throw new Error(`HTTP ${response.status}: ${safeBody}`);
+
+        // Non-retryable: context overflow (direct match)
+        if (/prompt is too long|input is too long|token count exceeds/i.test(safeBody)) {
+          throw new Error(`prompt is too long: ${safeBody}`);
+        }
+
+        // Non-retryable: context overflow (heuristic)
+        const isThrottling = /throttl|rate.?limit|too many requests|service.?unavailable/i.test(safeBody);
+        const estimatedTokens = estimateContextTokens(params.messages, params.system, params.tools);
+        if (!isThrottling && isLikelyContextOverflow(response.status, safeBody, estimatedTokens, model.contextWindow)) {
+          throw new Error(
+            `prompt is too long: request failed (context likely exceeds ${model.contextWindow} token limit, estimated ${estimatedTokens} tokens)`
+          );
+        }
+
+        // Non-retryable status codes: fail immediately
+        if (!RETRYABLE_STATUS_CODES.has(response.status)) {
+          throw new Error(`HTTP ${response.status}: ${safeBody}`);
+        }
+
+        // Retryable: respect Retry-After header (capped at 10s)
+        if (response.status === 429 && attempt < retryDelays.length) {
+          const retryAfter = parseInt(response.headers.get("retry-after") || "0", 10);
+          if (retryAfter > 0 && retryAfter <= 10) {
+            retryDelays[attempt] = retryAfter * 1000;
+          }
+        }
+
+        lastError = `HTTP ${response.status}: ${safeBody}`;
+      }
+
+      // If we exhausted retries, throw the last error
+      if (!response.ok) {
+        throw new Error(lastError || `HTTP ${response.status}: request failed after retries`);
+      }
+
+      if (!response.body) {
+        throw new Error("Response body is null — proxy returned empty stream");
       }
 
       stream.push({ type: "start", partial: output });
 
       // Map from SSE event index to block object for O(1) lookup
       const blocksByIndex = new Map();
+      let receivedMessageStart = false;
+      let receivedMessageStop = false;
       const reader = response.body.getReader();
 
       for await (const event of parseSSE(reader)) {
         if (event.type === "message_start") {
+          receivedMessageStart = true;
+          output.responseId = event.message?.id;
           const usage = event.message?.usage;
           if (usage) {
             output.usage.input = usage.input_tokens || 0;
@@ -419,16 +612,30 @@ function streamAnthropicProxy(model, context, options) {
               output.usage.input + output.usage.output + output.usage.cacheRead + output.usage.cacheWrite;
             try { calculateCost(model, output.usage); } catch {}
           }
+        } else if (event.type === "message_stop") {
+          receivedMessageStop = true;
         }
-        // message_stop and ping events are intentionally ignored
+        // ping events are intentionally ignored
+      }
+
+      // Detect incomplete streams: if we never got message_start, the proxy sent invalid data
+      if (!receivedMessageStart) {
+        throw new Error("Stream completed without valid SSE data — proxy may have returned an error page");
+      }
+
+      // Detect truncated streams: message_start but no message_stop means interrupted
+      if (!receivedMessageStop && output.content.length > 0) {
+        throw new Error("Stream interrupted — response incomplete (no message_stop received)");
       }
 
       cleanupBlocks(output);
+      blocksByIndex.clear();
       stream.push({ type: "done", reason: output.stopReason, message: output });
       stream.end();
     } catch (error) {
       cleanupBlocks(output);
-      output.stopReason = options?.signal?.aborted ? "aborted" : "error";
+      const isAborted = options?.signal?.aborted || (error instanceof Error && error.name === "AbortError");
+      output.stopReason = isAborted ? "aborted" : "error";
       output.errorMessage = error instanceof Error ? error.message : String(error);
       stream.push({ type: "error", reason: output.stopReason, error: output });
       stream.end();

@@ -11,7 +11,6 @@
     ];
 
     homeManager = { pkgs, lib, config, ... }: {
-
       programs.home-manager.enable = true;
       xdg.enable = true;
       fonts.fontconfig.enable = true;
@@ -55,7 +54,6 @@
         odo
         secretspec
         ripgrep
-        yq-go
         cheat
         exercism
         fd
@@ -354,11 +352,11 @@
         };
       };
 
-      # SSH base config (matchBlocks for *, github.com, fleet hosts) comes from
+      # SSH base config (settings for *, github.com, fleet hosts) comes from
       # den.aspects.ssh. Only macOS-specific overrides here.
-      programs.ssh.matchBlocks = {
-        "*".addKeysToAgent = "yes";
-        "github.com".identityFile = "~/.ssh/my_ssh_key";
+      programs.ssh.settings = {
+        "*".AddKeysToAgent = "yes";
+        "github.com".IdentityFile = "~/.ssh/my_ssh_key";
       };
 
       programs.zsh.dotDir = "${config.xdg.configHome}/zsh";

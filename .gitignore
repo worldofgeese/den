@@ -34,3 +34,8 @@ my-test-suite.log
 
 # CodeGraph index (generated)
 .codegraph/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key

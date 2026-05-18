@@ -4,40 +4,38 @@
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks = {
+      settings = {
         "*" = {
-          extraOptions = {
-            ControlMaster = "auto";
-            ControlPersist = "yes";
-          };
+          ControlMaster = "auto";
+          ControlPersist = "yes";
         };
         "github.com" = {
-          hostname = "github.com";
-          user = "git";
+          HostName = "github.com";
+          User = "git";
         };
 
         # --- Tailnet hosts (MagicDNS: *.hound-celsius.ts.net) ---
         loving-kypris = {
-          hostname = "loving-kypris.hound-celsius.ts.net";
-          user = "worldofgeese";
+          HostName = "loving-kypris.hound-celsius.ts.net";
+          User = "worldofgeese";
         };
         paphos = {
-          hostname = "paphos.hound-celsius.ts.net";
-          user = "kypris";
+          HostName = "paphos.hound-celsius.ts.net";
+          User = "kypris";
         };
         mother = {
-          hostname = "mother.hound-celsius.ts.net";
-          port = 2235;
-          user = "taohansen";
+          HostName = "mother.hound-celsius.ts.net";
+          Port = 2235;
+          User = "taohansen";
         };
         pixel-fold = {
-          hostname = "google-pixel-fold.hound-celsius.ts.net";
-          port = 8022;
-          user = "nix-on-droid";
+          HostName = "google-pixel-fold.hound-celsius.ts.net";
+          Port = 8022;
+          User = "nix-on-droid";
         };
         desktop = {
-          hostname = "desktop-6071t21.hound-celsius.ts.net";
-          user = "worldofgeese";
+          HostName = "desktop-6071t21.hound-celsius.ts.net";
+          User = "worldofgeese";
         };
       };
     };

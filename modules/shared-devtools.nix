@@ -5,14 +5,14 @@
   # Host-specific additions go in workstation.nix or dktaohan.nix.
   den.aspects.sharedDevtools = {
     includes = [ den.aspects.devtools ];
-    homeManager = { pkgs, ... }: {
+    homeManager = { pkgs, lib, ... }: {
       home.packages = with pkgs; [
         nodejs
         bun
         uv
         kubectl
         shellcheck
-        yq
+        yq-go
         glab
         just
         claude-code
@@ -32,7 +32,7 @@
       programs.atuin = {
         enable = true;
         settings = {
-          auto_sync = true;
+          auto_sync = lib.mkDefault true;
           sync_frequency = "5m";
           search_mode = "fuzzy";
         };

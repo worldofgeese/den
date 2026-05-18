@@ -220,6 +220,14 @@ function convertContentBlocks(content) {
 }
 
 function convertMessages(messages) {
+  // Collect all tool_result IDs so we can detect orphaned tool_use blocks
+  const toolResultIds = new Set();
+  for (const msg of messages) {
+    if (msg.role === "toolResult" && msg.toolCallId) {
+      toolResultIds.add(msg.toolCallId);
+    }
+  }
+
   const params = [];
   for (const msg of messages) {
     if (msg.role === "user") {
@@ -255,12 +263,16 @@ function convertMessages(messages) {
             blocks.push({ type: "text", text: sanitizeSurrogates(block.thinking) });
           }
         } else if (block.type === "toolCall") {
-          blocks.push({
-            type: "tool_use",
-            id: block.id,
-            name: block.name,
-            input: block.arguments,
-          });
+          // Only include tool_use if there's a matching tool_result
+          // (aborted responses can leave orphaned tool_use blocks that violate API contract)
+          if (toolResultIds.has(block.id)) {
+            blocks.push({
+              type: "tool_use",
+              id: block.id,
+              name: block.name,
+              input: block.arguments || {},
+            });
+          }
         }
       }
       // Always include assistant messages to maintain alternation (API requires user/assistant alternation)

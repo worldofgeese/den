@@ -449,10 +449,25 @@ function streamAnthropicProxy(model, context, options) {
         console.warn("[anthropic-proxy] onPayload hook error:", e.message);
       }
 
-      const url = `${BASE_URL}/v1/messages`;
-      // Combine Pi's abort signal with a 90s timeout (above proxy's 60s default)
-      const signals = [options?.signal, AbortSignal.timeout(90_000)].filter(Boolean);
-      const combinedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0];
+      // Estimate input size to adapt timeouts for large contexts (compaction)
+      const estimatedInputTokens = params.messages?.reduce((sum, m) => {
+        if (typeof m.content === "string") return sum + m.content.length / 4;
+        if (Array.isArray(m.content)) return sum + m.content.reduce((s, b) => s + (b.text?.length || 0) / 4, 0);
+        return sum;
+      }, 0) || 0;
+      const isLargeContext = estimatedInputTokens > 100_000;
+
+      // Proxy has asyncio.timeout(call_timeout_sec) — default 60s, max 120s.
+      // Pass max for large requests; use default for normal ones.
+      const url = isLargeContext
+        ? `${BASE_URL}/v1/messages?call-timeout-sec=120`
+        : `${BASE_URL}/v1/messages`;
+
+      // Client timeout: 90s normal, none for large (proxy's 120s is the real limit)
+      const signals = isLargeContext
+        ? [options?.signal].filter(Boolean)
+        : [options?.signal, AbortSignal.timeout(90_000)].filter(Boolean);
+      const combinedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0] || undefined;
 
       const requestBody = JSON.stringify(params);
       const requestOptions = {

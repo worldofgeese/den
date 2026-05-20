@@ -32,7 +32,9 @@ And no audible pop or crackle occurs on wake
 Given the laptop is on AC power
 When under sustained workload
 Then CPU turbo boost is enabled
+And CPU frequency scaling governor is "performance"
 And HWP energy performance preference is "balance_performance"
+And platform profile is "balanced"
 And PCIe ASPM is "powersave" (not off, but not aggressive)
 
 ### Scenario: WiFi remains stable with ASPM enabled

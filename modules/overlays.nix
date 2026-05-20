@@ -8,15 +8,15 @@
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
-          version = "0.47.27";
+          version = "0.48.6";
 
           src = final.fetchCrate {
             pname = "decapod";
-            version = "0.47.27";
-            hash = "sha256-u/QFpVFgxLxx0DfMEm/IDFsVss2Y6l4EAAqS24mzcqw=";
+            version = "0.48.6";
+            hash = "sha256-RcclT5sK250IbGMRPL0oo119gKEVmXfQjIHQ85Eydhk=";
           };
 
-          cargoHash = "sha256-sToKcJRnpAiEQ3gmZK5QuO2JX+2VVy9INvhEIhT/LSg=";
+          cargoHash = "sha256-0h4uNldMp9KZvPoMBkqWkWRXJ0mu98StY8d/F9ZOFM0=";
 
           doCheck = false;
 

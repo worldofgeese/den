@@ -11,7 +11,6 @@
              (nongnu system linux-initrd)
              (rosenthal services networking)
              (gnu packages gnome)
-             (gnu packages suckless)
              (guix packages)
              (srfi srfi-1)
              (linux-cachyos))
@@ -105,11 +104,7 @@ root ALL=(ALL) ALL
               (avoid-regexp "sshd|shepherd|earlyoom")
               (run-with-higher-priority? #t)))
     (udev-rules-service 'fido2 libfido2 #:groups '("plugdev"))
-    (service screen-locker-service-type
-             (screen-locker-configuration
-              (name "slock")
-              (program (file-append slock "/bin/slock"))))
-     (service gnome-desktop-service-type
+    (service gnome-desktop-service-type
               (gnome-desktop-configuration
                (utilities
                 (remove (lambda (pkg)
@@ -149,6 +144,7 @@ root ALL=(ALL) ALL
              (tlp-configuration
               (cpu-boost-on-ac? #t)
               (cpu-boost-on-bat? #f)
+              (cpu-scaling-governor-on-ac '("performance"))
               (energy-perf-policy-on-ac "balance_performance")
               (energy-perf-policy-on-bat "power")
               (pcie-aspm-on-ac "powersave")
@@ -165,7 +161,7 @@ root ALL=(ALL) ALL
     (simple-service 'tlp-platform-profile etc-service-type
       (list `("tlp.d/01-platform-profile.conf"
               ,(plain-file "01-platform-profile.conf"
-                "PLATFORM_PROFILE_ON_AC=quiet\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
+                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
 
     (service rootless-podman-service-type
       (rootless-podman-configuration
@@ -213,11 +209,17 @@ COMMIT
                     (list
                      (shepherd-service
                       (provision '(nix-opengl-driver))
-                      (requirement '(file-systems user-homes))
-                      (documentation "Symlink /run/opengl-driver for Nix GPU apps (home-manager GPU module).")
-                      (one-shot? #t)
-                      (start #~(make-system-constructor
-                                "/bin/sh -c 'target=$(grep -oP \"(?<=^new=)\\\\S+\" /home/worldofgeese/.local/state/home-manager/gcroots/current-home/activate) && [ -d \"$target\" ] && ln -sfT \"$target\" /run/opengl-driver'")))))
+                       (requirement '(file-systems user-homes))
+                       (documentation "Symlink /run/opengl-driver for Nix GPU apps (home-manager GPU module).")
+                       (one-shot? #t)
+                       (start #~(make-system-constructor
+                                 (string-append
+                                  "target=$("
+                                  #$(file-append (specification->package "grep") "/bin/grep")
+                                  " -m1 -oP \"(?<=^new=)\\\\S+\" /home/worldofgeese/.local/state/home-manager/gcroots/current-home/activate) && "
+                                  "[ -d \"$target\" ] && "
+                                  #$(file-append (specification->package "coreutils") "/bin/ln")
+                                  " -sfT \"$target\" /run/opengl-driver"))))))
     (simple-service 'cpu-undervolt shepherd-root-service-type
                     (list
                      (shepherd-service

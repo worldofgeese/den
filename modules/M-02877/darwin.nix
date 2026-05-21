@@ -1,7 +1,15 @@
-{ den, inputs, ... }:
 {
+  den,
+  inputs,
+  ...
+}: {
   den.aspects.M-02877 = {
-    darwin = { config, lib, pkgs, ... }: {
+    darwin = {
+      config,
+      lib,
+      pkgs,
+      ...
+    }: {
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "hm-bak";
 
@@ -9,7 +17,8 @@
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [
         (final: prev: {
-          inherit (prev.lixPackageSets.latest)
+          inherit
+            (prev.lixPackageSets.latest)
             nixpkgs-review
             nix-eval-jobs
             nix-fast-build
@@ -21,11 +30,11 @@
       nix.package = pkgs.lixPackageSets.latest.lix;
       nix.channel.enable = false;
       nix.settings = {
-        experimental-features = [ "nix-command" "flakes" "auto-allocate-uids" ];
-        extra-platforms = [ ];
+        experimental-features = ["nix-command" "flakes" "auto-allocate-uids"];
+        extra-platforms = [];
         warn-dirty = false;
         auto-optimise-store = true;
-        extra-deprecated-features = [ "or-as-identifier" ];
+        extra-deprecated-features = ["or-as-identifier"];
       };
 
       users.users.dktaohan.home = "/Users/dktaohan";
@@ -95,6 +104,7 @@
         ];
         casks = [
           "zed"
+          "github-copilot-app"
           "jordanbaird-ice"
           "alt-tab"
           "loop"

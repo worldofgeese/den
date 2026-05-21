@@ -1,11 +1,14 @@
-{ den, ... }:
-{
+{den, ...}: {
   # Shared developer tooling aspect — packages and programs used on both
   # mahakala (Linux workstation) and M-02877 (macOS work machine).
   # Host-specific additions go in workstation.nix or dktaohan.nix.
   den.aspects.sharedDevtools = {
-    includes = [ den.aspects.devtools ];
-    homeManager = { pkgs, lib, ... }: {
+    includes = [den.aspects.devtools];
+    homeManager = {
+      pkgs,
+      lib,
+      ...
+    }: {
       home.packages = with pkgs; [
         nodejs
         bun

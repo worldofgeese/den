@@ -22,6 +22,7 @@
       home.sessionPath = [
         "$HOME/bin"
         "$HOME/.local/bin"
+        "$HOME/.local/share/pnpm/bin"
         "/opt/homebrew/bin"
         "$HOME/.dotnet/tools"
       ];
@@ -43,6 +44,7 @@
         vale
         pnpm
         rustup
+        cargo-update
         saml2aws
         kubernetes-helm
         helm-dashboard
@@ -341,7 +343,7 @@
             disable = [
               "nix" "home_manager" "brew_formula" "brew_cask"
               "bun" "bun_packages" "bob" "helm"
-              "github_cli_extensions" "rustup"
+              "github_cli_extensions" "rustup" "pi"
             ];
             cleanup = true;
             set_title = true;

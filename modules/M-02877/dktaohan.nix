@@ -45,6 +45,7 @@
         pnpm
         rustup
         cargo-update
+        go
         saml2aws
         kubernetes-helm
         helm-dashboard

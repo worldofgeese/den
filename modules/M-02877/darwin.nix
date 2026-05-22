@@ -56,6 +56,7 @@
       security.pam.services.sudo_local.reattach = true;
       security.sudo.extraConfig = ''
         Defaults env_keep += "HOMEBREW_GITHUB_API_TOKEN"
+        dktaohan ALL=(root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild switch *
       '';
 
       system.stateVersion = 5;

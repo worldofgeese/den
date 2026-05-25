@@ -48,7 +48,7 @@
       programs.starship = {
         enable = true;
         settings = {
-          kubernetes = { disabled = false; };
+          kubernetes = { disabled = true; };
           nodejs = { disabled = true; };
         };
       };

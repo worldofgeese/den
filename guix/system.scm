@@ -22,22 +22,50 @@
 (define %my-services
   (modify-services %desktop-services
     (guix-service-type
-      config => (guix-configuration
-                  (inherit config)
-                  (extra-options '("--max-jobs=1" "--cores=4"))
+     config => (guix-configuration
+                 (inherit config)
+                 (extra-options '("--max-jobs=1" "--cores=4"))
                  (substitute-urls
-                (append (list "https://nonguix-proxy.ditigal.xyz")
-                  %default-substitute-urls))
-                  (authorized-keys
-                   (append (list (plain-file "non-guix.pub" "
+                  (append (list "https://nonguix-proxy.ditigal.xyz"
+                                "https://substitutes.nonguix.org"
+                                "https://cache-cdn.guix.moe"
+                                "https://guix.tobias.gr/substitutes/"
+                                "https://guix.bordeaux.inria.fr")
+                          %default-substitute-urls))
+                 (authorized-keys
+                  (append (list (plain-file "nonguix.pub" "
     (public-key
      (ecc
       (curve Ed25519)
       (q #C1FD53E5D4CE971933EC50C9F307AE2171A2D3B52C804642A7A35F84F3A4EA98#)
       )
      )
+    ")
+                                (plain-file "guix-moe.pub" "
+    (public-key
+     (ecc
+      (curve Ed25519)
+      (q #552F670D5005D7EB6ACF05284A1066E52156B51D75DE3EBD3030CD046675D543#)
+      )
+     )
+    ")
+                                (plain-file "guix-tobias.pub" "
+    (public-key
+     (ecc
+      (curve Ed25519)
+      (q #628CD75C05C78223317092AFDCBE7130D363ACA938114A067F4F9DCF346B59DB#)
+      )
+     )
+    ")
+                                (plain-file "guix-science.pub" "
+    (public-key
+     (ecc
+      (curve Ed25519)
+      (q #89FBA276A976A8DE2A69774771A92C8C879E0F24614AAAAE23119608707B3F06#)
+      )
+     )
     "))
-                       %default-authorized-guix-keys))))
+                          %default-authorized-guix-keys))))
     (sysctl-service-type
       config => (sysctl-configuration
                   (inherit config)
@@ -70,7 +98,7 @@
   (initrd microcode-initrd)
   ;; PSR disabled — causes GNOME Shell compositor to spin at 15% CPU on this panel.
   ;; ASPM left enabled (managed by TLP, no observed WiFi issues).
-  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y snd_hda_intel.power_save=1" %default-kernel-arguments))
+  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce" %default-kernel-arguments))
   (firmware (list linux-firmware))
   (locale "en_US.utf8")
   (timezone "Europe/Copenhagen")
@@ -126,12 +154,17 @@ root ALL=(ALL) ALL
     (service fwupd-service-type
              (fwupd-configuration
               (fwupd fwupd-nonfree)))
+    ;; Suppress fwupdmgr report-upload prompt (blanking ReportURI removes the prompt entirely)
+    (simple-service 'fwupd-no-reports etc-service-type
+      (list `("fwupd/remotes.d/lvfs.conf"
+              ,(plain-file "lvfs.conf"
+                "[fwupd Remote]\nEnabled=true\nTitle=Linux Vendor Firmware Service\nMetadataURI=https://cdn.fwupd.org/downloads/firmware.xml.xz\nReportURI=\nAutomaticReports=false\nAutomaticSecurityReports=false\nApprovalRequired=false\n"))))
     (service nix-service-type
              (nix-configuration
               (extra-config
                (list "trusted-users = root worldofgeese\n"
-                     "extra-trusted-substituters = https://cache.floxdev.com https://devenv.cachix.org https://nixpkgs-python.cachix.org\n"
-                     "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU=\n"
+                     "extra-trusted-substituters = https://cache.floxdev.com https://devenv.cachix.org https://nixpkgs-python.cachix.org https://cache.numtide.com\n"
+                     "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=\n"
                      "experimental-features = nix-command flakes\n"))))
     (service tailscale-service-type)
     (simple-service 'msr-module kernel-module-loader-service-type '("msr"))
@@ -162,6 +195,19 @@ root ALL=(ALL) ALL
       (list `("tlp.d/01-platform-profile.conf"
               ,(plain-file "01-platform-profile.conf"
                 "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
+
+    (simple-service 'flatpak-hicolor-icon-index activation-service-type
+                    #~(begin
+                        (for-each
+                         (lambda (directory)
+                           (unless (file-exists? directory)
+                             (mkdir directory)))
+                         '("/usr" "/usr/share" "/usr/share/icons" "/usr/share/icons/hicolor"))
+                        (let ((target "/usr/share/icons/hicolor/index.theme"))
+                          (when (file-exists? target)
+                            (delete-file target))
+                          (symlink "/run/current-system/profile/share/icons/hicolor/index.theme"
+                                   target))))
 
     (service rootless-podman-service-type
       (rootless-podman-configuration

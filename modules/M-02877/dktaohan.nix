@@ -349,7 +349,7 @@
             set_title = true;
           };
           commands = {
-            "Nix-Darwin" = "nix flake update --flake ~/.config/home-manager && sudo -H darwin-rebuild switch --flake ~/.config/home-manager#M-02877";
+            "Nix-Darwin via Justfile" = "cd ~/.config/home-manager && just deploy-darwin";
           };
         };
       };

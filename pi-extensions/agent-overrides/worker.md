@@ -5,9 +5,10 @@ model: oc-sdk-go/kimi-k2.6
 fallbackModels: oc-sdk-go/glm-5.1, oc-sdk-go/mimo-v2.5-pro
 thinking: high
 tools: read, grep, find, ls, bash, edit, write, contact_supervisor
+skills: ce-work, tdd, ce-debug
 systemPromptMode: replace
 inheritProjectContext: true
-inheritSkills: true
+inheritSkills: false
 defaultContext: fork
 reads: context.md, plan.md
 progress: true

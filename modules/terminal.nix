@@ -106,6 +106,7 @@
           config.default_cursor_style = 'BlinkingBar'
           config.cursor_blink_rate = 500
           config.scrollback_lines = 10000
+          config.default_prog = { '/home/worldofgeese/.nix-profile/bin/brush', '--login' }
           config.keys = {
             { key = 'd', mods = 'CTRL|SHIFT', action = wezterm.action.SplitHorizontal({ domain = 'CurrentPaneDomain' }) },
             { key = 'd', mods = 'CTRL|SHIFT|ALT', action = wezterm.action.SplitVertical({ domain = 'CurrentPaneDomain' }) },

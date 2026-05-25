@@ -18,7 +18,7 @@ run_with_nix() {
   if command -v "$command" >/dev/null 2>&1; then
     "$command" "$@"
   else
-    nix shell --quiet --inputs-from "$REPO_ROOT" "nixpkgs#$package" -c "$command" "$@"
+    nix shell --quiet --no-warn-dirty --inputs-from "$REPO_ROOT" "nixpkgs#$package" -c "$command" "$@"
   fi
 }
 
@@ -159,7 +159,7 @@ compute_cargo_hash() {
   local cargo_hash
 
   log_file="$(mktemp)"
-  if nix build --no-link --impure --expr "$(nix_package_expr "$package")" >"$log_file" 2>&1; then
+  if nix build --no-link --impure --no-warn-dirty --expr "$(nix_package_expr "$package")" >"$log_file" 2>&1; then
     cat "$log_file" >&2
     rm -f "$log_file"
     echo "ERROR: $package unexpectedly built with a fake cargoHash" >&2
@@ -179,8 +179,8 @@ compute_cargo_hash() {
 }
 
 latest_decapod_version=$(
-  run_with_nix cargo cargo search decapod --limit 1 \
-    | sed -n 's/^decapod = "\([^"]*\)".*/\1/p' \
+  run_with_nix cargo cargo info decapod \
+    | sed -n 's/^version: //p' \
     | head -1
 )
 latest_rtk_tag=$(run_with_nix gh gh release view --repo rtk-ai/rtk --json tagName --jq .tagName)

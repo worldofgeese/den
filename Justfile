@@ -5,18 +5,17 @@ default:
 
 # Deploy everything on mahakala (Guix System + Guix Home + Home Manager)
 deploy-mahakala:
-    sudo guix pull -C ~/.config/home-manager/guix/channels.scm
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
     guix pull
     just update
-    sudo guix system reconfigure --fallback -L ~/.config/home-manager/guix-packages ~/.config/home-manager/guix/system.scm
     guix home reconfigure guix/home-configuration.scm
-    home-manager switch --flake .#worldofgeese
+    NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
 
 # Deploy only Home Manager on mahakala
 deploy-mahakala-hm:
     just update
-    home-manager switch --flake .#worldofgeese
+    NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
 
 # Deploy only Guix Home on mahakala
@@ -26,31 +25,33 @@ deploy-mahakala-guix:
 
 # Reconfigure Guix System (requires sudo)
 deploy-mahakala-system:
-    sudo guix pull -C ~/.config/home-manager/guix/channels.scm
-    sudo guix system reconfigure --fallback -L ~/.config/home-manager/guix-packages ~/.config/home-manager/guix/system.scm
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
 
 # Deploy NixOS on paphos (remote server)
 deploy-paphos host="paphos":
     just update
-    nixos-rebuild switch --flake .#paphos --target-host {{host}} --use-remote-sudo
+    NIX_CONFIG='warn-dirty = false' nixos-rebuild switch --flake .#paphos --target-host {{host}} --use-remote-sudo
 
 # Deploy nix-darwin on M-02877 (macOS)
 deploy-darwin:
     just update
-    sudo -H darwin-rebuild switch --flake .#M-02877
+    sudo -H env NIX_CONFIG='warn-dirty = false' darwin-rebuild switch --flake .#M-02877
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:
     just update
-    nix-on-droid switch --flake .#pixel-fold
+    NIX_CONFIG='warn-dirty = false' nix-on-droid switch --flake .#pixel-fold
 
-# Check flake evaluates without errors
+# Check host outputs evaluate without known-noise custom-output warnings
 check:
-    nix flake check --all-systems
+    nix eval --no-warn-dirty .#nixosConfigurations.paphos.config.system.build.toplevel.drvPath >/dev/null
+    nix eval --no-warn-dirty .#homeConfigurations.worldofgeese.activationPackage.drvPath >/dev/null
+    nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
+    nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
 
 # Update all flake inputs
 update:
-    nix flake update
+    nix flake update --no-warn-dirty
     just update-rust-tools
 
 # Update pinned Rust tools to latest upstream releases
@@ -59,7 +60,7 @@ update-rust-tools:
 
 # Update a single flake input
 update-input input:
-    nix flake update {{input}}
+    nix flake update --no-warn-dirty {{input}}
 
 # Upgrade CachyOS kernel to latest stable release
 upgrade-kernel:

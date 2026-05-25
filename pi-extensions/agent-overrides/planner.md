@@ -5,6 +5,7 @@ model: oc-sdk-go/glm-5.1
 fallbackModels: oc-sdk-go/mimo-v2.5-pro, oc-sdk-go/kimi-k2.6
 thinking: high
 tools: read, grep, find, ls, write, intercom
+skills: ce-plan
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

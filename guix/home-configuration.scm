@@ -1,5 +1,6 @@
 (use-modules (gnu home)
              (gnu packages)
+             (gnu packages emacs-xyz)
              (gnu packages gnupg)
              (gnu services)
              (guix gexp)
@@ -21,8 +22,9 @@
       (list (feature-pipewire)))))))
 
 (home-environment
- (packages (specifications->packages
-            (list "git"
+ (packages (append
+            (specifications->packages
+             (list "git"
                   "fd"
                   "openssh"
                   ;; Gas City dependencies
@@ -42,10 +44,10 @@
                    "make"
                    "python"
                    ;; end tools for gooseandquill.blog
-                  "emacs-guix"
-                  "emacs-all-the-icons"
-                  "steam"
-                    "font-jetbrains-mono"
+                   "emacs-all-the-icons"
+                   "steam"
+                   "vlc"
+                     "font-jetbrains-mono"
                    "font-inter"
                    "font-google-noto" ;; display symbols normally in Doom Emacs
                    "font-noto-emoji"  ;; color emoji
@@ -94,7 +96,10 @@
                   "poppler"
                   "imagemagick"
                   "tesseract-ocr"
-                   )))
+                  ;; Desktop apps (substitutes available from Bordeaux)
+                  "telegram-desktop"
+                  "yt-dlp"))
+            (list emacs-guix)))
 
 
  (services
@@ -107,22 +112,52 @@
               (bashrc
                (list (local-file "bashrc")
                      (local-file "vterm-bash.sh")))))
-    (simple-service
-     'ssh-permissions-service
-     home-activation-service-type
-     (with-imported-modules '((guix build utils))
-       #~(begin
-           (use-modules (guix build utils))
-           (let ((ssh-dir (string-append (getenv "HOME") "/.ssh")))
-             (when (not (file-exists? ssh-dir))
-               (mkdir-p ssh-dir))
-             (chmod ssh-dir #o700)
-             (for-each (lambda (file)
-                         (unless (symbolic-link? file)
-                           (chmod file #o600)))
-                       (find-files ssh-dir #:directories? #f))))))
-    (service home-gpg-agent-service-type
-             (home-gpg-agent-configuration
+     (simple-service
+      'ssh-permissions-service
+      home-activation-service-type
+      #~(begin
+          (use-modules (ice-9 ftw))
+          (define (chmod-regular-files directory)
+            (for-each
+             (lambda (entry)
+               (unless (member entry '("." ".."))
+                 (let ((file (string-append directory "/" entry)))
+                   (cond
+                    ((symbolic-link? file) #t)
+                    ((file-is-directory? file) (chmod-regular-files file))
+                    (else (chmod file #o600))))))
+             (scandir directory)))
+          (let ((ssh-dir (string-append (getenv "HOME") "/.ssh")))
+            (when (not (file-exists? ssh-dir))
+              (mkdir ssh-dir))
+            (chmod ssh-dir #o700)
+            (chmod-regular-files ssh-dir))))
+     (simple-service
+      'nix-github-token-service
+      home-activation-service-type
+      #~(system*
+         "sh"
+         "-c"
+         "set -eu
+secret=dev/github-token
+target=\"$HOME/.config/nix/github-access-token.conf\"
+
+if ! command -v gopass >/dev/null 2>&1; then
+  exit 0
+fi
+
+token=\"$(gopass show -o \"$secret\" 2>/dev/null || true)\"
+if [ -z \"$token\" ]; then
+  exit 0
+fi
+
+install -d -m 700 \"$(dirname \"$target\")\"
+tmp=\"$(mktemp \"${target}.XXXXXX\")\"
+chmod 600 \"$tmp\"
+printf 'access-tokens = github.com=%s\n' \"$token\" > \"$tmp\"
+mv \"$tmp\" \"$target\""))
+     (service home-gpg-agent-service-type
+              (home-gpg-agent-configuration
               (ssh-support? #t)
               (default-cache-ttl 60480000)
               (default-cache-ttl-ssh 60480000)
@@ -176,13 +211,17 @@
               (pictures "$HOME/Pictures")
               (videos "$HOME/Videos")))
 
-    ;; Substituters and keys are in system.scm (nix-service-type extra-config).
-    ;; experimental-features must also be in user nix.conf for unprivileged nix commands.
-    (simple-service 'nix-config
-                    home-xdg-configuration-files-service-type
-                    (list `("nix/nix.conf"
-                            ,(plain-file "nix.conf"
-                                         "experimental-features = nix-command flakes\n"))))
+     ;; Substituters and keys are in system.scm (nix-service-type extra-config).
+     ;; experimental-features must also be in user nix.conf for unprivileged nix commands.
+     ;; GitHub API tokens are materialized from gopass during activation, then
+     ;; included from a mode-0600 fragment so the secret never enters the store.
+     (simple-service 'nix-config
+                     home-xdg-configuration-files-service-type
+                     (list `("nix/nix.conf"
+                             ,(plain-file "nix.conf"
+                                          "experimental-features = nix-command flakes
+!include /home/worldofgeese/.config/nix/github-access-token.conf
+"))))
 
     (service home-xdg-mime-applications-service-type
              (home-xdg-mime-applications-configuration
@@ -190,20 +229,43 @@
                '((x-scheme-handler/http . app.zen_browser.zen.desktop)
                  (x-scheme-handler/https . app.zen_browser.zen.desktop)
                  (x-scheme-handler/about . app.zen_browser.zen.desktop)
-                 (x-scheme-handler/unknown . app.zen_browser.zen.desktop)
-                 (text/html . app.zen_browser.zen.desktop)
-                 (application/xhtml+xml . app.zen_browser.zen.desktop)
-                 (devpod . DevPod-handler.desktop)
-                 (video/quicktime . org.videolan.VLC.desktop)))
-              (added
-               '((text/plain . drracket.desktop)
-                 (video/x-msvideo . io.github.celluloid_player.Celluloid.desktop)
-                 (video/mp4 . org.videolan.VLC.desktop)
-                 (text/markdown . org.gnome.TextEditor.desktop)
-                 (image/png . org.gnome.eog.desktop)
-                 (image/jpeg . org.gnome.eog.desktop)
-                 (video/x-matroska . mpv.desktop)
-                 (video/quicktime . org.videolan.VLC.desktop)))))
+                  (x-scheme-handler/unknown . app.zen_browser.zen.desktop)
+                  (text/html . app.zen_browser.zen.desktop)
+                  (application/xhtml+xml . app.zen_browser.zen.desktop)
+                  (devpod . DevPod-handler.desktop)
+                  (video/quicktime . org.videolan.VLC.desktop)
+                  (image/jpeg . org.gnome.Loupe.desktop)
+                  (image/png . org.gnome.Loupe.desktop)
+                  (image/gif . org.gnome.Loupe.desktop)
+                  (image/webp . org.gnome.Loupe.desktop)
+                  (image/tiff . org.gnome.Loupe.desktop)
+                  (image/x-tga . org.gnome.Loupe.desktop)
+                  (image/vnd-ms.dds . org.gnome.Loupe.desktop)
+                  (image/x-dds . org.gnome.Loupe.desktop)
+                  (image/bmp . org.gnome.Loupe.desktop)
+                  (image/vnd.microsoft.icon . org.gnome.Loupe.desktop)
+                  (image/vnd.radiance . org.gnome.Loupe.desktop)
+                  (image/x-exr . org.gnome.Loupe.desktop)
+                  (image/x-portable-bitmap . org.gnome.Loupe.desktop)
+                  (image/x-portable-graymap . org.gnome.Loupe.desktop)
+                  (image/x-portable-pixmap . org.gnome.Loupe.desktop)
+                  (image/x-portable-anymap . org.gnome.Loupe.desktop)
+                  (image/x-qoi . org.gnome.Loupe.desktop)
+                  (image/qoi . org.gnome.Loupe.desktop)
+                  (image/svg+xml . org.gnome.Loupe.desktop)
+                  (image/svg+xml-compressed . org.gnome.Loupe.desktop)
+                  (image/avif . org.gnome.Loupe.desktop)
+                  (image/heic . org.gnome.Loupe.desktop)
+                  (image/jxl . org.gnome.Loupe.desktop)))
+               (added
+                '((text/plain . drracket.desktop)
+                  (video/x-msvideo . io.github.celluloid_player.Celluloid.desktop)
+                  (video/mp4 . org.videolan.VLC.desktop)
+                  (text/markdown . org.gnome.TextEditor.desktop)
+                  (image/png . org.gnome.Loupe.desktop)
+                  (image/jpeg . org.gnome.Loupe.desktop)
+                  (video/x-matroska . mpv.desktop)
+                  (video/quicktime . org.videolan.VLC.desktop)))))
 
     (service home-mpv-service-type
              (make-home-mpv-configuration
@@ -329,7 +391,7 @@
     (simple-service 'additional-env-vars-service
                     home-environment-variables-service-type
                     `(                      ("PATH" . "$HOME/.nix-profile/bin:$HOME/.local/bin:$HOME/.config/emacs/bin:$HOME/.krew/bin:$PATH")
-                      ("XDG_DATA_DIRS" . "$XDG_DATA_DIRS:$HOME/.local/share/flatpak/exports/share:$HOME/.nix-profile/share:$HOME/.local/share/fonts")
+                      ("XDG_DATA_DIRS" . "$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share:$HOME/.nix-profile/share:$HOME/.local/share/fonts")
                       ("FONTCONFIG_FILE" . "$HOME/.config/fontconfig/fonts.conf")
                       ;; Fix blurry small text in Chromium/Electron apps on dark backgrounds
                       ("FREETYPE_PROPERTIES" . "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0")
@@ -338,4 +400,6 @@
                       ("_JAVA_AWT_WM_NONREPARENTING" . "1")
                       ("MOZ_USE_XINPUT2" . "1")
                       ("npm_config_prefix" . "$HOME/.local")
-                      ("EDITOR" . "emacsclient")))))))
+                      ("EDITOR" . "emacsclient")
+                      ;; Force Qt apps to use native Wayland — fixes Telegram EGL mismatch
+                      ("QT_QPA_PLATFORM" . "wayland")))))))

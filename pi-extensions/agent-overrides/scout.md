@@ -5,6 +5,7 @@ model: oc-sdk-go/deepseek-v4-flash
 fallbackModels: oc-sdk-go/glm-5.1, oc-sdk-go/kimi-k2.6
 thinking: medium
 tools: read, grep, find, ls, bash, write, intercom
+skills: context-mode
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false

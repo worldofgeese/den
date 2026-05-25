@@ -141,12 +141,12 @@ apply-M-02877   # same thing, explicit
 topgrade --yes
 ```
 
-On mahakala this upgrades Guix System, Guix Home, Nix flake inputs, Doom Emacs, Flatpak, then garbage-collects all package managers. On M-02877 it runs darwin-rebuild with a fresh flake lock.
+On mahakala this refreshes CachyOS kernel metadata, upgrades Guix System, Guix Home, Nix flake inputs and pinned Rust tools, Doom Emacs, Flatpak, then garbage-collects all package managers. On M-02877 it runs `just deploy-darwin`, including flake input and pinned Rust tool updates before darwin-rebuild.
 
 ### Just the Nix configuration
 
 ```bash
-nix flake update --flake ~/.config/home-manager
+cd ~/.config/home-manager && just update
 just deploy-darwin   # or deploy-mahakala-hm, etc.
 ```
 

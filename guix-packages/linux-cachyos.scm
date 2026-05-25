@@ -12,7 +12,7 @@
 ;;
 ;; To upgrade: just upgrade-kernel
 
-(define %cachyos-version "7.0.6")
+(define %cachyos-version "7.0.10")
 (define %cachyos-revision "2")
 (define %cachyos-tag
   (string-append "cachyos-" %cachyos-version "-" %cachyos-revision))
@@ -28,7 +28,7 @@
                        "https://github.com/CachyOS/linux/releases/download/"
                        %cachyos-tag "/" %cachyos-tag ".tar.gz"))
                  (sha256
-                  (base32 "12a6l6vrmlgdqkh5gllslra607kvkzzlarjnbs2mix03rxxyf7bf")))
+                  (base32 "0g2drv5rvkkari9z7ya3l25lcfsxpjv50hhcic739arcxx0b8aws")))
                #:configs '("CONFIG_CACHY=y"
                            "CONFIG_HZ_1000=y"
                            "CONFIG_HZ=1000"

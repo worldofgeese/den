@@ -19,8 +19,8 @@ fi
 VERSION=$(echo "$TAG" | sed 's/^cachyos-\(.*\)-[0-9]*$/\1/')
 REVISION=$(echo "$TAG" | sed 's/^cachyos-.*-\([0-9]*\)$/\1/')
 
-CURRENT_VERSION=$(grep '%cachyos-version' "$SCM_FILE" | head -1 | grep -oP '"\K[^"]+')
-CURRENT_REVISION=$(grep '%cachyos-revision' "$SCM_FILE" | head -1 | grep -oP '"\K[^"]+')
+CURRENT_VERSION=$(sed -n 's/^(define %cachyos-version "\([^"]*\)").*/\1/p' "$SCM_FILE" | head -1)
+CURRENT_REVISION=$(sed -n 's/^(define %cachyos-revision "\([^"]*\)").*/\1/p' "$SCM_FILE" | head -1)
 
 echo "Current: $CURRENT_VERSION-$CURRENT_REVISION"
 echo "Latest:  $VERSION-$REVISION"

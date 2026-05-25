@@ -274,6 +274,10 @@
         home.file.".pi/agent/agents/reviewer.md".source = ../pi-extensions/agent-overrides/reviewer.md;
         home.file.".pi/agent/agents/scout.md".source = ../pi-extensions/agent-overrides/scout.md;
         home.file.".pi/agent/agents/researcher.md".source = ../pi-extensions/agent-overrides/researcher.md;
+        home.file.".pi/agent/chains/ce-review.chain.md".source = ../pi-extensions/chains/ce-review.chain.md;
+        home.file.".pi/agent/chains/scout-plan.chain.md".source = ../pi-extensions/chains/scout-plan.chain.md;
+        home.file.".pi/agent/chains/plan-implement.chain.md".source = ../pi-extensions/chains/plan-implement.chain.md;
+        home.file.".pi/agent/chains/review-fix.chain.md".source = ../pi-extensions/chains/review-fix.chain.md;
 
         # pi-subagents native `agentOverrides` only applies to builtin agents.
         # Our Compound Engineering agents live in ~/.pi/agent/agents (user scope),

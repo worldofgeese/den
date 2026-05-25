@@ -5,49 +5,32 @@ case $- in
     *) return;;
 esac
 
-source ~/.local/share/blesh/ble.sh --noattach
-
-export OSH='/home/worldofgeese/.oh-my-bash'
-OSH_THEME="font"
-OMB_USE_SUDO=true
-completions=(
-  git
-  ssh
-  helm
-  kubectl
-)
-aliases=(
-  general
-)
-plugins=(
-  git
-  bashmarks
-  kubectl
-  bu
-  battery
-  sudo
-  colored-man-pages
-)
-source "$OSH"/oh-my-bash.sh
-unalias gc 2>/dev/null
-
-export _ZO_DOCTOR=0
 export GPG_TTY=$(tty)
 gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
-export MPS_API_KEY=$(gopass show -o dev/anthropic-proxy-key 2>/dev/null)
 
-# atuin and direnv shell integration managed by Nix Home Manager
-# (programs.atuin and programs.direnv inject into bashrc via HM)
+# Cache MPS_API_KEY in tmpfs to avoid ~600ms gopass call on every shell
+_mps_cache="/run/user/$(id -u)/mps-api-key"
+if [[ -f "$_mps_cache" ]]; then
+  MPS_API_KEY=$(<"$_mps_cache")
+else
+  MPS_API_KEY=$(gopass show -o dev/anthropic-proxy-key 2>/dev/null) && \
+    printf '%s' "$MPS_API_KEY" > "$_mps_cache" && chmod 600 "$_mps_cache"
+fi
+export MPS_API_KEY
+
+# Completions (kubectl cached to avoid ~570ms spawn per shell)
 eval "$(podman completion bash)"
+_kubectl_comp="${XDG_CACHE_HOME:-$HOME/.cache}/kubectl-completion.bash"
+[[ -f "$_kubectl_comp" ]] || kubectl completion bash > "$_kubectl_comp" 2>/dev/null
+source "$_kubectl_comp" 2>/dev/null
 
-# ble.sh integrations (loaded deferred for fast startup)
-ble-import -d integration/fzf-completion
-ble-import -d integration/zoxide
-ble-import contrib/prompt-git
-ble-import -d contrib/prompt-elapsed
-ble-import -d contrib/config/execmark
+# Shell integrations (home-manager can't inject these; bashrc owned by Guix Home)
+eval "$(direnv hook bash)"
+eval "$(atuin init bash)"
+eval "$(starship init bash)"
 
-bleopt prompt_rps1='\q{contrib/git-info}'
-bleopt exec_elapsed_enabled='_ble_exec_time_tot>=3000'
+# fzf integration
+eval "$(fzf --bash)"
 
-[[ ${BLE_VERSION-} ]] && ble-attach
+# zoxide (directory jumping)
+eval "$(zoxide init bash)"

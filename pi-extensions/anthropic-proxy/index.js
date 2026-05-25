@@ -190,6 +190,15 @@ function sanitizeSurrogates(text) {
   return text.replace(/[\uD800-\uDFFF]/g, "\uFFFD");
 }
 
+/**
+ * Sanitize tool_use IDs to match API requirement: ^[a-zA-Z0-9_-]+$
+ * Replace any invalid characters with underscores.
+ */
+function sanitizeToolId(id) {
+  if (!id) return "tool_" + Date.now().toString(36);
+  return id.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
 function mapStopReason(reason) {
   switch (reason) {
     case "end_turn":
@@ -251,24 +260,19 @@ function convertMessages(messages) {
         if (block.type === "text" && block.text?.trim()) {
           blocks.push({ type: "text", text: sanitizeSurrogates(block.text) });
         } else if (block.type === "thinking") {
-          // Always include thinking blocks with signatures (needed for multi-turn continuity)
-          if (block.thinkingSignature) {
-            blocks.push({
-              type: "thinking",
-              thinking: sanitizeSurrogates(block.thinking || ""),
-              signature: block.thinkingSignature,
-            });
-          } else if (block.thinking?.trim()) {
-            // Thinking without signature: demote to text
-            blocks.push({ type: "text", text: sanitizeSurrogates(block.thinking) });
-          }
+          // Strip thinking blocks from historical turns entirely.
+          // Signatures are fragile (model-version-specific, can be corrupted
+          // in session storage, invalidated by any content modification).
+          // Omitting them is safe — the API only requires them if you want
+          // to maintain thinking continuity, which is a nice-to-have vs crashing.
+          // Skip: don't add to blocks.
         } else if (block.type === "toolCall") {
           // Only include tool_use if there's a matching tool_result
           // (aborted responses can leave orphaned tool_use blocks that violate API contract)
           if (toolResultIds.has(block.id)) {
             blocks.push({
               type: "tool_use",
-              id: block.id,
+              id: sanitizeToolId(block.id),
               name: block.name,
               input: block.arguments || {},
             });
@@ -287,7 +291,7 @@ function convertMessages(messages) {
         role: "user",
         content: [{
           type: "tool_result",
-          tool_use_id: msg.toolCallId,
+          tool_use_id: sanitizeToolId(msg.toolCallId),
           content: convertContentBlocks(msg.content),
           is_error: msg.isError,
         }],
@@ -494,7 +498,29 @@ function streamAnthropicProxy(model, context, options) {
           await new Promise((r) => setTimeout(r, delay));
         }
 
-        response = await fetch(url, requestOptions);
+        try {
+          response = await fetch(url, requestOptions);
+        } catch (fetchErr) {
+          // Network-level failures: DNS timeout, TLS handshake failure,
+          // connection refused, UND_ERR_CONNECT_TIMEOUT — these throw
+          // TypeError instead of returning an HTTP response.
+          const isRetryable = fetchErr.name === "TypeError"
+            || fetchErr.cause?.code === "UND_ERR_CONNECT_TIMEOUT"
+            || fetchErr.cause?.code === "ECONNREFUSED"
+            || fetchErr.cause?.code === "ENOTFOUND"
+            || fetchErr.cause?.code === "UND_ERR_SOCKET"
+            || /fetch failed|network|socket|ETIMEDOUT/i.test(fetchErr.message);
+
+          if (isRetryable && attempt < retryDelays.length) {
+            console.warn(
+              `[anthropic-proxy] Network error (attempt ${attempt + 1}/${retryDelays.length + 1}): ${fetchErr.cause?.code || fetchErr.message}`
+            );
+            lastError = `Network: ${fetchErr.cause?.code || fetchErr.message}`;
+            continue; // retry
+          }
+          // Non-retryable or exhausted retries — rethrow
+          throw fetchErr;
+        }
 
         // Fire onResponse hook (lets other extensions inspect headers)
         try { options?.onResponse?.(response); } catch (e) {

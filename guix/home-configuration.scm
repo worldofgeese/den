@@ -220,6 +220,7 @@ mv \"$tmp\" \"$target\""))
                      (list `("nix/nix.conf"
                              ,(plain-file "nix.conf"
                                           "experimental-features = nix-command flakes
+download-buffer-size = 536870912
 !include /home/worldofgeese/.config/nix/github-access-token.conf
 "))))
 

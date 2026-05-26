@@ -10,6 +10,7 @@
       imports = [ inputs.helium.homeModules.default ];
       home.username = "worldofgeese";
       home.homeDirectory = "/home/worldofgeese";
+      home.enableNixpkgsReleaseCheck = false;
 
       home.packages = [
         pkgs.nerd-fonts.fira-code

@@ -61,6 +61,7 @@
             "2. Deploy mahakala via Justfile" = "cd ~/.config/home-manager && just deploy-mahakala";
           };
           misc = {
+            show_distribution_summary = false;
             disable = [ "nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" ];
           };
           commands = {
@@ -70,7 +71,7 @@
           };
           post_commands = {
             "Garbage collect Nix" = "nix-collect-garbage -d";
-            "Garbage collect Guix" = "guix package --delete-generations && guix home delete-generations && (sudo guix system delete-generations 1d || true) && sudo guix gc";
+            "Garbage collect Guix" = "guix package --delete-generations && guix home delete-generations && (sudo guix system delete-generations 1d 2> >(grep -v 'no matching generation' >&2) || true) && sudo guix gc";
             "Remove unused Flatpak runtimes" = "flatpak uninstall --unused -y";
             "Prune Podman images" = "podman image prune -a -f";
             "Empty Trash" = "chmod -R u+w ~/.local/share/Trash/files ~/.local/share/Trash/info 2>/dev/null || true; rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*";

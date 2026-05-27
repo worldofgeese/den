@@ -5,7 +5,7 @@
       den.aspects.sharedDevtools
       den.aspects.terminal
     ];
-    homeManager = { pkgs, ... }: {
+    homeManager = { pkgs, lib, ... }: {
       # Linux workstation-specific packages (shared tools come from shared-devtools)
       home.packages = (with pkgs; [
         brush
@@ -36,10 +36,39 @@
         (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
       ];
 
-      xdg.configFile."autostart/synology-drive.desktop" = {
-        source = "${pkgs.synology-drive-client}/share/applications/synology-drive.desktop";
-        force = true;
-      };
+      xdg.configFile."autostart/synology-drive.desktop".text = ''
+        [Desktop Entry]
+        Name=Synology Drive Client
+        Comment=Synology Drive Client
+        # Force xcb platform: synology-drive-client ships only the Qt xcb
+        # plugin, but GNOME's Wayland session causes Qt to look for the
+        # wayland plugin first and fail with "Could not find the Qt platform
+        # plugin 'wayland'". Forcing xcb makes it run via XWayland.
+        Exec=env QT_QPA_PLATFORM=xcb synology-drive start
+        Icon=synology-drive
+        Terminal=false
+        Type=Application
+        Categories=Network;FileTransfer;
+        X-GNOME-Autostart-enabled=true
+      '';
+
+      # GNOME doesn't ship StatusNotifierWatcher, so Qt tray apps (Telegram,
+      # Synology Drive) appear to "not start" because their only UI is a tray
+      # icon. The AppIndicator extension provides the watcher. It's installed
+      # by guix-home into ~/.guix-home/profile/share/gnome-shell/extensions,
+      # but `gnome-shell` only scans system extension dirs and
+      # ~/.local/share/gnome-shell/extensions, so symlink it into the latter
+      # on every activation. After this lands, log out + log back in, then:
+      #   gnome-extensions enable appindicatorsupport@rgcjonas.gmail.com
+      home.activation.linkAppIndicatorExtension = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        ext_id="appindicatorsupport@rgcjonas.gmail.com"
+        src="$HOME/.guix-home/profile/share/gnome-shell/extensions/$ext_id"
+        dst_dir="$HOME/.local/share/gnome-shell/extensions"
+        if [ -e "$src" ]; then
+          $DRY_RUN_CMD mkdir -p "$dst_dir"
+          $DRY_RUN_CMD ln -sfn "$src" "$dst_dir/$ext_id"
+        fi
+      '';
 
       programs.gh = {
         enable = true;

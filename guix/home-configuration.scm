@@ -98,6 +98,14 @@
                   "tesseract-ocr"
                   ;; Desktop apps (substitutes available from Bordeaux)
                   "telegram-desktop"
+                  ;; Provides org.kde.StatusNotifierWatcher so Qt tray apps
+                  ;; (Telegram, Synology Drive) actually appear in the GNOME
+                  ;; top bar. Without it Telegram launches but its window
+                  ;; goes straight to a non-existent tray and is invisible.
+                  ;; After install: gnome-extensions enable
+                  ;;   appindicatorsupport@rgcjonas.gmail.com
+                  ;; then log out / log back in.
+                  "gnome-shell-extension-appindicator"
                   "yt-dlp"))
             (list emacs-guix)))
 

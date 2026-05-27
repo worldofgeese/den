@@ -2,7 +2,7 @@
   description = "Den mono-repo: unified Nix infrastructure for all hosts";
 
   inputs = {
-    den.url = "github:vic/den";
+    den.url = "github:denful/den";
     flake-parts.url = "github:hercules-ci/flake-parts";
     home-manager = {
       url = "github:nix-community/home-manager";

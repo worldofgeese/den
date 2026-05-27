@@ -120,6 +120,14 @@
         #   Kimi K2.6        → build/edit/resolution work
         #   MiMo V2.5 Pro    → adversarial and hard reasoning
         #   DeepSeek V4 Flash → scouting, locating, large-context mechanical passes
+        #
+        # Note: pi itself is provided by the Nix `pi` package (numtide/llm-agents.nix).
+        # Do NOT list `@earendil-works/pi-coding-agent` or `@earendil-works/pi-ai`
+        # under `packages` here — `pi update` would install their @latest into
+        # ~/.pi/agent/npm and that drags in a pi-coding-agent version that breaks
+        # other extensions' peerDependencies (e.g. pi-rtk-optimizer 0.8.1 pins
+        # ^0.74 || ^0.75, while npm latest is 0.76.x). Pi version is managed by
+        # `just deploy-mahakala-hm` via the llm-agents.nix flake input instead.
         home.file.".pi/agent/settings.json".text = builtins.toJSON {
           provider = "anthropic-proxy";
           model = "anthropic.claude-opus-4-6-v1";
@@ -135,8 +143,6 @@
             "npm:pi-beads-extension"
             "npm:@feniix/pi-specdocs"
             "npm:pi-ask-user"
-            "npm:@earendil-works/pi-ai"
-            "npm:@earendil-works/pi-coding-agent"
           ];
           subagents = {
             agentOverrides =

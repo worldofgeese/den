@@ -54,6 +54,10 @@
         # streaming implementation (supports reasoning/thinking blocks)
         home.file.".pi/agent/extensions/anthropic-proxy/index.js".text =
           builtins.readFile ../pi-extensions/anthropic-proxy/index.js;
+        home.file.".pi/agent/extensions/anthropic-proxy/message-conversion.js".text =
+          builtins.readFile ../pi-extensions/anthropic-proxy/message-conversion.js;
+        home.file.".pi/agent/extensions/anthropic-proxy/message-conversion.test.js".text =
+          builtins.readFile ../pi-extensions/anthropic-proxy/message-conversion.test.js;
         home.file.".pi/agent/extensions/anthropic-proxy/package.json".text =
           builtins.readFile ../pi-extensions/anthropic-proxy/package.json;
         home.file.".pi/agent/extensions/anthropic-proxy/models.json".text = builtins.toJSON [

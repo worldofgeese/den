@@ -20,6 +20,7 @@ import {
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { convertMessages, sanitizeSurrogates } from "./message-conversion.js";
 
 // =============================================================================
 // Configuration
@@ -186,19 +187,6 @@ function getApiKey() {
   return key;
 }
 
-function sanitizeSurrogates(text) {
-  return text.replace(/[\uD800-\uDFFF]/g, "\uFFFD");
-}
-
-/**
- * Sanitize tool_use IDs to match API requirement: ^[a-zA-Z0-9_-]+$
- * Replace any invalid characters with underscores.
- */
-function sanitizeToolId(id) {
-  if (!id) return "tool_" + Date.now().toString(36);
-  return id.replace(/[^a-zA-Z0-9_-]/g, "_");
-}
-
 function mapStopReason(reason) {
   switch (reason) {
     case "end_turn":
@@ -212,93 +200,6 @@ function mapStopReason(reason) {
     default:
       return "error";
   }
-}
-
-function convertContentBlocks(content) {
-  const hasImages = content.some((c) => c.type === "image");
-  if (!hasImages) {
-    return sanitizeSurrogates(content.filter((c) => c.text != null).map((c) => c.text).join("\n"));
-  }
-  return content
-    .filter((c) => c.type === "text" || c.type === "image")
-    .map((c) =>
-      c.type === "text"
-        ? { type: "text", text: sanitizeSurrogates(c.text || "") }
-        : { type: "image", source: { type: "base64", media_type: c.mimeType, data: c.data } }
-    );
-}
-
-function convertMessages(messages) {
-  // Collect all tool_result IDs so we can detect orphaned tool_use blocks
-  const toolResultIds = new Set();
-  for (const msg of messages) {
-    if (msg.role === "toolResult" && msg.toolCallId) {
-      toolResultIds.add(msg.toolCallId);
-    }
-  }
-
-  const params = [];
-  for (const msg of messages) {
-    if (msg.role === "user") {
-      if (typeof msg.content === "string") {
-        if (msg.content.trim()) {
-          params.push({ role: "user", content: sanitizeSurrogates(msg.content) });
-        }
-      } else {
-        const blocks = msg.content.map((item) =>
-          item.type === "text"
-            ? { type: "text", text: sanitizeSurrogates(item.text) }
-            : { type: "image", source: { type: "base64", media_type: item.mimeType, data: item.data } }
-        );
-        if (blocks.length > 0) {
-          params.push({ role: "user", content: blocks });
-        }
-      }
-    } else if (msg.role === "assistant") {
-      const blocks = [];
-      for (const block of msg.content) {
-        if (block.type === "text" && block.text?.trim()) {
-          blocks.push({ type: "text", text: sanitizeSurrogates(block.text) });
-        } else if (block.type === "thinking") {
-          // Strip thinking blocks from historical turns entirely.
-          // Signatures are fragile (model-version-specific, can be corrupted
-          // in session storage, invalidated by any content modification).
-          // Omitting them is safe — the API only requires them if you want
-          // to maintain thinking continuity, which is a nice-to-have vs crashing.
-          // Skip: don't add to blocks.
-        } else if (block.type === "toolCall") {
-          // Only include tool_use if there's a matching tool_result
-          // (aborted responses can leave orphaned tool_use blocks that violate API contract)
-          if (toolResultIds.has(block.id)) {
-            blocks.push({
-              type: "tool_use",
-              id: sanitizeToolId(block.id),
-              name: block.name,
-              input: block.arguments || {},
-            });
-          }
-        }
-      }
-      // Always include assistant messages to maintain alternation (API requires user/assistant alternation)
-      if (blocks.length > 0) {
-        params.push({ role: "assistant", content: blocks });
-      } else if (msg.content?.length > 0) {
-        // Preserve alternation: if all blocks were filtered, insert minimal text
-        params.push({ role: "assistant", content: [{ type: "text", text: "..." }] });
-      }
-    } else if (msg.role === "toolResult") {
-      params.push({
-        role: "user",
-        content: [{
-          type: "tool_result",
-          tool_use_id: sanitizeToolId(msg.toolCallId),
-          content: convertContentBlocks(msg.content),
-          is_error: msg.isError,
-        }],
-      });
-    }
-  }
-  return params;
 }
 
 // =============================================================================
@@ -373,8 +274,26 @@ function cleanupBlocks(output) {
   }
 }
 
-function streamAnthropicProxy(model, context, options) {
+function sleep(ms, signal) {
+  if (!signal) return new Promise((resolve) => setTimeout(resolve, ms));
+  if (signal.aborted) return Promise.reject(new DOMException("Request aborted", "AbortError"));
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal.removeEventListener("abort", abort);
+      resolve();
+    }, ms);
+    const abort = () => {
+      clearTimeout(timeout);
+      reject(new DOMException("Request aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", abort, { once: true });
+  });
+}
+
+function streamAnthropicProxy(model, context, options = {}) {
   const stream = createAssistantMessageEventStream();
+  const streamOptions = options ?? {};
 
   (async () => {
     const output = {
@@ -401,13 +320,13 @@ function streamAnthropicProxy(model, context, options) {
       // Build request params
       const params = {
         model: model.id,
-        messages: convertMessages(context.messages),
-        max_tokens: options?.maxTokens ?? Math.floor(model.maxTokens / 3),
+        messages: convertMessages(context?.messages),
+        max_tokens: streamOptions.maxTokens ?? Math.floor(model.maxTokens / 3),
         stream: true,
       };
 
       // Add system prompt with prompt caching
-      if (context.systemPrompt) {
+      if (context?.systemPrompt) {
         params.system = [{
           type: "text",
           text: sanitizeSurrogates(context.systemPrompt),
@@ -416,7 +335,7 @@ function streamAnthropicProxy(model, context, options) {
       }
 
       // Add tools with prompt caching on the last tool
-      if (context.tools?.length > 0) {
+      if (context?.tools?.length > 0) {
         params.tools = context.tools.map((t, i) => {
           const tool = {
             name: t.name,
@@ -432,10 +351,10 @@ function streamAnthropicProxy(model, context, options) {
       }
 
       // Add thinking if model supports it and reasoning level is set
-      if (model.reasoning && options?.reasoning && options.reasoning !== "off") {
+      if (model.reasoning && streamOptions.reasoning && streamOptions.reasoning !== "off") {
         const defaultBudgets = { minimal: 1024, low: 4096, medium: 10240, high: 16384, xhigh: 32768 };
-        const budget = options?.thinkingBudgets?.[options.reasoning]
-          ?? defaultBudgets[options.reasoning]
+        const budget = streamOptions.thinkingBudgets?.[streamOptions.reasoning]
+          ?? defaultBudgets[streamOptions.reasoning]
           ?? 10240;
         // Ensure budget < max_tokens (API requirement)
         const safeBudget = Math.min(budget, params.max_tokens - 1);
@@ -449,7 +368,7 @@ function streamAnthropicProxy(model, context, options) {
       }
 
       // Fire onPayload hook before serialization (lets other extensions modify params)
-      try { options?.onPayload?.(params); } catch (e) {
+      try { streamOptions.onPayload?.(params); } catch (e) {
         console.warn("[anthropic-proxy] onPayload hook error:", e.message);
       }
 
@@ -469,8 +388,8 @@ function streamAnthropicProxy(model, context, options) {
 
       // Client timeout: 90s normal, none for large (proxy's 120s is the real limit)
       const signals = isLargeContext
-        ? [options?.signal].filter(Boolean)
-        : [options?.signal, AbortSignal.timeout(90_000)].filter(Boolean);
+        ? [streamOptions.signal].filter(Boolean)
+        : [streamOptions.signal, AbortSignal.timeout(90_000)].filter(Boolean);
       const combinedSignal = signals.length > 1 ? AbortSignal.any(signals) : signals[0] || undefined;
 
       const requestBody = JSON.stringify(params);
@@ -495,7 +414,7 @@ function streamAnthropicProxy(model, context, options) {
           if (combinedSignal?.aborted) break;
           const delay = retryDelays[attempt - 1];
           console.warn(`[anthropic-proxy] Retry ${attempt}/${retryDelays.length} after ${delay}ms`);
-          await new Promise((r) => setTimeout(r, delay));
+          await sleep(delay, combinedSignal);
         }
 
         try {
@@ -523,7 +442,7 @@ function streamAnthropicProxy(model, context, options) {
         }
 
         // Fire onResponse hook (lets other extensions inspect headers)
-        try { options?.onResponse?.(response); } catch (e) {
+        try { streamOptions.onResponse?.(response); } catch (e) {
           console.warn("[anthropic-proxy] onResponse hook error:", e.message);
         }
 
@@ -567,6 +486,13 @@ function streamAnthropicProxy(model, context, options) {
       }
 
       // If we exhausted retries, throw the last error
+      if (!response) {
+        if (combinedSignal?.aborted) {
+          throw new DOMException("Request aborted", "AbortError");
+        }
+        throw new Error(lastError || "request failed before receiving a response");
+      }
+
       if (!response.ok) {
         throw new Error(lastError || `HTTP ${response.status}: request failed after retries`);
       }
@@ -599,6 +525,7 @@ function streamAnthropicProxy(model, context, options) {
           }
         } else if (event.type === "content_block_start") {
           const cb = event.content_block;
+          if (!cb) continue;
           let block;
           if (cb.type === "text") {
             block = { type: "text", text: "" };
@@ -621,6 +548,7 @@ function streamAnthropicProxy(model, context, options) {
           if (!entry) continue;
           const { block, contentIndex } = entry;
 
+          if (!event.delta) continue;
           if (event.delta.type === "text_delta" && block.type === "text") {
             block.text += event.delta.text;
             stream.push({ type: "text_delta", contentIndex, delta: event.delta.text, partial: output });
@@ -687,7 +615,7 @@ function streamAnthropicProxy(model, context, options) {
       stream.end();
     } catch (error) {
       cleanupBlocks(output);
-      const isAborted = options?.signal?.aborted || (error instanceof Error && error.name === "AbortError");
+      const isAborted = streamOptions.signal?.aborted || (error instanceof Error && error.name === "AbortError");
       output.stopReason = isAborted ? "aborted" : "error";
       output.errorMessage = error instanceof Error ? error.message : String(error);
       stream.push({ type: "error", reason: output.stopReason, error: output });

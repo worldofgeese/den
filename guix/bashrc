@@ -7,7 +7,8 @@ case $- in
     *) return;;
 esac
 
-export GPG_TTY=$(tty)
+GPG_TTY=$(tty)
+export GPG_TTY
 gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
 
 # Cache MPS_API_KEY in tmpfs to avoid ~600ms gopass call on every shell

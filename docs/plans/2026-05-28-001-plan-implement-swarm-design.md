@@ -13,7 +13,7 @@ bead: home-manager-7hg
 
 Replace the existing static `plan-implement.chain.md` workflow with a Home Manager-managed `plan-implement` skill that orchestrates a parallel, Beads-driven, Decapod-isolated, Agent Mail-coordinated worker swarm.
 
-The old chain is static and cannot safely perform dynamic fan-out/fan-in. The new skill becomes the authoritative entrypoint. It plans outside Beads, imports/refines a Beads epic and child issue DAG, runs one fresh subagent per ready Bead in isolated worktrees, validates with Decapod, coordinates through Agent Mail, and serializes integration with `bd merge-slot`.
+The static chain cannot safely perform dynamic fan-out/fan-in. The skill is the authoritative entrypoint. It plans outside Beads, imports/refines a Beads epic and child issue DAG, runs one fresh subagent per ready Bead in isolated worktrees, validates with Decapod, coordinates through Agent Mail, and serializes integration in the parent/orchestrator.
 
 ## Problem Frame
 
@@ -42,14 +42,14 @@ Decapod and Beads now make the parallel mode feasible if their boundaries are ex
 2. **Beads is canonical task board** — Beads epic + child issue DAG is source of truth for work partitioning, dependencies, and lane ownership.
 3. **Decapod Shadow Custody wraps Beads work** — Each lane exports `BEADS_TASK_ID`/`BD_TASK_ID` and runs Decapod workspace/container/proof flows. Decapod yields branch naming to Beads while maintaining safety.
 4. **Agent Mail required** — All workers, reviewers, and orchestrator use Agent Mail. Thread ID = Bead ID. File reservations start in warn mode.
-5. **Beads creates worktrees** — `bd worktree create <bead-id>-<slug>` creates worktree and branch. Decapod validates/containers the existing worktree.
+5. **Git creates worktrees; Beads Rust tracks work** — Create git worktrees/branches that include the Bead ID. Decapod validates/containers the existing worktree. `br` remains canonical for Beads task state.
 6. **One Bead per worker run** — Workers are fresh subagent sessions. Beads/Decapod/Agent Mail carry state between sessions.
 7. **Path scope required** — Every child Bead must declare file/path globs before fanout. Overlapping write scopes block parallelism and become dependencies or same-Bead work.
 8. **Pre-worker refinement cap** — Up to 5 plan refinement rounds and up to 5 Beads-DAG polish rounds. Stop early when no material improvement remains.
 9. **Oracle before DAG finalization** — Run oracle after draft DAG/refinement and before spawning workers; run final oracle only if architecture/scope changed materially.
 10. **Concurrency heuristic** — Use GPU count if NVIDIA/ROCm GPUs are detected; otherwise `max(1, floor(logical_cpu_count / 4))`. Cap by ready non-overlapping Beads.
 11. **Two-tier review** — Per-lane review before publish, then integrated review after serial fan-in.
-12. **Merge slot required** — Only orchestrator/integration worker may hold `bd merge-slot`. Fan-in merges one lane at a time.
+12. **Serialized fan-in required** — The orchestrator merges one lane at a time in dependency order. `br` is non-invasive and does not provide a merge-slot primitive, so new flows do not invoke legacy `bd merge-slot`.
 13. **Bead closure after integrated validation** — Worker marks lane integration-ready with proof; orchestrator closes Bead only after merge and integrated validation.
 14. **Coverage requirement** — Literal whole-repo 100% unit coverage. If coverage tooling is missing, create and complete a prerequisite coverage-infra Bead before feature lanes.
 15. **Final integrated push only** — Lane branches stay local unless fan-in is blocked or audit mode later requires remote branches. Final integrated branch is pushed.
@@ -61,7 +61,7 @@ Decapod and Beads now make the parallel mode feasible if their boundaries are ex
 
 The `plan-implement` skill checks:
 
-- `bd` available and repository initialized.
+- `br` available and repository initialized.
 - Decapod initialized and `.decapod/OVERRIDE.md` read when present.
 - Decapod external tracker support enabled via repo opt-in and per-lane env var plan.
 - Agent Mail installed from Home Manager package `mcp-agent-mail`.
@@ -129,10 +129,10 @@ For this host today, shell heuristic reports 8 logical CPUs and no NVIDIA/ROCm G
 
 For each lane:
 
-1. Claim Bead.
+1. Mark Bead in progress with `br update <bead-id> --status in_progress`.
 2. Create worktree/branch:
    ```bash
-   bd worktree create <bead-id>-<slug>
+   git worktree add -b <bead-id>-<slug> ../<bead-id>-<slug>
    ```
 3. Enter worktree.
 4. Export:
@@ -176,13 +176,7 @@ Reviewer reports findings to Bead thread and Bead notes. If fixes are needed, sp
 
 ### 7. Fan-in under merge slot
 
-Orchestrator acquires merge slot:
-
-```bash
-bd merge-slot acquire
-```
-
-For each integration-ready lane, in dependency order:
+Orchestrator serializes fan-in. For each integration-ready lane, in dependency order:
 
 1. Apply/merge lane branch into integration branch.
 2. Resolve conflicts only through one integration-fix worker if needed.
@@ -200,7 +194,7 @@ If integration-fix worker fails once, reopen/block involved Beads and post Agent
 Epic can close only when:
 
 - All child Beads closed.
-- `bd merge-slot` released.
+- Serialized fan-in complete and no integration worktree remains locked.
 - `decapod validate` passes.
 - Whole-repo unit coverage is 100%.
 - Tests/lints/builds/gates pass.
@@ -256,11 +250,7 @@ Changes:
 
 - Package `br` with `rustPlatform.buildRustPackage`, matching the existing Decapod/rtk overlay pattern.
 - Package `bv` with `buildGoModule`.
-- Preserve existing `bd` workflow until migration is explicit.
-
-Open detail:
-
-- Confirm whether current `bd` is Go or Rust and whether `merge-slot`/`swarm` semantics match desired version.
+- Use `br` as the canonical Beads workflow.
 
 ### U4. Add `plan-implement` skill
 
@@ -304,7 +294,7 @@ Additional checks:
 - Confirm `plan-implement` chain no longer appears in subagent chain list.
 - Confirm `pi-mcp-adapter` package installed.
 - Confirm native `mcp-agent-mail` and `am` wrappers run.
-- Confirm Agent Mail did not replace `bd`.
+- Confirm Agent Mail did not replace Beads state management.
 
 ## Risks and Mitigations
 
@@ -316,7 +306,7 @@ Additional checks:
 | Parallel lanes edit same files | Require path scopes; overlap blocks parallelism |
 | Beads/Decapod task state drifts | Beads canonical; Decapod Shadow Custody internal coordination only |
 | Agent Mail reservations false-positive | Warn mode in v1 |
-| Fan-in corrupts integration branch | Mandatory `bd merge-slot`; one lane at a time; validation after each merge |
+| Fan-in corrupts integration branch | Parent-owned serialized fan-in; one lane at a time; validation after each merge |
 | Context drift in long-lived workers | One Bead per fresh worker run |
 | pi-subagents intercom limitations | Agent Mail required; pi-intercom not used for heavy lane coordination |
 
@@ -346,6 +336,6 @@ Oracle concerns intentionally retained:
 - `plan-implement` skill exists and documents the swarm protocol.
 - Pi packages include `npm:pi-mcp-adapter`.
 - Agent Mail is installed as native Home Manager package.
-- Beads remains managed separately; Agent Mail does not replace `bd`.
+- Beads remains managed separately; Agent Mail does not replace `br`.
 - Design decisions above are reflected in skill text.
 - Validation/deploy commands pass or blockers are documented in Bead `home-manager-7hg`.

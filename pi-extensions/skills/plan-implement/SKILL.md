@@ -12,7 +12,7 @@ You are the parent orchestrator. Do not use `/run-chain plan-implement`; that st
 
 Fail closed with exact missing setup when any required surface is absent:
 
-- Beads CLI available and repo initialized.
+- Beads Rust CLI (`br`) available and repo initialized.
 - Decapod initialized.
 - `pi-mcp-adapter` available to Pi.
 - MCP Agent Mail installed from Home Manager as `mcp-agent-mail`/`am`.
@@ -25,7 +25,7 @@ Never let Agent Mail installer replace Beads. Home Manager owns `br`/`bv` and Pi
 
 ## Authority model
 
-- Beads is canonical task board and task DAG.
+- Beads Rust (`br`) is canonical task board and task DAG.
 - Decapod owns workspace/container/proof safety.
 - Agent Mail owns lane communication and warning-mode file reservations.
 - Pi-subagents owns execution only.
@@ -36,7 +36,7 @@ Never let Agent Mail installer replace Beads. Home Manager owns `br`/`bv` and Pi
 ### 1. Preflight and context
 
 1. Read repo instructions: `AGENTS.md`, `CLAUDE.md`, `.decapod/OVERRIDE.md` when present.
-2. Check `bd`, `decapod`, Agent Mail, MCP config, and coverage command.
+2. Check `br`, `decapod`, Agent Mail, MCP config, and coverage command.
 3. Start Agent Mail on demand with `am serve-http` or `mcp-agent-mail serve-http` if not running.
 4. Discover validation gates from repo scripts, CI config, Decapod preflight/impact, and project instructions.
 5. Detect concurrency:
@@ -78,10 +78,10 @@ Run `oracle` before finalizing DAG for non-trivial work. If oracle unavailable, 
 
 For each ready, non-overlapping child Bead up to concurrency cap:
 
-1. Claim Bead.
-2. Create Beads worktree/branch:
+1. Mark Bead in progress with `br update <bead-id> --status in_progress`.
+2. Create an isolated git worktree/branch that includes the Bead ID:
    ```bash
-   bd worktree create <bead-id>-<slug>
+   git worktree add -b <bead-id>-<slug> ../<bead-id>-<slug>
    ```
 3. In worktree, export:
    ```bash
@@ -124,13 +124,7 @@ If fix needed, spawn one fresh retry worker for that Bead. If retry fails, mark 
 
 ### 6. Fan-in
 
-Acquire merge slot before integration:
-
-```bash
-bd merge-slot acquire
-```
-
-Merge one lane at a time in dependency order.
+Serialize fan-in in the parent/orchestrator. Merge one lane at a time in dependency order. `br` is non-invasive and does not provide a merge-slot primitive, so do not invoke legacy `bd merge-slot` for new flows.
 
 For each lane:
 
@@ -148,7 +142,7 @@ Release merge slot when safe.
 Epic is done only when:
 
 - All child Beads closed.
-- Merge slot released.
+- Serialized fan-in complete and no integration worktree remains locked.
 - `decapod validate` passes.
 - Tests/lints/builds/project gates pass.
 - Whole-repo unit coverage is 100%.

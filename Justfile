@@ -7,14 +7,14 @@ default:
 deploy-mahakala:
     sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
     guix pull
-    SKIP_DECAPOD_UPDATE=1 just update
+    just update
     guix home reconfigure guix/home-configuration.scm
     NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
 
 # Deploy only Home Manager on mahakala
 deploy-mahakala-hm:
-    SKIP_DECAPOD_UPDATE=1 just update
+    just update
     NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
 

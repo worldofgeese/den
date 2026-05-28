@@ -198,8 +198,16 @@ fi
 current_decapod_version=$(overlay_value decapod version)
 current_rtk_rev=$(overlay_value rtk rev)
 
+if [[ "${SKIP_DECAPOD_UPDATE:-0}" == "1" ]]; then
+  latest_decapod_version="$current_decapod_version"
+fi
+
 echo "Current decapod: $current_decapod_version"
-echo "Latest decapod:  $latest_decapod_version"
+if [[ "${SKIP_DECAPOD_UPDATE:-0}" == "1" ]]; then
+  echo "Latest decapod:  skipped (SKIP_DECAPOD_UPDATE=1)"
+else
+  echo "Latest decapod:  $latest_decapod_version"
+fi
 echo "Current rtk:     $current_rtk_rev"
 echo "Latest rtk:      $latest_rtk_tag"
 

@@ -16,7 +16,6 @@
           nodejs
           bun
           uv
-          curl
           kubectl
           shellcheck
           yq-go
@@ -28,6 +27,9 @@
           rtk
           decapod
           beads
+          br
+          bv
+          mcp-agent-mail
         ];
 
         programs.github-copilot-cli.enable = true;
@@ -343,17 +345,6 @@
           ../pi-extensions/chains/scout-plan.chain.md;
         home.file.".pi/agent/chains/review-fix.chain.md".source =
           ../pi-extensions/chains/review-fix.chain.md;
-
-        # MCP Agent Mail: use upstream installer, but keep Beads/Pi config under Home Manager.
-        # Do not start the server during activation; the plan-implement skill starts/checks it on demand.
-        home.activation.installMcpAgentMail = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-          run ${pkgs.bash}/bin/bash -lc '
-            set -euo pipefail
-            export PATH="${pkgs.uv}/bin:${pkgs.git}/bin:${pkgs.jq}/bin:${pkgs.curl}/bin:${pkgs.coreutils}/bin:${pkgs.gnused}/bin:${pkgs.gnugrep}/bin:${pkgs.bash}/bin:$PATH"
-            curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
-              | bash -s -- --yes --no-start --skip-beads --skip-bv
-          '
-        '';
 
         # pi-subagents native `agentOverrides` only applies to builtin agents.
         # Our Compound Engineering agents live in ~/.pi/agent/agents (user scope),

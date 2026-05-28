@@ -15,8 +15,7 @@ Fail closed with exact missing setup when any required surface is absent:
 - Beads CLI available and repo initialized.
 - Decapod initialized.
 - `pi-mcp-adapter` available to Pi.
-- MCP Agent Mail installed and startable via upstream `am`/`run_server_with_token.sh` flow.
-- If `am` is absent but `~/.config/mcp-agent-mail` exists, use that repo's `scripts/run_server_with_token.sh` directly.
+- MCP Agent Mail installed from Home Manager as `mcp-agent-mail`/`am`.
 - Agent Mail worktree mode enabled: `WORKTREES_ENABLED=1`.
 - Agent Mail reservations warn mode: `AGENT_MAIL_GUARD_MODE=warn`.
 - Decapod external tracker mode enabled durably for repo plus per-lane env vars.
@@ -38,7 +37,7 @@ Never let Agent Mail installer replace Beads. Home Manager owns `br`/`bv` and Pi
 
 1. Read repo instructions: `AGENTS.md`, `CLAUDE.md`, `.decapod/OVERRIDE.md` when present.
 2. Check `bd`, `decapod`, Agent Mail, MCP config, and coverage command.
-3. Start Agent Mail on demand using upstream start flow if not running.
+3. Start Agent Mail on demand with `am serve-http` or `mcp-agent-mail serve-http` if not running.
 4. Discover validation gates from repo scripts, CI config, Decapod preflight/impact, and project instructions.
 5. Detect concurrency:
    - NVIDIA/ROCm GPU count when available.

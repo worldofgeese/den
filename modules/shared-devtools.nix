@@ -16,6 +16,7 @@
           nodejs
           bun
           uv
+          curl
           kubectl
           shellcheck
           yq-go
@@ -163,6 +164,19 @@
         # other extensions' peerDependencies (e.g. pi-rtk-optimizer 0.8.1 pins
         # ^0.74 || ^0.75, while npm latest is 0.76.x). Pi version is managed by
         # `just deploy-mahakala-hm` via the llm-agents.nix flake input instead.
+        home.file.".pi/agent/mcp.json".text = builtins.toJSON {
+          settings = {
+            toolPrefix = "server";
+            idleTimeout = 10;
+          };
+          mcpServers = {
+            "agent-mail" = {
+              url = "http://127.0.0.1:8765/api/";
+              lifecycle = "lazy";
+            };
+          };
+        };
+
         home.file.".pi/agent/settings.json".text = builtins.toJSON {
           provider = "anthropic-proxy";
           model = "anthropic.claude-opus-4-6-v1";
@@ -171,6 +185,7 @@
             "npm:context-mode"
             "npm:pi-opencode-bridge"
             "npm:pi-subagents"
+            "npm:pi-mcp-adapter"
             "npm:pi-intercom"
             "npm:pi-web-access"
             "npm:pi-caveman"
@@ -321,13 +336,24 @@
         home.file.".pi/agent/agents/researcher.md".source = ../pi-extensions/agent-overrides/researcher.md;
         home.file.".pi/agent/agents/workstream-compounder.md".source =
           ../pi-extensions/agent-overrides/workstream-compounder.md;
+        home.file.".pi/agent/skills/plan-implement/SKILL.md".source =
+          ../pi-extensions/skills/plan-implement/SKILL.md;
         home.file.".pi/agent/chains/ce-review.chain.md".source = ../pi-extensions/chains/ce-review.chain.md;
         home.file.".pi/agent/chains/scout-plan.chain.md".source =
           ../pi-extensions/chains/scout-plan.chain.md;
-        home.file.".pi/agent/chains/plan-implement.chain.md".source =
-          ../pi-extensions/chains/plan-implement.chain.md;
         home.file.".pi/agent/chains/review-fix.chain.md".source =
           ../pi-extensions/chains/review-fix.chain.md;
+
+        # MCP Agent Mail: use upstream installer, but keep Beads/Pi config under Home Manager.
+        # Do not start the server during activation; the plan-implement skill starts/checks it on demand.
+        home.activation.installMcpAgentMail = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          run ${pkgs.bash}/bin/bash -lc '
+            set -euo pipefail
+            export PATH="${pkgs.uv}/bin:${pkgs.git}/bin:${pkgs.jq}/bin:${pkgs.curl}/bin:${pkgs.coreutils}/bin:${pkgs.gnused}/bin:${pkgs.gnugrep}/bin:${pkgs.bash}/bin:$PATH"
+            curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
+              | bash -s -- --yes --no-start --skip-beads --skip-bv
+          '
+        '';
 
         # pi-subagents native `agentOverrides` only applies to builtin agents.
         # Our Compound Engineering agents live in ~/.pi/agent/agents (user scope),

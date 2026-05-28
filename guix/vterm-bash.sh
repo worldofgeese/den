@@ -1,8 +1,9 @@
+# shellcheck shell=bash
 # Emacs vterm shell-side integration
 # Only active when running inside vterm
 if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
     vterm_printf() {
-        printf '\e]%s\e\\' "$1"
+        printf $'\e]%s\e\\' "$1"
     }
 
     vterm_prompt_end() {

@@ -173,8 +173,13 @@
           };
           mcpServers = {
             "agent-mail" = {
-              url = "http://127.0.0.1:8765/api/";
+              command = "${pkgs.mcp-agent-mail}/bin/mcp-agent-mail";
+              args = [ "serve-stdio" ];
               lifecycle = "lazy";
+              env = {
+                WORKTREES_ENABLED = "1";
+                AGENT_MAIL_GUARD_MODE = "warn";
+              };
             };
           };
         };

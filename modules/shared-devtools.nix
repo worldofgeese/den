@@ -181,13 +181,17 @@
                 AGENT_MAIL_GUARD_MODE = "warn";
               };
             };
+            "context-mode" = {
+              command = "context-mode";
+              lifecycle = "lazy";
+            };
           };
         };
 
         home.file.".pi/agent/settings.json".text = builtins.toJSON {
           provider = "github-copilot";
           model = "gpt-5.5";
-          defaultThinkingLevel = "medium";
+          defaultThinkingLevel = "high";
           packages = [
             "npm:context-mode"
             "npm:pi-opencode-bridge"

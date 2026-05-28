@@ -81,6 +81,7 @@ text = open(path, encoding="utf-8").read()
 def replace_block(match):
     block = match.group(0)
     block = re.sub(r'version = "[^"]+";', f'version = "{version}";', block)
+    block = re.sub(r'decapod-[^"]+\.crate', f'decapod-{version}.crate', block)
     block = re.sub(r'hash = "[^"]+";', f'hash = "{source_hash}";', block, count=1)
     replacement = "cargoHash = final.lib.fakeHash;" if cargo_hash == "fake" else f'cargoHash = "{cargo_hash}";'
     block = re.sub(r'cargoHash = (?:"[^"]+"|final\.lib\.fakeHash);', replacement, block)

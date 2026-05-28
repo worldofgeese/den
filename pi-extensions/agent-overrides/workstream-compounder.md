@@ -1,8 +1,8 @@
 ---
 name: workstream-compounder
 description: End-of-workstream learning capture agent. Runs only after implementation/review/validation/commit work is complete or explicitly paused, and only when there is durable learning worth preserving.
-model: oc-sdk-go/glm-5.1
-fallbackModels: oc-sdk-go/kimi-k2.6, oc-sdk-go/mimo-v2.5-pro
+model: cursor/composer-2.5
+fallbackModels: github-copilot/gpt-5.5
 thinking: medium
 tools: read, grep, find, ls, bash, write, intercom
 skills: ce-compound, ce-compound-refresh, context-mode, operational-integration-audit

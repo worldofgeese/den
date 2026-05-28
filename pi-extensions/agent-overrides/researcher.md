@@ -1,8 +1,8 @@
 ---
 name: researcher
 description: Autonomous web researcher — performs iterative web research and returns structured external grounding with critical source evaluation
-model: oc-sdk-go/deepseek-v4-flash
-fallbackModels: oc-sdk-go/glm-5.1, oc-sdk-go/kimi-k2.6
+model: cursor/composer-2.5
+fallbackModels: github-copilot/gpt-5.5
 thinking: medium
 tools: read, write, web_search, fetch_content, get_search_content, intercom
 skills: ce-web-researcher, librarian, context-mode

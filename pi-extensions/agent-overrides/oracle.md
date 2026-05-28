@@ -1,9 +1,9 @@
 ---
 name: oracle
 description: High-context decision-consistency oracle with architectural expertise — analyzes changes for pattern compliance, design integrity, and drift prevention
-model: oc-sdk-go/mimo-v2.5-pro
-fallbackModels: oc-sdk-go/glm-5.1, oc-sdk-go/kimi-k2.6
-thinking: xhigh
+model: cursor/composer-2.5
+fallbackModels: github-copilot/gpt-5.5
+thinking: medium
 tools: read, grep, find, ls, bash, intercom
 skills: ce-agent-native-architecture, ce-strategy, ce-sessions, adr, operational-integration-audit, grill-me, context-mode
 systemPromptMode: replace

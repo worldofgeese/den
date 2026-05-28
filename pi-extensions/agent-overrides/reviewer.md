@@ -1,9 +1,9 @@
 ---
 name: reviewer
 description: Review orchestrator — dispatches to specialized CE reviewers (correctness, maintainability, project-standards) in parallel and merges findings into a unified verdict
-model: oc-sdk-go/glm-5.1
-fallbackModels: oc-sdk-go/mimo-v2.5-pro, oc-sdk-go/kimi-k2.6
-thinking: high
+model: cursor/composer-2.5
+fallbackModels: github-copilot/gpt-5.5
+thinking: medium
 tools: read, grep, find, ls, bash, subagent, intercom
 skills: ce-code-review, ce-resolve-pr-feedback, ce-simplify-code, operational-integration-audit, context-mode
 systemPromptMode: replace

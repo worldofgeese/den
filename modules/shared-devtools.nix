@@ -176,6 +176,7 @@
               command = "${pkgs.mcp-agent-mail}/bin/mcp-agent-mail";
               args = [ "serve-stdio" ];
               lifecycle = "lazy";
+              directTools = true;
               env = {
                 WORKTREES_ENABLED = "1";
                 AGENT_MAIL_GUARD_MODE = "warn";

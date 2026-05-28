@@ -53,7 +53,7 @@ Decapod and Beads now make the parallel mode feasible if their boundaries are ex
 13. **Bead closure after integrated validation** — Worker marks lane integration-ready with proof; orchestrator closes Bead only after merge and integrated validation.
 14. **Coverage requirement** — Literal whole-repo 100% unit coverage. If coverage tooling is missing, create and complete a prerequisite coverage-infra Bead before feature lanes.
 15. **Final integrated push only** — Lane branches stay local unless fan-in is blocked or audit mode later requires remote branches. Final integrated branch is pushed.
-16. **Agent Mail install via HM activation** — Use upstream installer every deploy with `--no-start --skip-beads --skip-bv`; Home Manager manages `br`/`bv` separately and owns Pi MCP config.
+16. **Agent Mail installed natively by HM** — Package `mcp-agent-mail` from pinned GitHub release in the Home Manager overlay. Home Manager also manages `br`/`bv` and Pi MCP config.
 
 ## Runtime Workflow
 
@@ -64,8 +64,8 @@ The `plan-implement` skill checks:
 - `bd` available and repository initialized.
 - Decapod initialized and `.decapod/OVERRIDE.md` read when present.
 - Decapod external tracker support enabled via repo opt-in and per-lane env var plan.
-- Agent Mail installed by upstream installer.
-- Agent Mail worktree mode enabled: `WORKTREES_ENABLED=1`.
+- Agent Mail installed from Home Manager package `mcp-agent-mail`.
+- Agent Mail worktree mode enabled by wrapper default: `WORKTREES_ENABLED=1`.
 - Agent Mail guard mode set to warn: `AGENT_MAIL_GUARD_MODE=warn`.
 - `pi-mcp-adapter` available and Pi MCP config points to Agent Mail.
 - `br`/`bv` managed by Home Manager if enabled.
@@ -226,36 +226,36 @@ Open detail:
 
 - Confirm exact Pi MCP config file shape expected by `pi-mcp-adapter`.
 
-### U2. Add Agent Mail installer activation
+### U2. Add native Agent Mail package
 
 Files:
 
+- `modules/overlays.nix`
 - `modules/shared-devtools.nix`
 
 Changes:
 
-- Add activation step that runs upstream installer every deploy.
-- Use flags:
+- Package `mcp-agent-mail` from the pinned upstream GitHub release using `python313Packages.buildPythonApplication`.
+- Add `mcp-agent-mail` to `home.packages`.
+- Provide `mcp-agent-mail` and `am` wrappers with defaults:
   ```bash
-  --yes --no-start --skip-beads --skip-bv
+  WORKTREES_ENABLED=1
+  AGENT_MAIL_GUARD_MODE=warn
   ```
-- Do not let installer manage Pi config.
-- Do not start server during activation.
-
-Open detail:
-
-- Confirm installer supports a project/config path that avoids writing HM-managed Pi settings when `--no-start` is used.
+- Do not run upstream installer in activation.
+- Do not let upstream tooling manage Pi config.
 
 ### U3. Add managed br/bv packages or wrappers
 
 Files:
 
+- `modules/overlays.nix`
 - `modules/shared-devtools.nix`
-- Possibly `pkgs/` overlays if packages are not available.
 
 Changes:
 
-- Add managed `br` and `bv` if available or package them separately.
+- Package `br` with `rustPlatform.buildRustPackage`, matching the existing Decapod/rtk overlay pattern.
+- Package `bv` with `buildGoModule`.
 - Preserve existing `bd` workflow until migration is explicit.
 
 Open detail:
@@ -303,15 +303,15 @@ Additional checks:
 - Confirm `plan-implement` skill appears in Pi skill discovery.
 - Confirm `plan-implement` chain no longer appears in subagent chain list.
 - Confirm `pi-mcp-adapter` package installed.
-- Confirm Agent Mail installer did not replace `bd`.
-- Confirm `am` start script exists.
+- Confirm native `mcp-agent-mail` and `am` wrappers run.
+- Confirm Agent Mail did not replace `bd`.
 
 ## Risks and Mitigations
 
 | Risk | Mitigation |
 | --- | --- |
-| Upstream Agent Mail installer mutates HM-owned Pi config | Use `--no-start`; HM owns MCP config; verify diff after activation |
-| Networked installer every deploy causes flakiness | Accept per user decision; fail deploy visibly |
+| Agent Mail packaging drifts from upstream installer assumptions | Package pinned release and wrap CLI directly; HM owns MCP config |
+| Python dependency bounds conflict with nixpkgs | Relax only necessary bounds (`authlib`) and keep package pinned |
 | Literal 100% coverage is infeasible in some repos | Create coverage-infra Bead; fail closed if impossible |
 | Parallel lanes edit same files | Require path scopes; overlap blocks parallelism |
 | Beads/Decapod task state drifts | Beads canonical; Decapod Shadow Custody internal coordination only |
@@ -325,7 +325,7 @@ Additional checks:
 Oracle review found three blockers. Current resolution:
 
 1. **Skill hosting** — Pi docs confirm global skills are discovered from `~/.pi/agent/skills/` and directories containing `SKILL.md` are discovered recursively. Home Manager can source `pi-extensions/skills/plan-implement/SKILL.md` into that location.
-2. **Agent Mail distribution** — Upstream is `Dicklesworthstone/mcp_agent_mail`. It is installed by the upstream installer. PyPI package names are not trusted because upstream release notes say similarly named packages may be different projects. Activation uses upstream installer flags `--yes --no-start --skip-beads --skip-bv`.
+2. **Agent Mail distribution** — Upstream is `Dicklesworthstone/mcp_agent_mail`. It is packaged natively in Home Manager from a pinned GitHub release. PyPI package names are not trusted because upstream release notes say similarly named packages may be different projects.
 3. **Decapod/Beads workspace split** — PR #587 adds Shadow Custody for external trackers. Lane prompts export `BEADS_TASK_ID`/`BD_TASK_ID`, and repos opt into external tracker mode. Decapod runs as validator/container/proof layer over Beads-created worktrees. Skill uses bounded timeout and follows Decapod `blockers`/`resolve_hint` output instead of bypassing container requirements.
 
 Oracle concerns intentionally retained:
@@ -345,7 +345,7 @@ Oracle concerns intentionally retained:
 - `plan-implement` chain is no longer registered by Home Manager.
 - `plan-implement` skill exists and documents the swarm protocol.
 - Pi packages include `npm:pi-mcp-adapter`.
-- Agent Mail installer activation exists with agreed flags.
-- Beads remains managed separately; installer does not replace `bd`.
+- Agent Mail is installed as native Home Manager package.
+- Beads remains managed separately; Agent Mail does not replace `bd`.
 - Design decisions above are reflected in skill text.
 - Validation/deploy commands pass or blockers are documented in Bead `home-manager-7hg`.

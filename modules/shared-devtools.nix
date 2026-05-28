@@ -152,12 +152,11 @@
           }
         ];
 
-        # Pi settings: parent session stays on the proxy provider with Opus.
-        # Subagent model routing uses pi-subagents native agentOverrides.
-        #   GLM-5.1          → planning, synthesis, careful review
-        #   Kimi K2.6        → build/edit/resolution work
-        #   MiMo V2.5 Pro    → adversarial and hard reasoning
-        #   DeepSeek V4 Flash → scouting, locating, large-context mechanical passes
+        # Pi settings: parent session uses GitHub Copilot GPT-5.5 while
+        # OpenCode Go quota is exhausted. Subagent model routing uses
+        # pi-subagents native agentOverrides:
+        #   GPT-5.5          → planner/spec/implementation-plan taskmaster
+        #   Cursor Composer 2.5 → all implementation/audit/recon subagents
         #
         # Note: pi itself is provided by the Nix `pi` package (numtide/llm-agents.nix).
         # Do NOT list `@earendil-works/pi-coding-agent` or `@earendil-works/pi-ai`
@@ -186,13 +185,14 @@
         };
 
         home.file.".pi/agent/settings.json".text = builtins.toJSON {
-          provider = "anthropic-proxy";
-          model = "anthropic.claude-opus-4-6-v1";
+          provider = "github-copilot";
+          model = "gpt-5.5";
           defaultThinkingLevel = "medium";
           packages = [
             "npm:context-mode"
             "npm:pi-opencode-bridge"
             "npm:pi-subagents"
+            "npm:pi-cursor-sdk"
             "npm:pi-mcp-adapter"
             "npm:pi-intercom"
             "npm:pi-web-access"
@@ -205,10 +205,8 @@
           subagents = {
             agentOverrides =
               let
-                glm = "oc-sdk-go/glm-5.1";
-                kimi = "oc-sdk-go/kimi-k2.6";
-                mimo = "oc-sdk-go/mimo-v2.5-pro";
-                flash = "oc-sdk-go/deepseek-v4-flash";
+                gpt55 = "github-copilot/gpt-5.5";
+                composer = "cursor/composer-2.5";
 
                 mkOverride = model: thinking: fallbackModels: {
                   inherit model thinking fallbackModels;
@@ -216,45 +214,28 @@
                 mkOverrides =
                   names: value: builtins.listToAttrs (builtins.map (name: { inherit name value; }) names);
 
-                planOverride = mkOverride glm "high" [
-                  mimo
-                  kimi
-                ];
-                buildOverride = mkOverride kimi "high" [
-                  glm
-                  mimo
-                ];
-                deepOverride = mkOverride mimo "xhigh" [
-                  glm
-                  kimi
-                ];
-                scoutOverride = mkOverride flash "medium" [
-                  glm
-                  kimi
-                ];
+                planOverride = mkOverride gpt55 "high" [ composer ];
+                composerOverride = mkOverride composer "medium" [ gpt55 ];
               in
               (mkOverrides [
-                # Builtins: high-reasoning tasks (oracle = decision consistency).
+                # Builtins: decision consistency.
                 "oracle"
-              ] deepOverride)
+              ] composerOverride)
               // (mkOverrides [
-                # Builtins: planning and review.
+                # Builtins: planning and spec writing.
                 "planner"
-                "reviewer"
-                "context-builder"
               ] planOverride)
               // (mkOverrides [
-                # Builtins: implementation work.
+                # Builtins: Composer-powered subagents.
+                "reviewer"
+                "context-builder"
                 "worker"
                 "delegate"
-              ] buildOverride)
-              // (mkOverrides [
-                # Builtins: fast recon and research.
                 "scout"
                 "researcher"
-              ] scoutOverride)
+              ] composerOverride)
               // (mkOverrides [
-                # MiMo: adversarial/security/hard reasoning, 1M context.
+                # Composer: adversarial/security/hard reasoning.
                 "artifact-reviewer"
                 "ce-adversarial-document-reviewer"
                 "ce-adversarial-reviewer"
@@ -270,9 +251,9 @@
                 "claim-verifier"
                 "codebase-analyzer"
                 "slice-verifier"
-              ] deepOverride)
+              ] composerOverride)
               // (mkOverrides [
-                # GLM: plans, careful review, synthesis.
+                # Composer: plans, careful review, synthesis.
                 "artifact-code-reviewer"
                 "artifact-coverage-reviewer"
                 "ce-api-contract-reviewer"
@@ -303,17 +284,17 @@
                 "diff-auditor"
                 "peer-comparator"
                 "web-search-researcher"
-              ] planOverride)
+              ] composerOverride)
               // (mkOverrides [
-                # Kimi: build/edit/write/fix loops.
+                # Composer: build/edit/write/fix loops.
                 "ce-ankane-readme-writer"
                 "ce-data-migration-expert"
                 "ce-design-iterator"
                 "ce-figma-design-sync"
                 "ce-pr-comment-resolver"
-              ] buildOverride)
+              ] composerOverride)
               // (mkOverrides [
-                # DeepSeek Flash: fast scouting, locating, summarizing context.
+                # Composer: fast scouting, locating, summarizing context.
                 "artifacts-analyzer"
                 "artifacts-locator"
                 "ce-git-history-analyzer"
@@ -330,7 +311,7 @@
                 "precedent-locator"
                 "scope-tracer"
                 "test-case-locator"
-              ] scoutOverride);
+              ] composerOverride);
           };
         };
 
@@ -356,7 +337,8 @@
         # Our Compound Engineering agents live in ~/.pi/agent/agents (user scope),
         # so stale frontmatter model pins win during discovery. Mirror the same
         # overrides into those user-scope agent files to keep runtime routing on
-        # OpenCode Go models until these agents move into a package/builtin scope.
+        # the HM-defined GPT-5.5/Composer flow until these agents move into a
+        # package/builtin scope.
         home.activation.syncPiUserAgentModelOverrides = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
           run ${pkgs.nodejs}/bin/node <<'NODE'
           const fs = require("fs");

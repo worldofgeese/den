@@ -1,8 +1,8 @@
 ---
 name: scout
 description: Fast codebase recon — analyzes specs, plans, and feature descriptions for user flow completeness, gap identification, and scope tracing before handing off to implementation
-model: oc-sdk-go/deepseek-v4-flash
-fallbackModels: oc-sdk-go/glm-5.1, oc-sdk-go/kimi-k2.6
+model: cursor/composer-2.5
+fallbackModels: github-copilot/gpt-5.5
 thinking: medium
 tools: read, grep, find, ls, bash, write, intercom
 skills: context-mode, ce-sessions, ce-brainstorm, ce-ideate, ce-strategy, operational-integration-audit

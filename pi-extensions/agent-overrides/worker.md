@@ -1,9 +1,9 @@
 ---
 name: worker
 description: Implementation agent for normal tasks and approved oracle handoffs
-model: oc-sdk-go/kimi-k2.6
-fallbackModels: oc-sdk-go/glm-5.1, oc-sdk-go/mimo-v2.5-pro
-thinking: high
+model: cursor/composer-2.5
+fallbackModels: github-copilot/gpt-5.5
+thinking: medium
 tools: read, grep, find, ls, bash, edit, write, contact_supervisor
 skills: ce-work, tdd, ce-debug, context-mode, ce-frontend-design, ce-test-browser, operational-integration-audit, ce-simplify-code
 systemPromptMode: replace

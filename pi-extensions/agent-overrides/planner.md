@@ -1,8 +1,8 @@
 ---
 name: planner
 description: Creates concrete, architecture-aware implementation plans from context and requirements
-model: oc-sdk-go/glm-5.1
-fallbackModels: oc-sdk-go/mimo-v2.5-pro, oc-sdk-go/kimi-k2.6
+model: github-copilot/gpt-5.5
+fallbackModels: cursor/composer-2.5
 thinking: high
 tools: read, grep, find, ls, write, intercom
 skills: ce-plan, ce-agent-native-architecture, ce-strategy, ce-optimize, adr, prd, plan-prd, operational-integration-audit

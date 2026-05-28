@@ -91,7 +91,7 @@
           };
           misc = {
             show_distribution_summary = false;
-            disable = [ "nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" ];
+            disable = [ "nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m" ];
           };
           commands = {
             "Doom Emacs" = "doom upgrade --force";

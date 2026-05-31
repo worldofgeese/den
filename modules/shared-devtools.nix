@@ -26,7 +26,6 @@
           pi
           rtk
           decapod
-          beads
           br
           bv
           mcp-agent-mail

@@ -93,6 +93,9 @@ export default function (pi: ExtensionAPI) {
 
       if (existsSync(decapodDir)) return;
 
+      // Only auto-init when explicitly opted in via env var
+      if (process.env.DECAPOD_AUTO_INIT !== "1") return;
+
       const init = await pi.exec("decapod", ["init", "--proof"], {
         timeout: 15000,
       });
@@ -174,8 +177,23 @@ export default function (pi: ExtensionAPI) {
 
     const beads = getBeadsState();
 
-    // If beads-rust extension hasn't published state, skip enforcement
-    if (!beads || !beads.available || !beads.initialized) return;
+    // State never published by beads-rust extension → fail-closed
+    if (!beads) {
+      if (!isOrchestrator) {
+        return {
+          block: true,
+          reason: "Beads state unavailable — cannot verify active bead. Ensure beads-rust extension is loaded.",
+        };
+      }
+      ctx.ui.notify(
+        "⚠️ Beads state unavailable — cannot verify active bead. Ensure beads-rust extension is loaded.",
+        "warning",
+      );
+      return;
+    }
+
+    // br CLI not installed or repo not initialized → skip enforcement
+    if (!beads.available || !beads.initialized) return;
 
     // Beads active and claimed → allow
     if (beads.activeBeadIds.length > 0) return;

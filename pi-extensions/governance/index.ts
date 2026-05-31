@@ -49,33 +49,28 @@ export default function (pi: ExtensionAPI) {
 
   if (isOrchestrator) {
     pi.on("tool_call", async (event, ctx) => {
-      if (event.toolName !== "edit") return;
+      if (event.toolName !== "edit" && event.toolName !== "write") return;
 
       const path =
         (event.input as Record<string, unknown>)?.path as string || "unknown";
 
-      const shouldDelegate = await ctx.ui.confirm(
-        "🛡️ Orchestrator Edit Guard",
-        [
-          "AGENTS.md: orchestrator must not do implementation work directly.",
-          "",
-          `Attempting to edit: ${path}`,
-          "",
-          "Yes = block this edit (delegate to worker subagent)",
-          "No  = allow this edit (override governance)",
-        ].join("\n"),
+      ctx.ui.notify(
+        `🛡️ Orchestrator Edit Guard — blocked ${event.toolName} to: ${path}\n` +
+        "AGENTS.md: orchestrator must not do implementation work directly.\n" +
+        "Delegate to a worker subagent instead.",
+        "warning",
       );
 
-      if (shouldDelegate) {
-        return {
-          block: true,
-          reason: [
-            "Blocked by governance extension.",
-            "Dispatch implementation to a worker subagent:",
-            '  subagent({ agent: "worker", task: "..." })',
-          ].join("\n"),
-        };
-      }
+      return {
+        block: true,
+        reason: [
+          "Blocked by governance extension (hard deny, no override).",
+          `Attempted: ${event.toolName} → ${path}`,
+          "Orchestrator must not do implementation work directly.",
+          "Dispatch to a worker subagent:",
+          '  subagent({ agent: "worker", task: "..." })',
+        ].join("\n"),
+      };
     });
   }
 

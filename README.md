@@ -220,7 +220,7 @@ modules/
 ├── ssh.nix              # Fleet SSH matchBlocks (Tailscale hostnames)
 ├── server.nix           # Reusable NixOS server aspect
 ├── overlays.nix         # Nixpkgs overlays (devenv, decapod)
-├── mahakala.nix         # Wires worldofgeese → workstation + ssh
+├── mahakala.nix         # Wires worldofgeese → workstation + ssh (mahakala-specific)
 ├── M-02877/
 │   ├── darwin.nix       # macOS system (Lix, Homebrew, Touch ID, zsh, system defaults)
 │   └── dktaohan.nix     # Work user (separate git identity, full dev toolchain)

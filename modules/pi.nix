@@ -127,6 +127,7 @@
             "context-mode" = {
               command = "context-mode";
               lifecycle = "lazy";
+              directTools = true;
             };
           };
         };
@@ -285,6 +286,10 @@
         home.file.".pi/agent/chains/review-fix.chain.md".source =
           ../pi-extensions/chains/review-fix.chain.md;
 
+        # Repo-managed hotfixes for npm-installed Pi packages (re-applied on activation).
+        home.file.".pi/agent/hotfixes/pi-subagents/apply-hotfixes.mjs".text =
+          builtins.readFile ../pi-extensions/hotfixes/pi-subagents/apply-hotfixes.mjs;
+
         # pi-subagents native `agentOverrides` only applies to builtin agents.
         # Our Compound Engineering agents live in ~/.pi/agent/agents (user scope),
         # so stale frontmatter model pins win during discovery. Mirror the same
@@ -351,6 +356,12 @@
 
           console.log("synced Pi user agent model overrides: " + updated);
           NODE
+        '';
+
+        # Re-apply pi-subagents hotfixes after Pi npm packages are installed/updated.
+        home.activation.applyPiSubagentsHotfixes = lib.hm.dag.entryAfter [ "linkGeneration" "installPackages" ] ''
+          run ${pkgs.nodejs}/bin/node \
+            "$HOME/.pi/agent/hotfixes/pi-subagents/apply-hotfixes.mjs"
         '';
       };
   };

@@ -9,76 +9,38 @@ import { join } from "node:path";
  *   1. Orchestrator must not do implementation work (edit gate)
  *   2. Decapod auto-init in any git repo; .decapod/ gitignored by default
  *   3. Block git add of .decapod/ and AGENTS.md unless user authorizes
- *   4. Beads tracking required before implementation (edit/write gate)
+ *   4. Beads required before code edits (reads shared state from beads-rust ext)
  *   5. Unpushed commits warning at session shutdown
- *   6. Context injection: active beads, decapod status
+ *   6. No-decapod/no-git system prompt injection
+ *
+ * Beads state is owned by the beads-rust extension (pi-extensions/beads-rust/).
+ * This extension reads it from globalThis.__beadsRustState to avoid duplicate
+ * br CLI calls and broken JSON parsing.
  */
+
+// ─── Shared state interface (published by beads-rust extension) ──────
+
+interface BeadsSharedState {
+  available: boolean;
+  initialized: boolean;
+  activeBeadIds: string[];
+  checkedAt: number;
+}
+
+const BEADS_GLOBAL_KEY = "__beadsRustState";
+
+function getBeadsState(): BeadsSharedState | null {
+  const state = (globalThis as Record<string, unknown>)[BEADS_GLOBAL_KEY];
+  if (state && typeof state === "object" && "available" in state) {
+    return state as BeadsSharedState;
+  }
+  return null;
+}
+
+// ─── Extension ───────────────────────────────────────────────────────
+
 export default function (pi: ExtensionAPI) {
   const isOrchestrator = process.env.SUBAGENT_CHILD_ENV !== "1";
-
-  // ─── Beads state tracking ──────────────────────────────────────────
-  //
-  // Track whether any bead has been claimed in this session.
-  // Reset on session start. Updated by watching br CLI calls.
-
-  let beadClaimedThisSession = false;
-  let beadCheckDone = false;
-  let activeBeadIds: string[] = [];
-
-  async function refreshBeadsState(): Promise<void> {
-    try {
-      const result = await pi.exec(
-        "br",
-        ["list", "--status", "in_progress", "--json"],
-        { timeout: 5000 },
-      );
-      if (result.code === 0 && result.stdout?.trim()) {
-        try {
-          const beads = JSON.parse(result.stdout);
-          if (Array.isArray(beads) && beads.length > 0) {
-            beadClaimedThisSession = true;
-            activeBeadIds = beads.map(
-              (b: Record<string, unknown>) => b.id as string,
-            ).filter(Boolean);
-          }
-        } catch {
-          // Parse failed — might not be JSON array
-        }
-      }
-      beadCheckDone = true;
-    } catch {
-      // br not installed or not a beads repo — skip
-      beadCheckDone = true;
-    }
-  }
-
-  // Reset state on session start and check for existing in-progress beads
-  pi.on("session_start", async (_event, _ctx) => {
-    beadClaimedThisSession = false;
-    beadCheckDone = false;
-    activeBeadIds = [];
-    await refreshBeadsState();
-  });
-
-  // Watch for br create/claim calls to update state
-  pi.on("tool_result", async (event, _ctx) => {
-    if (event.toolName !== "bash") return;
-    const command =
-      (event.input as Record<string, unknown>)?.command as string || "";
-
-    // Detect bead creation or claiming
-    if (
-      /\bbr\s+(create|update\s+.*--claim|update\s+.*--status\s+in_progress)/.test(
-        command,
-      )
-    ) {
-      if (!event.isError) {
-        beadClaimedThisSession = true;
-        // Refresh to get the actual bead IDs
-        await refreshBeadsState();
-      }
-    }
-  });
 
   // ─── Rule 1: Orchestrator edit gate ────────────────────────────────
 
@@ -182,27 +144,21 @@ export default function (pi: ExtensionAPI) {
     }
   });
 
-  // ─── Rule 4: Beads required before implementation ──────────────────
+  // ─── Rule 4: Beads required before code edits ──────────────────────
   //
-  // On first `edit` or `write` (to code files), check if any bead is
-  // in_progress. If not, warn and suggest creating one.
-  //
-  // Not a hard block — some edits are legitimate without beads
-  // (config tweaks, docs). But the warning ensures visibility.
-  //
-  // Hard block on subagent workers: they MUST have a bead before
-  // editing, since the orchestrator should have created one in the
-  // dispatch prompt.
+  // Reads shared state from beads-rust extension via globalThis.
+  // Workers: hard block. Orchestrator: warning only.
 
   const codeExtensions = new Set([
     ".ts", ".tsx", ".js", ".jsx", ".py", ".rs", ".go", ".el",
     ".rb", ".java", ".kt", ".swift", ".c", ".cpp", ".h", ".hpp",
-    ".cs", ".sh", ".bash", ".zsh", ".lua", ".ex", ".exs",
+    ".cs", ".sh", ".bash", ".zsh", ".lua", ".ex", ".exs", ".nix",
   ]);
 
   function isCodeFile(filePath: string): boolean {
-    const ext = filePath.slice(filePath.lastIndexOf("."));
-    return codeExtensions.has(ext);
+    const dot = filePath.lastIndexOf(".");
+    if (dot < 0) return false;
+    return codeExtensions.has(filePath.slice(dot));
   }
 
   pi.on("tool_call", async (event, ctx) => {
@@ -211,36 +167,32 @@ export default function (pi: ExtensionAPI) {
     const path =
       (event.input as Record<string, unknown>)?.path as string || "";
 
-    if (!isCodeFile(path)) return; // Skip non-code files
+    if (!isCodeFile(path)) return;
 
-    // Refresh if we haven't checked yet
-    if (!beadCheckDone) {
-      await refreshBeadsState();
-    }
+    const beads = getBeadsState();
 
-    if (beadClaimedThisSession) return; // Bead exists — proceed
+    // If beads-rust extension hasn't published state, skip enforcement
+    if (!beads || !beads.available || !beads.initialized) return;
 
-    // No bead claimed. Check once more in case state changed outside session.
-    await refreshBeadsState();
-
-    if (beadClaimedThisSession) return; // Found one on refresh
+    // Beads active and claimed → allow
+    if (beads.activeBeadIds.length > 0) return;
 
     if (!isOrchestrator) {
-      // Subagent workers: hard block — orchestrator should have created a bead
+      // Workers: hard block
       return {
         block: true,
         reason: [
           "Blocked: no Bead in_progress. AGENTS.md requires a Bead before implementation.",
           "The orchestrator must create/claim a Bead before dispatching work:",
-          '  br create "task description" && br update <id> --status in_progress',
+          '  RUST_LOG=error br create "task" --json && br update <id> --claim --json',
         ].join("\n"),
       };
     }
 
-    // Orchestrator: warn, don't block (might be a config tweak)
+    // Orchestrator: warn
     ctx.ui.notify(
-      "⚠️ No Bead in_progress. AGENTS.md: create/claim a Bead before implementation work.\n" +
-      "  br create \"<task>\" && br update <id> --status in_progress",
+      "⚠️ No Bead in_progress. Create/claim before implementation:\n" +
+      '  RUST_LOG=error br create "<task>" --json && br update <id> --claim --json',
       "warning",
     );
   });
@@ -280,49 +232,27 @@ export default function (pi: ExtensionAPI) {
     }
   });
 
-  // ─── Rule 6: Context injection ─────────────────────────────────────
+  // ─── Rule 6: System prompt context ─────────────────────────────────
   //
-  // Inject active beads and decapod status into system prompt so the
-  // LLM has situational awareness without reading files.
+  // Inject decapod/git status. Beads context is handled by beads-rust
+  // extension — governance only adds enforcement notes.
 
   pi.on("before_agent_start", async (event, ctx) => {
-    const sections: string[] = [];
-
-    // Decapod status
     try {
       const gitCheck = await pi.exec("git", ["rev-parse", "--git-dir"], {
         timeout: 3000,
       });
       if (gitCheck.code !== 0) {
-        sections.push(
-          "## Governance: No Git Repo\n" +
-          "Not inside a git repository. Decapod and Beads are unavailable. " +
-          "Skip ALL Decapod/Beads initialization steps from AGENTS.md.",
-        );
+        return {
+          systemPrompt:
+            event.systemPrompt +
+            "\n\n## Governance: No Git Repo\n" +
+            "Not inside a git repository. Decapod and Beads are unavailable. " +
+            "Skip ALL Decapod/Beads initialization steps from AGENTS.md.",
+        };
       }
     } catch {
       // skip
-    }
-
-    // Active beads
-    if (beadCheckDone && activeBeadIds.length > 0) {
-      sections.push(
-        "## Governance: Active Beads\n" +
-        `${activeBeadIds.length} bead(s) in_progress: ${activeBeadIds.join(", ")}.\n` +
-        "Reference the relevant Bead ID in commit messages and subagent prompts.",
-      );
-    } else if (beadCheckDone && !beadClaimedThisSession) {
-      sections.push(
-        "## Governance: No Active Beads\n" +
-        "No beads are in_progress. Before implementation work, create and claim a bead:\n" +
-        "  br create \"<task>\" && br update <id> --status in_progress",
-      );
-    }
-
-    if (sections.length > 0) {
-      return {
-        systemPrompt: event.systemPrompt + "\n\n" + sections.join("\n\n"),
-      };
     }
   });
 }

@@ -19,9 +19,15 @@
           '')
         ];
 
+        # Pi extension: beads-rust — br CLI integration for task tracking,
+        # slash commands, status bar, context injection, compaction preservation.
+        # Replaces npm:pi-beads-extension (Python bd CLI).
+        home.file.".pi/agent/extensions/beads-rust/index.ts".text =
+          builtins.readFile ../pi-extensions/beads-rust/index.ts;
+
         # Pi extension: governance hooks — deterministic enforcement of
-        # AGENTS.md rules (orchestrator edit gate, decapod repo guard,
-        # unpushed commits warning, no-decapod system prompt injection)
+        # AGENTS.md rules (orchestrator edit gate, decapod auto-init,
+        # beads enforcement via shared state, git-add guard, unpushed commits)
         home.file.".pi/agent/extensions/governance/index.ts".text =
           builtins.readFile ../pi-extensions/governance/index.ts;
 
@@ -142,7 +148,6 @@
             "npm:pi-web-access"
             "npm:pi-caveman"
             "npm:pi-rtk-optimizer"
-            "npm:pi-beads-extension"
             "npm:@feniix/pi-specdocs"
             "npm:pi-ask-user"
             "npm:pi-agenticoding"

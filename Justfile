@@ -49,6 +49,17 @@ check:
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
     just test-pi-extensions
+    just typecheck-pi-extensions
+
+# TypeScript type-check pi-extensions/governance/index.ts; skips if npx absent
+typecheck-pi-extensions:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v npx >/dev/null 2>&1; then
+        echo "typecheck-pi-extensions: npx not found, skipping"
+        exit 0
+    fi
+    ( cd pi-extensions/governance && npm install --silent && npx tsc -p tsconfig.json )
 
 # Run pi-extensions node tests (anthropic-proxy + pi-subagents hotfix); skips if node absent
 test-pi-extensions:

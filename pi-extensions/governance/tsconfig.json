@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "module": "esnext",
+    "target": "esnext",
+    "types": ["node"],
+    "ignoreDeprecations": "5.0"
+  },
+  "files": ["pi-types.d.ts", "index.ts"]
+}

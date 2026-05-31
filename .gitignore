@@ -1,5 +1,6 @@
 result
 my-test-suite.log
+node_modules/
 .decapod/data
 .decapod/data/*
 .decapod/.stfolder

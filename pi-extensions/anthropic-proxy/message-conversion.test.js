@@ -84,3 +84,130 @@ test("preserves image tool results as content blocks", () => {
     ]
   );
 });
+
+// ── Gap coverage ────────────────────────────────────────────────────────────
+
+// Gap 1: sanitizeToolId falsy/empty input fallback
+test("sanitizeToolId returns stable tool_ prefix for falsy input", () => {
+  const result = sanitizeToolId("");
+  assert.match(result, /^tool_[a-z0-9]+$/);
+
+  const result2 = sanitizeToolId(null);
+  assert.match(result2, /^tool_[a-z0-9]+$/);
+
+  const result3 = sanitizeToolId(undefined);
+  assert.match(result3, /^tool_[a-z0-9]+$/);
+});
+
+// Gap 2: User message image_url content conversion
+test("converts user image blocks to base64 source blocks", () => {
+  const messages = convertMessages([
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "look at this" },
+        { type: "image", mimeType: "image/jpeg", data: "base64data" },
+      ],
+    },
+  ]);
+
+  assert.deepEqual(messages, [
+    {
+      role: "user",
+      content: [
+        { type: "text", text: "look at this" },
+        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: "base64data" } },
+      ],
+    },
+  ]);
+});
+
+// Gap 3: Empty/whitespace-only user text content drops the message
+test("drops user messages with whitespace-only string content", () => {
+  const messages = convertMessages([
+    { role: "user", content: "   " },
+    { role: "user", content: "\n\t" },
+  ]);
+
+  assert.deepEqual(messages, []);
+});
+
+// Gap 4: Assistant thinking-block drop
+test("filters out assistant thinking blocks", () => {
+  const messages = convertMessages([
+    { role: "user", content: "think" },
+    {
+      role: "assistant",
+      content: [
+        { type: "thinking", thinking: "internal reasoning" },
+        { type: "text", text: "answer" },
+      ],
+    },
+  ]);
+
+  assert.deepEqual(messages, [
+    { role: "user", content: "think" },
+    { role: "assistant", content: [{ type: "text", text: "answer" }] },
+  ]);
+});
+
+// Gap 5: Assistant empty-text fallback (all blocks stripped → single empty text)
+test("emits single ellipsis text block when all assistant blocks are stripped", () => {
+  const messages = convertMessages([
+    { role: "user", content: "hi" },
+    {
+      role: "assistant",
+      content: [
+        { type: "thinking", thinking: "only thinking" },
+      ],
+    },
+  ]);
+
+  assert.deepEqual(messages, [
+    { role: "user", content: "hi" },
+    { role: "assistant", content: [{ type: "text", text: "..." }] },
+  ]);
+});
+
+// Gap 6: toolResult with string body (not array)
+test("passes string toolResult content through as-is", () => {
+  const messages = convertMessages([
+    { role: "user", content: "use tool" },
+    { role: "assistant", content: [{ type: "toolCall", id: "t1", name: "fn", arguments: {} }] },
+    { role: "toolResult", toolCallId: "t1", content: "plain string result" },
+  ]);
+
+  const toolResultBlock = messages[2].content[0];
+  assert.equal(toolResultBlock.type, "tool_result");
+  assert.equal(toolResultBlock.content, "plain string result");
+});
+
+// Gap 7: toolResult with null/undefined content
+test("toolResult with null content converts to empty string", () => {
+  assert.equal(convertToolResultContent(null), "");
+  assert.equal(convertToolResultContent(undefined), "");
+});
+
+// Gap 8: toolResult with isError: true
+test("toolResult propagates is_error flag", () => {
+  const messages = convertMessages([
+    { role: "user", content: "use tool" },
+    { role: "assistant", content: [{ type: "toolCall", id: "e1", name: "risky", arguments: {} }] },
+    { role: "toolResult", toolCallId: "e1", content: "boom", isError: true },
+  ]);
+
+  const toolResultBlock = messages[2].content[0];
+  assert.equal(toolResultBlock.is_error, true);
+});
+
+// Gap 9: Missing toolCall.arguments defaults to {}
+test("toolCall without arguments defaults input to empty object", () => {
+  const messages = convertMessages([
+    { role: "user", content: "call" },
+    { role: "assistant", content: [{ type: "toolCall", id: "x1", name: "noop" }] },
+    { role: "toolResult", toolCallId: "x1", content: "ok" },
+  ]);
+
+  const toolUseBlock = messages[1].content[0];
+  assert.deepEqual(toolUseBlock.input, {});
+});

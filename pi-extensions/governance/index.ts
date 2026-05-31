@@ -40,7 +40,10 @@ function getBeadsState(): BeadsSharedState | null {
 // ─── Extension ───────────────────────────────────────────────────────
 
 export default function (pi: ExtensionAPI) {
-  const isOrchestrator = process.env.SUBAGENT_CHILD_ENV !== "1";
+  // PI_SUBAGENT_CHILD=1 is set by pi-subagents for all worker/child sessions.
+  // See: node_modules/pi-subagents/src/runs/shared/pi-args.ts lines 14, 157.
+  // When unset (parent/orchestrator session), isOrchestrator=true.
+  const isOrchestrator = process.env.PI_SUBAGENT_CHILD !== "1";
 
   // ─── Rule 1: Orchestrator edit gate ────────────────────────────────
 

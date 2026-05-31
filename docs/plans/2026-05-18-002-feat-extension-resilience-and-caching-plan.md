@@ -167,6 +167,7 @@ Three gaps remain after the P0/P1 fixes:
 **Files:**
 - `pi-extensions/anthropic-proxy/index.js`
 - `modules/shared-devtools.nix` (no changes needed — reads file directly)
+  > **Superseded (2026-05-31):** Pi wiring moved to `modules/pi.nix`; `shared-devtools.nix` now only installs the `pi` package. Pi config/extension wiring lives in `modules/pi.nix`.
 
 **Approach:**
 - Run `just deploy-mahakala-hm` to rebuild home-manager

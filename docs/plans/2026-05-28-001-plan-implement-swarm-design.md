@@ -209,6 +209,7 @@ Epic can close only when:
 Files:
 
 - `modules/shared-devtools.nix`
+  > **Superseded (2026-05-31):** Pi wiring now lives in `modules/pi.nix`. `shared-devtools.nix` only installs the `pi` package; Pi packages/MCP config belong in `modules/pi.nix`.
 
 Changes:
 
@@ -258,6 +259,7 @@ Files:
 
 - `pi-extensions/skills/plan-implement/SKILL.md`
 - `modules/shared-devtools.nix`
+  > **Superseded (2026-05-31):** Pi skill/extension registration moved to `modules/pi.nix`. Skill source registration under `.pi/agent/` is wired in `modules/pi.nix`, not `shared-devtools.nix`.
 
 Changes:
 
@@ -271,6 +273,7 @@ Changes:
 Files:
 
 - `modules/shared-devtools.nix`
+  > **Superseded (2026-05-31):** Pi chain registration (`.pi/agent/chains/...`) moved to `modules/pi.nix`; remove/adjust the source registration there, not in `shared-devtools.nix`.
 - `pi-extensions/chains/plan-implement.chain.md` may remain in repo as archive or be deleted.
 
 Changes:

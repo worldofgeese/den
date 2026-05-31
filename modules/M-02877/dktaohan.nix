@@ -1,5 +1,4 @@
-{ den, ... }:
-{
+{den, ...}: {
   den.aspects.dktaohan = {
     includes = [
       den.batteries.define-user
@@ -10,7 +9,12 @@
       den.aspects.terminal
     ];
 
-    homeManager = { pkgs, lib, config, ... }: {
+    homeManager = {
+      pkgs,
+      lib,
+      config,
+      ...
+    }: {
       programs.home-manager.enable = true;
       xdg.enable = true;
       fonts.fontconfig.enable = true;
@@ -319,7 +323,7 @@
           prompt = "enabled";
           editor = "zed";
         };
-        extensions = with pkgs; [ gh-dash ];
+        extensions = with pkgs; [gh-dash];
       };
 
       programs.k9s = {
@@ -341,9 +345,17 @@
           misc = {
             assume_yes = true;
             disable = [
-              "nix" "home_manager" "brew_formula" "brew_cask"
-              "bun" "bun_packages" "bob" "helm"
-              "github_cli_extensions" "rustup" "pi"
+              "nix"
+              "home_manager"
+              "brew_formula"
+              "brew_cask"
+              "bun"
+              "bun_packages"
+              "bob"
+              "helm"
+              "github_cli_extensions"
+              "rustup"
+              "pi"
             ];
             cleanup = true;
             set_title = true;

@@ -1,13 +1,16 @@
-{ den, inputs, ... }:
 {
+  den,
+  inputs,
+  ...
+}: {
   den.aspects.worldofgeese = {
     includes = [
       den._.primary-user
       den.aspects.gitcommon
     ];
 
-    homeManager = { pkgs, ... }: {
-      imports = [ inputs.helium.homeModules.default ];
+    homeManager = {pkgs, ...}: {
+      imports = [inputs.helium.homeModules.default];
       home.username = "worldofgeese";
       home.homeDirectory = "/home/worldofgeese";
       home.enableNixpkgsReleaseCheck = false;
@@ -21,10 +24,11 @@
         enable = true;
         # Upstream uses --set FONTCONFIG_FILE which hard-overrides system fonts.
         # Patch to --set-default so Guix Home's fontconfig takes precedence.
-        package = (pkgs.callPackage "${inputs.helium}/helium.nix" { }).overrideAttrs (old: {
-          preFixup = builtins.replaceStrings
-            [ "--set FONTCONFIG_FILE" ]
-            [ "--set-default FONTCONFIG_FILE" ]
+        package = (pkgs.callPackage "${inputs.helium}/helium.nix" {}).overrideAttrs (old: {
+          preFixup =
+            builtins.replaceStrings
+            ["--set FONTCONFIG_FILE"]
+            ["--set-default FONTCONFIG_FILE"]
             old.preFixup;
         });
       };
@@ -49,8 +53,8 @@
       programs.starship = {
         enable = true;
         settings = {
-          kubernetes = { disabled = true; };
-          nodejs = { disabled = true; };
+          kubernetes = {disabled = true;};
+          nodejs = {disabled = true;};
         };
       };
 
@@ -79,8 +83,7 @@
       # Helium's upstream .desktop uses absolute Nix store paths for Exec and
       # Icon, which GNOME on Guix System can't resolve. Override with PATH-
       # relative command. Icon placed in local hicolor so GNOME can find it.
-      home.file.".local/share/icons/hicolor/256x256/apps/helium.png".source =
-        "${pkgs.callPackage "${inputs.helium}/helium.nix" { }}/share/icons/hicolor/256x256/apps/helium.png";
+      home.file.".local/share/icons/hicolor/256x256/apps/helium.png".source = "${pkgs.callPackage "${inputs.helium}/helium.nix" {}}/share/icons/hicolor/256x256/apps/helium.png";
 
       xdg.desktopEntries.helium = {
         name = "Helium";
@@ -89,7 +92,7 @@
         exec = "helium %U";
         terminal = false;
         icon = "helium";
-        categories = [ "Network" "WebBrowser" ];
+        categories = ["Network" "WebBrowser"];
         mimeType = [
           "text/html"
           "application/xhtml+xml"
@@ -101,8 +104,14 @@
           StartupWMClass = "helium";
         };
         actions = {
-          new-window = { name = "New Window"; exec = "helium"; };
-          new-private-window = { name = "New Incognito Window"; exec = "helium --incognito"; };
+          new-window = {
+            name = "New Window";
+            exec = "helium";
+          };
+          new-private-window = {
+            name = "New Incognito Window";
+            exec = "helium --incognito";
+          };
         };
       };
 

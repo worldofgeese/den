@@ -1,10 +1,12 @@
-{ den, ... }:
-{
+{den, ...}: {
   # Shared terminal experience — polished terminal tooling for all workstations.
   # Dracula theme throughout, session persistence, rich previews.
   den.aspects.terminal = {
-    homeManager = { pkgs, lib, ... }: {
-
+    homeManager = {
+      pkgs,
+      lib,
+      ...
+    }: {
       programs.delta = {
         enable = true;
         options = {
@@ -30,9 +32,9 @@
           "--color=marker:#ff79c6,spinner:#ffb86c,header:#6272a4"
         ];
         fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-        fileWidgetOptions = [ "--preview 'bat --color=always --style=numbers --line-range=:500 {}'" ];
+        fileWidgetOptions = ["--preview 'bat --color=always --style=numbers --line-range=:500 {}'"];
         changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-        changeDirWidgetOptions = [ "--preview 'eza --tree --color=always --icons {} | head -200'" ];
+        changeDirWidgetOptions = ["--preview 'eza --tree --color=always --icons {} | head -200'"];
         tmux.enableShellIntegration = true;
       };
 

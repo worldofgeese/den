@@ -9,15 +9,15 @@
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
-          version = "0.57.3";
+          version = "0.58.1";
 
           src = final.fetchzip {
-            url = "https://static.crates.io/crates/decapod/decapod-0.57.3.crate";
+            url = "https://static.crates.io/crates/decapod/decapod-0.58.1.crate";
             extension = "tar.gz";
-            hash = "sha256-kPqF0FKOHfZO3vHbEol/nQXGyexD1GPsU7x3DfTDD+g=";
+            hash = "sha256-AAXeE4ZYYvCLPRT+Alf0EFvK4BWndX9MRG9gm7VESpE=";
           };
 
-          cargoHash = "sha256-pXqloM14rM9pV7ZxyOivosYk77BIBGKmVGAFRQ/l7zw=";
+          cargoHash = "sha256-mR9WkXC2Z5XNJkw9r5XQONzG6WNItX0kCt5KSF4ORPY=";
 
           doCheck = false;
 

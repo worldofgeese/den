@@ -50,6 +50,7 @@ check:
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
     just test-pi-extensions
     just typecheck-pi-extensions
+    just check-fmt
 
 # TypeScript type-check pi-extensions/governance/index.ts; skips if npx absent
 typecheck-pi-extensions:
@@ -92,3 +93,17 @@ upgrade-kernel:
 # Show flake outputs
 show:
     nix flake show
+
+# Format all Nix files with alejandra
+fmt:
+    nix run nixpkgs#alejandra -- flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
+
+# Check Nix formatting (fails if unformatted)
+check-fmt:
+    nix run nixpkgs#alejandra -- --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
+
+# Install git hooks (pre-commit runs 'just check')
+install-hooks:
+    cp .githooks/pre-commit .git/hooks/pre-commit
+    chmod +x .git/hooks/pre-commit
+    @echo "Hooks installed."

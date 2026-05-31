@@ -1,12 +1,17 @@
-{ den, ... }:
-{
-  den.aspects.paphos.nixos = { config, lib, pkgs, modulesPath, ... }: {
-    imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+{den, ...}: {
+  den.aspects.paphos.nixos = {
+    config,
+    lib,
+    pkgs,
+    modulesPath,
+    ...
+  }: {
+    imports = [(modulesPath + "/installer/scan/not-detected.nix")];
 
-    boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "ehci_pci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" "igb" ];
-    boot.initrd.kernelModules = [ ];
-    boot.kernelModules = [ "kvm-amd" ];
-    boot.extraModulePackages = [ ];
+    boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "ehci_pci" "usbhid" "usb_storage" "sd_mod" "sdhci_pci" "igb"];
+    boot.initrd.kernelModules = [];
+    boot.kernelModules = ["kvm-amd"];
+    boot.extraModulePackages = [];
     boot.kernelPackages = pkgs.linuxPackages_latest;
 
     boot.loader.systemd-boot.enable = true;
@@ -26,7 +31,7 @@
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAiVMF2Pv1UXd2rkxEgz1E7Wgdt8MXn4yDQ+/dSthrfy"
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQr88Pnz4YS8whUc6n2mtMeho/sNPqA9sDVzfAFxZH8"
         ];
-        hostKeys = [ "/etc/secrets/initrd/ssh_host_ed25519_key" ];
+        hostKeys = ["/etc/secrets/initrd/ssh_host_ed25519_key"];
       };
     };
 
@@ -41,16 +46,15 @@
       fsType = "ext4";
     };
 
-    boot.initrd.luks.devices."luks-1c2d2926-91cd-4a86-a983-0e3b69ad2caa".device =
-      "/dev/disk/by-uuid/1c2d2926-91cd-4a86-a983-0e3b69ad2caa";
+    boot.initrd.luks.devices."luks-1c2d2926-91cd-4a86-a983-0e3b69ad2caa".device = "/dev/disk/by-uuid/1c2d2926-91cd-4a86-a983-0e3b69ad2caa";
 
     fileSystems."/boot" = {
       device = "/dev/disk/by-uuid/5D87-7D1E";
       fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
+      options = ["fmask=0077" "dmask=0077"];
     };
 
-    swapDevices = [ ];
+    swapDevices = [];
 
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
     hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;

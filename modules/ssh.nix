@@ -1,6 +1,9 @@
-{ den, ... }:
-{
-  den.aspects.ssh.homeManager = { config, lib, ... }: {
+{den, ...}: {
+  den.aspects.ssh.homeManager = {
+    config,
+    lib,
+    ...
+  }: {
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
@@ -46,7 +49,7 @@
     # Replace the symlink with a copy after link generation.
     home.file.".ssh/config".force = true;
 
-    home.activation.installSSHConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    home.activation.installSSHConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
       run install -d -m 0700 "$HOME/.ssh"
       if [ -L "$HOME/.ssh/config" ]; then
         src="$(readlink -f "$HOME/.ssh/config")"
@@ -56,7 +59,7 @@
     '';
   };
 
-  den.aspects.ssh-server.nixos = { ... }: {
+  den.aspects.ssh-server.nixos = {...}: {
     services.openssh = {
       enable = true;
       settings = {

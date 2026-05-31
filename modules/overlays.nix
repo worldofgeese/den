@@ -1,6 +1,9 @@
-{ inputs, den, ... }:
 {
-  den.aspects.devtools.homeManager = { pkgs, ... }: {
+  inputs,
+  den,
+  ...
+}: {
+  den.aspects.devtools.homeManager = {pkgs, ...}: {
     nixpkgs.overlays = [
       (final: prev: {
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
@@ -21,11 +24,13 @@
 
           doCheck = false;
 
-          nativeBuildInputs = with final; [ pkg-config ]
-            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [ lld autoPatchelfHook ];
-          nativeCheckInputs = [ final.git ];
-          buildInputs = [ final.sqlite ]
-            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [ final.openssl final.stdenv.cc.cc.lib ];
+          nativeBuildInputs = with final;
+            [pkg-config]
+            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [lld autoPatchelfHook];
+          nativeCheckInputs = [final.git];
+          buildInputs =
+            [final.sqlite]
+            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [final.openssl final.stdenv.cc.cc.lib];
 
           meta = {
             description = "Decapod CLI — repo-native governance kernel for AI agents";
@@ -46,8 +51,8 @@
             hash = "sha256-KWxrgC48GmU8KhJ43lLchQL1LqVJc24Weg59jyv8qNk=";
           };
 
-          nativeBuildInputs = [ final.makeWrapper ] ++ (with final.python313Packages; [ hatchling ]);
-          pythonRelaxDeps = [ "authlib" ];
+          nativeBuildInputs = [final.makeWrapper] ++ (with final.python313Packages; [hatchling]);
+          pythonRelaxDeps = ["authlib"];
 
           propagatedBuildInputs = with final.python313Packages; [
             aiosqlite
@@ -85,10 +90,10 @@
             uvicorn
           ];
 
-          nativeCheckInputs = with final.python313Packages; [ pytestCheckHook ];
+          nativeCheckInputs = with final.python313Packages; [pytestCheckHook];
           doCheck = false;
 
-          nativeInstallCheckInputs = [ final.versionCheckHook ];
+          nativeInstallCheckInputs = [final.versionCheckHook];
           versionCheckProgramArg = "--version";
           doInstallCheck = false;
 
@@ -162,8 +167,8 @@
           RUSTC_BOOTSTRAP = "1";
           doCheck = false;
 
-          nativeBuildInputs = with final; [ pkg-config ];
-          buildInputs = final.lib.optionals final.stdenv.hostPlatform.isLinux [ final.openssl ];
+          nativeBuildInputs = with final; [pkg-config];
+          buildInputs = final.lib.optionals final.stdenv.hostPlatform.isLinux [final.openssl];
 
           meta = {
             description = "Fast Rust port of Beads issue tracker";
@@ -185,7 +190,7 @@
           };
 
           vendorHash = null;
-          subPackages = [ "cmd/bv" ];
+          subPackages = ["cmd/bv"];
           doCheck = false;
 
           meta = {

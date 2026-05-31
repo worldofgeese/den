@@ -1,46 +1,55 @@
-{ den, inputs, ... }:
 {
+  den,
+  inputs,
+  ...
+}: {
   den.aspects.workstation = {
     includes = [
       den.aspects.pi
       den.aspects.terminal
     ];
-    homeManager = { pkgs, lib, ... }: {
+    homeManager = {
+      pkgs,
+      lib,
+      ...
+    }: {
       nixpkgs.overlays = [
         (final: prev: {
           ewm = inputs.ewm.packages.${pkgs.stdenv.hostPlatform.system}.default;
         })
       ];
       # Linux workstation-specific packages (shared tools come from shared-devtools)
-      home.packages = (with pkgs; [
-        ewm
-        brush
-        wl-clipboard
-        gopass
-        isort
-        nixfmt
-        devbox
-        openshift
-        kubectl-tree
-        kubie
-        krew
-        kubernetes-helm # consolidated from Guix Home
-        kind # consolidated from Guix Home
-        sops
-        httpie
-        # yt-dlp consolidated to Guix Home (Bordeaux substitute available)
-        dockfmt
-        synology-drive-client
-        python-launcher
-        kn
-        megasync
-        opencode
-        agent-browser
-        beeper
-      ]) ++ [
-        # gc — Gas City CLI proxied to remote container on loving-kypris
-        (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
-      ];
+      home.packages =
+        (with pkgs; [
+          ewm
+          brush
+          wl-clipboard
+          gopass
+          isort
+          nixfmt
+          devbox
+          openshift
+          kubectl-tree
+          kubie
+          krew
+          kubernetes-helm # consolidated from Guix Home
+          kind # consolidated from Guix Home
+          sops
+          httpie
+          # yt-dlp consolidated to Guix Home (Bordeaux substitute available)
+          dockfmt
+          synology-drive-client
+          python-launcher
+          kn
+          megasync
+          opencode
+          agent-browser
+          beeper
+        ])
+        ++ [
+          # gc — Gas City CLI proxied to remote container on loving-kypris
+          (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
+        ];
 
       xdg.configFile."autostart/synology-drive.desktop".text = ''
         [Desktop Entry]
@@ -66,7 +75,7 @@
       # ~/.local/share/gnome-shell/extensions, so symlink it into the latter
       # on every activation. After this lands, log out + log back in, then:
       #   gnome-extensions enable appindicatorsupport@rgcjonas.gmail.com
-      home.activation.linkAppIndicatorExtension = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      home.activation.linkAppIndicatorExtension = lib.hm.dag.entryAfter ["writeBoundary"] ''
         ext_id="appindicatorsupport@rgcjonas.gmail.com"
         src="$HOME/.guix-home/profile/share/gnome-shell/extensions/$ext_id"
         dst_dir="$HOME/.local/share/gnome-shell/extensions"
@@ -97,7 +106,7 @@
           };
           misc = {
             show_distribution_summary = false;
-            disable = [ "nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m" ];
+            disable = ["nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
           };
           commands = {
             "Doom Emacs" = "doom upgrade --force";

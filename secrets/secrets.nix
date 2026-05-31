@@ -5,9 +5,8 @@ let
   tao-ed1 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAbIQYGvgicAePeJgXJY2wTFMjna8zHSIfqppFB0edOV";
   tao-ed2 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAiVMF2Pv1UXd2rkxEgz1E7Wgdt8MXn4yDQ+/dSthrfy";
   tao-ed3 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQr88Pnz4YS8whUc6n2mtMeho/sNPqA9sDVzfAFxZH8";
-  allKeys = [ paphos kypris tao-rsa tao-ed1 tao-ed2 tao-ed3 ];
-in
-{
+  allKeys = [paphos kypris tao-rsa tao-ed1 tao-ed2 tao-ed3];
+in {
   "forgejo-admin-password.age".publicKeys = allKeys;
   "forgesync-forgejo-token.age".publicKeys = allKeys;
   "forgesync-github-pat.age".publicKeys = allKeys;

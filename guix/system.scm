@@ -106,6 +106,17 @@
            #:builder
            #~(begin
                (use-modules (guix build utils))
+               ;; Install launcher script (accessible by GDM since it lives in /gnu/store)
+               (let ((bin (string-append #$output "/bin")))
+                 (mkdir-p bin)
+                 (call-with-output-file (string-append bin "/ewm-session")
+                   (lambda (port)
+                     (display "#!/bin/sh
+# EWM session launcher — uses Guix emacs-pgtk + Nix-built EWM module
+HM_SITE_LISP=\"$HOME/.local/state/nix/profiles/home-manager/home-path/share/emacs/site-lisp\"
+exec /run/current-system/profile/bin/emacs \\\n  --fg-daemon=ewm \\\n  -L \"$HM_SITE_LISP\" \\\n  -l ewm \\\n  -f ewm-start-module \\\n  \"$@\"\n" port)))
+                 (chmod (string-append bin "/ewm-session") #o755))
+               ;; Install .desktop file for GDM wayland session picker
                (let ((sessions (string-append #$output "/share/wayland-sessions")))
                  (mkdir-p sessions)
                  (call-with-output-file (string-append sessions "/ewm.desktop")
@@ -114,8 +125,7 @@
 Type=Application
 Name=EWM
 Comment=Emacs Wayland Manager
-Exec=/home/worldofgeese/.local/bin/ewm-session
-TryExec=/home/worldofgeese/.local/bin/ewm-session
+Exec=ewm-session
 DesktopNames=EWM
 " port)))))))
     (home-page "https://codeberg.org/ezemtsov/ewm")
@@ -144,7 +154,7 @@ DesktopNames=EWM
 root ALL=(ALL) ALL
 %wheel ALL=NOPASSWD: ALL\n"))
   (packages (append (specifications->packages
-                     (list "nix" "emacs-pgtk" "xdg-dbus-proxy" "wl-clipboard"))
+                     (list "nix" "emacs-pgtk" "xdg-dbus-proxy"))
                     (list ewm-desktop-session)
                     %base-packages))
   (services

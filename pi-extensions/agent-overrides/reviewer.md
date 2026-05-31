@@ -1,5 +1,6 @@
 ---
 name: reviewer
+tier: orchestrator
 description: Review orchestrator — dispatches to specialized CE reviewers (correctness, maintainability, project-standards) in parallel and merges findings into a unified verdict
 model: cursor/composer-2.5
 fallbackModels: github-copilot/gpt-5.5

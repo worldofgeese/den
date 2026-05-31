@@ -129,6 +129,30 @@
         };
       };
 
+      # Tier definitions for agent model routing.
+      # Agents declare their tier via `tier:` frontmatter field.
+      # Agents without a `tier:` field default to "execution".
+      home.file.".pi/agent/tier-defs.json".text = let
+        tierDefs = {
+          orchestrator = {
+            model = "github-copilot/gpt-5.5";
+            thinking = "high";
+            fallbackModels = [];
+          };
+          creative = {
+            model = "opencode-go/kimi-k2.6";
+            thinking = "high";
+            fallbackModels = [];
+          };
+          execution = {
+            model = "cursor/composer-2.5";
+            thinking = "medium";
+            fallbackModels = ["opencode-go/deepseek-v4-flash"];
+          };
+        };
+      in
+        builtins.toJSON tierDefs;
+
       home.file.".pi/agent/settings.json".text = builtins.toJSON {
         provider = "github-copilot";
         model = "gpt-5.5";
@@ -152,122 +176,6 @@
           "npm:pi-paster"
           "git:github.com/dheerapat/pi-kb"
         ];
-        subagents = {
-          agentOverrides = let
-            gpt55 = "github-copilot/gpt-5.5";
-            composer = "cursor/composer-2.5";
-
-            mkOverride = model: thinking: fallbackModels: {
-              inherit model thinking fallbackModels;
-            };
-            mkOverrides = names: value: builtins.listToAttrs (builtins.map (name: {inherit name value;}) names);
-
-            planOverride = mkOverride gpt55 "high" [composer];
-            composerOverride = mkOverride composer "medium" [gpt55];
-          in
-            (mkOverrides [
-                # Builtins: decision consistency.
-                "oracle"
-              ]
-              composerOverride)
-            // (mkOverrides [
-                # Builtins: planning and spec writing.
-                "planner"
-              ]
-              planOverride)
-            // (mkOverrides [
-                # Builtins: Composer-powered subagents.
-                "reviewer"
-                "context-builder"
-                "worker"
-                "delegate"
-                "scout"
-                "researcher"
-              ]
-              composerOverride)
-            // (mkOverrides [
-                # Composer: adversarial/security/hard reasoning.
-                "artifact-reviewer"
-                "ce-adversarial-document-reviewer"
-                "ce-adversarial-reviewer"
-                "ce-agent-native-reviewer"
-                "ce-correctness-reviewer"
-                "ce-data-integrity-guardian"
-                "ce-data-migrations-reviewer"
-                "ce-julik-frontend-races-reviewer"
-                "ce-performance-oracle"
-                "ce-security-lens-reviewer"
-                "ce-security-reviewer"
-                "ce-security-sentinel"
-                "claim-verifier"
-                "codebase-analyzer"
-                "slice-verifier"
-              ]
-              composerOverride)
-            // (mkOverrides [
-                # Composer: plans, careful review, synthesis.
-                "artifact-code-reviewer"
-                "artifact-coverage-reviewer"
-                "ce-api-contract-reviewer"
-                "ce-architecture-strategist"
-                "ce-best-practices-researcher"
-                "ce-code-simplicity-reviewer"
-                "ce-coherence-reviewer"
-                "ce-deployment-verification-agent"
-                "ce-design-implementation-reviewer"
-                "ce-design-lens-reviewer"
-                "ce-dhh-rails-reviewer"
-                "ce-feasibility-reviewer"
-                "ce-framework-docs-researcher"
-                "ce-kieran-python-reviewer"
-                "ce-kieran-rails-reviewer"
-                "ce-kieran-typescript-reviewer"
-                "ce-maintainability-reviewer"
-                "ce-performance-reviewer"
-                "ce-product-lens-reviewer"
-                "ce-project-standards-reviewer"
-                "ce-reliability-reviewer"
-                "ce-scope-guardian-reviewer"
-                "ce-slack-researcher"
-                "ce-spec-flow-analyzer"
-                "ce-swift-ios-reviewer"
-                "ce-testing-reviewer"
-                "ce-web-researcher"
-                "diff-auditor"
-                "peer-comparator"
-                "web-search-researcher"
-              ]
-              composerOverride)
-            // (mkOverrides [
-                # Composer: build/edit/write/fix loops.
-                "ce-ankane-readme-writer"
-                "ce-data-migration-expert"
-                "ce-design-iterator"
-                "ce-figma-design-sync"
-                "ce-pr-comment-resolver"
-              ]
-              composerOverride)
-            // (mkOverrides [
-                # Composer: fast scouting, locating, summarizing context.
-                "artifacts-analyzer"
-                "artifacts-locator"
-                "ce-git-history-analyzer"
-                "ce-issue-intelligence-analyst"
-                "ce-learnings-researcher"
-                "ce-pattern-recognition-specialist"
-                "ce-previous-comments-reviewer"
-                "ce-repo-research-analyst"
-                "ce-schema-drift-detector"
-                "ce-session-historian"
-                "codebase-locator"
-                "codebase-pattern-finder"
-                "integration-scanner"
-                "precedent-locator"
-                "scope-tracer"
-                "test-case-locator"
-              ]
-              composerOverride);
-        };
       };
 
       # Override builtin agents with CE-enhanced versions.
@@ -292,23 +200,19 @@
       home.file.".pi/agent/hotfixes/pi-subagents/apply-hotfixes.mjs".text =
         builtins.readFile ../pi-extensions/hotfixes/pi-subagents/apply-hotfixes.mjs;
 
-      # pi-subagents native `agentOverrides` only applies to builtin agents.
-      # Our Compound Engineering agents live in ~/.pi/agent/agents (user scope),
-      # so stale frontmatter model pins win during discovery. Mirror the same
-      # overrides into those user-scope agent files to keep runtime routing on
-      # the HM-defined GPT-5.5/Composer flow until these agents move into a
-      # package/builtin scope.
+      # Tier-based agent model sync: reads tier-defs.json and each agent's
+      # `tier:` frontmatter field to patch model/thinking/fallbackModels.
+      # Agents without a `tier:` field default to "execution" tier.
       home.activation.syncPiUserAgentModelOverrides = lib.hm.dag.entryAfter ["writeBoundary"] ''
         run ${pkgs.nodejs}/bin/node <<'NODE'
         const fs = require("fs");
         const path = require("path");
 
-        const settingsPath = path.join(process.env.HOME, ".pi", "agent", "settings.json");
+        const tierDefsPath = path.join(process.env.HOME, ".pi", "agent", "tier-defs.json");
         const agentsDir = path.join(process.env.HOME, ".pi", "agent", "agents");
-        if (!fs.existsSync(settingsPath) || !fs.existsSync(agentsDir)) process.exit(0);
+        if (!fs.existsSync(tierDefsPath) || !fs.existsSync(agentsDir)) process.exit(0);
 
-        const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
-        const overrides = (settings.subagents && settings.subagents.agentOverrides) || {};
+        const tierDefs = JSON.parse(fs.readFileSync(tierDefsPath, "utf8"));
         const fields = ["model", "thinking", "fallbackModels"];
         let updated = 0;
 
@@ -327,15 +231,19 @@
 
             let frontmatter = lines.slice(1, frontmatterEnd);
             let body = lines.slice(frontmatterEnd + 1);
-            const nameLine = frontmatter.find((line) => line.startsWith("name: "));
-            const agentName = nameLine ? nameLine.slice(6).trim() : path.basename(fileName, ".md");
-            const override = overrides[agentName];
-            if (!override || !override.model) continue;
+
+            // Discover tier from frontmatter; default to "execution"
+            const tierLine = frontmatter.find((line) => line.startsWith("tier:"));
+            const tierName = tierLine ? tierLine.slice(5).trim() : "execution";
+            const tier = tierDefs[tierName];
+            if (!tier || !tier.model) continue;
 
             const values = {
-              model: override.model,
-              fallbackModels: Array.isArray(override.fallbackModels) ? override.fallbackModels.join(", ") : undefined,
-              thinking: override.thinking,
+              model: tier.model,
+              fallbackModels: Array.isArray(tier.fallbackModels) && tier.fallbackModels.length > 0
+                ? tier.fallbackModels.join(", ")
+                : undefined,
+              thinking: tier.thinking,
             };
 
             frontmatter = frontmatter.filter((line) => !fields.some((field) => line.startsWith(field + ":")));
@@ -364,7 +272,7 @@
           }
         }
 
-        console.log("synced Pi user agent model overrides: " + updated);
+        console.log("synced Pi user agent model overrides (tier-based): " + updated);
         NODE
       '';
 

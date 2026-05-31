@@ -34,6 +34,10 @@
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ewm = {
+      url = "git+https://codeberg.org/ezemtsov/ewm";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # Use nix-on-droid's own tested nixpkgs + home-manager versions.
     # See: https://github.com/nix-community/nix-on-droid/issues/495
     # Remove these pins once nix-on-droid merges PR #529 (proot-termux update)

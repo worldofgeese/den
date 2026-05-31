@@ -1,5 +1,6 @@
 ---
 name: planner
+tier: orchestrator
 description: Creates concrete, architecture-aware implementation plans from context and requirements
 model: github-copilot/gpt-5.5
 fallbackModels: cursor/composer-2.5

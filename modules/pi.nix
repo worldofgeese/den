@@ -312,45 +312,53 @@
 
           for (const fileName of fs.readdirSync(agentsDir).filter((name) => name.endsWith(".md"))) {
             const filePath = path.join(agentsDir, fileName);
-            const lines = fs.readFileSync(filePath, "utf8").split(/\n/);
-            if (lines[0] !== "---") continue;
+            try {
+              if (fs.lstatSync(filePath).isSymbolicLink()) {
+                console.error("syncPiUserAgentModelOverrides: skipping " + fileName + ": is a symlink");
+                continue;
+              }
+              const lines = fs.readFileSync(filePath, "utf8").split(/\n/);
+              if (lines[0] !== "---") continue;
 
-            const frontmatterEnd = lines.indexOf("---", 1);
-            if (frontmatterEnd < 0) continue;
+              const frontmatterEnd = lines.indexOf("---", 1);
+              if (frontmatterEnd < 0) continue;
 
-            let frontmatter = lines.slice(1, frontmatterEnd);
-            let body = lines.slice(frontmatterEnd + 1);
-            const nameLine = frontmatter.find((line) => line.startsWith("name: "));
-            const agentName = nameLine ? nameLine.slice(6).trim() : path.basename(fileName, ".md");
-            const override = overrides[agentName];
-            if (!override || !override.model) continue;
+              let frontmatter = lines.slice(1, frontmatterEnd);
+              let body = lines.slice(frontmatterEnd + 1);
+              const nameLine = frontmatter.find((line) => line.startsWith("name: "));
+              const agentName = nameLine ? nameLine.slice(6).trim() : path.basename(fileName, ".md");
+              const override = overrides[agentName];
+              if (!override || !override.model) continue;
 
-            const values = {
-              model: override.model,
-              fallbackModels: Array.isArray(override.fallbackModels) ? override.fallbackModels.join(", ") : undefined,
-              thinking: override.thinking,
-            };
+              const values = {
+                model: override.model,
+                fallbackModels: Array.isArray(override.fallbackModels) ? override.fallbackModels.join(", ") : undefined,
+                thinking: override.thinking,
+              };
 
-            frontmatter = frontmatter.filter((line) => !fields.some((field) => line.startsWith(field + ":")));
-            body = body.filter((line) => !fields.some((field) => values[field] && line === field + ": " + values[field]));
+              frontmatter = frontmatter.filter((line) => !fields.some((field) => line.startsWith(field + ":")));
+              body = body.filter((line) => !fields.some((field) => values[field] && line === field + ": " + values[field]));
 
-            const inserted = [];
-            if (values.model) inserted.push("model: " + values.model);
-            if (values.fallbackModels) inserted.push("fallbackModels: " + values.fallbackModels);
-            if (values.thinking) inserted.push("thinking: " + values.thinking);
+              const inserted = [];
+              if (values.model) inserted.push("model: " + values.model);
+              if (values.fallbackModels) inserted.push("fallbackModels: " + values.fallbackModels);
+              if (values.thinking) inserted.push("thinking: " + values.thinking);
 
-            const descriptionIndex = frontmatter.findIndex((line) => line.startsWith("description: "));
-            if (descriptionIndex >= 0) {
-              frontmatter.splice(descriptionIndex + 1, 0, ...inserted);
-            } else {
-              frontmatter.push(...inserted);
-            }
+              const descriptionIndex = frontmatter.findIndex((line) => line.startsWith("description: "));
+              if (descriptionIndex >= 0) {
+                frontmatter.splice(descriptionIndex + 1, 0, ...inserted);
+              } else {
+                frontmatter.push(...inserted);
+              }
 
-            const next = ["---", ...frontmatter, "---", ...body].join("\n");
-            const previous = lines.join("\n");
-            if (next !== previous) {
-              fs.writeFileSync(filePath, next);
-              updated += 1;
+              const next = ["---", ...frontmatter, "---", ...body].join("\n");
+              const previous = lines.join("\n");
+              if (next !== previous) {
+                fs.writeFileSync(filePath, next);
+                updated += 1;
+              }
+            } catch (e) {
+              console.error("syncPiUserAgentModelOverrides: skipping " + fileName + ": " + e.message);
             }
           }
 

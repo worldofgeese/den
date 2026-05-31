@@ -217,6 +217,26 @@
         "type": "github"
       }
     },
+    "ewm": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780217987,
+        "narHash": "sha256-4LlmnyIpdkw9pAJFZdXGVoYpfcwGc5wHk4RHnQi6PJE=",
+        "ref": "refs/heads/master",
+        "rev": "01fa7ab88d889839237513a86e66a483bf2cf523",
+        "revCount": 832,
+        "type": "git",
+        "url": "https://codeberg.org/ezemtsov/ewm"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://codeberg.org/ezemtsov/ewm"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -489,11 +509,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1780238997,
-        "narHash": "sha256-0oTRLfa/DmXEVyS3PLjioiw2YBENiyIF+nmNvIX5TkA=",
+        "lastModified": 1780241545,
+        "narHash": "sha256-BTqzbG/d0VOOQq0mR1Ku9ISMQr3DABT11zivNGgmZWw=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "28adfd6564ebb01146703abc97c3357ef387c1d3",
+        "rev": "2dc0dd82fe178486aa380aa4a5e6954434684959",
         "type": "github"
       },
       "original": {
@@ -808,6 +828,7 @@
         "darwin": "darwin_2",
         "den": "den",
         "devenv": "devenv",
+        "ewm": "ewm",
         "flake-parts": "flake-parts_2",
         "forgesync": "forgesync",
         "helium": "helium",

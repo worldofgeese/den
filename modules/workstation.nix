@@ -8,6 +8,7 @@
     homeManager = { pkgs, lib, ... }: {
       # Linux workstation-specific packages (shared tools come from shared-devtools)
       home.packages = (with pkgs; [
+        ewm
         brush
         wl-clipboard
         gopass

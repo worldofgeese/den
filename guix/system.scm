@@ -12,6 +12,8 @@
              (rosenthal services networking)
              (gnu packages gnome)
              (guix packages)
+             (guix build-system trivial)
+             ((guix licenses) #:prefix license:)
              (srfi srfi-1)
              (linux-cachyos))
 (use-service-modules desktop networking xorg dbus nix pm)
@@ -93,6 +95,34 @@
                        (wayland? #t)))
 ))
 
+(define ewm-desktop-session
+  (package
+    (name "ewm-desktop-session")
+    (version "0.1")
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     (list #:modules '((guix build utils))
+           #:builder
+           #~(begin
+               (use-modules (guix build utils))
+               (let ((sessions (string-append #$output "/share/wayland-sessions")))
+                 (mkdir-p sessions)
+                 (call-with-output-file (string-append sessions "/ewm.desktop")
+                   (lambda (port)
+                     (display "[Desktop Entry]
+Type=Application
+Name=EWM
+Comment=Emacs Wayland Manager
+Exec=/home/worldofgeese/.local/bin/ewm-session
+TryExec=/home/worldofgeese/.local/bin/ewm-session
+DesktopNames=EWM
+" port)))))))
+    (home-page "https://codeberg.org/ezemtsov/ewm")
+    (synopsis "EWM Wayland session desktop entry")
+    (description "Desktop entry file for launching EWM from GDM.")
+    (license license:gpl3+)))
+
 (operating-system
   (kernel linux-cachyos)
   (initrd microcode-initrd)
@@ -114,7 +144,8 @@
 root ALL=(ALL) ALL
 %wheel ALL=NOPASSWD: ALL\n"))
   (packages (append (specifications->packages
-                     (list "nix" "emacs-exwm" "emacs" "xdg-dbus-proxy" "emacs-desktop-environment"))
+                     (list "nix" "emacs-pgtk" "xdg-dbus-proxy" "wl-clipboard"))
+                    (list ewm-desktop-session)
                     %base-packages))
   (services
    (cons*

@@ -5,6 +5,7 @@
       (final: prev: {
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
         pi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
+        ewm = inputs.ewm.packages.${pkgs.stdenv.hostPlatform.system}.default;
       })
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {

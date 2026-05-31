@@ -310,6 +310,34 @@ export default function beadsRustExtension(pi: ExtensionAPI) {
     syncStatusBar(ctx);
   });
 
+  // ── Bead quality gate: br create must have description ────────
+  //
+  // Beads without descriptions are useless stubs that can't handoff.
+  // Block `br create` unless -d/--description or --file flag present.
+
+  pi.on("tool_call", async (event, _ctx) => {
+    if (event.toolName !== "bash") return;
+
+    const command =
+      (event.input as Record<string, unknown>)?.command as string ?? "";
+
+    if (/\bbr\s+create\b/.test(command)) {
+      if (!/(-d\s|--description\s|--file\s)/.test(command)) {
+        return {
+          block: true,
+          reason: [
+            "Blocked: br create without --description or --file.",
+            "Beads must contain enough context for a fresh agent to complete the work:",
+            "  goal, background, scope, files to change, acceptance criteria.",
+            "",
+            'Example: br create "title" -d "Full description..." --json',
+            'Or:      br create "title" --file description.md --json',
+          ].join("\n"),
+        };
+      }
+    }
+  });
+
   // Watch for br mutations to refresh state
   pi.on("tool_result", async (event, ctx) => {
     if (event.toolName !== "bash") return;

@@ -48,6 +48,18 @@ check:
     nix eval --no-warn-dirty .#homeConfigurations.worldofgeese.activationPackage.drvPath >/dev/null
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
+    just test-pi-extensions
+
+# Run pi-extensions node tests (anthropic-proxy + pi-subagents hotfix); skips if node absent
+test-pi-extensions:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v node >/dev/null 2>&1; then
+        echo "test-pi-extensions: node not found, skipping"
+        exit 0
+    fi
+    ( cd pi-extensions/anthropic-proxy && node --test *.test.js )
+    node --test pi-extensions/hotfixes/pi-subagents/get-final-output.test.mjs
 
 # Update all flake inputs
 update:

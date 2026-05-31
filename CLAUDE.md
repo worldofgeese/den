@@ -6,8 +6,6 @@ This file provides guidance to Claude Code when working with this repository.
 
 This project follows Spec-Driven Development (SDD). Behavioral specs live in `.rpi/specs/` and serve as the source of truth for expected behavior. Always consult relevant specs before implementing or modifying features.
 
-<!-- TODO: Add brief project description -->
-
 ## Git Workflow 
 
 When committing changes, always ask the user which files/directories to include before proposing commits. Never assume all unstaged/staged changes should be committed.
@@ -49,31 +47,34 @@ When exploring unfamiliar code, check what navigation tools are available before
 ## Development Conventions
 
 Before implementing any changes, always: 1) Read the current version of each file you plan to modify, 2) Run the existing test suite to establish a baseline, 3) Implement changes incrementally — one logical unit at a time, 4) Run tests after each unit. If tests fail, fix before proceeding. Do not batch all changes and test at the end.
-<!-- TODO: Add project-specific conventions -->
 
 When implementing a plan from `.rpi/plans/`, present intended changes for each phase before writing code. If a phase's success criteria are fully covered by automated checks (tests, linting, etc.), run them and proceed automatically when they pass. Only pause for manual verification when the plan includes manual verification items not covered by automated tests. Update checkboxes in the plan file as items complete, and resume from the first unchecked item if checkboxes already exist.
 
 
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
+<!-- BEGIN BEADS INTEGRATION v:2 profile:br-agent-mail -->
 ## Beads Issue Tracker
 
-This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+This project uses **br (Beads Rust)** for issue tracking. `br` is canonical for all Beads operations. If older guidance mentions `bd`, treat it as stale and use `br` instead.
+
+Run `br robot-docs guide` for agent-focused command guidance. Prefer `RUST_LOG=error br ...` to suppress noisy Rust dependency logs while preserving normal stdout/JSON output.
 
 ### Quick Reference
 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work
-bd close <id>         # Complete work
+br ready --json                         # Find available work
+br show <id> --json                      # View issue details
+br update <id> --status in_progress      # Mark work in progress
+br close <id> --reason "Completed"        # Complete work
+br sync --flush-only                     # Ensure JSONL export is current
 ```
 
 ### Rules
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- Run `bd prime` for detailed command reference and session close protocol
-- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+- Use `br` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- `br` has no `prime` or `remember` subcommands. Use `br robot-docs guide` for command guidance; store durable knowledge as Bead comments, Bead descriptions, follow-up Beads, or Agent Mail threads. Do NOT use MEMORY.md files
+- `br` is non-invasive: it never commits, pushes, pulls, installs hooks, or runs as a background service. Git handoff is your responsibility
+- `br` mutations auto-flush JSONL by default; still run `br sync --flush-only` as a final export check before committing/pushing
 
 ## Session Completion
 
@@ -87,7 +88,8 @@ bd close <id>         # Complete work
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd dolt push
+   br sync --flush-only
+   git status --short  # .beads changes must be committed before push
    git push
    git status  # MUST show "up to date with origin"
    ```

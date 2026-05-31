@@ -115,7 +115,7 @@ just deploy-paphos
 just deploy-pixel-fold
 ```
 
-Or without just:
+Manual fallback (run only if `just` is unavailable):
 
 ```bash
 home-manager switch --flake .#worldofgeese              # mahakala HM
@@ -141,7 +141,7 @@ apply-M-02877   # same thing, explicit
 topgrade --yes
 ```
 
-On mahakala this refreshes CachyOS kernel metadata, upgrades Guix System, Guix Home, Nix flake inputs and pinned Rust tools, Doom Emacs, Flatpak, then garbage-collects all package managers. On M-02877 it runs `just deploy-darwin`, including flake input and pinned Rust tool updates before darwin-rebuild.
+On mahakala, topgrade delegates the Nix and Guix work to the Justfile rather than its own built-in modules: its `nix`, `home_manager`, `guix`, `system`, and several other modules are disabled in `workstation.nix`, and pre-commands run `just upgrade-kernel` (CachyOS kernel metadata) then `just deploy-mahakala` (Guix System + Guix Home + Home Manager, including flake input and pinned Rust tool updates). topgrade itself then handles Doom Emacs, Distrobox, Homebrew-in-distrobox, and post-run garbage collection across Nix, Guix, Flatpak, and Podman. On M-02877 it runs `just deploy-darwin`, including flake input and pinned Rust tool updates before darwin-rebuild.
 
 ### Just the Nix configuration
 
@@ -212,6 +212,10 @@ modules/
 ├── hosts.nix            # Host/home declarations
 ├── defaults.nix         # Global defaults + aspect wiring
 ├── worldofgeese.nix     # Shared user aspect (git, shell tools, direnv, atuin)
+├── git-common.nix       # Shared git settings aspect (hosts add identity)
+├── terminal.nix         # Shared terminal UX (Dracula delta, previews, persistence)
+├── shared-devtools.nix  # Dev tooling shared by mahakala + M-02877
+├── pi.nix               # Pi coding agent (extensions, MCP, skills, chains)
 ├── workstation.nix      # Desktop/dev packages + topgrade + k9s
 ├── ssh.nix              # Fleet SSH matchBlocks (Tailscale hostnames)
 ├── server.nix           # Reusable NixOS server aspect
@@ -252,7 +256,14 @@ secretspec set HOMEBREW_GITHUB_API_TOKEN
 
 ## Guix
 
-The `guix/` directory contains GNU Guix configurations for the mahakala workstation (system + home). These are managed independently from Nix:
+The `guix/` directory contains GNU Guix configurations for the mahakala workstation (system + home). These are managed independently from Nix. Use the Justfile recipes:
+
+```bash
+just deploy-mahakala-guix     # Guix Home only
+just deploy-mahakala-system   # Guix System only (requires sudo)
+```
+
+Manual fallback (run only if `just` is unavailable):
 
 ```bash
 sudo guix system reconfigure guix/system.scm

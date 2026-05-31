@@ -9,6 +9,7 @@ skills: ce-code-review, ce-resolve-pr-feedback, ce-simplify-code, operational-in
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
+defaultContext: fork
 reads: plan.md, progress.md
 ---
 

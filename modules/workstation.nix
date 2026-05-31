@@ -2,7 +2,7 @@
 {
   den.aspects.workstation = {
     includes = [
-      den.aspects.sharedDevtools
+      den.aspects.pi
       den.aspects.terminal
     ];
     homeManager = { pkgs, lib, ... }: {

@@ -9,7 +9,7 @@ skills: ce-work, tdd, ce-debug, context-mode, ce-frontend-design, ce-test-browse
 systemPromptMode: replace
 inheritProjectContext: true
 inheritSkills: false
-defaultContext: fork
+defaultContext: fresh
 reads: context.md, plan.md
 progress: true
 ---

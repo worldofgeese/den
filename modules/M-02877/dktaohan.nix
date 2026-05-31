@@ -5,7 +5,7 @@
       den.batteries.define-user
       den.batteries.primary-user
       den.aspects.ssh
-      den.aspects.sharedDevtools
+      den.aspects.pi
       den.aspects.gitcommon
       den.aspects.terminal
     ];

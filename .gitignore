@@ -39,3 +39,8 @@ my-test-suite.log
 .dolt/
 *.db
 .beads-credential-key
+
+# MCP Agent Mail live SQLite store (default DATABASE_URL=./storage.sqlite3)
+storage.sqlite3
+storage.sqlite3-*
+archived_mailbox_states/

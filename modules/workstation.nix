@@ -1,4 +1,4 @@
-{ den, ... }:
+{ den, inputs, ... }:
 {
   den.aspects.workstation = {
     includes = [
@@ -6,6 +6,11 @@
       den.aspects.terminal
     ];
     homeManager = { pkgs, lib, ... }: {
+      nixpkgs.overlays = [
+        (final: prev: {
+          ewm = inputs.ewm.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        })
+      ];
       # Linux workstation-specific packages (shared tools come from shared-devtools)
       home.packages = (with pkgs; [
         ewm

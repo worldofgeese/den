@@ -31,6 +31,49 @@
         "$HOME/.dotnet/tools"
       ];
 
+      # Work models: use anthropic-proxy through LEGO endpoint for all Pi agents.
+      home.file.".pi/agent/tier-defs.json".text = builtins.toJSON {
+        orchestrator = {
+          model = "anthropic-proxy/anthropic.claude-opus-4-6-v1";
+          thinking = "high";
+          fallbackModels = [];
+        };
+        creative = {
+          model = "anthropic-proxy/anthropic.claude-sonnet-4-6";
+          thinking = "high";
+          fallbackModels = [];
+        };
+        execution = {
+          model = "anthropic-proxy/anthropic.claude-sonnet-4-6";
+          thinking = "medium";
+          fallbackModels = ["anthropic-proxy/anthropic.claude-opus-4-6-v1"];
+        };
+      };
+
+      home.file.".pi/agent/settings.json".text = builtins.toJSON {
+        provider = "anthropic-proxy";
+        model = "anthropic.claude-opus-4-6-v1";
+        defaultThinkingLevel = "high";
+        compaction = {
+          enabled = false;
+        };
+        packages = [
+          "npm:context-mode"
+          "npm:pi-opencode-bridge"
+          "npm:pi-subagents"
+          "npm:pi-cursor-sdk"
+          "npm:pi-mcp-adapter"
+          "npm:pi-intercom"
+          "npm:pi-web-access"
+          "npm:pi-caveman"
+          "npm:pi-rtk-optimizer"
+          "npm:@feniix/pi-specdocs"
+          "npm:pi-ask-user"
+          "npm:pi-agenticoding"
+          "npm:pi-paster"
+          "git:github.com/dheerapat/pi-kb"
+        ];
+      };
       home.shellAliases = {
         catp = "bat -P";
         cat = "bat";

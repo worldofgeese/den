@@ -31,13 +31,23 @@ function fail(message) {
 	process.exit(1);
 }
 
-const pkgRoot = path.join(agentDir(), "npm", "node_modules", "pi-subagents");
+// pi-subagents may be installed unscoped (pi >=0.27) or scoped under
+// @tintinweb (pi <0.10). Try both; skip gracefully if neither is present
+// (fresh install before `pi update`, or version without the bug).
+const nmDir = path.join(agentDir(), "npm", "node_modules");
+const candidates = [
+	path.join(nmDir, "pi-subagents"),
+	path.join(nmDir, "@tintinweb", "pi-subagents"),
+];
+const pkgRoot = candidates.find((p) => fs.existsSync(path.join(p, "package.json")));
+
+if (!pkgRoot) {
+	console.log(`pi-subagents hotfix (${PATCH_ID}): package not installed yet, skipping`);
+	process.exit(0);
+}
+
 const pkgJsonPath = path.join(pkgRoot, "package.json");
 const utilsPath = path.join(pkgRoot, "src", "shared", "utils.ts");
-
-if (!fs.existsSync(pkgJsonPath)) {
-	fail(`package not found at ${pkgRoot}`);
-}
 
 let pkg;
 try {
@@ -47,13 +57,15 @@ try {
 }
 
 if (!TARGET_VERSIONS.includes(pkg.version)) {
-	fail(
-		`unsupported pi-subagents version ${pkg.version}; expected one of ${TARGET_VERSIONS.join(", ")}`,
+	console.log(
+		`pi-subagents hotfix (${PATCH_ID}): version ${pkg.version} not in target set [${TARGET_VERSIONS.join(", ")}], skipping`,
 	);
+	process.exit(0);
 }
 
 if (!fs.existsSync(utilsPath)) {
-	fail(`utils.ts not found at ${utilsPath}`);
+	console.log(`pi-subagents hotfix (${PATCH_ID}): utils.ts not found (pre-compiled dist?), skipping`);
+	process.exit(0);
 }
 
 const source = fs.readFileSync(utilsPath, "utf8");

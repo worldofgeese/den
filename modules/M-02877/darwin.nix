@@ -86,7 +86,7 @@
         global.autoUpdate = true;
         onActivation.autoUpdate = true;
         onActivation.upgrade = true;
-        onActivation.cleanup = "zap";
+        onActivation.cleanup = "none"; # TODO: restore to "zap" once nix-darwin#1774 is merged (Homebrew broke --cleanup without --force)
         masApps = {
           "Microsoft To Do" = 1274495053;
           "Flow" = 1423210932;

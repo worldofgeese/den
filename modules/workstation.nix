@@ -24,6 +24,7 @@
           ewm
           brush
           wl-clipboard
+          wl-clip-persist
           gopass
           isort
           nixfmt
@@ -76,6 +77,17 @@
         Terminal=false
         Type=Application
         Categories=Network;FileTransfer;
+        X-GNOME-Autostart-enabled=true
+      '';
+
+      xdg.configFile."autostart/wl-clip-persist.desktop".text = ''
+        [Desktop Entry]
+        Name=wl-clip-persist
+        Comment=Keep Wayland clipboard after programs close
+        Exec=wl-clip-persist --clipboard both
+        Terminal=false
+        Type=Application
+        Categories=Utility;
         X-GNOME-Autostart-enabled=true
       '';
 

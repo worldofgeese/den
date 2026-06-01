@@ -132,7 +132,7 @@
       # Tier definitions for agent model routing.
       # Agents declare their tier via `tier:` frontmatter field.
       # Agents without a `tier:` field default to "execution".
-      home.file.".pi/agent/tier-defs.json".text = let
+      home.file.".pi/agent/tier-defs.json".text = lib.mkDefault (let
         tierDefs = {
           orchestrator = {
             model = "github-copilot/gpt-5.5";
@@ -151,9 +151,9 @@
           };
         };
       in
-        builtins.toJSON tierDefs;
+        builtins.toJSON tierDefs);
 
-      home.file.".pi/agent/settings.json".text = builtins.toJSON {
+      home.file.".pi/agent/settings.json".text = lib.mkDefault (builtins.toJSON {
         provider = "github-copilot";
         model = "gpt-5.5";
         defaultThinkingLevel = "high";
@@ -176,7 +176,7 @@
           "npm:pi-paster"
           "git:github.com/dheerapat/pi-kb"
         ];
-      };
+      });
 
       # Override builtin agents with CE-enhanced versions.
       # User-scope agents with same name shadow builtins at lowest priority.

@@ -33,6 +33,17 @@
         });
       };
       fonts.fontconfig.enable = true;
+
+      # Expose Guix system and Guix Home font directories to fontconfig so
+      # GTK/GNOME apps don't render tofu for fonts only available via Guix.
+      xdg.configFile."fontconfig/conf.d/90-guix-fonts.conf".text = ''
+        <?xml version='1.0'?>
+        <!DOCTYPE fontconfig SYSTEM 'urn:fontconfig:fonts.dtd'>
+        <fontconfig>
+          <dir>/run/current-system/profile/share/fonts</dir>
+          <dir prefix="relative">.guix-home/profile/share/fonts</dir>
+        </fontconfig>
+      '';
       targets.genericLinux.enable = true;
       targets.genericLinux.gpu.enable = true;
       xdg.mime.enable = true;

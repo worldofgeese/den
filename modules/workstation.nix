@@ -51,6 +51,18 @@
           (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
         ];
 
+      # Guix system fonts: HM fontconfig only knows Nix store paths, so GTK/GNOME
+      # apps show tofu (□□□) for fonts installed by Guix. Add both system and
+      # user Guix font directories.
+      xdg.configFile."fontconfig/conf.d/90-guix-fonts.conf".text = ''
+        <?xml version="1.0"?>
+        <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
+        <fontconfig>
+          <dir>/run/current-system/profile/share/fonts</dir>
+          <dir prefix="relative">.guix-home/profile/share/fonts</dir>
+        </fontconfig>
+      '';
+
       xdg.configFile."autostart/synology-drive.desktop".text = ''
         [Desktop Entry]
         Name=Synology Drive Client

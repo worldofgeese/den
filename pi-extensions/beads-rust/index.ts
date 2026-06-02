@@ -448,8 +448,7 @@ Use \`/br:ready\`, \`/br:create\`, \`/br:show\`, etc. for quick access.
       : beadsBlock;
 
     // Let Pi handle the compaction with our enriched instructions
-    // (don't override the compaction itself — pi-agenticoding handoff
-    // or built-in compaction handles the actual summary)
+    // (don't override the compaction itself — built-in compaction handles the actual summary)
     return { customInstructions };
   });
 

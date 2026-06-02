@@ -62,7 +62,7 @@ typecheck-pi-extensions:
     fi
     ( cd pi-extensions/governance && npm install --silent && npx tsc -p tsconfig.json )
 
-# Run pi-extensions node tests (anthropic-proxy + pi-subagents hotfix); skips if node absent
+# Run pi-extensions node tests (anthropic-proxy); skips if node absent
 test-pi-extensions:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -71,7 +71,6 @@ test-pi-extensions:
         exit 0
     fi
     ( cd pi-extensions/anthropic-proxy && node --test *.test.js )
-    node --test pi-extensions/hotfixes/pi-subagents/get-final-output.test.mjs
 
 # Update all flake inputs
 update:

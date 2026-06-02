@@ -55,12 +55,13 @@
         model = "anthropic.claude-opus-4-6-v1";
         defaultThinkingLevel = "high";
         compaction = {
-          enabled = false;
+          enabled = true;
         };
+        # npm pi-subagents 0.27.0 lacks PR #238 (getFinalOutput); revert to npm when release includes fix.
         packages = [
           "npm:context-mode"
           "npm:pi-opencode-bridge"
-          "npm:pi-subagents"
+          "git:github.com/nicobailon/pi-subagents#efa7120047eaf76a32620eed0ec7d038b6cfa44e"
           "npm:pi-cursor-sdk"
           "npm:pi-mcp-adapter"
           "npm:pi-intercom"
@@ -69,7 +70,6 @@
           "npm:pi-rtk-optimizer"
           "npm:@feniix/pi-specdocs"
           "npm:pi-ask-user"
-          "npm:pi-agenticoding"
           "npm:pi-paster"
           "git:github.com/dheerapat/pi-kb"
         ];

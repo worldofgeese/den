@@ -177,11 +177,11 @@ function isLikelyContextOverflow(status, errorBody, estimatedTokens, contextWind
 // =============================================================================
 
 function getApiKey() {
-  const key = process.env.MPS_API_KEY;
+  const key = process.env.ANTHROPIC_AUTH_TOKEN || process.env.MPS_API_KEY;
   if (!key) {
     throw new Error(
-      "No API key found. Set the MPS_API_KEY environment variable.\n" +
-      "  export MPS_API_KEY=\"<account_id>:<secret>\""
+      "No API key found. Set ANTHROPIC_AUTH_TOKEN environment variable.\n" +
+      "  export ANTHROPIC_AUTH_TOKEN=\"<token>\""
     );
   }
   return key;

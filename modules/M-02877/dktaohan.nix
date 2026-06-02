@@ -14,7 +14,27 @@
       lib,
       config,
       ...
-    }: {
+    }: let
+      workTiers = {
+        orchestrator = "anthropic-proxy/anthropic.claude-opus-4-6-v1";
+        creative = "anthropic-proxy/anthropic.claude-sonnet-4-6";
+        execution = "anthropic-proxy/anthropic.claude-sonnet-4-6";
+      };
+      patchAgentModel = file: let
+        content = builtins.readFile file;
+        lines = lib.splitString "\n" content;
+        tierLine = lib.findFirst (l: lib.hasPrefix "tier: " l) null lines;
+        tierName =
+          if tierLine != null
+          then lib.trim (lib.removePrefix "tier:" tierLine)
+          else "execution";
+        model = workTiers.${tierName} or workTiers.execution;
+        modelLine = lib.findFirst (l: lib.hasPrefix "model: " l) null lines;
+      in
+        if modelLine != null
+        then builtins.replaceStrings [modelLine] ["model: ${model}"] content
+        else content;
+    in {
       programs.home-manager.enable = true;
       xdg.enable = true;
       fonts.fontconfig.enable = true;
@@ -57,23 +77,17 @@
         compaction = {
           enabled = true;
         };
-        # npm pi-subagents 0.27.0 lacks PR #238 (getFinalOutput); revert to npm when release includes fix.
-        packages = [
-          "npm:context-mode"
-          "npm:pi-opencode-bridge"
-          "git:github.com/nicobailon/pi-subagents#efa7120047eaf76a32620eed0ec7d038b6cfa44e"
-          "npm:pi-cursor-sdk"
-          "npm:pi-mcp-adapter"
-          "npm:pi-intercom"
-          "npm:pi-web-access"
-          "npm:pi-caveman"
-          "npm:pi-rtk-optimizer"
-          "npm:@feniix/pi-specdocs"
-          "npm:pi-ask-user"
-          "npm:pi-paster"
-          "git:github.com/dheerapat/pi-kb"
-        ];
+        packages = import ../../pi-packages.nix;
       };
+
+      home.file.".pi/agent/agents/worker.md".source = lib.mkForce (pkgs.writeText "worker.md" (patchAgentModel ../../pi-extensions/agent-overrides/worker.md));
+      home.file.".pi/agent/agents/planner.md".source = lib.mkForce (pkgs.writeText "planner.md" (patchAgentModel ../../pi-extensions/agent-overrides/planner.md));
+      home.file.".pi/agent/agents/oracle.md".source = lib.mkForce (pkgs.writeText "oracle.md" (patchAgentModel ../../pi-extensions/agent-overrides/oracle.md));
+      home.file.".pi/agent/agents/reviewer.md".source = lib.mkForce (pkgs.writeText "reviewer.md" (patchAgentModel ../../pi-extensions/agent-overrides/reviewer.md));
+      home.file.".pi/agent/agents/scout.md".source = lib.mkForce (pkgs.writeText "scout.md" (patchAgentModel ../../pi-extensions/agent-overrides/scout.md));
+      home.file.".pi/agent/agents/researcher.md".source = lib.mkForce (pkgs.writeText "researcher.md" (patchAgentModel ../../pi-extensions/agent-overrides/researcher.md));
+      home.file.".pi/agent/agents/workstream-compounder.md".source = lib.mkForce (pkgs.writeText "workstream-compounder.md" (patchAgentModel ../../pi-extensions/agent-overrides/workstream-compounder.md));
+
       home.shellAliases = {
         catp = "bat -P";
         cat = "bat";

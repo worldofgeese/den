@@ -1,0 +1,17 @@
+[
+  "npm:context-mode"
+  "npm:pi-opencode-bridge"
+  "git:github.com/elpapi42/pi-minimal-subagent"
+  "git:github.com/elpapi42/pi-fork"
+  "npm:pi-observational-memory"
+  "npm:pi-cursor-sdk"
+  "npm:pi-mcp-adapter"
+  "npm:pi-intercom"
+  "npm:pi-web-access"
+  "npm:pi-caveman"
+  "npm:pi-rtk-optimizer"
+  "npm:@feniix/pi-specdocs"
+  "npm:pi-ask-user"
+  "npm:pi-paster"
+  "git:github.com/dheerapat/pi-kb"
+]

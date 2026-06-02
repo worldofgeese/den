@@ -92,11 +92,8 @@
         }
       ];
 
-      # Pi settings: parent session uses GitHub Copilot GPT-5.5 while
-      # OpenCode Go quota is exhausted. Subagent model routing uses
-      # pi-subagents native agentOverrides:
-      #   GPT-5.5          → planner/spec/implementation-plan taskmaster
-      #   Cursor Composer 2.5 → all implementation/audit/recon subagents
+      # Pi settings: model routing uses syncPiUserAgentModelOverrides
+      # to mirror model overrides into user-scope agent .md frontmatter.
       #
       # Note: pi itself is provided by the Nix `pi` package (numtide/llm-agents.nix).
       # Do NOT list `@earendil-works/pi-coding-agent` or `@earendil-works/pi-ai`
@@ -137,17 +134,14 @@
           orchestrator = {
             model = "github-copilot/gpt-5.5";
             thinking = "high";
-            fallbackModels = [];
           };
           creative = {
             model = "opencode-go/kimi-k2.6";
             thinking = "high";
-            fallbackModels = [];
           };
           execution = {
             model = "cursor/composer-2.5";
             thinking = "medium";
-            fallbackModels = ["opencode-go/deepseek-v4-flash"];
           };
         };
       in
@@ -196,14 +190,9 @@
         ../pi-extensions/agent-overrides/workstream-compounder.md;
       home.file.".pi/agent/skills/plan-implement/SKILL.md".source =
         ../pi-extensions/skills/plan-implement/SKILL.md;
-      home.file.".pi/agent/chains/ce-review.chain.md".source = ../pi-extensions/chains/ce-review.chain.md;
-      home.file.".pi/agent/chains/scout-plan.chain.md".source =
-        ../pi-extensions/chains/scout-plan.chain.md;
-      home.file.".pi/agent/chains/review-fix.chain.md".source =
-        ../pi-extensions/chains/review-fix.chain.md;
 
       # Tier-based agent model sync: reads tier-defs.json and each agent's
-      # `tier:` frontmatter field to patch model/thinking/fallbackModels.
+      # `tier:` frontmatter field to patch model/thinking.
       # Agents without a `tier:` field default to "execution" tier.
       home.activation.syncPiUserAgentModelOverrides = lib.hm.dag.entryAfter ["writeBoundary"] ''
         run ${pkgs.nodejs}/bin/node <<'NODE'
@@ -215,7 +204,7 @@
         if (!fs.existsSync(tierDefsPath) || !fs.existsSync(agentsDir)) process.exit(0);
 
         const tierDefs = JSON.parse(fs.readFileSync(tierDefsPath, "utf8"));
-        const fields = ["model", "thinking", "fallbackModels"];
+        const fields = ["model", "thinking"];
         let updated = 0;
 
         for (const fileName of fs.readdirSync(agentsDir).filter((name) => name.endsWith(".md"))) {
@@ -242,9 +231,6 @@
 
             const values = {
               model: tier.model,
-              fallbackModels: Array.isArray(tier.fallbackModels) && tier.fallbackModels.length > 0
-                ? tier.fallbackModels.join(", ")
-                : undefined,
               thinking: tier.thinking,
             };
 
@@ -253,7 +239,6 @@
 
             const inserted = [];
             if (values.model) inserted.push("model: " + values.model);
-            if (values.fallbackModels) inserted.push("fallbackModels: " + values.fallbackModels);
             if (values.thinking) inserted.push("thinking: " + values.thinking);
 
             const descriptionIndex = frontmatter.findIndex((line) => line.startsWith("description: "));

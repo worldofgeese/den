@@ -160,11 +160,17 @@
         compaction = {
           enabled = true;
         };
-        # npm pi-subagents 0.27.0 lacks PR #238 (getFinalOutput); revert to npm when release includes fix.
+        observational-memory = {
+          observeAfterTokens = 10000;
+          reflectAfterTokens = 20000;
+          compactAfterTokens = 81000;
+        };
         packages = [
           "npm:context-mode"
           "npm:pi-opencode-bridge"
-          "git:github.com/nicobailon/pi-subagents#efa7120047eaf76a32620eed0ec7d038b6cfa44e"
+          "git:github.com/elpapi42/pi-minimal-subagent"
+          "git:github.com/elpapi42/pi-fork"
+          "npm:pi-observational-memory"
           "npm:pi-cursor-sdk"
           "npm:pi-mcp-adapter"
           "npm:pi-intercom"

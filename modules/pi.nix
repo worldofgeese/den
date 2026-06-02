@@ -158,12 +158,13 @@
         model = "gpt-5.5";
         defaultThinkingLevel = "high";
         compaction = {
-          enabled = false;
+          enabled = true;
         };
+        # npm pi-subagents 0.27.0 lacks PR #238 (getFinalOutput); revert to npm when release includes fix.
         packages = [
           "npm:context-mode"
           "npm:pi-opencode-bridge"
-          "npm:pi-subagents"
+          "git:github.com/nicobailon/pi-subagents#efa7120047eaf76a32620eed0ec7d038b6cfa44e"
           "npm:pi-cursor-sdk"
           "npm:pi-mcp-adapter"
           "npm:pi-intercom"
@@ -172,7 +173,6 @@
           "npm:pi-rtk-optimizer"
           "npm:@feniix/pi-specdocs"
           "npm:pi-ask-user"
-          "npm:pi-agenticoding"
           "npm:pi-paster"
           "git:github.com/dheerapat/pi-kb"
         ];
@@ -195,10 +195,6 @@
         ../pi-extensions/chains/scout-plan.chain.md;
       home.file.".pi/agent/chains/review-fix.chain.md".source =
         ../pi-extensions/chains/review-fix.chain.md;
-
-      # Repo-managed hotfixes for npm-installed Pi packages (re-applied on activation).
-      home.file.".pi/agent/hotfixes/pi-subagents/apply-hotfixes.mjs".text =
-        builtins.readFile ../pi-extensions/hotfixes/pi-subagents/apply-hotfixes.mjs;
 
       # Tier-based agent model sync: reads tier-defs.json and each agent's
       # `tier:` frontmatter field to patch model/thinking/fallbackModels.
@@ -274,12 +270,6 @@
 
         console.log("synced Pi user agent model overrides (tier-based): " + updated);
         NODE
-      '';
-
-      # Re-apply pi-subagents hotfixes after Pi npm packages are installed/updated.
-      home.activation.applyPiSubagentsHotfixes = lib.hm.dag.entryAfter ["linkGeneration" "installPackages"] ''
-        run ${pkgs.nodejs}/bin/node \
-          "$HOME/.pi/agent/hotfixes/pi-subagents/apply-hotfixes.mjs"
       '';
     };
   };

@@ -162,8 +162,7 @@
         packages = [
           "npm:context-mode"
           "npm:pi-opencode-bridge"
-          "git:github.com/elpapi42/pi-minimal-subagent"
-          "git:github.com/elpapi42/pi-fork"
+          "npm:pi-subagents"
           "npm:pi-observational-memory"
           "npm:pi-cursor-sdk"
           "npm:pi-mcp-adapter"

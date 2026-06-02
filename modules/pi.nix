@@ -8,7 +8,9 @@
       pkgs,
       lib,
       ...
-    }: {
+    }: let
+      piPackages = import ../pi-packages.nix;
+    in {
       # pi-acp: ACP adapter for agent-shell integration in Emacs
       home.packages = [
         (pkgs.writeShellScriptBin "pi-acp" ''
@@ -159,23 +161,7 @@
           reflectAfterTokens = 20000;
           compactAfterTokens = 81000;
         };
-        packages = [
-          "npm:context-mode"
-          "npm:pi-opencode-bridge"
-          "git:github.com/elpapi42/pi-minimal-subagent"
-          "git:github.com/elpapi42/pi-fork"
-          "npm:pi-observational-memory"
-          "npm:pi-cursor-sdk"
-          "npm:pi-mcp-adapter"
-          "npm:pi-intercom"
-          "npm:pi-web-access"
-          "npm:pi-caveman"
-          "npm:pi-rtk-optimizer"
-          "npm:@feniix/pi-specdocs"
-          "npm:pi-ask-user"
-          "npm:pi-paster"
-          "git:github.com/dheerapat/pi-kb"
-        ];
+        packages = piPackages;
       });
 
       # Override builtin agents with CE-enhanced versions.

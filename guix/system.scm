@@ -216,16 +216,23 @@ root ALL=(ALL) ALL
     ;; conflicts with Dell EC thermal management (double-throttling via RAPL)
     (service tlp-service-type
              (tlp-configuration
-              (cpu-boost-on-ac? #t)
+              ;; AC/charging: favor quiet thermals over peak perf (see .rpi/specs/power-thermal.md)
+              (cpu-boost-on-ac? #f)
               (cpu-boost-on-bat? #f)
-              (cpu-scaling-governor-on-ac '("performance"))
-              (energy-perf-policy-on-ac "balance_performance")
+              (cpu-scaling-governor-on-ac '("powersave"))
+              (cpu-max-perf-on-ac 80)
+              (sched-powersave-on-ac? #t)
+              (energy-perf-policy-on-ac "powersave")
+              (cpu-energy-perf-policy-on-ac "power")
+              ;; Reduce charging heat and battery wear; resume charging below 75%, stop at 85%.
+              (start-charge-thresh-bat0 75)
+              (stop-charge-thresh-bat0 85)
               (energy-perf-policy-on-bat "power")
               (pcie-aspm-on-ac "powersave")
               (pcie-aspm-on-bat "powersave")
               (wifi-pwr-on-ac? #f)
               (wifi-pwr-on-bat? #t)
-              (sound-power-save-on-ac 0)
+              (sound-power-save-on-ac 1)
               (sound-power-save-on-bat 1)
               (nmi-watchdog? #f)
               (runtime-pm-on-ac "auto")
@@ -235,7 +242,7 @@ root ALL=(ALL) ALL
     (simple-service 'tlp-platform-profile etc-service-type
       (list `("tlp.d/01-platform-profile.conf"
               ,(plain-file "01-platform-profile.conf"
-                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
+                "PLATFORM_PROFILE_ON_AC=quiet\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
 
     (simple-service 'flatpak-hicolor-icon-index activation-service-type
                     #~(begin

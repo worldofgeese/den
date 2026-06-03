@@ -28,14 +28,21 @@ When 1 second of silence passes
 Then the HDA Intel codec enters power-save mode
 And no audible pop or crackle occurs on wake
 
-### Scenario: Full performance on AC power
-Given the laptop is on AC power
-When under sustained workload
-Then CPU turbo boost is enabled
-And CPU frequency scaling governor is "performance"
-And HWP energy performance preference is "balance_performance"
-And platform profile is "balanced"
+### Scenario: Quiet sustainable charging on AC power
+Given the laptop is on AC power (charging)
+When idle or under light load
+Then CPU turbo boost is disabled
+And CPU frequency scaling governor is "powersave"
+And HWP energy performance preference is "power"
+And platform profile is "quiet"
+And HDA codec power-save is enabled on AC
 And PCIe ASPM is "powersave" (not off, but not aggressive)
+
+### Scenario: AC charging capped to reduce heat and wear
+Given the laptop is on AC power (charging)
+When battery charge reaches 85%
+Then charging stops until charge falls below 75%
+And charging resumes only after charge drops below 75%
 
 ### Scenario: WiFi remains stable with ASPM enabled
 Given PCIe ASPM is enabled (not "off")
@@ -59,7 +66,7 @@ And fan speed increase is delayed or avoided entirely
 
 - TLP and power-profiles-daemon must not run simultaneously
 - Kernel arguments must not disable ASPM or PSR (those are TLP's domain now)
-- All aggressive power settings apply only on battery; AC remains performance-oriented
+- Aggressive power settings apply on battery; AC/charging defaults favor quiet thermals over peak performance
 - WiFi stability takes priority over power saving — if QCA6174 drops, revert ASPM
 
 ## Out of Scope

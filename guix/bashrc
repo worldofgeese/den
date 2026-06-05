@@ -11,16 +11,6 @@ GPG_TTY=$(tty)
 export GPG_TTY
 gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1
 
-# Cache MPS_API_KEY in tmpfs to avoid ~600ms gopass call on every shell
-_mps_cache="/run/user/$(id -u)/mps-api-key"
-if [[ -f "$_mps_cache" ]]; then
-  MPS_API_KEY=$(<"$_mps_cache")
-else
-  MPS_API_KEY=$(gopass show -o dev/anthropic-proxy-key 2>/dev/null) && \
-    printf '%s' "$MPS_API_KEY" > "$_mps_cache" && chmod 600 "$_mps_cache"
-fi
-export MPS_API_KEY
-
 # Completions (kubectl cached to avoid ~570ms spawn per shell)
 eval "$(podman completion bash)"
 _kubectl_comp="${XDG_CACHE_HOME:-$HOME/.cache}/kubectl-completion.bash"

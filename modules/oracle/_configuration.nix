@@ -83,6 +83,29 @@
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nixpkgs.config.allowUnfree = true;
 
+  # Rebuild from github:worldofgeese/den#oracle at committed flake.lock; no local checkout.
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:worldofgeese/den#oracle";
+    flags = [
+      "--print-build-logs"
+    ];
+    dates = "04:00";
+    randomizedDelaySec = "45min";
+    allowReboot = true;
+    rebootWindow = {
+      lower = "04:00";
+      upper = "05:00";
+    };
+  };
+
+  nix.gc = {
+    automatic = true;
+    options = "--delete-older-than 8d";
+  };
+
+  nix.optimise.automatic = true;
+
   # Default nix.registry pins nixpkgs to pkgs.path in /etc/nix/registry.json;
   # etc closure then pulls full nixpkgs source into make-disk-image and OOMs
   # under qemu-binfmt cross-build even with copyChannel = false.

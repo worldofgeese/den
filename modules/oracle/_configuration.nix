@@ -36,6 +36,15 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [22];
+    # Tailscale peer relay (tailscale set --relay-server-port=40000)
+    allowedUDPPorts = [40000];
+    trustedInterfaces = ["tailscale0"];
+  };
+
+  services.tailscale = {
+    enable = true;
+    # Peer relay only — no exit node or subnet router (useRoutingFeatures default "none")
+    extraSetFlags = ["--relay-server-port=40000"];
   };
 
   services.openssh = {

@@ -30,7 +30,7 @@ Unified Nix infrastructure for all my machines. Built on [Den](https://github.co
 | **M-02877** | aarch64-darwin | Work MacBook — nix-darwin + Home Manager + Homebrew |
 | **paphos** | x86_64-linux | Home server — NixOS, Forgejo, Forgesync, Tailscale, agenix secrets |
 | **pixel-fold** | aarch64-linux | Android phone — nix-on-droid (proot, not NixOS) |
-| **oracle** | aarch64-linux | Oracle Cloud Free Tier A1.Flex — OCI image + OpenTofu scaffold ([terraform/oracle/README.md](terraform/oracle/README.md)) |
+| **oracle** | aarch64-linux | Oracle Cloud Free Tier A1.Flex — OCI image, OpenTofu, Tailscale peer relay ([docs/oracle/](docs/oracle/), [terraform/oracle/README.md](terraform/oracle/README.md)) |
 
 ## Prerequisites
 
@@ -83,7 +83,7 @@ just deploy-paphos
 
 ### Oracle Cloud Free Tier (oracle)
 
-Scaffold only until OCI credentials and tfvars are configured. See [terraform/oracle/README.md](terraform/oracle/README.md) for dashboard value lookup.
+Scaffold and operations docs: [docs/oracle/](docs/oracle/). OpenTofu details: [terraform/oracle/README.md](terraform/oracle/README.md).
 
 ```bash
 just build-oracle-image
@@ -92,6 +92,7 @@ cp terraform/oracle/terraform.tfvars.example terraform/oracle/terraform.tfvars
 just oracle-tofu-init
 just oracle-tofu-plan
 just oracle-tofu-apply   # explicit — not run automatically
+just deploy-oracle       # after instance exists — remote nixos-rebuild
 ```
 
 ### Android (pixel-fold)
@@ -124,6 +125,9 @@ just deploy-darwin
 
 # Home server (remote NixOS)
 just deploy-paphos
+
+# Oracle Cloud NixOS (remote aarch64)
+just deploy-oracle
 
 # Android phone (on-device only)
 just deploy-pixel-fold

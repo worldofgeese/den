@@ -1,12 +1,16 @@
 # Den mono-repo deploy recipes
 
+# Explicit Guix substituters (matches guix/system.scm + official defaults).
+# Passing --substitute-urls overrides daemon config until reconfigure applies new settings.
+guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.moe https://guix.tobias.gr/substitutes/ https://guix.bordeaux.inria.fr https://bordeaux.guix.gnu.org https://ci.guix.gnu.org"
+
 default:
     @just --list
 
 # Deploy everything on mahakala (Guix System + Guix Home + Home Manager)
 deploy-mahakala:
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
-    guix pull
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{guix-substitute-urls}}" -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --substitute-urls="{{guix-substitute-urls}}" --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
+    guix pull --substitute-urls="{{guix-substitute-urls}}"
     just update
     guix home reconfigure guix/home-configuration.scm
     NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
@@ -25,7 +29,7 @@ deploy-mahakala-guix:
 
 # Reconfigure Guix System (requires sudo)
 deploy-mahakala-system:
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{guix-substitute-urls}}" -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --substitute-urls="{{guix-substitute-urls}}" --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
 
 # Deploy NixOS on paphos (remote server)
 deploy-paphos host="paphos":
@@ -45,6 +49,8 @@ deploy-pixel-fold:
 # Check host outputs evaluate without known-noise custom-output warnings
 check:
     nix eval --no-warn-dirty .#nixosConfigurations.paphos.config.system.build.toplevel.drvPath >/dev/null
+    nix eval --no-warn-dirty .#nixosConfigurations.oracle.config.system.build.toplevel.drvPath >/dev/null
+    nix eval --no-warn-dirty .#packages.aarch64-linux.oracle-image.drvPath >/dev/null
     nix eval --no-warn-dirty .#homeConfigurations.worldofgeese.activationPackage.drvPath >/dev/null
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
@@ -106,3 +112,41 @@ install-hooks:
     cp .githooks/pre-commit .git/hooks/pre-commit
     chmod +x .git/hooks/pre-commit
     @echo "Hooks installed."
+
+# Build Oracle Cloud NixOS OCI qcow2 (aarch64-linux; cross-build needs binfmt)
+build-oracle-image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    nix build .#packages.aarch64-linux.oracle-image -L --out-link result/oracle-image
+    qcow="$(find -L result/oracle-image -maxdepth 1 -name '*.qcow2' -print -quit)"
+    if [[ -z "$qcow" ]]; then
+        echo "build-oracle-image: no .qcow2 found under result/oracle-image" >&2
+        exit 1
+    fi
+    ln -sfn "$(readlink -f "$qcow")" result/nixos.qcow2
+    echo "build-oracle-image: linked result/nixos.qcow2 -> $qcow"
+
+# Evaluate Oracle image package without building
+check-oracle-image:
+    nix eval --no-warn-dirty .#packages.aarch64-linux.oracle-image.drvPath
+
+oracle-tofu-init:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- init
+
+oracle-tofu-validate:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- validate
+
+oracle-tofu-fmt-check:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- fmt -check -recursive
+
+oracle-tofu-fmt:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- fmt -recursive
+
+oracle-tofu-plan:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- plan
+
+oracle-tofu-apply:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- apply
+
+oracle-tofu-output output:
+    cd terraform/oracle && nix run nixpkgs#opentofu -- output -raw {{output}}

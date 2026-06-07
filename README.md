@@ -30,6 +30,7 @@ Unified Nix infrastructure for all my machines. Built on [Den](https://github.co
 | **M-02877** | aarch64-darwin | Work MacBook — nix-darwin + Home Manager + Homebrew |
 | **paphos** | x86_64-linux | Home server — NixOS, Forgejo, Forgesync, Tailscale, agenix secrets |
 | **pixel-fold** | aarch64-linux | Android phone — nix-on-droid (proot, not NixOS) |
+| **oracle** | aarch64-linux | Oracle Cloud Free Tier A1.Flex — OCI image + OpenTofu scaffold ([terraform/oracle/README.md](terraform/oracle/README.md)) |
 
 ## Prerequisites
 
@@ -78,6 +79,19 @@ just deploy-mahakala
 ```bash
 # From any machine with SSH access to paphos
 just deploy-paphos
+```
+
+### Oracle Cloud Free Tier (oracle)
+
+Scaffold only until OCI credentials and tfvars are configured. See [terraform/oracle/README.md](terraform/oracle/README.md) for dashboard value lookup.
+
+```bash
+just build-oracle-image
+cp terraform/oracle/terraform.tfvars.example terraform/oracle/terraform.tfvars
+# edit terraform.tfvars (private_key_path, OCIDs, bucket, image_path, ssh_public_key)
+just oracle-tofu-init
+just oracle-tofu-plan
+just oracle-tofu-apply   # explicit — not run automatically
 ```
 
 ### Android (pixel-fold)
@@ -229,6 +243,9 @@ modules/
 │   ├── hardware.nix     # Disks, LUKS, Dropbear initrd SSH
 │   ├── networking.nix   # Tailscale, openssh, locale
 │   └── forgejo.nix      # Forgejo + Forgesync + agenix secrets
+├── oracle/
+│   ├── _configuration.nix # OCI guest: ssh, cloud-init, firewall 22 (import-tree skipped)
+│   └── image.nix        # packages.aarch64-linux.oracle-image + nixosConfigurations.oracle
 └── pixel-fold/
     ├── system.nix       # nix-on-droid config (custom flake output, pinned inputs)
     └── _home.nix        # Home Manager config (skipped by import-tree, loaded by system.nix)

@@ -1,0 +1,75 @@
+# Oracle Cloud Free Tier — NixOS ARM (A1/A2 Flex)
+
+Terraform/OpenTofu scaffold for importing a Den-built NixOS OCI qcow2 and launching a Flex ARM instance (default `VM.Standard.A1.Flex`, 4 OCPU / 24 GiB).
+
+Based on [Oracle Cloud NixOS](https://erikparawell.com/oracle-cloud-nixos.html), adapted for this repo.
+
+## Prerequisites
+
+1. Oracle Cloud Free Tier account with Always Free A1 capacity in your region.
+2. Object Storage bucket created manually (Storage → Buckets → Create Bucket).
+3. API signing key uploaded (Profile → User Settings → API Keys → Add API Key).
+4. Built image: `just build-oracle-image` from repo root (ARM host or binfmt for cross-build).
+
+## OCI dashboard values
+
+| Variable | Where to find it |
+|----------|------------------|
+| `tenancy_ocid` | Profile (avatar) → Tenancy → **Copy OCID** |
+| `user_ocid` | Profile → **User Settings** → **Copy OCID** |
+| `fingerprint` | Profile → User Settings → **API Keys** → key fingerprint |
+| `private_key_path` | Path to PEM saved when creating the API key (**never paste key text into git**) |
+| `region` | Console region picker (e.g. `eu-frankfurt-1`, `us-ashburn-1`) |
+| `compartment_ocid` | Identity → Compartments → your compartment → **Copy OCID** |
+| `namespace` | Profile → Tenancy → **Object Storage Namespace** |
+| `bucket_name` | Storage → Buckets → bucket you created |
+| `ssh_public_key` | Your local `~/.ssh/id_ed25519.pub` (injected via instance metadata at launch) |
+
+## Configure
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+# edit terraform.tfvars — keep terraform.tfvars out of git (include ssh_public_key)
+just build-oracle-image
+```
+
+## Provision (after tfvars ready)
+
+```bash
+just oracle-tofu-init
+just oracle-tofu-validate
+just oracle-tofu-plan
+just oracle-tofu-apply   # explicit — uploads qcow2, imports image (~30–45 min), launches VM
+```
+
+```bash
+ssh nixos@$(just oracle-tofu-output instance_public_ip)
+```
+
+## What Terraform creates
+
+- Minimal public VCN/subnet/IGW/security list (SSH 22)
+- Object Storage upload of qcow2
+- Custom image import (`PARAVIRTUALIZED`)
+- `oci_core_shape_management` for each shape in `image_compatible_shapes` (default A1 + A2)
+- `oci_core_compute_image_capability_schema` (UEFI_64 + paravirtualized boot/network/storage)
+- Flex instance (`instance_shape`) depending on shape + capability resources
+
+## A2 bootstrap when A1 is out of capacity
+
+If `just oracle-tofu-apply` fails with **Out of host capacity** for `VM.Standard.A1.Flex`, bootstrap on paid `VM.Standard.A2.Flex` during Free Trial, then switch back to A1:
+
+1. In `terraform.tfvars`, set `instance_shape = "VM.Standard.A2.Flex"`.
+2. Run `just oracle-tofu-plan` and `just oracle-tofu-apply`.
+3. Confirm SSH access and that NixOS boots.
+4. Change `instance_shape` back to `"VM.Standard.A1.Flex"`.
+5. Run `just oracle-tofu-plan` and `just oracle-tofu-apply` again (instance replace when A1 capacity available).
+
+**Note:** A2 is not Always Free. It can consume Free Trial credits or incur paid charges while the A2 instance runs.
+
+## Troubleshooting
+
+- **Out of host capacity (A1)** — try the A2 bootstrap flow above, or retry in another availability domain/region.
+- **Shape not compatible** — confirm `oci_core_shape_management` resources exist for your target shape; re-apply if missing.
+- **Instance unresponsive after boot** — re-apply capability schema or use console “Edit image capabilities → Save”.
+- **Build fails on x86_64** — enable `boot.binfmt.emulatedSystems = [ "aarch64-linux" ];` on build host.

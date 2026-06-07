@@ -45,3 +45,13 @@ node_modules/
 storage.sqlite3
 storage.sqlite3-*
 archived_mailbox_states/
+
+# Oracle Cloud Terraform local state and secrets
+terraform/oracle/.terraform/
+terraform/oracle/terraform.tfstate
+terraform/oracle/terraform.tfstate.backup
+terraform/oracle/terraform.tfvars
+terraform/oracle/*.auto.tfvars
+
+# Nix build output for Oracle OCI image
+result/

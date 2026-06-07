@@ -13,6 +13,7 @@
     boot.kernelModules = ["kvm-amd"];
     boot.extraModulePackages = [];
     boot.kernelPackages = pkgs.linuxPackages_latest;
+    boot.binfmt.emulatedSystems = ["aarch64-linux"];
 
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;

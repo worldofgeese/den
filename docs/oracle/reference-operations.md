@@ -61,7 +61,7 @@ Peer relay uses **40000** explicitly via `extraSetFlags`.
 | Setting | Value |
 |---------|-------|
 | `services.tailscale.enable` | `true` |
-| `services.tailscale.extraSetFlags` | `--relay-server-port=40000` |
+| `services.tailscale.extraSetFlags` | `--relay-server-port=40000`, `--relay-server-static-endpoints=130.61.182.149:40000` |
 | `networking.firewall.allowedUDPPorts` | `[ 40000 ]` |
 | Exit node / subnet router | disabled (defaults) |
 | `system.autoUpgrade.enable` | `true` |
@@ -105,7 +105,7 @@ tailscale netcheck
 
 ## SSH
 
-Fleet config (`modules/ssh.nix`) may add a host entry after MagicDNS is stable. Direct:
+Fleet SSH (`modules/ssh.nix`): `oracle` → `oracle.hound-celsius.ts.net`, `oracle-public` → `130.61.182.149`. Direct:
 
 ```bash
 ssh nixos@$(just oracle-tofu-output instance_public_ip)

@@ -28,7 +28,7 @@ Unified Nix infrastructure for all my machines. Built on [Den](https://github.co
 |------|----------|-------------|
 | **mahakala** | x86_64-linux | Personal workstation — Guix System + Guix Home + Home Manager |
 | **M-02877** | aarch64-darwin | Work MacBook — nix-darwin + Home Manager + Homebrew |
-| **paphos** | x86_64-linux | Home server — NixOS, Forgejo, Forgesync, Tailscale, agenix secrets |
+| **paphos** | x86_64-linux | Home server — NixOS, Forgejo, Forgesync, Tailscale, agenix secrets ([docs/paphos/](docs/paphos/)) |
 | **pixel-fold** | aarch64-linux | Android phone — nix-on-droid (proot, not NixOS) |
 | **oracle** | aarch64-linux | Oracle Cloud Free Tier A1.Flex — OCI image, OpenTofu, Tailscale peer relay ([docs/oracle/](docs/oracle/), [terraform/oracle/README.md](terraform/oracle/README.md)) |
 

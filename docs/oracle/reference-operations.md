@@ -64,6 +64,23 @@ Peer relay uses **40000** explicitly via `extraSetFlags`.
 | `services.tailscale.extraSetFlags` | `--relay-server-port=40000` |
 | `networking.firewall.allowedUDPPorts` | `[ 40000 ]` |
 | Exit node / subnet router | disabled (defaults) |
+| `system.autoUpgrade.enable` | `true` |
+| `system.autoUpgrade.flake` | `github:worldofgeese/den#oracle` |
+| `system.autoUpgrade.dates` | `04:00` daily (+ `45min` randomized delay) |
+| `system.autoUpgrade.allowReboot` | `true` (hours 04:00–05:00 local, only when upgrade requires it) |
+| `system.autoUpgrade.flags` | `[ "--print-build-logs" ]` (no `--update-input`; remote GitHub flake cannot mutate lockfile on host) |
+| `nix.gc.automatic` | `true` (`--delete-older-than 8d`) |
+| `nix.optimise.automatic` | `true` |
+
+### Automatic maintenance
+
+`systemd` timer `nixos-upgrade.timer` runs daily around **04:00 local** (with up to 45 minutes jitter). Each run fetches `github:worldofgeese/den#oracle` at whatever **flake.lock** is on GitHub `main` and `switch`es if the config changed. Input bumps happen in the repo (e.g. `just update` + push), not on the host — unlike paphos, which uses a local `/etc/nixos#paphos` checkout and can pass `--update-input`.
+
+If the new generation needs a reboot (kernel/initrd change), `nixos-upgrade` reboots only inside the **04:00–05:00** window; otherwise the reboot waits until the next eligible window.
+
+`nix-gc.timer` drops store paths older than **8 days**. `nix-optimise.timer` compacts the store on the default schedule.
+
+Manual deploy (`just deploy-oracle`) still pushes whatever flake you have locally; auto-upgrade tracks **GitHub `main`**, not an uncommitted working tree.
 
 ## Sysctl (BBR) — not on oracle
 

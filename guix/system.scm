@@ -28,8 +28,7 @@
                  (inherit config)
                  (extra-options '("--max-jobs=1" "--cores=4"))
                  (substitute-urls
-                  (append (list "https://nonguix-proxy.ditigal.xyz"
-                                "https://substitutes.nonguix.org"
+                  (append (list "https://substitutes.nonguix.org"
                                 "https://cache-cdn.guix.moe"
                                 "https://guix.tobias.gr/substitutes/"
                                 "https://guix.bordeaux.inria.fr")
@@ -134,7 +133,8 @@ DesktopNames=EWM
     (license license:gpl3+)))
 
 (operating-system
-  (kernel linux-cachyos)
+  ;; BORE scheduler active; keep ananicy-cpp disabled (conflicts with BORE).
+  (kernel linux-cachyos-bore)
   (initrd microcode-initrd)
   ;; PSR disabled — causes GNOME Shell compositor to spin at 15% CPU on this panel.
   ;; ASPM left enabled (managed by TLP, no observed WiFi issues).
@@ -216,14 +216,14 @@ root ALL=(ALL) ALL
     ;; conflicts with Dell EC thermal management (double-throttling via RAPL)
     (service tlp-service-type
              (tlp-configuration
-              ;; AC/charging: favor quiet thermals over peak perf (see .rpi/specs/power-thermal.md)
-              (cpu-boost-on-ac? #f)
+              ;; AC/charging: balanced performance (see .rpi/specs/power-thermal.md)
+              (cpu-boost-on-ac? #t)
               (cpu-boost-on-bat? #f)
               (cpu-scaling-governor-on-ac '("powersave"))
-              (cpu-max-perf-on-ac 80)
-              (sched-powersave-on-ac? #t)
-              (energy-perf-policy-on-ac "powersave")
-              (cpu-energy-perf-policy-on-ac "power")
+              (cpu-max-perf-on-ac 100)
+              (sched-powersave-on-ac? #f)
+              (energy-perf-policy-on-ac "balance_performance")
+              (cpu-energy-perf-policy-on-ac "balance_performance")
               ;; Reduce charging heat and battery wear; resume charging below 75%, stop at 85%.
               (start-charge-thresh-bat0 75)
               (stop-charge-thresh-bat0 85)
@@ -242,7 +242,7 @@ root ALL=(ALL) ALL
     (simple-service 'tlp-platform-profile etc-service-type
       (list `("tlp.d/01-platform-profile.conf"
               ,(plain-file "01-platform-profile.conf"
-                "PLATFORM_PROFILE_ON_AC=quiet\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
+                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
 
     (simple-service 'flatpak-hicolor-icon-index activation-service-type
                     #~(begin

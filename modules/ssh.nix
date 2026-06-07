@@ -31,6 +31,14 @@
           Port = 2235;
           User = "taohansen";
         };
+        oracle = {
+          HostName = "oracle.hound-celsius.ts.net";
+          User = "nixos";
+        };
+        "oracle-public" = {
+          HostName = "130.61.182.149";
+          User = "nixos";
+        };
         pixel-fold = {
           HostName = "google-pixel-fold.hound-celsius.ts.net";
           Port = 8022;

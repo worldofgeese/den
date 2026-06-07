@@ -17,6 +17,7 @@ in {
   "skillsmp-api-key.age".publicKeys = allKeys;
   "groq-api-key.age".publicKeys = allKeys;
   "telegram-lbob-bot-token.age".publicKeys = allKeys;
+  "paphos-mother-backup-ssh-key.age".publicKeys = allKeys;
   "surge-email.age".publicKeys = allKeys;
   "surge-password.age".publicKeys = allKeys;
 }

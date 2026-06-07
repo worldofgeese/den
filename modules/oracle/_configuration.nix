@@ -44,7 +44,11 @@
   services.tailscale = {
     enable = true;
     # Peer relay only — no exit node or subnet router (useRoutingFeatures default "none")
-    extraSetFlags = ["--relay-server-port=40000"];
+    # Public IP 130.61.182.149 (2026-06-07). Update when OCI elastic IP changes; see docs/oracle/how-to-deploy-and-peer-relay.md.
+    extraSetFlags = [
+      "--relay-server-port=40000"
+      "--relay-server-static-endpoints=130.61.182.149:40000"
+    ];
   };
 
   services.openssh = {

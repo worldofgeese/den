@@ -25,7 +25,7 @@
           HTTP_PORT = 3000;
           SSH_PORT = 22;
         };
-        service.DISABLE_REGISTRATION = false;
+        service.DISABLE_REGISTRATION = true;
         session.COOKIE_SECURE = true;
       };
     };
@@ -50,8 +50,6 @@
         };
       };
     };
-
-    networking.firewall.allowedTCPPorts = [3000];
 
     age.secrets = {
       forgejo-admin-password = {

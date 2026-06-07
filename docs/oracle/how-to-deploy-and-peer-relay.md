@@ -74,17 +74,26 @@ Peer relay requires a grant in the tailnet policy file (Admin console → Access
 
 Tag `oracle` (or the relay node) with `tag:oracle-relay`. Adjust `src`/`dst` to your tags. See [Tailscale peer relay docs](https://tailscale.com/docs/features/peer-relay).
 
-## Optional: static relay endpoint
+## Static relay endpoint (declarative)
 
-If STUN discovery advertises the wrong public address, set the instance public IP explicitly:
+`modules/oracle/_configuration.nix` sets:
+
+```nix
+services.tailscale.extraSetFlags = [
+  "--relay-server-port=40000"
+  "--relay-server-static-endpoints=130.61.182.149:40000"
+];
+```
+
+`tailscaled-set.service` re-applies these flags on boot. **When the OCI public IP changes**, update the IP in that module and in `just deploy-oracle` default host, then redeploy.
+
+Manual override (until next deploy):
 
 ```bash
 sudo tailscale set \
   --relay-server-port=40000 \
-  --relay-server-static-endpoints="PUBLIC_IP:40000"
+  --relay-server-static-endpoints="$(just oracle-tofu-output instance_public_ip):40000"
 ```
-
-Replace `PUBLIC_IP` with `just oracle-tofu-output instance_public_ip` (or current elastic IP).
 
 ## Verify relay is usable
 

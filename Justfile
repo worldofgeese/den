@@ -36,6 +36,10 @@ deploy-paphos host="paphos":
     just update
     NIX_CONFIG='warn-dirty = false' nixos-rebuild switch --flake .#paphos --target-host {{host}} --use-remote-sudo
 
+# Deploy NixOS on oracle (Oracle Cloud aarch64; build on target by default)
+deploy-oracle host="nixos@130.61.182.149" build-host="nixos@130.61.182.149":
+    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#oracle --target-host {{host}} --build-host {{build-host}} --use-remote-sudo
+
 # Deploy nix-darwin on M-02877 (macOS)
 deploy-darwin:
     just update

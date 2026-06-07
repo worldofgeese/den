@@ -2,6 +2,8 @@
 
 Terraform/OpenTofu scaffold for importing a Den-built NixOS OCI qcow2 and launching a Flex ARM instance (default `VM.Standard.A1.Flex`, 4 OCPU / 24 GiB).
 
+**Operations docs (Diátaxis):** [docs/oracle/](../../docs/oracle/) — build tutorial, deploy/peer-relay how-to, speed troubleshooting, reference, network design explanation.
+
 Based on [Oracle Cloud NixOS](https://erikparawell.com/oracle-cloud-nixos.html), adapted for this repo.
 
 ## Prerequisites
@@ -46,9 +48,11 @@ just oracle-tofu-apply   # explicit — uploads qcow2, imports image (~30–45 m
 ssh nixos@$(just oracle-tofu-output instance_public_ip)
 ```
 
+After first boot, deploy NixOS config and Tailscale peer relay: [docs/oracle/how-to-deploy-and-peer-relay.md](../../docs/oracle/how-to-deploy-and-peer-relay.md).
+
 ## What Terraform creates
 
-- Minimal public VCN/subnet/IGW/security list (SSH 22)
+- Minimal public VCN/subnet/IGW/security list (SSH 22, Tailscale peer relay UDP 40000)
 - Object Storage upload of qcow2
 - Custom image import (`PARAVIRTUALIZED`)
 - `oci_core_shape_management` for each shape in `image_compatible_shapes` (default A1 + A2)

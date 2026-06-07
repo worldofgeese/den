@@ -1,7 +1,7 @@
 ---
 name: scout
 description: Fast codebase recon — analyzes specs, plans, and feature descriptions for user flow completeness, gap identification, and scope tracing before handing off to implementation
-model: cursor/composer-2.5
+model: cursor/composer-2-5
 fallbackModels: github-copilot/gpt-5.5
 thinking: medium
 tools: read, grep, find, ls, bash, write, intercom

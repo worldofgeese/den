@@ -78,7 +78,7 @@
             thinking = "high";
           };
           execution = {
-            model = "cursor/composer-2.5";
+            model = "cursor/composer-2-5";
             thinking = "medium";
           };
         };

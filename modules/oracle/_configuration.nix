@@ -3,7 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  worldofgeeseGithubSshKeys = import ../_github-ssh-keys.nix pkgs;
+in {
   system.stateVersion = "25.11";
 
   # oci-image.nix imports make-disk-image with copyChannel=true by default;
@@ -64,14 +66,18 @@
     network.enable = lib.mkForce false;
   };
 
-  # oci-image.nix fetch-ssh-keys writes root keys only; mirror for nixos user.
+  # oci-image.nix fetch-ssh-keys writes root keys only; append for nixos user.
   systemd.services.fetch-ssh-keys = {
     postStart = lib.mkAfter ''
       if [ -f /root/.ssh/authorized_keys ]; then
         install -d -m 700 -o nixos -g users /home/nixos/.ssh
-        cp /root/.ssh/authorized_keys /home/nixos/.ssh/authorized_keys
+        touch /home/nixos/.ssh/authorized_keys
         chown nixos:users /home/nixos/.ssh/authorized_keys
         chmod 600 /home/nixos/.ssh/authorized_keys
+        while IFS= read -r key || [ -n "''${key}" ]; do
+          [ -z "''${key}" ] && continue
+          grep -qxF "''${key}" /home/nixos/.ssh/authorized_keys || echo "''${key}" >> /home/nixos/.ssh/authorized_keys
+        done < /root/.ssh/authorized_keys
       fi
     '';
   };
@@ -80,6 +86,7 @@
     isNormalUser = true;
     description = "Oracle Cloud bootstrap user";
     extraGroups = ["wheel"];
+    openssh.authorizedKeys.keyFiles = [worldofgeeseGithubSshKeys];
   };
 
   security.sudo.wheelNeedsPassword = false;

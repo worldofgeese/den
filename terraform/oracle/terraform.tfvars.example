@@ -20,3 +20,7 @@ instance_memory_gbs = 24
 # instance_shape = "VM.Standard.A2.Flex"
 # Apply once, then switch back to A1 and apply again:
 # instance_shape = "VM.Standard.A1.Flex"
+
+# Optional: stabilize public IPv4 (two-step migration — see terraform/oracle/README.md)
+# reserve_public_ip         = true
+# assign_reserved_public_ip = false

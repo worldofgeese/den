@@ -1,6 +1,8 @@
 {den, ...}: let
   motherBackupBase = "/volume1/homes/taohansen/jd/70-79 Operations/71 Server backups/paphos/forgejo";
   telegramChatId = "488228716";
+  oracleTailscaleIp = "100.87.121.45";
+  oracleHost = "oracle.hound-celsius.ts.net";
 in {
   den.aspects.paphos.nixos = {
     config,
@@ -8,7 +10,8 @@ in {
     pkgs,
     ...
   }: let
-    inherit (pkgs) coreutils curl gawk gzip gnutar openssh postgresql rsync systemd util-linux;
+    inherit (pkgs) coreutils curl gawk gzip gnutar jq openssh postgresql rsync systemd util-linux;
+    tailscaleBin = lib.getExe config.services.tailscale.package;
     healthScript = pkgs.writeShellScript "paphos-health-check" ''
       set -euo pipefail
 
@@ -67,6 +70,67 @@ in {
 
       if [[ -n "''${failures// /}" ]]; then
         notify "paphos health FAIL ($host):$failures"
+        exit 1
+      fi
+
+      exit 0
+    '';
+
+    oracleRelayScript = pkgs.writeShellScript "paphos-oracle-relay-check" ''
+      set -euo pipefail
+
+      token_file="/run/agenix/telegram-lbob-bot-token"
+      chat_id="${telegramChatId}"
+      host="paphos"
+      oracle_tailscale_ip="${oracleTailscaleIp}"
+      oracle_host="${oracleHost}"
+      failures=""
+
+      record_failure() {
+        failures="$failures $1"
+      }
+
+      notify() {
+        local text="$1"
+        if [[ -f "$token_file" ]]; then
+          ${curl}/bin/curl -fsS -X POST \
+            "https://api.telegram.org/bot$(cat "$token_file")/sendMessage" \
+            -d "chat_id=$chat_id" \
+            --data-urlencode "text=$text" >/dev/null || true
+        fi
+      }
+
+      if ! ${systemd}/bin/systemctl is-active --quiet tailscaled.service; then
+        record_failure tailscaled-local
+      else
+        ping_ok=false
+        for attempt in 1 2 3; do
+          if ${tailscaleBin} ping --c 1 --timeout 8s "$oracle_tailscale_ip" >/dev/null 2>&1; then
+            ping_ok=true
+            break
+          fi
+          if [[ "$attempt" -lt 3 ]]; then
+            ${coreutils}/bin/sleep 5
+          fi
+        done
+        if [[ "$ping_ok" != true ]]; then
+          record_failure "oracle-tailscale-ping-$oracle_tailscale_ip"
+        fi
+
+        if ! ${tailscaleBin} status --json \
+          | ${jq}/bin/jq -e --arg host "$oracle_host" '
+              .Peer[]? | select(.DNSName? // "" | startswith($host))
+            ' >/dev/null 2>&1; then
+          record_failure oracle-tailscale-status
+        fi
+      fi
+
+      if ! ${coreutils}/bin/timeout 5 bash -c "exec 3<>/dev/tcp/$oracle_host/22" 2>/dev/null; then
+        record_failure "oracle-ssh-tcp-$oracle_host"
+      fi
+
+      if [[ -n "''${failures// /}" ]]; then
+        notify "paphos oracle relay FAIL ($host):$failures"
         exit 1
       fi
 
@@ -180,6 +244,40 @@ in {
         User = "root";
       };
       script = "${healthScript}";
+    };
+
+    systemd.services.paphos-oracle-relay-check = {
+      description = "Oracle tailnet relay reachability checks with Telegram notification on failure";
+      after = ["network-online.target" "tailscaled.service" "agenix-secrets.target"];
+      wants = ["network-online.target" "tailscaled.service" "agenix-secrets.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+      };
+      path = [config.services.tailscale.package pkgs.bash];
+      script = "${oracleRelayScript}";
+    };
+
+    systemd.timers.paphos-oracle-relay-check = {
+      description = "Periodic Oracle relay reachability checks from paphos";
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnCalendar = "hourly";
+        Persistent = true;
+        RandomizedDelaySec = "20min";
+      };
+    };
+
+    systemd.services.paphos-oracle-relay-check-test = {
+      description = "One-shot Oracle relay check (manual test)";
+      after = ["network-online.target" "tailscaled.service" "agenix-secrets.target"];
+      wants = ["network-online.target" "tailscaled.service" "agenix-secrets.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+      };
+      path = [config.services.tailscale.package pkgs.bash];
+      script = "${oracleRelayScript}";
     };
 
     age.secrets.paphos-mother-backup-ssh-key = {

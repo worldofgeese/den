@@ -36,7 +36,7 @@
           User = "nixos";
         };
         "oracle-public" = {
-          HostName = "130.61.182.149";
+          HostName = "158.180.52.169";
           User = "nixos";
         };
         pixel-fold = {

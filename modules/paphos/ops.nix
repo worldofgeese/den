@@ -8,7 +8,7 @@ in {
     pkgs,
     ...
   }: let
-    inherit (pkgs) coreutils curl gawk gzip gnutar openssh postgresql systemd util-linux;
+    inherit (pkgs) coreutils curl gawk gzip gnutar openssh postgresql rsync systemd util-linux;
     healthScript = pkgs.writeShellScript "paphos-health-check" ''
       set -euo pipefail
 
@@ -82,7 +82,6 @@ in {
       stamp="$(${coreutils}/bin/date -u +%Y%m%dT%H%M%SZ)"
       work_dir="$(${coreutils}/bin/mktemp -d)"
       ssh_cmd="${openssh}/bin/ssh -i $key_file -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new -p 2235"
-      scp_cmd="${openssh}/bin/scp -O -i $key_file -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new -P 2235"
       trap 'rm -rf "$work_dir"' EXIT
 
       ${util-linux}/bin/runuser -u postgres -- \
@@ -102,9 +101,7 @@ in {
 
       $ssh_cmd "$remote_host" "mkdir -p $escaped_remote_dir && chmod 700 $escaped_remote_base"
 
-      for file in forgejo.sql forgejo-data.tar.gz SHA256SUMS; do
-        $scp_cmd "$work_dir/$stamp/$file" "$remote_host:$escaped_remote_dir/$file"
-      done
+      ${rsync}/bin/rsync -av -s -e "$ssh_cmd" "$work_dir/$stamp/" "$remote_host:$remote_base/$stamp/"
 
       now_epoch=$(${coreutils}/bin/date +%s)
       ${coreutils}/bin/install -d -m 0755 /var/lib/paphos

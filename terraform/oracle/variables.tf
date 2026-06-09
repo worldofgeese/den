@@ -101,3 +101,21 @@ variable "public_subnet_cidr" {
   type        = string
   default     = "10.42.1.0/24"
 }
+
+variable "reserve_public_ip" {
+  description = "Create a RESERVED public IPv4 (floating until assigned). Default false — enable for IP stability; see README migration steps."
+  type        = bool
+  default     = false
+}
+
+variable "assign_reserved_public_ip" {
+  description = "Assign the reserved public IP to the instance primary private IP (replaces ephemeral public IP). Requires reserve_public_ip = true. Default false."
+  type        = bool
+  default     = false
+}
+
+variable "reserved_public_ip_display_name" {
+  description = "Display name for the reserved public IP resource"
+  type        = string
+  default     = "oracle-reserved-public-ip"
+}

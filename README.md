@@ -92,6 +92,7 @@ cp terraform/oracle/terraform.tfvars.example terraform/oracle/terraform.tfvars
 just oracle-tofu-init
 just oracle-tofu-plan
 just oracle-tofu-apply   # explicit — not run automatically
+just oracle-tofu-backup-state   # gopass backup — run after apply
 just deploy-oracle       # after instance exists — remote nixos-rebuild
 ```
 

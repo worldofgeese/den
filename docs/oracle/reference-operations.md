@@ -15,8 +15,10 @@ Quick lookup for Terraform, NixOS, ports, and commands. No narrative — see [tu
 | `just oracle-tofu-plan` | Plan (needs `terraform.tfvars`) |
 | `just oracle-tofu-apply` | Apply infrastructure |
 | `just oracle-tofu-output <name>` | Raw output (`instance_public_ip`, `ssh_command`, …) |
+| `just oracle-tofu-backup-state` | Copy `terraform.tfstate` (+ backup) to gopass |
+| `just oracle-tofu-restore-state` | Restore state from gopass (destructive overwrite) |
 
-Default deploy host: `nixos@130.61.182.149`.
+Default deploy host: `nixos@158.180.52.169`.
 
 ## Flake outputs
 
@@ -43,8 +45,16 @@ nix eval --no-warn-dirty .#nixosConfigurations.oracle.config.system.build.toplev
 | `instance_shape` | no | Default `VM.Standard.A1.Flex` |
 | `instance_ocpus` / `instance_memory_gbs` | no | Default 4 / 24 |
 | `image_compatible_shapes` | no | Default A1 + A2 |
+| `reserve_public_ip` | no | Default `false` — create floating reserved IPv4 |
+| `assign_reserved_public_ip` | no | Default `false` — attach reserved IP to instance (requires `reserve_public_ip`) |
 
 Dashboard lookup table: [terraform/oracle/README.md](../../terraform/oracle/README.md).
+
+## Reclaim and rebuild
+
+Always Free idle reclaim (7 days: CPU, network, memory all &lt; 20%): [how-to-rebuild-after-reclaim.md](how-to-rebuild-after-reclaim.md).
+
+State backup gopass paths: `dev/oci/oracle-cloud-nixos/terraform-state`, `.../terraform-state.backup`.
 
 ## Network ports
 
@@ -61,7 +71,7 @@ Peer relay uses **40000** explicitly via `extraSetFlags`.
 | Setting | Value |
 |---------|-------|
 | `services.tailscale.enable` | `true` |
-| `services.tailscale.extraSetFlags` | `--relay-server-port=40000`, `--relay-server-static-endpoints=130.61.182.149:40000` |
+| `services.tailscale.extraSetFlags` | `--relay-server-port=40000`, `--relay-server-static-endpoints=158.180.52.169:40000` |
 | `networking.firewall.allowedUDPPorts` | `[ 40000 ]` |
 | Exit node / subnet router | disabled (defaults) |
 | `system.autoUpgrade.enable` | `true` |
@@ -71,6 +81,25 @@ Peer relay uses **40000** explicitly via `extraSetFlags`.
 | `system.autoUpgrade.flags` | `[ "--print-build-logs" ]` (no `--update-input`; remote GitHub flake cannot mutate lockfile on host) |
 | `nix.gc.automatic` | `true` (`--delete-older-than 8d`) |
 | `nix.optimise.automatic` | `true` |
+| `systemd.services.oracle-anti-idle-cpu` | enabled — low-priority `stress-ng` CPU load |
+
+### Anti-idle CPU load
+
+`oracle-anti-idle-cpu.service` runs continuously with **Nice=19**, **CPUWeight=1**, and **IOSchedulingClass=idle**. One `stress-ng` worker targets roughly **20–25% total CPU** on typical A1.Flex shapes:
+
+| OCPUs | `--cpu-load` | Approx. total CPU |
+|-------|--------------|-------------------|
+| 1 | 25% | ~25% |
+| 2 | 46% | ~23% |
+| 4 | 90% | ~22.5% |
+
+Formula: `min(max(ocpus × 23, 25), 90)` on a single worker (no synthetic network or memory load).
+
+**Intent:** reduce risk that OCI marks the instance idle (CPU &lt; 20% for 7 days) and reclaims Always Free compute. **Not a guarantee** — Oracle policy and metering can change.
+
+**Trade-offs:** wastes free-tier CPU cycles; real workloads stay preferred via low priority. Disable if undesirable — remove or comment out `systemd.services.oracle-anti-idle-cpu` in `modules/oracle/_configuration.nix`, rebuild, and redeploy. Temporary stop: `sudo systemctl stop oracle-anti-idle-cpu`.
+
+Check: `systemctl status oracle-anti-idle-cpu`, `ps -o pid,nice,cmd -C stress-ng`.
 
 ### Automatic maintenance
 
@@ -105,7 +134,7 @@ tailscale netcheck
 
 ## SSH
 
-Fleet SSH (`modules/ssh.nix`): `oracle` → `oracle.hound-celsius.ts.net`, `oracle-public` → `130.61.182.149`. Direct:
+Fleet SSH (`modules/ssh.nix`): `oracle` → `oracle.hound-celsius.ts.net`, `oracle-public` → `158.180.52.169`. Direct:
 
 ```bash
 ssh nixos@$(just oracle-tofu-output instance_public_ip)

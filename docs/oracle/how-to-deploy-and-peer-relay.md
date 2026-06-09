@@ -8,7 +8,7 @@ After the instance exists, push flake updates from a machine with SSH access:
 just deploy-oracle
 ```
 
-Defaults: `--target-host` and `--build-host` both `nixos@130.61.182.149`. Override when the public IP changes:
+Defaults: `--target-host` and `--build-host` both `nixos@158.180.52.169`. Override when the public IP changes:
 
 ```bash
 just deploy-oracle host=nixos@NEW_IP build-host=nixos@NEW_IP
@@ -19,8 +19,8 @@ Manual equivalent:
 ```bash
 just update
 NIX_CONFIG='warn-dirty = false' nixos-rebuild switch --flake .#oracle \
-  --target-host nixos@130.61.182.149 \
-  --build-host nixos@130.61.182.149 \
+  --target-host nixos@158.180.52.169 \
+  --build-host nixos@158.180.52.169 \
   --use-remote-sudo
 ```
 
@@ -81,7 +81,7 @@ Tag `oracle` (or the relay node) with `tag:oracle-relay`. Adjust `src`/`dst` to 
 ```nix
 services.tailscale.extraSetFlags = [
   "--relay-server-port=40000"
-  "--relay-server-static-endpoints=130.61.182.149:40000"
+  "--relay-server-static-endpoints=158.180.52.169:40000"
 ];
 ```
 

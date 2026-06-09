@@ -37,7 +37,7 @@ deploy-paphos host="paphos":
     NIX_CONFIG='warn-dirty = false' nixos-rebuild switch --flake .#paphos --target-host {{host}} --use-remote-sudo
 
 # Deploy NixOS on oracle (Oracle Cloud aarch64; build on target by default)
-deploy-oracle host="nixos@130.61.182.149" build-host="nixos@130.61.182.149":
+deploy-oracle host="nixos@158.180.52.169" build-host="nixos@158.180.52.169":
     NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#oracle --target-host {{host}} --build-host {{build-host}} --use-remote-sudo
 
 # Deploy nix-darwin on M-02877 (macOS)
@@ -154,3 +154,45 @@ oracle-tofu-apply:
 
 oracle-tofu-output output:
     cd terraform/oracle && nix run nixpkgs#opentofu -- output -raw {{output}}
+
+# Back up local OpenTofu state to gopass (never commit state to git)
+oracle-tofu-backup-state:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd /home/worldofgeese/.config/home-manager
+    state="terraform/oracle/terraform.tfstate"
+    backup="terraform/oracle/terraform.tfstate.backup"
+    secret="dev/oci/oracle-cloud-nixos/terraform-state"
+    backup_secret="dev/oci/oracle-cloud-nixos/terraform-state.backup"
+    if [[ ! -f "$state" ]]; then
+        echo "oracle-tofu-backup-state: missing $state" >&2
+        exit 1
+    fi
+    if ! command -v gopass >/dev/null 2>&1; then
+        echo "oracle-tofu-backup-state: gopass not found" >&2
+        exit 1
+    fi
+    gopass insert -f "$secret" < "$state"
+    if [[ -f "$backup" ]]; then
+        gopass insert -f "$backup_secret" < "$backup"
+    fi
+    echo "oracle-tofu-backup-state: stored $secret"
+
+# Restore OpenTofu state from gopass (overwrites local terraform.tfstate)
+oracle-tofu-restore-state:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd /home/worldofgeese/.config/home-manager
+    state="terraform/oracle/terraform.tfstate"
+    backup="terraform/oracle/terraform.tfstate.backup"
+    secret="dev/oci/oracle-cloud-nixos/terraform-state"
+    backup_secret="dev/oci/oracle-cloud-nixos/terraform-state.backup"
+    if ! command -v gopass >/dev/null 2>&1; then
+        echo "oracle-tofu-restore-state: gopass not found" >&2
+        exit 1
+    fi
+    gopass show -o "$secret" > "$state"
+    if gopass show -o "$backup_secret" > /dev/null 2>&1; then
+        gopass show -o "$backup_secret" > "$backup"
+    fi
+    echo "oracle-tofu-restore-state: restored $secret -> $state"

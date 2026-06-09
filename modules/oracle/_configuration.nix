@@ -46,10 +46,10 @@ in {
   services.tailscale = {
     enable = true;
     # Peer relay only — no exit node or subnet router (useRoutingFeatures default "none")
-    # Public IP 130.61.182.149 (2026-06-07). Update when OCI elastic IP changes; see docs/oracle/how-to-deploy-and-peer-relay.md.
+    # Public IP 158.180.52.169 (2026-06-09). Update when OCI reserved IP changes; see docs/oracle/how-to-deploy-and-peer-relay.md.
     extraSetFlags = [
       "--relay-server-port=40000"
-      "--relay-server-static-endpoints=130.61.182.149:40000"
+      "--relay-server-static-endpoints=158.180.52.169:40000"
     ];
   };
 
@@ -90,6 +90,34 @@ in {
   };
 
   security.sudo.wheelNeedsPassword = false;
+
+  # Low-priority synthetic CPU load — OCI Always Free idle reclaim mitigation.
+  # See docs/oracle/reference-operations.md#anti-idle-cpu-load.
+  systemd.services.oracle-anti-idle-cpu = {
+    description = "Low-priority synthetic CPU load (OCI idle reclaim mitigation)";
+    wantedBy = ["multi-user.target"];
+    after = ["multi-user.target"];
+    serviceConfig = {
+      Type = "simple";
+      Nice = 19;
+      CPUWeight = 1;
+      IOSchedulingClass = "idle";
+      Restart = "always";
+      RestartSec = "30s";
+    };
+    path = [pkgs.bash pkgs.coreutils pkgs.stress-ng];
+    script = ''
+      cores=$(nproc)
+      load=$((cores * 23))
+      if [ "$load" -lt 25 ]; then
+        load=25
+      fi
+      if [ "$load" -gt 90 ]; then
+        load=90
+      fi
+      exec stress-ng --cpu 1 --cpu-load "$load" --timeout 0
+    '';
+  };
 
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nixpkgs.config.allowUnfree = true;

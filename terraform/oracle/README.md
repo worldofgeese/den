@@ -58,6 +58,52 @@ After first boot, deploy NixOS config and Tailscale peer relay: [docs/oracle/how
 - `oci_core_shape_management` for each shape in `image_compatible_shapes` (default A1 + A2)
 - `oci_core_compute_image_capability_schema` (UEFI_64 + paravirtualized boot/network/storage)
 - Flex instance (`instance_shape`) depending on shape + capability resources
+- Optional **reserved public IP** (`reserve_public_ip` / `assign_reserved_public_ip`, default off)
+
+## Reserved public IP migration
+
+Ephemeral public IPs change on instance replace. Optional reserved IP keeps SSH and Tailscale static relay endpoint stable.
+
+**Defaults:** `reserve_public_ip = false`, `assign_reserved_public_ip = false` — no surprise IP changes on existing applies.
+
+**Cost:** Oracle reserved public IP announcement states no charge; confirm on [OCI price list](https://www.oracle.com/cloud/price-list/) and tenancy billing before enabling. See [docs/oracle/how-to-rebuild-after-reclaim.md](../../docs/oracle/how-to-rebuild-after-reclaim.md).
+
+### Two-step apply (existing instance)
+
+Assigning a reserved IP to a private IP that already has an ephemeral public IP **replaces** the ephemeral address. Expect brief SSH disconnect.
+
+1. In `terraform.tfvars`:
+
+   ```hcl
+   reserve_public_ip          = true
+   assign_reserved_public_ip  = false
+   ```
+
+2. `just oracle-tofu-plan` → `just oracle-tofu-apply`. Note `just oracle-tofu-output reserved_public_ip`.
+
+3. When ready (maintenance window):
+
+   ```hcl
+   assign_reserved_public_ip = true
+   ```
+
+4. Plan and apply again. Update NixOS `--relay-server-static-endpoints`, `Justfile` deploy host, and `modules/ssh.nix` if the effective IP changed.
+
+5. `just oracle-tofu-backup-state`
+
+**New instances:** same two-step flow, or set both `true` on first apply if you accept assigning at launch (still replaces ephemeral).
+
+**Outputs:** `instance_public_ip` (effective), `reserved_public_ip`, `instance_ephemeral_public_ip`, `reserved_public_ip_assigned`.
+
+## Terraform state backup
+
+State is local (`terraform.tfstate`) and gitignored. Back up to gopass after apply:
+
+```bash
+just oracle-tofu-backup-state
+```
+
+Restore: `just oracle-tofu-restore-state`. Paths: `dev/oci/oracle-cloud-nixos/terraform-state` (+ `.backup`). Details: [docs/oracle/how-to-rebuild-after-reclaim.md](../../docs/oracle/how-to-rebuild-after-reclaim.md).
 
 ## A2 bootstrap when A1 is out of capacity
 

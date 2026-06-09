@@ -12,7 +12,7 @@
 | Path | Role |
 |------|------|
 | `modules/paphos/forgejo.nix` | Forgejo, forgesync, agenix secrets |
-| `modules/paphos/ops.nix` | Backup, health, Tailscale Serve, firewall, `nix.optimise` |
+| `modules/paphos/ops.nix` | Backup, health, Oracle relay check, Tailscale Serve, firewall, `nix.optimise` |
 | `modules/paphos/system.nix` | Users, auto-upgrade |
 | `modules/paphos/networking.nix` | Hostname, locale, ssh-server aspect |
 
@@ -25,6 +25,9 @@
 | `paphos-health-check.service` | On demand / hourly timer |
 | `paphos-health-check.timer` | Hourly + 10min jitter |
 | `paphos-health-check-test.service` | Manual test only |
+| `paphos-oracle-relay-check.service` | On demand / hourly timer |
+| `paphos-oracle-relay-check.timer` | Hourly + 20min jitter |
+| `paphos-oracle-relay-check-test.service` | Manual test only |
 | `tailscale-serve-forgejo.service` | Oneshot after boot |
 
 ## Secrets (agenix)
@@ -32,7 +35,7 @@
 | Secret | Use |
 |--------|-----|
 | `paphos-mother-backup-ssh-key` | SSH to mother for backups |
-| `telegram-lbob-bot-token` | Health alert Telegram bot |
+| `telegram-lbob-bot-token` | Health and Oracle relay alert Telegram bot |
 
 ## Firewall
 

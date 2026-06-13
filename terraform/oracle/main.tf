@@ -67,6 +67,61 @@ resource "oci_core_security_list" "public" {
     }
   }
 
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    description = "Pangolin/Traefik HTTP"
+
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
+    description = "Pangolin/Traefik HTTPS"
+
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "17"
+    source      = "0.0.0.0/0"
+    description = "Pangolin/Traefik QUIC"
+
+    udp_options {
+      min = 443
+      max = 443
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "17"
+    source      = "0.0.0.0/0"
+    description = "Pangolin WireGuard"
+
+    udp_options {
+      min = 51820
+      max = 51820
+    }
+  }
+
+  ingress_security_rules {
+    protocol    = "17"
+    source      = "0.0.0.0/0"
+    description = "Pangolin WireGuard alt"
+
+    udp_options {
+      min = 21820
+      max = 21820
+    }
+  }
+
   egress_security_rules {
     protocol    = "all"
     destination = "0.0.0.0/0"

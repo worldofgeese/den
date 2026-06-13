@@ -37,9 +37,9 @@ in {
   networking.hostName = "oracle";
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [22];
-    # Tailscale peer relay (tailscale set --relay-server-port=40000)
-    allowedUDPPorts = [40000];
+    allowedTCPPorts = [22 80 443];
+    # Tailscale peer relay (40000); Pangolin WireGuard (51820, 21820); Traefik QUIC (443)
+    allowedUDPPorts = [443 21820 40000 51820];
     trustedInterfaces = ["tailscale0"];
   };
 
@@ -52,6 +52,39 @@ in {
       "--relay-server-static-endpoints=158.180.52.169:40000"
     ];
   };
+
+  services.pangolin = {
+    enable = true;
+    baseDomain = "geese.party";
+    dashboardDomain = "pangolin.geese.party";
+    letsEncryptEmail = "tao@linux.com";
+    openFirewall = true;
+    # Eval-only placeholder; runtime secrets in /var/lib/pangolin/pangolin.env (systemd override below).
+    environmentFile = pkgs.writeText "pangolin-eval-placeholder.env" "# runtime: /var/lib/pangolin/pangolin.env\n";
+    settings = {
+      flags = {
+        disable_signup_without_invite = true;
+        disable_user_create_org = true;
+        enable_integration_api = false;
+      };
+    };
+  };
+
+  systemd.services.pangolin.serviceConfig.EnvironmentFile = lib.mkForce [
+    "-/var/lib/pangolin/pangolin.env"
+  ];
+  systemd.services.gerbil.serviceConfig.EnvironmentFile = lib.mkForce [
+    "-/var/lib/pangolin/pangolin.env"
+  ];
+
+  # Jellyfin (jellyfin.geese.party) uses a Pangolin *local* site + HTTP resource
+  # targeting mother.hound-celsius.ts.net:8096. Newt is not used on oracle because
+  # Pangolin and the connector run on the same host (colocated hole-punch fails).
+
+  systemd.tmpfiles.rules = [
+    "d /var/lib/pangolin 0770 pangolin fossorial -"
+    "f /var/lib/pangolin/pangolin.env 0600 pangolin fossorial -"
+  ];
 
   services.openssh = {
     enable = true;

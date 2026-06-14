@@ -12,7 +12,7 @@ Oracle may reclaim Always Free compute when **all** of the following hold for **
 | Network | &lt; 20% utilization |
 | Memory | &lt; 20% utilization |
 
-Mitigations here are: **low-priority synthetic CPU load** (`oracle-anti-idle-cpu.service` — intentional, not a guarantee), **real** relay traffic where applicable, **state backup**, **reserved public IP** (optional), **monitoring**, and a **documented rebuild path**. No synthetic network or memory load. Disable the anti-idle service if you prefer not to spend free-tier CPU — see [reference-operations.md](reference-operations.md#anti-idle-cpu-load).
+Mitigations here are: **real** relay traffic where applicable, **state backup**, **reserved public IP** (optional), **monitoring**, and a **documented rebuild path**. No synthetic CPU/memory/network load (anti-idle service was removed when migrating to PAYG).
 
 See [Oracle Always Free FAQ](https://www.oracle.com/cloud/free/faq/) and your tenancy console for current policy wording.
 

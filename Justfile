@@ -150,7 +150,7 @@ oracle-tofu-plan:
     cd terraform/oracle && nix run nixpkgs#opentofu -- plan
 
 oracle-tofu-apply:
-    cd terraform/oracle && nix run nixpkgs#opentofu -- apply
+	cd terraform/oracle && nix run nixpkgs#opentofu -- apply -auto-approve
 
 oracle-tofu-output output:
     cd terraform/oracle && nix run nixpkgs#opentofu -- output -raw {{output}}

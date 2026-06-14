@@ -85,15 +85,13 @@ Peer relay uses **40000** explicitly via `extraSetFlags`.
 
 ### Anti-idle CPU load
 
-`oracle-anti-idle-cpu.service` runs continuously with **Nice=19**, **CPUWeight=1**, and **IOSchedulingClass=idle**. One `stress-ng` worker targets roughly **20–25% total CPU** on typical A1.Flex shapes:
+`oracle-anti-idle-cpu.service` runs continuously with **Nice=19**, **CPUWeight=1**, and **IOSchedulingClass=idle**. One `stress-ng` worker targets **20% total CPU** on any shape:
 
 | OCPUs | `--cpu-load` | Approx. total CPU |
 |-------|--------------|-------------------|
-| 1 | 25% | ~25% |
-| 2 | 46% | ~23% |
-| 4 | 90% | ~22.5% |
+| any  | 20%          | ~20%              |
 
-Formula: `min(max(ocpus × 23, 25), 90)` on a single worker (no synthetic network or memory load).
+Fixed at 20% on a single worker (no synthetic network or memory load). Sits at OCI's "CPU < 20% for 7 days" reclaim threshold by design — per-core scaling was removed because it pushed 2-OCPU load to 46%, well above what was needed.
 
 **Intent:** reduce risk that OCI marks the instance idle (CPU &lt; 20% for 7 days) and reclaims Always Free compute. **Not a guarantee** — Oracle policy and metering can change.
 

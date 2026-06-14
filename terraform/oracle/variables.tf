@@ -73,15 +73,15 @@ variable "image_compatible_shapes" {
 }
 
 variable "instance_ocpus" {
-  description = "Flex instance OCPU count"
+  description = "Flex instance OCPU count (Always Free max: 2)"
   type        = number
-  default     = 4
+  default     = 2
 }
 
 variable "instance_memory_gbs" {
-  description = "Flex instance memory in GiB"
+  description = "Flex instance memory in GiB (Always Free max: 12)"
   type        = number
-  default     = 24
+  default     = 12
 }
 
 variable "availability_domain" {

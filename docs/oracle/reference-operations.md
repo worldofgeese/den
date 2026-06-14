@@ -43,7 +43,7 @@ nix eval --no-warn-dirty .#nixosConfigurations.oracle.config.system.build.toplev
 | `image_path` | yes | Local qcow2 (e.g. `../../result/nixos.qcow2`) |
 | `ssh_public_key` | yes | Instance metadata |
 | `instance_shape` | no | Default `VM.Standard.A1.Flex` |
-| `instance_ocpus` / `instance_memory_gbs` | no | Default 4 / 24 |
+| `instance_ocpus` / `instance_memory_gbs` | no | Default 2 / 12 |
 | `image_compatible_shapes` | no | Default A1 + A2 |
 | `reserve_public_ip` | no | Default `false` — create floating reserved IPv4 |
 | `assign_reserved_public_ip` | no | Default `false` — attach reserved IP to instance (requires `reserve_public_ip`) |

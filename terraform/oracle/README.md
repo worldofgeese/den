@@ -1,6 +1,6 @@
 # Oracle Cloud Free Tier — NixOS ARM (A1/A2 Flex)
 
-Terraform/OpenTofu scaffold for importing a Den-built NixOS OCI qcow2 and launching a Flex ARM instance (default `VM.Standard.A1.Flex`, 4 OCPU / 24 GiB).
+Terraform/OpenTofu scaffold for importing a Den-built NixOS OCI qcow2 and launching a Flex ARM instance (default `VM.Standard.A1.Flex`, 2 OCPU / 12 GiB).
 
 **Operations docs (Diátaxis):** [docs/oracle/](../../docs/oracle/) — build tutorial, deploy/peer-relay how-to, speed troubleshooting, reference, network design explanation.
 

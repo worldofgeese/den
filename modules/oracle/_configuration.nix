@@ -124,36 +124,6 @@ in {
 
   security.sudo.wheelNeedsPassword = false;
 
-  # Low-priority synthetic CPU load — OCI Always Free idle reclaim mitigation.
-  # See docs/oracle/reference-operations.md#anti-idle-cpu-load.
-  systemd.services.oracle-anti-idle-cpu = {
-    description = "Low-priority synthetic CPU load (OCI idle reclaim mitigation)";
-    wantedBy = ["multi-user.target"];
-    after = ["multi-user.target"];
-    serviceConfig = {
-      Type = "simple";
-      Nice = 19;
-      CPUWeight = 1;
-      IOSchedulingClass = "idle";
-      Restart = "always";
-      RestartSec = "30s";
-    };
-    path = [pkgs.bash pkgs.coreutils pkgs.stress-ng];
-    script = ''
-      # Anti-reclaim: hit all three OCI Always Free idle thresholds (95th percentile
-      # over 7 days, all must be < 20% to count as "idle").
-      #   CPU:  40% of one core on 2-OCPU shape ≈ 20% total CPU.
-      #   VM:   2.5 GB working set on 12 GB ≈ 21% memory utilization.
-      #   Sock: 4 socket pairs to keep non-zero network activity (best-effort;
-      #         sustained 20% of 1 Gbps interface is impractical for synthetic load).
-      exec stress-ng \
-        --cpu 1 --cpu-load 40 \
-        --vm 1 --vm-bytes 2500M --vm-hang 0 \
-        --sock 4 \
-        --timeout 0
-    '';
-  };
-
   nix.settings.experimental-features = ["nix-command" "flakes"];
   nixpkgs.config.allowUnfree = true;
 

@@ -140,15 +140,8 @@ in {
     };
     path = [pkgs.bash pkgs.coreutils pkgs.stress-ng];
     script = ''
-      cores=$(nproc)
-      load=$((cores * 23))
-      if [ "$load" -lt 25 ]; then
-        load=25
-      fi
-      if [ "$load" -gt 90 ]; then
-        load=90
-      fi
-      exec stress-ng --cpu 1 --cpu-load "$load" --timeout 0
+      # Fixed 20% load — sits at OCI's "CPU < 20% for 7 days" reclaim threshold.
+      exec stress-ng --cpu 1 --cpu-load 20 --timeout 0
     '';
   };
 

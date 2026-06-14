@@ -85,17 +85,19 @@ Peer relay uses **40000** explicitly via `extraSetFlags`.
 
 ### Anti-idle CPU load
 
-`oracle-anti-idle-cpu.service` runs continuously with **Nice=19**, **CPUWeight=1**, and **IOSchedulingClass=idle**. One `stress-ng` worker targets **20% total CPU** on any shape:
+`oracle-anti-idle-cpu.service` runs continuously with **Nice=19**, **CPUWeight=1**, and **IOSchedulingClass=idle**. A single `stress-ng` invocation runs three stressors to defend against all three OCI Always Free reclaim thresholds (95th percentile < 20% over 7 days on each of CPU, memory, network):
 
-| OCPUs | `--cpu-load` | Approx. total CPU |
-|-------|--------------|-------------------|
-| any  | 20%          | ~20%              |
+| Resource | Flag | Target on 2-OCPU / 12 GB | Approx. share |
+|----------|------|--------------------------|---------------|
+| CPU      | `--cpu 1 --cpu-load 40`        | 40% of one core | ~20% total CPU |
+| Memory   | `--vm 1 --vm-bytes 2500M --vm-hang 0` | 2.5 GB working set | ~21% memory |
+| Network  | `--sock 4`                    | 4 socket pairs | non-zero activity (best-effort) |
 
-Fixed at 20% on a single worker (no synthetic network or memory load). Sits at OCI's "CPU < 20% for 7 days" reclaim threshold by design — per-core scaling was removed because it pushed 2-OCPU load to 46%, well above what was needed.
+**Caveat — network:** OCI's "Network utilization" threshold is bandwidth-based; sustained 20% of a 1 Gbps interface (≈ 200 Mbps) is impractical for synthetic load. `--sock 4` keeps the metric non-zero but won't hit 20% of capacity. Real workload (Pangolin/Jellyfin tunnel, etc.) is the only practical way to hit the network threshold.
 
 **Intent:** reduce risk that OCI marks the instance idle (CPU &lt; 20% for 7 days) and reclaims Always Free compute. **Not a guarantee** — Oracle policy and metering can change.
 
-**Trade-offs:** wastes free-tier CPU cycles; real workloads stay preferred via low priority. Disable if undesirable — remove or comment out `systemd.services.oracle-anti-idle-cpu` in `modules/oracle/_configuration.nix`, rebuild, and redeploy. Temporary stop: `sudo systemctl stop oracle-anti-idle-cpu`.
+**Trade-offs:** wastes free-tier CPU cycles + 2.5 GB RAM; real workloads stay preferred via low priority. Disable if undesirable — remove or comment out `systemd.services.oracle-anti-idle-cpu` in `modules/oracle/_configuration.nix`, rebuild, and redeploy. Temporary stop: `sudo systemctl stop oracle-anti-idle-cpu`.
 
 Check: `systemctl status oracle-anti-idle-cpu`, `ps -o pid,nice,cmd -C stress-ng`.
 

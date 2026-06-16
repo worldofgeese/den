@@ -203,16 +203,16 @@
 
         rtk = final.rustPlatform.buildRustPackage {
           pname = "rtk";
-          version = "0.42.3";
+          version = "0.42.4";
 
           src = final.fetchFromGitHub {
             owner = "rtk-ai";
             repo = "rtk";
-            rev = "v0.42.3";
-            hash = "sha256-UWiu6y3Ci5F5OYQZIB0QuFmgv+tRUTouD9RZfX+PcsA=";
+            rev = "v0.42.4";
+            hash = "sha256-8nLJ5PVefXmoXQyw6HERfCP06C+l4I+7XLwKFNVNpew=";
           };
 
-          cargoHash = "sha256-ryOxbRwtkmeVnV/oF33eAZu/WileUd18ucgdsOvb5QU=";
+          cargoHash = "sha256-YsKOyEZ281ojqiitnvCFGy/MzHMyr4hlxqMnvrQwguQ=";
 
           doCheck = false;
 

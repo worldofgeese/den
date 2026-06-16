@@ -1,7 +1,7 @@
 ---
 name: worker
 description: Implementation agent for normal tasks and approved oracle handoffs
-model: cursor/composer-2-5
+model: cursor/composer-latest
 fallbackModels: github-copilot/gpt-5.5
 thinking: medium
 tools: read, grep, find, ls, bash, edit, write, contact_supervisor

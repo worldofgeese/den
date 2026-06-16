@@ -102,14 +102,20 @@
 
       # Override builtin agents with CE-enhanced versions.
       # User-scope agents with same name shadow builtins at lowest priority.
-      home.file.".pi/agent/agents/worker.md".source = ../pi-extensions/agent-overrides/worker.md;
-      home.file.".pi/agent/agents/planner.md".source = ../pi-extensions/agent-overrides/planner.md;
-      home.file.".pi/agent/agents/oracle.md".source = ../pi-extensions/agent-overrides/oracle.md;
-      home.file.".pi/agent/agents/reviewer.md".source = ../pi-extensions/agent-overrides/reviewer.md;
-      home.file.".pi/agent/agents/scout.md".source = ../pi-extensions/agent-overrides/scout.md;
-      home.file.".pi/agent/agents/researcher.md".source = ../pi-extensions/agent-overrides/researcher.md;
-      home.file.".pi/agent/agents/workstream-compounder.md".source =
-        ../pi-extensions/agent-overrides/workstream-compounder.md;
+      home.file.".pi/agent/agents/worker.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/worker.md;
+      home.file.".pi/agent/agents/planner.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/planner.md;
+      home.file.".pi/agent/agents/oracle.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/oracle.md;
+      home.file.".pi/agent/agents/reviewer.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/reviewer.md;
+      home.file.".pi/agent/agents/scout.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/scout.md;
+      home.file.".pi/agent/agents/researcher.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/researcher.md;
+      home.file.".pi/agent/agents/workstream-compounder.md".text =
+        builtins.readFile ../pi-extensions/agent-overrides/workstream-compounder.md;
       home.file.".pi/agent/skills/plan-implement/SKILL.md".source =
         ../pi-extensions/skills/plan-implement/SKILL.md;
 

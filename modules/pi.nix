@@ -139,8 +139,11 @@
           const filePath = path.join(agentsDir, fileName);
           try {
             if (fs.lstatSync(filePath).isSymbolicLink()) {
-              console.error("syncPiUserAgentModelOverrides: skipping " + fileName + ": is a symlink");
-              continue;
+              // Convert nix-store symlink into a writable regular file
+              // so tier-based model/thinking overrides can be injected.
+              const content = fs.readFileSync(filePath, "utf8");
+              fs.unlinkSync(filePath);
+              fs.writeFileSync(filePath, content, "utf8");
             }
             const lines = fs.readFileSync(filePath, "utf8").split(/\n/);
             if (lines[0] !== "---") continue;

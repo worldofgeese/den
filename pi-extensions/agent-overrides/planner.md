@@ -3,7 +3,7 @@ name: planner
 tier: orchestrator
 description: Creates concrete, architecture-aware implementation plans from context and requirements
 model: github-copilot/gpt-5.5
-fallbackModels: cursor/composer-2-5
+fallbackModels: cursor/composer-latest
 thinking: high
 tools: read, grep, find, ls, write, intercom
 skills: ce-plan, ce-agent-native-architecture, ce-strategy, ce-optimize, adr, prd, plan-prd, operational-integration-audit

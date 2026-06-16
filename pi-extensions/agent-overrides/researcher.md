@@ -1,7 +1,7 @@
 ---
 name: researcher
 description: Autonomous web researcher — performs iterative web research and returns structured external grounding with critical source evaluation
-model: cursor/composer-2-5
+model: cursor/composer-latest
 fallbackModels: github-copilot/gpt-5.5
 thinking: medium
 tools: read, write, web_search, fetch_content, get_search_content, intercom

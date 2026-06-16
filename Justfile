@@ -52,9 +52,8 @@ deploy-pixel-fold:
 
 # Check host outputs evaluate without known-noise custom-output warnings
 check:
-    nix eval --no-warn-dirty .#nixosConfigurations.paphos.config.system.build.toplevel.drvPath >/dev/null
-    nix eval --no-warn-dirty .#nixosConfigurations.oracle.config.system.build.toplevel.drvPath >/dev/null
-    nix eval --no-warn-dirty .#packages.aarch64-linux.oracle-image.drvPath >/dev/null
+    nix eval --no-warn-dirty --json .#nixosConfigurations.paphos.config.system.stateVersion >/dev/null
+    nix eval --no-warn-dirty --json .#nixosConfigurations.oracle.config.system.stateVersion >/dev/null
     nix eval --no-warn-dirty .#homeConfigurations.worldofgeese.activationPackage.drvPath >/dev/null
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null

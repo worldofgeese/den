@@ -26,7 +26,7 @@ import { convertMessages, sanitizeSurrogates } from "./message-conversion.js";
 // Configuration
 // =============================================================================
 
-const BASE_URL = "https://models.assistant.legogroup.io/anthropic";
+const BASE_URL = process.env.PI_ANTHROPIC_BASE_URL || "http://localhost:8788/anthropic";
 const MAX_ERROR_BODY_LENGTH = 200;
 const RETRY_DELAYS = [1000, 3000]; // 2 retries: 1s, 3s backoff
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503]);

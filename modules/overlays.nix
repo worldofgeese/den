@@ -12,15 +12,15 @@
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
-          version = "0.58.1";
+          version = "0.59.3";
 
           src = final.fetchzip {
-            url = "https://static.crates.io/crates/decapod/decapod-0.58.1.crate";
+            url = "https://static.crates.io/crates/decapod/decapod-0.59.3.crate";
             extension = "tar.gz";
-            hash = "sha256-AAXeE4ZYYvCLPRT+Alf0EFvK4BWndX9MRG9gm7VESpE=";
+            hash = "sha256-tr3Oan85OnMsHGWAsW1ZHYcd2B0Nf0Uvg2UNP7kIyDY=";
           };
 
-          cargoHash = "sha256-mR9WkXC2Z5XNJkw9r5XQONzG6WNItX0kCt5KSF4ORPY=";
+          cargoHash = "sha256-O0siZrOcpn46MQaa58218sGrSmezR0NePpamkvZeuAE=";
 
           doCheck = false;
 
@@ -221,6 +221,28 @@
             homepage = "https://github.com/rtk-ai/rtk";
             license = final.lib.licenses.mit;
             mainProgram = "rtk";
+          };
+        };
+
+        agent-token-dashboard = final.buildGoModule {
+          pname = "agent-token-dashboard";
+          version = "0-unstable-2026-06-19";
+
+          src = final.fetchFromGitHub {
+            owner = "LEGO";
+            repo = "agent-token-dashboard";
+            rev = "d8324ea0daaaa55aca805daf561801abb59b0618";
+            hash = "sha256-QAohsCSt/3wOtiL9YpXMxy6InFTHmy3YtEr4wtUY1DM=";
+          };
+
+          vendorHash = null;
+          CGO_ENABLED = 1;
+          doCheck = false;
+
+          meta = {
+            description = "Single-binary dashboard for AI agent token usage";
+            homepage = "https://github.com/LEGO/agent-token-dashboard";
+            mainProgram = "ai-dashboard";
           };
         };
       })

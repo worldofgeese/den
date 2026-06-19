@@ -9,24 +9,27 @@
       lib,
       ...
     }: {
-      home.packages = with pkgs; [
-        nodejs
-        bun
-        uv
-        kubectl
-        shellcheck
-        yq-go
-        glab
-        just
-        bash-preexec
-        claude-code
-        pi
-        rtk
-        decapod
-        br
-        bv
-        mcp-agent-mail
-      ];
+      home.packages = with pkgs;
+        [
+          nodejs
+          bun
+          uv
+          kubectl
+          shellcheck
+          yq-go
+          glab
+          just
+          bash-preexec
+          claude-code
+          pi
+          bv
+          mcp-agent-mail
+        ]
+        ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
+          rtk
+          decapod
+          br
+        ];
 
       programs.github-copilot-cli.enable = true;
       programs.direnv = {

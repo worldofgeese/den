@@ -235,9 +235,20 @@
             hash = "sha256-QAohsCSt/3wOtiL9YpXMxy6InFTHmy3YtEr4wtUY1DM=";
           };
 
-          vendorHash = null;
-          CGO_ENABLED = 1;
+          vendorHash = "sha256-Bo4gPp5QzAs29QDE7ahsnSfq9ZLUbM+/ImZ0jAawBnE=";
+          env.CGO_ENABLED = "1";
           doCheck = false;
+
+          patches = [];
+          postPatch = ''
+            substituteInPlace go.mod --replace-warn "go 1.26.4" "go 1.26.3"
+          '';
+
+          overrideModAttrs = _: {
+            postPatch = ''
+              substituteInPlace go.mod --replace-warn "go 1.26.4" "go 1.26.3"
+            '';
+          };
 
           meta = {
             description = "Single-binary dashboard for AI agent token usage";

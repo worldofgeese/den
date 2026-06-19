@@ -81,13 +81,21 @@
               "proxy-chain"
               "-p"
               "8787:8787"
+              "-v"
+              "headroom-data:/data"
               "-e"
               "ANTHROPIC_TARGET_API_URL=https://models.assistant.legogroup.io/claude"
               "-e"
               "HEADROOM_HOST=0.0.0.0"
+              "-e"
+              "HEADROOM_DEFAULT_MODE=optimize"
+              "-e"
+              "HEADROOM_STORE_URL=sqlite:////data/headroom.db"
+              "-e"
+              "HEADROOM_SAVINGS_PATH=/data/proxy_savings.json"
+              "-e"
+              "HEADROOM_TELEMETRY=off"
               "ghcr.io/chopratejas/headroom:latest"
-              "--mode"
-              "token"
             ];
             RunAtLoad = true;
             KeepAlive = true;
@@ -281,7 +289,6 @@
           "pulumi"
           "container"
           "jira-cli"
-          "rtk"
           "atlassian/acli/acli"
           "lego/tap/bob-cli"
           "lego/tap/mdc"
@@ -311,6 +318,7 @@
           "visual-studio-code@insiders"
           "monokle"
           "codex-app"
+          "genai-menu"
         ];
         taps = [
           "atlassian/homebrew-acli"

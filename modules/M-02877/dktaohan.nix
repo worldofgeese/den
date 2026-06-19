@@ -54,7 +54,7 @@
 
       home.activation.cargoInstall = lib.hm.dag.entryAfter ["writeBoundary"] ''
         export PATH="${pkgs.rustup}/bin:$HOME/.cargo/bin:$PATH"
-        run cargo install decapod br rtk 2>/dev/null || true
+        run cargo install decapod 2>/dev/null || true
       '';
 
       # Work-only: anthropic-proxy Pi extension + LEGO MPS model routing.

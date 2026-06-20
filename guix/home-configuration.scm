@@ -86,7 +86,7 @@
                   "glib:bin"
                   "ffmpeg"
                   "exercism"
-                  "git-annex"
+                  ;; git-annex removed: ghc-feed (haskell dep) broken by xml-conduit update in guix
                   ;; helm-kubernetes consolidated to Nix HM workstation aspect
                   "qbittorrent"
                   "distrobox"

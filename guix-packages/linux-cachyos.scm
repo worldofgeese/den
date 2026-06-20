@@ -15,8 +15,8 @@
 ;;
 ;; To upgrade: just upgrade-kernel
 
-(define %cachyos-version "7.0.11")
-(define %cachyos-revision "1")
+(define %cachyos-version "7.1.1")
+(define %cachyos-revision "2")
 (define %cachyos-tag
   (string-append "cachyos-" %cachyos-version "-" %cachyos-revision))
 
@@ -27,13 +27,13 @@
           "https://github.com/CachyOS/linux/releases/download/"
           %cachyos-tag "/" %cachyos-tag ".tar.gz"))
     (sha256
-     (base32 "0h5a85bjm1aknv32xl4860z6lrwgdby45wlzjgv71449hj82yl32"))))
+     (base32 "1n1zjy5qmpnxjlh7xf3i27l81z9qnhcq55hy9h3j7mcm9yy0fspl"))))
 
 ;; CachyOS PKGBUILD applies this when _cpusched=bore:
 ;;   ${_patchsource}/sched/0001-bore-cachy.patch
-;; where _patchsource=https://raw.githubusercontent.com/cachyos/kernel-patches/master/7.0
+;; where _patchsource=https://raw.githubusercontent.com/cachyos/kernel-patches/master/7.1
 (define %cachyos-bore-patch-uri
-  "https://raw.githubusercontent.com/cachyos/kernel-patches/master/7.0/sched/0001-bore-cachy.patch")
+  "https://raw.githubusercontent.com/cachyos/kernel-patches/master/7.1/sched/0001-bore-cachy.patch")
 
 (define %cachyos-bore-source
   (origin
@@ -44,7 +44,7 @@
         (method url-fetch)
         (uri %cachyos-bore-patch-uri)
         (sha256
-         (base32 "0blkpajvndba0dl0lilndbzclbhmsmnjxhlvw1vr6r2mryhf757m")))))))
+         (base32 "05sw50bwhv93vfzjfb98d967fgw705vgjlimriffbi7as1bxapil")))))))
 
 (define %cachyos-base-configs
   '("CONFIG_CACHY=y"

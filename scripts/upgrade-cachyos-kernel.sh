@@ -39,7 +39,7 @@ echo "New hash: $HASH"
 # Patch the .scm file
 sed -i "s|(define %cachyos-version \".*\")|(define %cachyos-version \"$VERSION\")|" "$SCM_FILE"
 sed -i "s|(define %cachyos-revision \".*\")|(define %cachyos-revision \"$REVISION\")|" "$SCM_FILE"
-sed -i "s|(base32 \".*\")|(base32 \"$HASH\")|" "$SCM_FILE"
+sed -i "0,/|(base32 \".*\")|{s|(base32 \".*\")|(base32 \"$HASH\")|}" "$SCM_FILE"
 
 echo ""
 echo "Updated $SCM_FILE:"

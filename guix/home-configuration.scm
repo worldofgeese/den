@@ -10,6 +10,8 @@
              (gnu home services desktop)
              (gnu home services mpv)
              (gnu home services xdg)
+             (gnu home services containers)
+             (gnu services containers)
              (rde features)
              (rde features linux)
              (gnu home services shells))
@@ -201,6 +203,45 @@ mv \"$tmp\" \"$target\""))
                     (list `("containers/storage.conf"
                             ,(plain-file "containers-storage.conf"
                                          "[storage]\ndriver = \"overlay\"\n"))))
+
+    ;; Headroom token-efficiency proxy (rootless Podman via system profile)
+    (service home-oci-service-type
+             (for-home
+              (oci-configuration
+               (runtime 'podman)
+               (runtime-cli "/run/current-system/profile/bin/podman"))))
+    (simple-service 'headroom-proxy
+                    home-oci-service-type
+                    (oci-extension
+                     (volumes
+                      (list
+                       (oci-volume-configuration (name "headroom-data"))))
+                     (containers
+                      (list
+                       (oci-container-configuration
+                        (provision "headroom")
+                        (image "ghcr.io/chopratejas/headroom:latest")
+                        (ports '("127.0.0.1:8787:8787"))
+                        (volumes '(("headroom-data" . "/data")))
+                        (environment
+                         (list
+                          "HEADROOM_HOST=0.0.0.0"
+                          "HEADROOM_DEFAULT_MODE=optimize"
+                          "HEADROOM_STORE_URL=sqlite:////data/headroom.db"
+                          "HEADROOM_SAVINGS_PATH=/data/proxy_savings.json"
+                          "HEADROOM_TELEMETRY=off"))
+                        (command
+                         '("--host" "0.0.0.0"
+                           "--port" "8787"
+                           "--memory"
+                           "--learn"
+                           "--code-graph"))
+                        (extra-arguments '("--pull" "always"))
+                        (respawn? #t)
+                        (auto-start? #t)
+                        (log-file
+                         (string-append (getenv "HOME")
+                                        "/.local/state/headroom.log")))))))
 
     ;; Guix channels — single source of truth in this repo
     (simple-service 'guix-channels

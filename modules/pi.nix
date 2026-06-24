@@ -70,7 +70,7 @@
       home.file.".pi/agent/tier-defs.json".text = lib.mkDefault (let
         tierDefs = {
           orchestrator = {
-            model = "github-copilot/gpt-5.5";
+            model = "openai-codex/gpt-5.5";
             thinking = "high";
           };
           creative = {
@@ -102,20 +102,37 @@
 
       # Override builtin agents with CE-enhanced versions.
       # User-scope agents with same name shadow builtins at lowest priority.
-      home.file.".pi/agent/agents/worker.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/worker.md;
-      home.file.".pi/agent/agents/planner.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/planner.md;
-      home.file.".pi/agent/agents/oracle.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/oracle.md;
-      home.file.".pi/agent/agents/reviewer.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/reviewer.md;
-      home.file.".pi/agent/agents/scout.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/scout.md;
-      home.file.".pi/agent/agents/researcher.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/researcher.md;
-      home.file.".pi/agent/agents/workstream-compounder.md".text =
-        builtins.readFile ../pi-extensions/agent-overrides/workstream-compounder.md;
+      # force = true because the syncPiUserAgentModelOverrides activation script
+      # converts these symlinks into regular files to patch frontmatter, which
+      # would otherwise block the next switch with "would be clobbered".
+      home.file.".pi/agent/agents/worker.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/worker.md;
+        force = true;
+      };
+      home.file.".pi/agent/agents/planner.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/planner.md;
+        force = true;
+      };
+      home.file.".pi/agent/agents/oracle.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/oracle.md;
+        force = true;
+      };
+      home.file.".pi/agent/agents/reviewer.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/reviewer.md;
+        force = true;
+      };
+      home.file.".pi/agent/agents/scout.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/scout.md;
+        force = true;
+      };
+      home.file.".pi/agent/agents/researcher.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/researcher.md;
+        force = true;
+      };
+      home.file.".pi/agent/agents/workstream-compounder.md" = {
+        text = builtins.readFile ../pi-extensions/agent-overrides/workstream-compounder.md;
+        force = true;
+      };
       home.file.".pi/agent/skills/plan-implement/SKILL.md".source =
         ../pi-extensions/skills/plan-implement/SKILL.md;
 

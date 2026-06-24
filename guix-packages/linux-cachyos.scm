@@ -43,7 +43,7 @@
           "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-"
           %cachyos-version ".tar.xz"))
     (sha256
-     (base32 "18344l5fv3hgsqjrjr3dgg96lll7f294qq11lg40sydygxwl87v9"))
+     (base32 "0z8x6wafxzc5vkim9jh8wpycdkk9y5bpxgsirmdpyznw84szl5aj"))
     (patches
      (list
       (origin

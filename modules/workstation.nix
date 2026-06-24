@@ -46,6 +46,7 @@
           opencode
           agent-browser
           beeper
+          stdenv.cc.cc.lib # libstdc++.so.6 for Signet's ONNX native module
         ])
         ++ [
           # gc — Gas City CLI proxied to remote container on loving-kypris
@@ -129,13 +130,15 @@
             "2. Deploy mahakala via Justfile" = "cd ~/.config/home-manager && just deploy-mahakala";
           };
           misc = {
+            assume_yes = true;
+            pre_sudo = true;
             show_distribution_summary = false;
             disable = ["nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
           };
           commands = {
             "Doom Emacs" = "doom upgrade --force";
             "Distrobox (arch)" = "distrobox-upgrade arch";
-            "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'brew update && brew upgrade'";
+            "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'export HOMEBREW_NO_ASK=1; brew update && brew upgrade'";
           };
           post_commands = {
             "Garbage collect Nix" = "nix-collect-garbage -d";

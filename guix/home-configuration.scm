@@ -11,6 +11,7 @@
              (gnu home services mpv)
              (gnu home services xdg)
              (gnu home services containers)
+             (gnu home services shepherd)
              (gnu services containers)
              (rde features)
              (rde features linux)
@@ -229,7 +230,8 @@ mv \"$tmp\" \"$target\""))
                           "HEADROOM_DEFAULT_MODE=optimize"
                           "HEADROOM_STORE_URL=sqlite:////data/headroom.db"
                           "HEADROOM_SAVINGS_PATH=/data/proxy_savings.json"
-                          "HEADROOM_TELEMETRY=off"))
+                          "HEADROOM_TELEMETRY=off"
+                          "ANTHROPIC_TARGET_API_URL=https://models.assistant.legogroup.io/claude"))
                         (command
                          '("--host" "0.0.0.0"
                            "--port" "8787"
@@ -242,6 +244,28 @@ mv \"$tmp\" \"$target\""))
                         (log-file
                          (string-append (getenv "HOME")
                                         "/.local/state/headroom.log")))))))
+
+    ;; Signet memory daemon (Nix bun + Nix profile libstdc++ for ONNX)
+    (simple-service
+     'signet-daemon
+     home-shepherd-service-type
+     (list
+      (shepherd-service
+       (provision '(signet))
+       (documentation "Signet cross-session memory daemon")
+       (start #~(make-forkexec-constructor
+                 (list (string-append (getenv "HOME") "/.nix-profile/bin/bun")
+                       (string-append (getenv "HOME")
+                                      "/.local/lib/node_modules/signetai/dist/daemon.js"))
+                 #:environment-variables
+                 (append (default-environment-variables)
+                         (list (string-append "LD_LIBRARY_PATH="
+                                              (getenv "HOME") "/.nix-profile/lib")))
+                 #:log-file (string-append (getenv "HOME")
+                                           "/.local/state/signet.log")))
+       (stop #~(make-kill-destructor))
+       (respawn? #t)
+       (auto-start? #t))))
 
     ;; Guix channels — single source of truth in this repo
     (simple-service 'guix-channels

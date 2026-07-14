@@ -1,6 +1,11 @@
 {
   description = "Den mono-repo: unified Nix infrastructure for all hosts";
 
+  nixConfig = {
+    extra-substituters = [ "https://cache.numtide.com" ];
+    extra-trusted-public-keys = [ "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=" ];
+  };
+
   inputs = {
     den.url = "github:denful/den";
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -30,10 +35,7 @@
       url = "github:oxcl/nix-flake-helium-browser";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    llm-agents = {
-      url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    llm-agents.url = "github:numtide/llm-agents.nix";
     ewm = {
       url = "git+https://codeberg.org/ezemtsov/ewm";
       inputs.nixpkgs.follows = "nixpkgs";

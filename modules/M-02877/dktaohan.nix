@@ -180,7 +180,6 @@
         fluxcd
         docker-compose
         podman-compose
-        podman-desktop
         devpod
         odo
         secretspec
@@ -450,19 +449,6 @@
           editor = "zed";
         };
         extensions = with pkgs; [gh-dash];
-      };
-
-      programs.k9s = {
-        enable = true;
-        settings.k9s = {
-          liveViewAutoRefresh = true;
-          refreshRate = 2;
-          ui = {
-            enableMouse = true;
-            noIcons = false;
-            skin = "dracula";
-          };
-        };
       };
 
       programs.topgrade = {

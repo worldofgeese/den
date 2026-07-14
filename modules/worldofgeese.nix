@@ -69,7 +69,7 @@
         };
       };
 
-      # direnv, eza, bat, zoxide, jq, atuin, k9s now come from shared-devtools
+      # direnv, eza, bat, zoxide, jq, atuin, now come from shared-devtools
       # (included via workstation → shared-devtools)
 
       programs.atuin.settings = {

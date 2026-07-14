@@ -12,7 +12,7 @@ Unified Nix infrastructure for all my machines. Built on [Den](https://github.co
 
 **Development:** Node.js, Rust (via rustup), Python (via uv), Bun, .NET, Go tooling, Neovim, Zed, Doom Emacs
 
-**Cloud & infra:** kubectl, k9s, Helm, Flux, AWS CLI, Azure CLI, Pulumi, OpenShift, krew, kubie, saml2aws
+**Cloud & infra:** kubectl, Helm, Flux, AWS CLI, Azure CLI, Pulumi, OpenShift, krew, kubie, saml2aws
 
 **Git:** GPG/SSH commit signing, LFS, lazygit, delta, gh + gh-dash
 
@@ -235,7 +235,7 @@ modules/
 ├── terminal.nix         # Shared terminal UX (Dracula delta, previews, persistence)
 ├── shared-devtools.nix  # Dev tooling shared by mahakala + M-02877
 ├── pi.nix               # Pi coding agent (extensions, MCP, skills, chains)
-├── workstation.nix      # Desktop/dev packages + topgrade + k9s
+├── workstation.nix      # Desktop/dev packages + topgrade
 ├── ssh.nix              # Fleet SSH matchBlocks (Tailscale hostnames)
 ├── server.nix           # Reusable NixOS server aspect
 ├── overlays.nix         # Nixpkgs overlays (devenv, decapod)

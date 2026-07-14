@@ -8,19 +8,20 @@
       (final: prev: {
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
         pi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
+        omp = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
       })
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
-          version = "0.60.2";
+          version = "0.66.4";
 
           src = final.fetchzip {
-            url = "https://static.crates.io/crates/decapod/decapod-0.60.2.crate";
+            url = "https://static.crates.io/crates/decapod/decapod-0.66.4.crate";
             extension = "tar.gz";
-            hash = "sha256-DAPbAOV9mSZiVQ4dtcMaZhVSqbuOJK46UvzcV9kIW6k=";
+            hash = "sha256-Bs+FqUoF7fzf54crQ5v+SlrFCYHA5AkCBd3xaf3WYyQ=";
           };
 
-          cargoHash = "sha256-Ofc76TRhRdceQNBu4Tk5JTEvrlD5dLFjWPKQ5bwP4mI=";
+          cargoHash = "sha256-NXMzFYRs1688s12lTR/bE5wO8p1RmsMcNNV8ho5yaE4=";
 
           doCheck = false;
 
@@ -203,16 +204,16 @@
 
         rtk = final.rustPlatform.buildRustPackage {
           pname = "rtk";
-          version = "0.42.4";
+          version = "0.43.0";
 
           src = final.fetchFromGitHub {
             owner = "rtk-ai";
             repo = "rtk";
-            rev = "v0.42.4";
-            hash = "sha256-8nLJ5PVefXmoXQyw6HERfCP06C+l4I+7XLwKFNVNpew=";
+            rev = "v0.43.0";
+            hash = "sha256-n5bkPPsrdM4fE5ltocTjlq+JwRgp39yib6S79fci4m4=";
           };
 
-          cargoHash = "sha256-YsKOyEZ281ojqiitnvCFGy/MzHMyr4hlxqMnvrQwguQ=";
+          cargoHash = "sha256-XKUKdhxfnwUCOx9slqx4oUFa09HcosPLVh5Xkh87oSk=";
 
           doCheck = false;
 

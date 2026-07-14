@@ -55,3 +55,6 @@ terraform/oracle/*.auto.tfvars
 
 # Nix build output for Oracle OCI image
 result/
+
+# Chorus runtime state/lock
+.chorus/

@@ -31,10 +31,11 @@
           "--color=info:#ffb86c,prompt:#50fa7b,pointer:#ff79c6"
           "--color=marker:#ff79c6,spinner:#ffb86c,header:#6272a4"
         ];
-        fileWidgetCommand = "fd --type f --hidden --follow --exclude .git";
-        fileWidgetOptions = ["--preview 'bat --color=always --style=numbers --line-range=:500 {}'"];
-        changeDirWidgetCommand = "fd --type d --hidden --follow --exclude .git";
-        changeDirWidgetOptions = ["--preview 'eza --tree --color=always --icons {} | head -200'"];
+        fileWidget.command = "fd --type f --hidden --follow --exclude .git";
+        fileWidget.options = ["--preview 'bat --color=always --style=numbers --line-range=:500 {}'"];
+        changeDirWidget.command = "fd --type d --hidden --follow --exclude .git";
+        changeDirWidget.options = ["--preview 'eza --tree --color=always --icons {} | head -200'"];
+        historyWidget.command = "";
         tmux.enableShellIntegration = true;
       };
 

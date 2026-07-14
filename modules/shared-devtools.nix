@@ -22,6 +22,7 @@
           bash-preexec
           claude-code
           pi
+          omp
           bv
           mcp-agent-mail
         ]
@@ -50,8 +51,6 @@
           search_mode = "fuzzy";
         };
       };
-
-      programs.k9s.enable = true;
 
       # Guix Home owns ~/.bashrc on mahakala, so Home Manager cannot inject
       # Bash init snippets directly. Export one sourceable fragment instead.

@@ -10,10 +10,10 @@ Three layers sit between your coding agent and the upstream model vendor (AWS Be
 ```
 Your Agent (Claude Code, OMP, OpenCode, Codex, …)
     │
-    │  ANTHROPIC_BASE_URL=http://127.0.0.1:8788
+    │  ANTHROPIC_BASE_URL=http://127.0.0.1:18788
     ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  local-model-proxy  (port 8788)                             │
+│  local-model-proxy  (host 18788 → 8788)                             │
 │                                                             │
 │  What it does:                                              │
 │  • Transparent HTTP proxy — forwards every header as-is     │
@@ -29,7 +29,7 @@ Your Agent (Claude Code, OMP, OpenCode, Codex, …)
     │  MPS_BASE_URL=http://headroom:8787
     ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Headroom  (port 8787)                                      │
+│  Headroom  (host 18787 → 8787)                                      │
 │                                                             │
 │  What it does:                                              │
 │  • Context compression — scores messages by value, drops    │
@@ -45,7 +45,7 @@ Your Agent (Claude Code, OMP, OpenCode, Codex, …)
 │  Mode: HEADROOM_DEFAULT_MODE=optimize (full pipeline)       │
 └─────────────────────────────────────────────────────────────┘
     │
-    │  ANTHROPIC_TARGET_API_URL=https://models.assistant.legogroup.io/claude
+    │  ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude
     ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  LEGO Model Proxy Service (MPS)                             │
@@ -105,7 +105,7 @@ Both work through the full proxy chain (local-model-proxy and Headroom pass them
 
 ```bash
 export ANTHROPIC_AUTH_TOKEN="<your MPS API key>"
-export ANTHROPIC_BASE_URL="http://127.0.0.1:8788"
+export ANTHROPIC_BASE_URL="http://127.0.0.1:18788"
 ```
 
 Claude Code reads `ANTHROPIC_AUTH_TOKEN` and sends it as `Authorization: Bearer`.
@@ -113,11 +113,11 @@ Claude Code reads `ANTHROPIC_AUTH_TOKEN` and sends it as `Authorization: Bearer`
 ## How-To: Connect Any Agentic Harness
 
 The proxy chain is harness-agnostic. Any tool that speaks the Anthropic Messages API
-can connect by setting its base URL to `http://localhost:8788` and providing the MPS key.
+can connect by setting its base URL to `http://127.0.0.1:18788` and providing the MPS key.
 
 ### Pattern: What every harness needs
 
-1. **Base URL**: `http://localhost:8788` (or `:8787` to skip telemetry, or MPS directly)
+1. **Base URL**: `http://127.0.0.1:18788` (or `:18787` to skip telemetry, or MPS directly)
 2. **API key**: Your MPS key (`<account_id>:<secret>`)
 3. **Model IDs**: Use Bedrock-style IDs with `anthropic.` prefix:
    - `anthropic.claude-sonnet-4-6`
@@ -127,7 +127,7 @@ can connect by setting its base URL to `http://localhost:8788` and providing the
 ### Claude Code
 
 ```bash
-export ANTHROPIC_BASE_URL="http://127.0.0.1:8788"
+export ANTHROPIC_BASE_URL="http://127.0.0.1:18788"
 export ANTHROPIC_AUTH_TOKEN="<key>"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="anthropic.claude-sonnet-4-6"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="anthropic.claude-haiku-4-5-20251001-v1:0"
@@ -147,7 +147,7 @@ In `~/.config/opencode/opencode.json`:
       "npm": "@ai-sdk/anthropic",
       "name": "LEGO Anthropic",
       "options": {
-        "baseURL": "http://localhost:8788/v1",
+        "baseURL": "http://127.0.0.1:18788/v1",
         "apiKey": "<key>",
         "headers": { "api-key": "<key>" }
       },
@@ -169,7 +169,7 @@ OMP and Pi share the same config system. In `~/.omp/agent/models.yml`:
 providers:
   lego:
     api: anthropic-messages
-    baseUrl: "http://localhost:8788"
+    baseUrl: "http://127.0.0.1:18788"
     apiKey: "!security find-generic-password -ws lego-mps"
     models:
       - id: anthropic.claude-sonnet-4-6
@@ -242,7 +242,7 @@ the provider-level `baseUrl` points at `/openai` for GPT models.
 
 | Approach | Telemetry | Compression | Requires Docker | Use when |
 |----------|-----------|-------------|-----------------|----------|
-| Through proxy chain (`:8788`) | Yes (Phoenix) | Yes (Headroom) | Yes | Daily work — maximises budget |
+| Through proxy chain (`:18788`) | Yes (Phoenix) | Yes (Headroom) | Yes | Daily work — maximises budget |
 | Direct to MPS | No | No | No | Quick test, containers down, travel |
 
 ### Anthropic Python SDK
@@ -252,7 +252,7 @@ from anthropic import Anthropic
 
 client = Anthropic(
     api_key="<key>",
-    base_url="http://localhost:8788",
+    base_url="http://127.0.0.1:18788",
     default_headers={"api-key": "<key>"}
 )
 ```
@@ -260,7 +260,7 @@ client = Anthropic(
 ### Generic (curl)
 
 ```bash
-curl -X POST http://localhost:8788/v1/messages \
+curl -X POST http://127.0.0.1:18788/v1/messages \
   -H "Content-Type: application/json" \
   -H "x-api-key: $ANTHROPIC_AUTH_TOKEN" \
   -H "anthropic-version: 2023-06-01" \
@@ -285,9 +285,9 @@ The choice depends on whether you route through the local proxy chain or go dire
 
 | Approach | Through proxy chain? | Thinking works? | Prompt caching? | Setup |
 |----------|---------------------|-----------------|-----------------|-------|
-| `anthropic-proxy` extension | Yes (:8788) | Yes (custom SSE parser) | Yes (injects `cache_control`) | Extension install |
+| `anthropic-proxy` extension | Yes (:18788) | Yes (custom SSE parser) | Yes (injects `cache_control`) | Extension install |
 | Native `models.json` (Jonas's) | No (direct to MPS) | Unverified | No | Config only |
-| OMP via `models.yml` | Yes (:8788) | Yes | OMP-managed | Config only |
+| OMP via `models.yml` | Yes (:18788) | Yes | OMP-managed | Config only |
 
 ### Why the extension is required through the proxy chain
 
@@ -338,24 +338,25 @@ The tradeoff: no Phoenix telemetry, no Headroom compression.
 
 | Your goal | Use |
 |-----------|-----|
-| Pi + telemetry + compression (full stack) | `anthropic-proxy` extension through `:8788` |
+| Pi + telemetry + compression (full stack) | `anthropic-proxy` extension through `:18788` |
 | Pi + simplest setup (no Docker needed) | Native `models.json` direct to MPS |
-| OMP + telemetry + compression | `models.yml` with `!security` apiKey through `:8788` |
+| OMP + telemetry + compression | `models.yml` with `!security` apiKey through `:18788` |
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `401 Not authenticated` | Missing or empty auth header | Verify key is set and non-empty |
-| `400 Malformed Authorization header` | Auth value is the literal env var name, not the resolved value | Use `!cat <file>` in OMP; verify `echo $ANTHROPIC_AUTH_TOKEN` shows the key |
+| `400 Malformed Authorization header` | Either the auth value is the literal env var name (not resolved), **or** the request hit the wrong stack on a colliding port (see below) | Use `!cat <file>` / `!security …` so the key resolves; confirm the base URL points at the Apple-container host port (`127.0.0.1:18788`), not a colliding runtime |
 | `406 Not found any available model` | Model ID missing `anthropic.` prefix | Use full Bedrock-style ID |
-| Connection refused on :8788 | Proxy containers not running | `podman ps` / restart the containers |
+| Connection refused on :18788 | Proxy containers not running | `container ls` (Apple `container` CLI) — restart the launchd agents if headroom / phoenix / local-model-proxy are missing |
+| Intermittent `400` from a working config | **Host-port collision**: another runtime (e.g. a Podman `ai-model-gateway` stack) bound the same port. `localhost` resolves IPv6-first and can hit the wrong stack | The Apple-container chain is pinned to distinct host ports (18788 / 18787 / 16006) and OMP uses `127.0.0.1` (IPv4) to avoid ambiguity. Verify with `lsof -nP -iTCP:18788 -sTCP:LISTEN` |
 | 200 but slow | Headroom compression overhead on first request per session | Normal; subsequent requests are faster |
 
 ## Reference: Observability
 
 With the full chain running:
 
-- **Phoenix UI**: http://localhost:6006 — per-request token counts, cost, session grouping
-- **Headroom stats**: http://localhost:8787/stats — compression savings
+- **Phoenix UI**: http://localhost:16006 — per-request token counts, cost, session grouping
+- **Headroom stats**: http://localhost:18787/stats — compression savings
 - **RTK**: `rtk gain` — CLI output compression savings (separate from proxy chain)

@@ -468,6 +468,7 @@
               "github_cli_extensions"
               "rustup"
               "pi"
+              "claude_code"
             ];
             cleanup = true;
             set_title = true;

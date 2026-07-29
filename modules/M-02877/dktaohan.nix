@@ -15,11 +15,28 @@
       config,
       ...
     }: let
-      workTiers = {
-        orchestrator = "anthropic-proxy/anthropic.claude-opus-4-6-v1";
-        creative = "anthropic-proxy/anthropic.claude-sonnet-4-6";
-        execution = "anthropic-proxy/anthropic.claude-sonnet-4-6";
+      # Single source of truth for work-profile model routing.
+      # tier-defs.json and workTiers are both derived from this, so the
+      # agent-override frontmatter can never drift from the tier definitions.
+      gatewayModel = id: "anthropic-proxy/${id}";
+      workTierDefs = {
+        orchestrator = {
+          model = gatewayModel "eu.anthropic.claude-opus-5";
+          thinking = "high";
+          fallbackModels = [];
+        };
+        creative = {
+          model = gatewayModel "eu.anthropic.claude-sonnet-5";
+          thinking = "high";
+          fallbackModels = [];
+        };
+        execution = {
+          model = gatewayModel "eu.anthropic.claude-sonnet-5";
+          thinking = "medium";
+          fallbackModels = [(gatewayModel "eu.anthropic.claude-opus-5")];
+        };
       };
+      workTiers = lib.mapAttrs (_: tier: tier.model) workTierDefs;
       patchAgentModel = file: let
         content = builtins.readFile file;
         lines = lib.splitString "\n" content;
@@ -66,43 +83,45 @@
         builtins.readFile ../../pi-extensions/anthropic-proxy/message-conversion.test.js;
       home.file.".pi/agent/extensions/anthropic-proxy/package.json".text =
         builtins.readFile ../../pi-extensions/anthropic-proxy/package.json;
+      # Model metadata mirrors the gateway's own published catalogue (contextWindow,
+      # outputWindow, and data_zone pricing), not Anthropic list prices.
       home.file.".pi/agent/extensions/anthropic-proxy/models.json".text = builtins.toJSON [
         {
-          id = "anthropic.claude-opus-4-6-v1";
-          name = "Opus 4.6";
+          id = "eu.anthropic.claude-opus-5";
+          name = "Opus 5";
           reasoning = true;
           input = [
             "text"
             "image"
           ];
           cost = {
-            input = 15;
-            output = 75;
-            cacheRead = 1.5;
-            cacheWrite = 18.75;
+            input = 5.5;
+            output = 27.5;
+            cacheRead = 0.55;
+            cacheWrite = 6.875;
           };
-          contextWindow = 200000;
+          contextWindow = 1000000;
           maxTokens = 128000;
         }
         {
-          id = "anthropic.claude-sonnet-4-6";
-          name = "Sonnet 4.6";
+          id = "eu.anthropic.claude-sonnet-5";
+          name = "Sonnet 5";
           reasoning = true;
           input = [
             "text"
             "image"
           ];
           cost = {
-            input = 3;
-            output = 15;
-            cacheRead = 0.3;
-            cacheWrite = 3.75;
+            input = 2.2;
+            output = 11;
+            cacheRead = 0.22;
+            cacheWrite = 4.4;
           };
           contextWindow = 200000;
-          maxTokens = 128000;
+          maxTokens = 64000;
         }
         {
-          id = "anthropic.claude-haiku-4-5-20251001-v1:0";
+          id = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
           name = "Haiku 4.5";
           reasoning = false;
           input = [
@@ -116,31 +135,15 @@
             cacheWrite = 1;
           };
           contextWindow = 200000;
-          maxTokens = 64000;
+          maxTokens = 8192;
         }
       ];
 
-      home.file.".pi/agent/tier-defs.json".text = builtins.toJSON {
-        orchestrator = {
-          model = "anthropic-proxy/anthropic.claude-opus-4-6-v1";
-          thinking = "high";
-          fallbackModels = [];
-        };
-        creative = {
-          model = "anthropic-proxy/anthropic.claude-sonnet-4-6";
-          thinking = "high";
-          fallbackModels = [];
-        };
-        execution = {
-          model = "anthropic-proxy/anthropic.claude-sonnet-4-6";
-          thinking = "medium";
-          fallbackModels = ["anthropic-proxy/anthropic.claude-opus-4-6-v1"];
-        };
-      };
+      home.file.".pi/agent/tier-defs.json".text = builtins.toJSON workTierDefs;
 
       home.file.".pi/agent/settings.json".text = builtins.toJSON {
         provider = "anthropic-proxy";
-        model = "anthropic.claude-opus-4-6-v1";
+        model = "eu.anthropic.claude-opus-5";
         defaultThinkingLevel = "high";
         compaction = {
           enabled = true;
@@ -470,7 +473,6 @@
               "pi"
               "claude_code"
             ];
-            cleanup = true;
             set_title = true;
           };
           commands = {

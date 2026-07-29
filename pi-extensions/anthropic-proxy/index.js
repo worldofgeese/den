@@ -3,14 +3,15 @@
  *
  * Full custom streamSimple implementation using raw fetch() — no external
  * dependencies needed. Handles thinking/reasoning blocks correctly through
- * a LiteLLM/Bedrock proxy.
+ * the LEGO AI Model Gateway.
  *
- * Authentication: MPS_API_KEY environment variable
+ * Authentication: Authorization: Bearer <vk_...> virtual key, resolved by pi
+ *   from ~/.pi/agent/auth.json and delivered on the stream options.
  * Models: loaded from models.json in this extension's directory
  *
  * Usage:
- *   MPS_API_KEY=<your-key> pi --provider anthropic-proxy
- *   pi --provider anthropic-proxy --model "Opus 4.6"
+ *   pi --provider anthropic-proxy
+ *   pi --provider anthropic-proxy --model "Opus 5"
  */
 
 import {
@@ -26,10 +27,13 @@ import { convertMessages, sanitizeSurrogates } from "./message-conversion.js";
 // Configuration
 // =============================================================================
 
-const BASE_URL = process.env.PI_ANTHROPIC_BASE_URL || "http://localhost:8788/anthropic";
+const BASE_URL = process.env.PI_ANTHROPIC_BASE_URL || "https://api.genai.thelegogroup.com/anthropic";
 const MAX_ERROR_BODY_LENGTH = 200;
 const RETRY_DELAYS = [1000, 3000]; // 2 retries: 1s, 3s backoff
 const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503]);
+// The gateway returns 402 when a virtual key's spend/token limit is exhausted.
+// Listed explicitly so a quota wall fails loudly instead of looking transient.
+const NON_RETRYABLE_STATUS_CODES = new Set([401, 402, 406]);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -176,12 +180,20 @@ function isLikelyContextOverflow(status, errorBody, estimatedTokens, contextWind
 // Helpers
 // =============================================================================
 
-function getApiKey() {
-  const key = process.env.ANTHROPIC_AUTH_TOKEN || process.env.MPS_API_KEY;
+function getApiKey(streamOptions) {
+  // Pi resolves the provider credential and passes it on the stream options.
+  // The credential itself lives in ~/.pi/agent/auth.json (0600, outside the repo)
+  // as `"key": "!secretspec get -f <manifest> LEGO_GATEWAY_API_KEY"`, so the
+  // value is fetched from the macOS keychain at runtime and never stored on disk.
+  const key = streamOptions?.apiKey;
   if (!key) {
     throw new Error(
-      "No API key found. Set ANTHROPIC_AUTH_TOKEN environment variable.\n" +
-      "  export ANTHROPIC_AUTH_TOKEN=\"<token>\""
+      "No API key found for the LEGO AI Model Gateway.\n" +
+      "  Expected ~/.pi/agent/auth.json to contain:\n" +
+      '    "anthropic-proxy": { "type": "api_key", "key": "!secretspec get -f ' +
+      '/Users/dktaohan/.config/home-manager/secretspec.toml LEGO_GATEWAY_API_KEY" }\n' +
+      "  Store the key with:\n" +
+      "    cd ~/.config/home-manager && secretspec set LEGO_GATEWAY_API_KEY"
     );
   }
   return key;
@@ -315,7 +327,7 @@ function streamAnthropicProxy(model, context, options = {}) {
     };
 
     try {
-      const apiKey = getApiKey();
+      const apiKey = getApiKey(streamOptions);
 
       // Build request params
       const params = {
@@ -380,13 +392,11 @@ function streamAnthropicProxy(model, context, options = {}) {
       }, 0) || 0;
       const isLargeContext = estimatedInputTokens > 100_000;
 
-      // Proxy has asyncio.timeout(call_timeout_sec) — default 60s, max 120s.
-      // Pass max for large requests; use default for normal ones.
-      const url = isLargeContext
-        ? `${BASE_URL}/v1/messages?call-timeout-sec=120`
-        : `${BASE_URL}/v1/messages`;
+      // The gateway routes Messages requests at /anthropic/v1/messages.
+      const url = `${BASE_URL}/v1/messages`;
 
-      // Client timeout: 90s normal, none for large (proxy's 120s is the real limit)
+      // Client timeout: 90s normal, none for large requests (the gateway has no
+      // server-side call-timeout knob, so a big prompt is allowed to run long).
       const signals = isLargeContext
         ? [streamOptions.signal].filter(Boolean)
         : [streamOptions.signal, AbortSignal.timeout(90_000)].filter(Boolean);
@@ -397,7 +407,7 @@ function streamAnthropicProxy(model, context, options = {}) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "api-key": apiKey,
+          "Authorization": `Bearer ${apiKey}`,
           "anthropic-version": "2023-06-01",
           "anthropic-beta": "interleaved-thinking-2025-05-14",
         },
@@ -471,6 +481,14 @@ function streamAnthropicProxy(model, context, options = {}) {
 
         // Non-retryable status codes: fail immediately
         if (!RETRYABLE_STATUS_CODES.has(response.status)) {
+          if (NON_RETRYABLE_STATUS_CODES.has(response.status)) {
+            const reason = {
+              401: "invalid or expired virtual key — check LEGO_GATEWAY_API_KEY in the keychain",
+              402: "spend or token limit exhausted for this virtual key — check the gateway Usage dashboard",
+              406: "model blocked for this account",
+            }[response.status];
+            throw new Error(`HTTP ${response.status} (${reason}): ${safeBody}`);
+          }
           throw new Error(`HTTP ${response.status}: ${safeBody}`);
         }
 
@@ -636,7 +654,11 @@ export default function (pi) {
   pi.registerProvider("anthropic-proxy", {
     name: "Anthropic Proxy",
     baseUrl: BASE_URL,
-    apiKey: "managed-by-extension",
+    // Declarative default so a fresh machine works without hand-editing
+    // auth.json. This string is a *command*, not a credential — the key itself
+    // stays in the macOS keychain. An "anthropic-proxy" entry in
+    // ~/.pi/agent/auth.json takes priority over this if one is present.
+    apiKey: "!secretspec get -f /Users/dktaohan/.config/home-manager/secretspec.toml LEGO_GATEWAY_API_KEY",
     api: "anthropic-proxy-api",
     models,
     streamSimple: streamAnthropicProxy,

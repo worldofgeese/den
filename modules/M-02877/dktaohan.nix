@@ -74,13 +74,10 @@
         run cargo install decapod 2>/dev/null || true
       '';
 
-      # Work-only: anthropic-proxy Pi extension + LEGO MPS model routing.
+      # Work-only: LEGO AI Model Gateway provider extension for Pi.
+      # Tests stay in the repo — only what pi loads at runtime is deployed.
       home.file.".pi/agent/extensions/anthropic-proxy/index.js".text =
         builtins.readFile ../../pi-extensions/anthropic-proxy/index.js;
-      home.file.".pi/agent/extensions/anthropic-proxy/message-conversion.js".text =
-        builtins.readFile ../../pi-extensions/anthropic-proxy/message-conversion.js;
-      home.file.".pi/agent/extensions/anthropic-proxy/message-conversion.test.js".text =
-        builtins.readFile ../../pi-extensions/anthropic-proxy/message-conversion.test.js;
       home.file.".pi/agent/extensions/anthropic-proxy/package.json".text =
         builtins.readFile ../../pi-extensions/anthropic-proxy/package.json;
       # Model metadata mirrors the gateway's own published catalogue (contextWindow,

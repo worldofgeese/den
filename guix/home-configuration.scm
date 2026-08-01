@@ -221,9 +221,7 @@ mv \"$tmp\" \"$target\""))
                       (list
                        (oci-container-configuration
                         (provision "headroom")
-                        ;; Pinned release tag, not :code — that tag resolves to a
-                        ;; main-branch dev build. Bump on upstream release.
-                        (image "ghcr.io/headroomlabs-ai/headroom:0.33.0-code")
+                        (image "ghcr.io/headroomlabs-ai/headroom:latest")
                         (ports '("127.0.0.1:8787:8787"))
                         (volumes '(("headroom-data" . "/data")))
                         (environment

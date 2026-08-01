@@ -59,8 +59,22 @@
           serviceConfig = {
             Label = "com.headroom.proxy";
             ProgramArguments = [
-              "/bin/sh" "-c"
-              "C=/opt/homebrew/bin/container; $C network create proxy-chain 2>/dev/null; $C stop headroom 2>/dev/null; $C rm headroom 2>/dev/null; $C image pull ghcr.io/chopratejas/headroom:latest && exec $C run --rm --name headroom --network proxy-chain -p 18787:8787 -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_DEFAULT_MODE=optimize -e 'HEADROOM_STORE_URL=sqlite:////data/headroom.db' -e HEADROOM_SAVINGS_PATH=/data/proxy_savings.json -e HEADROOM_TELEMETRY=off ghcr.io/chopratejas/headroom:latest"
+              "/bin/sh"
+              "-c"
+              ''
+                C=/opt/homebrew/bin/container
+                $C system start >/dev/null 2>&1 || true
+                until $C system status >/dev/null 2>&1; do sleep 2; done
+                $C network create proxy-chain 2>/dev/null || true
+                $C stop headroom 2>/dev/null || true
+                $C rm headroom 2>/dev/null || true
+                # HEADROOM_MODE (not HEADROOM_DEFAULT_MODE, which does not exist) --
+                # `cache` freezes prior turns so the gateway's prefix cache keeps hitting.
+                # `token` compresses harder but rewrites history, busting the cache and
+                # costing more on a prefix-caching provider. Explicit args replace the
+                # image CMD, so --host/--port must be repeated here.
+                $C image pull ghcr.io/headroomlabs-ai/headroom:latest && exec $C run --rm --name headroom --network proxy-chain -p 18787:8787 -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=cache -e 'HEADROOM_STORE_URL=sqlite:////data/headroom.db' -e HEADROOM_SAVINGS_PATH=/data/proxy_savings.json -e HEADROOM_TELEMETRY=off ghcr.io/headroomlabs-ai/headroom:latest --host 0.0.0.0 --port 8787 --memory --learn
+              ''
             ];
             RunAtLoad = true;
             KeepAlive = true;
@@ -73,8 +87,17 @@
           serviceConfig = {
             Label = "com.phoenix";
             ProgramArguments = [
-              "/bin/sh" "-c"
-              "C=/opt/homebrew/bin/container; $C network create proxy-chain 2>/dev/null; $C stop phoenix 2>/dev/null; $C rm phoenix 2>/dev/null; $C image pull docker.io/arizephoenix/phoenix:latest && exec $C run --rm --name phoenix --network proxy-chain -p 16006:6006 -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy docker.io/arizephoenix/phoenix:latest"
+              "/bin/sh"
+              "-c"
+              ''
+                C=/opt/homebrew/bin/container
+                $C system start >/dev/null 2>&1 || true
+                until $C system status >/dev/null 2>&1; do sleep 2; done
+                $C network create proxy-chain 2>/dev/null || true
+                $C stop phoenix 2>/dev/null || true
+                $C rm phoenix 2>/dev/null || true
+                $C image pull docker.io/arizephoenix/phoenix:latest && exec $C run --rm --name phoenix --network proxy-chain -p 16006:6006 -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy docker.io/arizephoenix/phoenix:latest
+              ''
             ];
             RunAtLoad = true;
             KeepAlive = true;
@@ -87,59 +110,58 @@
           serviceConfig = {
             Label = "com.local-model-proxy";
             ProgramArguments = [
-              "/bin/sh" "-c"
-              # Apple's container tool does not provide inter-container DNS on user-defined networks.
-              # Resolve headroom and phoenix IPs dynamically before starting the proxy.
+              "/bin/sh"
+              "-c"
+              # Apple's container tool provides no inter-container DNS, and container
+              # IPs are reassigned on every restart -- headroom coming back on a new
+              # IP left a stale MPS_BASE_URL here, 502ing every request while launchd
+              # still reported both services healthy. The network gateway is stable
+              # (it outlives individual containers), so reach headroom and phoenix
+              # through their published host ports rather than their own IPs.
               ''
                 C=/opt/homebrew/bin/container
+                $C system start >/dev/null 2>&1 || true
+                until $C system status >/dev/null 2>&1; do sleep 2; done
                 $C network create proxy-chain 2>/dev/null
                 $C stop local-model-proxy 2>/dev/null
                 $C rm local-model-proxy 2>/dev/null
 
-                get_ip() {
-                  $C inspect "$1" 2>/dev/null \
-                    | python3 -c "import sys,json; d=json.load(sys.stdin)[0]; print(d['status']['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null
-                }
-
-                HEADROOM_IP=""
+                GATEWAY_IP=""
                 for i in $(seq 1 30); do
-                  HEADROOM_IP=$(get_ip headroom)
-                  [ -n "$HEADROOM_IP" ] && break
+                  GATEWAY_IP=$($C network inspect proxy-chain 2>/dev/null \
+                    | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['status']['ipv4Gateway'])" 2>/dev/null)
+                  [ -n "$GATEWAY_IP" ] && break
                   sleep 2
                 done
-
-                # Fail fast if headroom's IP never resolved: exit non-zero so launchd
-                # KeepAlive relaunches once headroom is up, instead of baking an empty
-                # host into MPS_BASE_URL (http://:8787), which yields HTTP 500 on every
-                # request via a "Name or service not known" ConnectError.
-                if [ -z "$HEADROOM_IP" ]; then
-                  echo "FATAL: could not resolve headroom IP; exiting for KeepAlive relaunch" >&2
+                if [ -z "$GATEWAY_IP" ]; then
+                  echo "FATAL: could not resolve proxy-chain gateway; exiting for KeepAlive relaunch" >&2
                   exit 1
                 fi
 
-                # Wait until headroom is actually serving before starting the proxy,
-                # so the first requests don't race headroom's own startup.
+                # Gate on /livez, not /health: /health also probes upstream and hangs
+                # when headroom's connection pool wedges, which would block startup
+                # even while headroom is otherwise serving.
+                HEADROOM_READY=false
                 for i in $(seq 1 30); do
-                  /usr/bin/curl -sf -m 2 http://''${HEADROOM_IP}:8787/health >/dev/null 2>&1 && break
+                  if /usr/bin/curl -sf -m 2 http://''${GATEWAY_IP}:18787/livez >/dev/null 2>&1; then
+                    HEADROOM_READY=true
+                    break
+                  fi
                   sleep 2
                 done
-
-                PHOENIX_IP=""
-                for i in $(seq 1 15); do
-                  PHOENIX_IP=$(get_ip phoenix)
-                  [ -n "$PHOENIX_IP" ] && break
-                  sleep 2
-                done
-                OTEL_ENDPOINT="http://''${PHOENIX_IP:-127.0.0.1}:6006"
+                if [ "$HEADROOM_READY" != true ]; then
+                  echo "FATAL: headroom did not become live; exiting for KeepAlive relaunch" >&2
+                  exit 1
+                fi
 
                 $C image pull ghcr.io/lego/local-model-proxy:latest
                 exec $C run --rm --name local-model-proxy --network proxy-chain -p 18788:8788 \
                   -e PROXY_HOST=0.0.0.0 -e PROXY_PORT=8788 \
-                  -e MPS_BASE_URL="http://''${HEADROOM_IP}:8787" \
+                  -e MPS_BASE_URL="http://''${GATEWAY_IP}:18787" \
                   -e LOG_LEVEL=INFO -e PRICING_PLAN=lego \
                   -e OTEL_PROJECT_NAME=local-model-proxy \
                   -e OTEL_SERVICE_NAME=local-model-proxy \
-                  -e OTEL_EXPORTER_OTLP_ENDPOINT="$OTEL_ENDPOINT" \
+                  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://''${GATEWAY_IP}:16006" \
                   ghcr.io/lego/local-model-proxy:latest
               ''
             ];
@@ -169,10 +191,9 @@
               XDG_CONFIG_HOME = "/Users/dktaohan/.config";
               XDG_STATE_HOME = "/Users/dktaohan/.local/state";
               GC_SUPERVISOR_PRESERVE_SESSIONS_ON_SIGNAL = "1";
-              ANTHROPIC_BASE_URL = "https://api.genai.thelegogroup.com/claude";
-              ANTHROPIC_DEFAULT_HAIKU_MODEL = "anthropic.claude-haiku-4-5-20251001-v1:0";
-              ANTHROPIC_DEFAULT_OPUS_MODEL = "anthropic.claude-opus-4-6-v1";
-              ANTHROPIC_DEFAULT_SONNET_MODEL = "anthropic.claude-sonnet-4-6";
+              # No ANTHROPIC_* here on purpose: Claude Code's ~/.claude/settings.json
+              # `env` block overrides the inherited environment, so anything set here
+              # is silently ignored. Gateway URL, token, and model IDs live there.
               CLAUDE_CODE_EFFORT_LEVEL = "MAX";
               PATH = "/Users/dktaohan/.local/bin:/Users/dktaohan/bin:/opt/homebrew/bin:/etc/profiles/per-user/dktaohan/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/dktaohan/.bun/bin:/opt/homebrew/sbin";
             };
@@ -269,6 +290,7 @@
           "atlassian/acli/acli"
           "lego/tap/bob-cli"
           "lego/tap/mdc"
+          "gascity"
         ];
         casks = [
           "zed"

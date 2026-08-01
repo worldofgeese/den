@@ -26,7 +26,10 @@ Your Agent (Claude Code, OMP, OpenCode, Codex, …)
 │  x-api-key, and all other headers pass through untouched.   │
 └─────────────────────────────────────────────────────────────┘
     │
-    │  MPS_BASE_URL=http://headroom:8787
+    │  MPS_BASE_URL=http://<gateway>:18787
+    │  (Apple container has no inter-container DNS, and container
+    │   IPs change on every restart — address headroom via the
+    │   proxy-chain gateway's published host port, which is stable)
     ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  Headroom  (host 18787 → 8787)                                      │
@@ -37,12 +40,12 @@ Your Agent (Claude Code, OMP, OpenCode, Codex, …)
 │  • CCR (Compress-Cache-Retrieve) — caches originals for     │
 │    lossless on-demand retrieval                             │
 │  • SmartCrusher — JSON/array-aware compression (70-90%)     │
-│  • Code compression — AST-aware via tree-sitter             │
+│  • Code compression — needs a -code image; :latest omits it │
 │  • Semantic caching — deduplicates repeated queries         │
 │  • Cache alignment — stabilizes prefixes for KV cache hits  │
 │                                                             │
 │  Auth handling: passes through to upstream unchanged.       │
-│  Mode: HEADROOM_DEFAULT_MODE=optimize (full pipeline)       │
+│  Mode: HEADROOM_MODE=cache (prefix-cache hits preserved)    │
 └─────────────────────────────────────────────────────────────┘
     │
     │  ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude
@@ -352,6 +355,8 @@ The tradeoff: no Phoenix telemetry, no Headroom compression.
 | Connection refused on :18788 | Proxy containers not running | `container ls` (Apple `container` CLI) — restart the launchd agents if headroom / phoenix / local-model-proxy are missing |
 | Intermittent `400` from a working config | **Host-port collision**: another runtime (e.g. a Podman `ai-model-gateway` stack) bound the same port. `localhost` resolves IPv6-first and can hit the wrong stack | The Apple-container chain is pinned to distinct host ports (18788 / 18787 / 16006) and OMP uses `127.0.0.1` (IPv4) to avoid ambiguity. Verify with `lsof -nP -iTCP:18788 -sTCP:LISTEN` |
 | 200 but slow | Headroom compression overhead on first request per session | Normal; subsequent requests are faster |
+| `502` on every request; all containers `running` and launchd healthy | Headroom restarted onto a new container IP and `local-model-proxy` still holds the old one. Fixed in `darwin.nix` by targeting the network gateway, but any hand-run container hits this | Restart `local-model-proxy` **after** headroom. Check with `container inspect local-model-proxy \| grep MPS_BASE_URL` against `container ls` |
+| Requests hang for minutes, then the harness stalls | Headroom's upstream connection pool wedged (seen after ~2 days uptime, sockets in `CLOSE_WAIT`). `/livez` and `/stats` still return 200, so the container looks healthy | Compare `/livez` (fast) against `/readyz` (hangs) to confirm, then `container stop headroom` and let launchd `KeepAlive` relaunch it |
 
 ## Reference: Observability
 
@@ -359,4 +364,5 @@ With the full chain running:
 
 - **Phoenix UI**: http://localhost:16006 — per-request token counts, cost, session grouping
 - **Headroom stats**: http://localhost:18787/stats — compression savings
+- **Headroom liveness vs readiness**: `/livez` is pure process liveness; `/readyz` and `/health` also probe upstream and will hang if the connection pool wedges. Use `/livez` for startup gating, `/readyz` for diagnosis
 - **RTK**: `rtk gain` — CLI output compression savings (separate from proxy chain)

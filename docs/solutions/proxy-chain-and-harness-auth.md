@@ -101,15 +101,26 @@ ignored. Gateway URL, token, and model IDs live there.
 ## Reference: model IDs
 
 Model IDs are **not** owned by `gateway.json` — they are routing, not
-addressing, and the two consumers currently disagree:
+addressing. Their owner is the catalogue in `modules/pi-tiers.nix`, which
+reaches consumers as the `piTiers` module argument (`home-manager-0pr.3`).
 
-| consumer | IDs |
+The two Nix consumers used to disagree, and the elisp was the stale one:
+
+| consumer | IDs before `0pr.3` |
 |---|---|
 | pi (`modules/M-02877/dktaohan.nix`) | `eu.anthropic.claude-opus-5`, `eu.anthropic.claude-sonnet-5`, `eu.anthropic.claude-haiku-4-5-20251001-v1:0` |
 | agent-shell (`config.el`) | `anthropic.claude-opus-4-6-v1`, `anthropic.claude-sonnet-4-6`, `anthropic.claude-haiku-4-5-20251001-v1:0` |
 
-That divergence is real and untracked by this document's owner. It belongs to
-`home-manager-0pr.3` (one tier-routing module instead of two).
+Both now derive from the catalogue: `config.el` carries
+`@GATEWAY_{OPUS,SONNET,HAIKU}_MODEL@` placeholders that `modules/doom-emacs.nix`
+substitutes with `--replace-fail`, so a renamed or dropped id is a build error.
+The elisp's IDs were confirmed stale against `~/.cave/agent/models.json` on
+mahakala, which reaches the *same* endpoint (`http://127.0.0.1:8787`) with the
+`eu.anthropic.…-5` ids.
+
+A third copy of the catalogue still exists in that hand-written
+`~/.cave/agent/models.json` — see `home-manager-l23` (it also embeds a literal
+key) and `home-manager-8vh` (its `contextWindow`/`maxTokens` disagree).
 
 `anthropic-proxy` is pi's *provider name* in `models.json` and nothing more. The
 pi extension of that name was deleted in `d45ddd8`; there is no
@@ -206,7 +217,9 @@ Full chain on M-02877 only:
 ## Related beads
 
 - `home-manager-0pr.2` — gave the gateway one owner (this document's premise)
-- `home-manager-0pr.3` — one tier-routing module; owns the model-ID divergence
+- `home-manager-0pr.3` — one tier-routing module; owns the model-ID catalogue
+- `home-manager-l23` — `~/.cave/agent` is unmanaged and holds a literal key
+- `home-manager-8vh` — catalogue metadata disagrees between the two copies
 - `home-manager-0pr.4` — `just check` does not cover Guix, images, or tofu
 - `home-manager-zdo` — `/v1/*` is unauthenticated on a non-loopback bind;
   `HEADROOM_PROXY_TOKEN` unset. M-02877 publishes headroom on all interfaces,

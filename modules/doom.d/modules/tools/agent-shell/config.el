@@ -51,6 +51,22 @@
   (defvar lego-gateway-key-command "@GATEWAY_KEY_COMMAND@"
     "Shell command printing the gateway API key on stdout.")
 
+  ;; Model ids are substituted from the same catalogue pi routes by
+  ;; (modules/pi-tiers.nix), so this file cannot pin a model generation the
+  ;; gateway has moved past -- which is exactly what happened while these were
+  ;; literals here: they still named `claude-opus-4-6-v1` after the gateway had
+  ;; gone to Opus 5.  Claude Code's own vocabulary is opus/sonnet/haiku, so the
+  ;; catalogue is keyed by that slot rather than by pi's tier names.
+
+  (defvar lego-gateway-opus-model "@GATEWAY_OPUS_MODEL@"
+    "Gateway id for the model Claude Code treats as Opus.")
+
+  (defvar lego-gateway-sonnet-model "@GATEWAY_SONNET_MODEL@"
+    "Gateway id for the model Claude Code treats as Sonnet.")
+
+  (defvar lego-gateway-haiku-model "@GATEWAY_HAIKU_MODEL@"
+    "Gateway id for the model Claude Code treats as Haiku.")
+
   (defvar lego-gateway--key-cache nil
     "Resolved gateway key, cached for the Emacs session.")
 
@@ -80,12 +96,12 @@ With REFRESH non-nil, discard the cached value first.  Signals a
     (agent-shell-make-environment-variables
      "ANTHROPIC_BASE_URL" lego-gateway-base-url
      "ANTHROPIC_AUTH_TOKEN" (lego-gateway-key)
-     "ANTHROPIC_DEFAULT_OPUS_MODEL" "anthropic.claude-opus-4-6-v1"
-     "ANTHROPIC_DEFAULT_SONNET_MODEL" "anthropic.claude-sonnet-4-6"
-     "ANTHROPIC_DEFAULT_HAIKU_MODEL" "anthropic.claude-haiku-4-5-20251001-v1:0"
-     "ANTHROPIC_MODEL" "anthropic.claude-opus-4-6-v1"
-     "ANTHROPIC_SMALL_FAST_MODEL" "anthropic.claude-haiku-4-5-20251001-v1:0"
-     "CLAUDE_CODE_SUBAGENT_MODEL" "anthropic.claude-opus-4-6-v1"
+     "ANTHROPIC_DEFAULT_OPUS_MODEL" lego-gateway-opus-model
+     "ANTHROPIC_DEFAULT_SONNET_MODEL" lego-gateway-sonnet-model
+     "ANTHROPIC_DEFAULT_HAIKU_MODEL" lego-gateway-haiku-model
+     "ANTHROPIC_MODEL" lego-gateway-opus-model
+     "ANTHROPIC_SMALL_FAST_MODEL" lego-gateway-haiku-model
+     "CLAUDE_CODE_SUBAGENT_MODEL" lego-gateway-opus-model
      "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "1"
      "CLAUDE_CODE_EXECUTABLE" (executable-find "claude")))
 
@@ -100,7 +116,7 @@ With REFRESH non-nil, discard the cached value first.  Signals a
               #'lego-gateway-refresh-claude-environment)
 
   ;; --- Claude Code (primary agent) ---
-  (setq agent-shell-anthropic-default-model-id "anthropic.claude-opus-4-6-v1")
+  (setq agent-shell-anthropic-default-model-id lego-gateway-opus-model)
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication :api-key "dummy"))
   (setq agent-shell-preferred-agent-config

@@ -1,6 +1,7 @@
 {
   den,
   gateway,
+  piTiers,
   inputs,
   ...
 }: {
@@ -20,6 +21,10 @@
       # Printed on stdout, resolved when an agent process starts -- the same
       # command pi embeds in models.json, from the same owner.
       gatewayKeyCommand = gateway.keyCommand config.home.homeDirectory;
+      # Claude Code names models by slot (opus/sonnet/haiku) in its environment.
+      # The ids come from the catalogue pi routes by, so the elisp cannot drift
+      # away from the gateway's current generation the way it had.
+      inherit (piTiers) slots;
     in {
       imports = [inputs.nix-doom-emacs-unstraightened.homeModule];
 
@@ -34,7 +39,10 @@
           chmod -R u+w $out
           substituteInPlace $out/modules/tools/agent-shell/config.el \
             --replace-fail '@GATEWAY_BASE_URL@' ${lib.escapeShellArg gatewayBaseUrl} \
-            --replace-fail '@GATEWAY_KEY_COMMAND@' ${lib.escapeShellArg gatewayKeyCommand}
+            --replace-fail '@GATEWAY_KEY_COMMAND@' ${lib.escapeShellArg gatewayKeyCommand} \
+            --replace-fail '@GATEWAY_OPUS_MODEL@' ${lib.escapeShellArg slots.opus} \
+            --replace-fail '@GATEWAY_SONNET_MODEL@' ${lib.escapeShellArg slots.sonnet} \
+            --replace-fail '@GATEWAY_HAIKU_MODEL@' ${lib.escapeShellArg slots.haiku}
         '';
         emacs = pkgs.emacs30-pgtk;
         provideEmacs = false;

@@ -1,6 +1,7 @@
 {
   den,
   gateway,
+  piTiers,
   ...
 }: {
   den.aspects.dktaohan = {
@@ -19,76 +20,6 @@
       config,
       ...
     }: let
-      # Single source of truth for work-profile model routing.
-      # tier-defs.json and workTiers are both derived from this, so the
-      # agent-override frontmatter can never drift from the tier definitions.
-      gatewayModel = id: "anthropic-proxy/${id}";
-      workTierDefs = {
-        orchestrator = {
-          model = gatewayModel "eu.anthropic.claude-opus-5";
-          thinking = "high";
-          fallbackModels = [];
-        };
-        creative = {
-          model = gatewayModel "eu.anthropic.claude-sonnet-5";
-          thinking = "high";
-          fallbackModels = [];
-        };
-        execution = {
-          model = gatewayModel "eu.anthropic.claude-sonnet-5";
-          thinking = "medium";
-          fallbackModels = [(gatewayModel "eu.anthropic.claude-opus-5")];
-        };
-      };
-      workTiers = lib.mapAttrs (_: tier: tier.model) workTierDefs;
-
-      # Model metadata mirrors the gateway's own published catalogue (contextWindow,
-      # outputWindow, and data_zone pricing), not Anthropic list prices.
-      gatewayModels = [
-        {
-          id = "eu.anthropic.claude-opus-5";
-          name = "Opus 5";
-          reasoning = true;
-          input = ["text" "image"];
-          cost = {
-            input = 5.5;
-            output = 27.5;
-            cacheRead = 0.55;
-            cacheWrite = 6.875;
-          };
-          contextWindow = 1000000;
-          maxTokens = 128000;
-        }
-        {
-          id = "eu.anthropic.claude-sonnet-5";
-          name = "Sonnet 5";
-          reasoning = true;
-          input = ["text" "image"];
-          cost = {
-            input = 2.2;
-            output = 11;
-            cacheRead = 0.22;
-            cacheWrite = 4.4;
-          };
-          contextWindow = 200000;
-          maxTokens = 64000;
-        }
-        {
-          id = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
-          name = "Haiku 4.5";
-          reasoning = false;
-          input = ["text" "image"];
-          cost = {
-            input = 0.8;
-            output = 4;
-            cacheRead = 0.08;
-            cacheWrite = 1;
-          };
-          contextWindow = 200000;
-          maxTokens = 8192;
-        }
-      ];
-
       # The gateway is a faithful Anthropic Messages passthrough, so pi can talk
       # to it through the built-in `anthropic-messages` API declared in
       # models.json — no provider extension needed. pi goes straight to the
@@ -106,24 +37,9 @@
           api = "anthropic-messages";
           apiKey = "!${gateway.keyCommand config.home.homeDirectory}";
           authHeader = true;
-          models = gatewayModels;
+          models = piTiers.models;
         };
       });
-
-      patchAgentModel = file: let
-        content = builtins.readFile file;
-        lines = lib.splitString "\n" content;
-        tierLine = lib.findFirst (l: lib.hasPrefix "tier: " l) null lines;
-        tierName =
-          if tierLine != null
-          then lib.trim (lib.removePrefix "tier:" tierLine)
-          else "execution";
-        model = workTiers.${tierName} or workTiers.execution;
-        modelLine = lib.findFirst (l: lib.hasPrefix "model: " l) null lines;
-      in
-        if modelLine != null
-        then builtins.replaceStrings [modelLine] ["model: ${model}"] content
-        else content;
     in {
       programs.home-manager.enable = true;
       xdg.enable = true;
@@ -159,7 +75,28 @@
         fi
       '';
 
-      home.file.".pi/agent/tier-defs.json".text = builtins.toJSON workTierDefs;
+      # This profile's agent routing. Models are the gateway catalogue's, reached
+      # through the "anthropic-proxy" provider declared in models.json above.
+      # The transform lives in modules/pi-tiers.nix; this is the whole caller.
+      pi.tiers.tiers = let
+        gatewayModel = slot: "anthropic-proxy/${piTiers.slots.${slot}}";
+      in {
+        orchestrator = {
+          model = gatewayModel "opus";
+          thinking = "high";
+          fallbackModels = [];
+        };
+        creative = {
+          model = gatewayModel "sonnet";
+          thinking = "high";
+          fallbackModels = [];
+        };
+        execution = {
+          model = gatewayModel "sonnet";
+          thinking = "medium";
+          fallbackModels = [(gatewayModel "opus")];
+        };
+      };
 
       home.file.".pi/agent/settings.json".text = builtins.toJSON {
         provider = "anthropic-proxy";
@@ -205,14 +142,6 @@
           };
         };
       });
-
-      home.file.".pi/agent/agents/worker.md".source = lib.mkForce (pkgs.writeText "worker.md" (patchAgentModel ../../pi-extensions/agent-overrides/worker.md));
-      home.file.".pi/agent/agents/planner.md".source = lib.mkForce (pkgs.writeText "planner.md" (patchAgentModel ../../pi-extensions/agent-overrides/planner.md));
-      home.file.".pi/agent/agents/oracle.md".source = lib.mkForce (pkgs.writeText "oracle.md" (patchAgentModel ../../pi-extensions/agent-overrides/oracle.md));
-      home.file.".pi/agent/agents/reviewer.md".source = lib.mkForce (pkgs.writeText "reviewer.md" (patchAgentModel ../../pi-extensions/agent-overrides/reviewer.md));
-      home.file.".pi/agent/agents/scout.md".source = lib.mkForce (pkgs.writeText "scout.md" (patchAgentModel ../../pi-extensions/agent-overrides/scout.md));
-      home.file.".pi/agent/agents/researcher.md".source = lib.mkForce (pkgs.writeText "researcher.md" (patchAgentModel ../../pi-extensions/agent-overrides/researcher.md));
-      home.file.".pi/agent/agents/workstream-compounder.md".source = lib.mkForce (pkgs.writeText "workstream-compounder.md" (patchAgentModel ../../pi-extensions/agent-overrides/workstream-compounder.md));
 
       home.shellAliases = {
         catp = "bat -P";

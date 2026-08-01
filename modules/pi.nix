@@ -1,9 +1,15 @@
 {den, ...}: {
-  # Pi coding agent — extensions, settings, MCP servers, agent overrides,
-  # skills, chains, and activation hooks.
+  # Pi coding agent — extensions, settings, MCP servers, and skills.
   # Extracted from shared-devtools.nix to keep pi config self-contained.
+  # Agent overrides and tier routing are modules/pi-tiers.nix's.
   den.aspects.pi = {
-    includes = [den.aspects.sharedDevtools];
+    includes = [
+      den.aspects.sharedDevtools
+      # Tier routing lives in its own module because it has two callers with
+      # different tables. This aspect only opts in; the routing policy is
+      # declared per profile as `pi.tiers.tiers`.
+      den.aspects.piTiers
+    ];
     homeManager = {
       pkgs,
       lib,
@@ -30,9 +36,6 @@
       home.file.".pi/agent/extensions/governance/index.ts".text =
         builtins.readFile ../pi-extensions/governance/index.ts;
 
-      # Pi settings: model routing uses syncPiUserAgentModelOverrides
-      # to mirror model overrides into user-scope agent .md frontmatter.
-      #
       # Note: pi itself is provided by the Nix `pi` package (numtide/llm-agents.nix).
       # Do NOT list `@earendil-works/pi-coding-agent` or `@earendil-works/pi-ai`
       # under `packages` here — `pi update` would install their @latest into
@@ -65,27 +68,6 @@
         };
       };
 
-      # Tier definitions for agent model routing.
-      # Agents declare their tier via `tier:` frontmatter field.
-      # Agents without a `tier:` field default to "execution".
-      home.file.".pi/agent/tier-defs.json".text = lib.mkDefault (let
-        tierDefs = {
-          orchestrator = {
-            model = "openai-codex/gpt-5.5";
-            thinking = "high";
-          };
-          creative = {
-            model = "opencode-go/kimi-k2.6";
-            thinking = "high";
-          };
-          execution = {
-            model = "cursor/composer-latest";
-            thinking = "medium";
-          };
-        };
-      in
-        builtins.toJSON tierDefs);
-
       home.file.".pi/agent/settings.json".text = lib.mkDefault (builtins.toJSON {
         provider = "github-copilot";
         model = "gpt-5.5";
@@ -101,116 +83,11 @@
         packages = piPackages;
       });
 
-      # Override builtin agents with CE-enhanced versions.
-      # User-scope agents with same name shadow builtins at lowest priority.
-      # force = true because the syncPiUserAgentModelOverrides activation script
-      # converts these symlinks into regular files to patch frontmatter, which
-      # would otherwise block the next switch with "would be clobbered".
-      home.file.".pi/agent/agents/worker.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/worker.md;
-        force = true;
-      };
-      home.file.".pi/agent/agents/planner.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/planner.md;
-        force = true;
-      };
-      home.file.".pi/agent/agents/oracle.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/oracle.md;
-        force = true;
-      };
-      home.file.".pi/agent/agents/reviewer.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/reviewer.md;
-        force = true;
-      };
-      home.file.".pi/agent/agents/scout.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/scout.md;
-        force = true;
-      };
-      home.file.".pi/agent/agents/researcher.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/researcher.md;
-        force = true;
-      };
-      home.file.".pi/agent/agents/workstream-compounder.md" = {
-        text = builtins.readFile ../pi-extensions/agent-overrides/workstream-compounder.md;
-        force = true;
-      };
+      # The CE-enhanced agent overrides that shadow pi's builtins are written by
+      # modules/pi-tiers.nix, which has to patch their frontmatter anyway and so
+      # is the only thing that can own their content.
       home.file.".pi/agent/skills/plan-implement/SKILL.md".source =
         ../pi-extensions/skills/plan-implement/SKILL.md;
-
-      # Tier-based agent model sync: reads tier-defs.json and each agent's
-      # `tier:` frontmatter field to patch model/thinking.
-      # Agents without a `tier:` field default to "execution" tier.
-      home.activation.syncPiUserAgentModelOverrides = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        run ${pkgs.nodejs}/bin/node <<'NODE'
-        const fs = require("fs");
-        const path = require("path");
-
-        const tierDefsPath = path.join(process.env.HOME, ".pi", "agent", "tier-defs.json");
-        const agentsDir = path.join(process.env.HOME, ".pi", "agent", "agents");
-        if (!fs.existsSync(tierDefsPath) || !fs.existsSync(agentsDir)) process.exit(0);
-
-        const tierDefs = JSON.parse(fs.readFileSync(tierDefsPath, "utf8"));
-        const fields = ["model", "thinking"];
-        let updated = 0;
-
-        for (const fileName of fs.readdirSync(agentsDir).filter((name) => name.endsWith(".md"))) {
-          const filePath = path.join(agentsDir, fileName);
-          try {
-            if (fs.lstatSync(filePath).isSymbolicLink()) {
-              // Convert nix-store symlink into a writable regular file
-              // so tier-based model/thinking overrides can be injected.
-              const content = fs.readFileSync(filePath, "utf8");
-              fs.unlinkSync(filePath);
-              fs.writeFileSync(filePath, content, "utf8");
-            }
-            const lines = fs.readFileSync(filePath, "utf8").split(/\n/);
-            if (lines[0] !== "---") continue;
-
-            const frontmatterEnd = lines.indexOf("---", 1);
-            if (frontmatterEnd < 0) continue;
-
-            let frontmatter = lines.slice(1, frontmatterEnd);
-            let body = lines.slice(frontmatterEnd + 1);
-
-            // Discover tier from frontmatter; default to "execution"
-            const tierLine = frontmatter.find((line) => line.startsWith("tier:"));
-            const tierName = tierLine ? tierLine.slice(5).trim() : "execution";
-            const tier = tierDefs[tierName];
-            if (!tier || !tier.model) continue;
-
-            const values = {
-              model: tier.model,
-              thinking: tier.thinking,
-            };
-
-            frontmatter = frontmatter.filter((line) => !fields.some((field) => line.startsWith(field + ":")));
-            body = body.filter((line) => !fields.some((field) => values[field] && line === field + ": " + values[field]));
-
-            const inserted = [];
-            if (values.model) inserted.push("model: " + values.model);
-            if (values.thinking) inserted.push("thinking: " + values.thinking);
-
-            const descriptionIndex = frontmatter.findIndex((line) => line.startsWith("description: "));
-            if (descriptionIndex >= 0) {
-              frontmatter.splice(descriptionIndex + 1, 0, ...inserted);
-            } else {
-              frontmatter.push(...inserted);
-            }
-
-            const next = ["---", ...frontmatter, "---", ...body].join("\n");
-            const previous = lines.join("\n");
-            if (next !== previous) {
-              fs.writeFileSync(filePath, next);
-              updated += 1;
-            }
-          } catch (e) {
-            console.error("syncPiUserAgentModelOverrides: skipping " + fileName + ": " + e.message);
-          }
-        }
-
-        console.log("synced Pi user agent model overrides (tier-based): " + updated);
-        NODE
-      '';
     };
   };
 }

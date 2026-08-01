@@ -37,7 +37,7 @@ Owner of every fact below: **`gateway.json`** at the repo root, read by
 | **phoenix** | Arize Phoenix, the OpenTelemetry sink the chain reports to. |
 | **published port** | The host port an entity exposes a container-internal port on. Keyed by entity in `gateway.json`, because 8787 is internal-only on M-02877 (published as 18787) but is also the host port on mahakala. |
 | **keyRef** | How a consumer obtains the gateway key: a *command string* that prints it, never a value. Resolved when an agent process starts, so the key never enters the Nix store or the tree. |
-| **tier** | A pi agent model class (`orchestrator`, `creative`, `execution`) defined in `modules/M-02877/dktaohan.nix` and mirrored to `tier-defs.json`. Tier routing is a separate concern from gateway addressing — see `home-manager-0pr.3`. |
+| **tier** | A pi agent model class (`orchestrator`, `creative`, `execution`). Tier *routing* is a separate concern from gateway *addressing*, and has its own owner — see "Tier routing" below. |
 
 One key for every consumer, deliberately: per-harness virtual keys were
 considered and rejected on 2026-08-01 (`home-manager-0pr.2`). The gateway
@@ -45,6 +45,38 @@ exposes exactly one `keyRef`; do not re-split it without asking.
 
 `anthropic-proxy` is the *provider name* pi uses in `models.json`. It is a
 string only — the pi extension of that name was deleted in `d45ddd8`.
+
+## Tier routing
+
+Owner: **`modules/pi-tiers.nix`**. Addressing says how to reach a model;
+routing says which model an agent tier gets. They are deliberately separate,
+which is why model ids are not in `gateway.json`
+(`docs/adr/0001-gateway-facts-cross-the-guix-seam-as-json.md`).
+
+| term | means |
+|---|---|
+| **tier table** | One profile's `pi.tiers.tiers`: tier name → `model`, `thinking`, and optionally `fallbackModels`. A profile contributes only this. There is no default, so a machine that opts into `den.aspects.pi` without a table fails at eval rather than shipping an empty `tier-defs.json`. |
+| **catalogue** | What the gateway serves: the three model ids plus the metadata pi needs for context budgeting. Lives in `modules/pi-tiers.nix` and reaches consumers as the `piTiers` module argument. |
+| **slot** | Claude Code's name for a model's role (`opus`, `sonnet`, `haiku`), as opposed to a tier, which is pi's. The catalogue is keyed by slot so `agent-shell` can address a model by role while pi addresses the same model by id. |
+
+The two profiles' tables live with their profiles — `modules/worldofgeese.nix`
+and `modules/M-02877/dktaohan.nix`. mahakala's models are provider-native
+(`cursor/…`, `openai-codex/…`, `opencode-go/…`) and do **not** go through the
+gateway; only M-02877's pi, plus `agent-shell` and Caveman Code on mahakala,
+do.
+
+Agent frontmatter is patched at **build** time. It used to be patched during
+`home.activation` by an embedded Node script, which ran on both profiles and
+overwrote the work profile's build-time patch — so a second, build-time patcher
+in `dktaohan.nix` was dead weight. Both are gone. Consequence worth knowing:
+the patch moves `thinking:` *above* `fallbackModels:` relative to the source
+file in `pi-extensions/agent-overrides/`, because it re-inserts `model:` and
+`thinking:` directly after `description:`. That ordering is load-bearing only
+in the sense that reproducing it is what made the change invisible on disk.
+
+`~/.cave/agent` (Caveman Code, a pi fork and the primary harness on mahakala)
+is **not managed** and holds its own copy of the catalogue — `home-manager-l23`
+and `home-manager-8vh`.
 
 ## Deploy ordering
 

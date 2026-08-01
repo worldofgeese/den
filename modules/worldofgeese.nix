@@ -15,6 +15,26 @@
       home.homeDirectory = "/home/worldofgeese";
       home.enableNixpkgsReleaseCheck = false;
 
+      # This profile's agent routing. Models are provider-native rather than
+      # gateway ids: pi on mahakala talks to these providers directly, and it is
+      # Caveman Code (~/.cave/agent, unmanaged -- home-manager-l23) and
+      # agent-shell that go through the gateway here.
+      # The transform lives in modules/pi-tiers.nix; this is the whole caller.
+      pi.tiers.tiers = {
+        orchestrator = {
+          model = "openai-codex/gpt-5.5";
+          thinking = "high";
+        };
+        creative = {
+          model = "opencode-go/kimi-k2.6";
+          thinking = "high";
+        };
+        execution = {
+          model = "cursor/composer-latest";
+          thinking = "medium";
+        };
+      };
+
       home.packages = [
         pkgs.nerd-fonts.fira-code
       ];

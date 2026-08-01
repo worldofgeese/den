@@ -58,7 +58,14 @@ deploy-pixel-fold:
 check:
     nix eval --no-warn-dirty --json .#nixosConfigurations.paphos.config.system.stateVersion >/dev/null
     nix eval --no-warn-dirty --json .#nixosConfigurations.oracle.config.system.stateVersion >/dev/null
-    nix eval --no-warn-dirty .#homeConfigurations.worldofgeese.activationPackage.drvPath >/dev/null
+    # Forces every package name rather than activationPackage.drvPath: doom-emacs
+    # is built via IFD, so asking for the drvPath makes eval *build*
+    # doom-intermediates, which needs a real x86_64-linux builder we don't have on
+    # darwin. Forcing home.packages names still catches the undefined-variable /
+    # missing-attribute breakage that motivated this check (verified: it fails on
+    # a tree with the `omp` overlay mapping removed). Not stateVersion -- that
+    # evaluates without ever touching the package list.
+    nix eval --no-warn-dirty --json .#homeConfigurations.worldofgeese.config.home.packages --apply 'ps: builtins.length (map (p: p.name) ps)' >/dev/null
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
     just typecheck-pi-extensions

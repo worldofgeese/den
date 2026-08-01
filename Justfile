@@ -40,9 +40,13 @@ deploy-paphos host="paphos":
 deploy-oracle host="nixos@158.180.52.169" build-host="nixos@158.180.52.169":
     NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#oracle --target-host {{host}} --build-host {{build-host}} --use-remote-sudo
 
+# Deliberately does NOT run `just update`: coupling deploy to a 15-input flake
+# update means any single forge outage (codeberg 503, github stall) blocks a
+# deploy whose closure is already locked. topgrade runs `just update` as its
+# own step, so input refreshes still happen — they just fail independently.
+#
 # Deploy nix-darwin on M-02877 (macOS)
 deploy-darwin:
-    just update
     sudo -H env NIX_CONFIG='warn-dirty = false' darwin-rebuild switch --flake .#M-02877
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
@@ -57,7 +61,6 @@ check:
     nix eval --no-warn-dirty .#homeConfigurations.worldofgeese.activationPackage.drvPath >/dev/null
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
-    just test-pi-extensions
     just typecheck-pi-extensions
     just check-fmt
 
@@ -70,16 +73,6 @@ typecheck-pi-extensions:
         exit 0
     fi
     ( cd pi-extensions/governance && npm install --silent && npx tsc -p tsconfig.json )
-
-# Run pi-extensions node tests (anthropic-proxy); skips if node absent
-test-pi-extensions:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if ! command -v node >/dev/null 2>&1; then
-        echo "test-pi-extensions: node not found, skipping"
-        exit 0
-    fi
-    ( cd pi-extensions/anthropic-proxy && node --test *.test.js )
 
 # Update all flake inputs
 update:

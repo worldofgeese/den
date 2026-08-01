@@ -37,6 +37,69 @@
         };
       };
       workTiers = lib.mapAttrs (_: tier: tier.model) workTierDefs;
+
+      # Model metadata mirrors the gateway's own published catalogue (contextWindow,
+      # outputWindow, and data_zone pricing), not Anthropic list prices.
+      gatewayModels = [
+        {
+          id = "eu.anthropic.claude-opus-5";
+          name = "Opus 5";
+          reasoning = true;
+          input = ["text" "image"];
+          cost = {
+            input = 5.5;
+            output = 27.5;
+            cacheRead = 0.55;
+            cacheWrite = 6.875;
+          };
+          contextWindow = 1000000;
+          maxTokens = 128000;
+        }
+        {
+          id = "eu.anthropic.claude-sonnet-5";
+          name = "Sonnet 5";
+          reasoning = true;
+          input = ["text" "image"];
+          cost = {
+            input = 2.2;
+            output = 11;
+            cacheRead = 0.22;
+            cacheWrite = 4.4;
+          };
+          contextWindow = 200000;
+          maxTokens = 64000;
+        }
+        {
+          id = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
+          name = "Haiku 4.5";
+          reasoning = false;
+          input = ["text" "image"];
+          cost = {
+            input = 0.8;
+            output = 4;
+            cacheRead = 0.08;
+            cacheWrite = 1;
+          };
+          contextWindow = 200000;
+          maxTokens = 8192;
+        }
+      ];
+
+      # The gateway is a faithful Anthropic Messages passthrough, so pi can talk
+      # to it through the built-in `anthropic-messages` API declared in
+      # models.json — no provider extension needed. The key is read from the
+      # macOS keychain at request time and never touches disk.
+      piModelsJson = pkgs.writeText "pi-models.json" (builtins.toJSON {
+        providers."anthropic-proxy" = {
+          name = "LEGO AI Model Gateway";
+          baseUrl = "https://api.genai.thelegogroup.com/anthropic";
+          api = "anthropic-messages";
+          apiKey = "!secretspec get -f ${config.home.homeDirectory}/.config/home-manager/secretspec.toml LEGO_GATEWAY_API_KEY";
+          authHeader = true;
+          models = gatewayModels;
+        };
+      });
+
       patchAgentModel = file: let
         content = builtins.readFile file;
         lines = lib.splitString "\n" content;
@@ -74,67 +137,17 @@
         run cargo install decapod 2>/dev/null || true
       '';
 
-      # Work-only: LEGO AI Model Gateway provider extension for Pi.
-      # Tests stay in the repo — only what pi loads at runtime is deployed.
-      home.file.".pi/agent/extensions/anthropic-proxy/index.js".text =
-        builtins.readFile ../../pi-extensions/anthropic-proxy/index.js;
-      home.file.".pi/agent/extensions/anthropic-proxy/package.json".text =
-        builtins.readFile ../../pi-extensions/anthropic-proxy/package.json;
-      # Model metadata mirrors the gateway's own published catalogue (contextWindow,
-      # outputWindow, and data_zone pricing), not Anthropic list prices.
-      home.file.".pi/agent/extensions/anthropic-proxy/models.json".text = builtins.toJSON [
-        {
-          id = "eu.anthropic.claude-opus-5";
-          name = "Opus 5";
-          reasoning = true;
-          input = [
-            "text"
-            "image"
-          ];
-          cost = {
-            input = 5.5;
-            output = 27.5;
-            cacheRead = 0.55;
-            cacheWrite = 6.875;
-          };
-          contextWindow = 1000000;
-          maxTokens = 128000;
-        }
-        {
-          id = "eu.anthropic.claude-sonnet-5";
-          name = "Sonnet 5";
-          reasoning = true;
-          input = [
-            "text"
-            "image"
-          ];
-          cost = {
-            input = 2.2;
-            output = 11;
-            cacheRead = 0.22;
-            cacheWrite = 4.4;
-          };
-          contextWindow = 200000;
-          maxTokens = 64000;
-        }
-        {
-          id = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
-          name = "Haiku 4.5";
-          reasoning = false;
-          input = [
-            "text"
-            "image"
-          ];
-          cost = {
-            input = 0.8;
-            output = 4;
-            cacheRead = 0.08;
-            cacheWrite = 1;
-          };
-          contextWindow = 200000;
-          maxTokens = 8192;
-        }
-      ];
+      # Pi reaches the gateway through a models.json provider, not an extension.
+      # models.json is deliberately left unmanaged: it reloads live when /model
+      # is opened, so the endpoint can be re-pointed without a rebuild when the
+      # proxy chain or gateway is unreachable. Seeded once, never overwritten.
+      home.activation.seedPiModelsJson = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        models_json="$HOME/.pi/agent/models.json"
+        if [ ! -e "$models_json" ]; then
+          run mkdir -p "$(dirname "$models_json")"
+          run install -m 644 ${piModelsJson} "$models_json"
+        fi
+      '';
 
       home.file.".pi/agent/tier-defs.json".text = builtins.toJSON workTierDefs;
 
@@ -145,8 +158,43 @@
         compaction = {
           enabled = true;
         };
-        packages = import ../../pi-packages.nix;
+        # Work profile deliberately runs a minimal extension set. The shared
+        # list in ../../pi-packages.nix still applies to every other host.
+        packages = [
+          "git:github.com/elpapi42/pi-minimal-subagent"
+          "npm:pi-ask-user"
+          "npm:pi-compound-engineering"
+          # Beads task tracking via the Python `bd` CLI. The shared profile
+          # prefers the beads-rust extension (`br`), but that one is force-
+          # disabled on this profile, so use the npm package here instead.
+          "npm:pi-beads-extension"
+        ];
       };
+
+      # Disable the shared aspects.pi extensions on this profile.
+      home.file.".pi/agent/extensions/beads-rust/index.ts".enable = lib.mkForce false;
+      home.file.".pi/agent/extensions/governance/index.ts".enable = lib.mkForce false;
+
+      # context-mode's binary ships with the npm:context-mode extension, which
+      # is no longer installed here, so the MCP server would fail to start.
+      home.file.".pi/agent/mcp.json".text = lib.mkForce (builtins.toJSON {
+        settings = {
+          toolPrefix = "server";
+          idleTimeout = 10;
+        };
+        mcpServers = {
+          "agent-mail" = {
+            command = "${pkgs.mcp-agent-mail}/bin/mcp-agent-mail";
+            args = ["serve-stdio"];
+            lifecycle = "lazy";
+            directTools = true;
+            env = {
+              WORKTREES_ENABLED = "1";
+              AGENT_MAIL_GUARD_MODE = "warn";
+            };
+          };
+        };
+      });
 
       home.file.".pi/agent/agents/worker.md".source = lib.mkForce (pkgs.writeText "worker.md" (patchAgentModel ../../pi-extensions/agent-overrides/worker.md));
       home.file.".pi/agent/agents/planner.md".source = lib.mkForce (pkgs.writeText "planner.md" (patchAgentModel ../../pi-extensions/agent-overrides/planner.md));
@@ -473,6 +521,10 @@
             set_title = true;
           };
           commands = {
+            # Separate steps on purpose. Attrset order puts "Flake inputs"
+            # first, so inputs refresh before the deploy — but a forge outage
+            # fails only its own step instead of blocking the deploy.
+            "Flake inputs" = "cd ~/.config/home-manager && just update";
             "Nix-Darwin via Justfile" = "cd ~/.config/home-manager && just deploy-darwin";
           };
         };

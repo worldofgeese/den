@@ -8,19 +8,23 @@
       (final: prev: {
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
         pi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
+        # shared-devtools.nix listed `omp` but no overlay ever defined it, so
+        # every eval failed with `undefined variable 'omp'`. llm-agents exports
+        # it alongside pi.
+        omp = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
       })
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
-          version = "0.72.13";
+          version = "0.88.0";
 
           src = final.fetchzip {
-            url = "https://static.crates.io/crates/decapod/decapod-0.72.13.crate";
+            url = "https://static.crates.io/crates/decapod/decapod-0.88.0.crate";
             extension = "tar.gz";
-            hash = "sha256-cAwOgoM2aCHHaIiu+QVtxb44MWXCITEqhF0Uskje4bs=";
+            hash = "sha256-eLX2p8NuFhLOv08Je1Jq/LTo5MuOGqnAKuU4v2Fzfq0=";
           };
 
-          cargoHash = "sha256-2Y1wHyXU0PhqRIHGlvnIWOTpIbLcdt6Gtbbnlu1HACU=";
+          cargoHash = "sha256-0O5rj+nZy51Wtkh1QPNGj3R0a8BDzxnA4ypdZ3CiURA=";
 
           doCheck = false;
 
@@ -39,7 +43,119 @@
           };
         };
 
-        # mcp-agent-mail disabled: fastmcp test flake — re-enable later
+        # Re-enabled: the fastmcp test flake that motivated disabling this is
+        # handled by the python313Packages fastmcp doCheck=false overlay below.
+        mcp-agent-mail = final.python313Packages.buildPythonApplication {
+          pname = "mcp-agent-mail";
+          version = "0.3.2";
+          pyproject = true;
+
+          src = final.fetchFromGitHub {
+            owner = "Dicklesworthstone";
+            repo = "mcp_agent_mail";
+            rev = "v0.3.2";
+            hash = "sha256-KWxrgC48GmU8KhJ43lLchQL1LqVJc24Weg59jyv8qNk=";
+          };
+
+          nativeBuildInputs = [final.makeWrapper] ++ (with final.python313Packages; [hatchling]);
+          pythonRelaxDeps = ["authlib"];
+
+          propagatedBuildInputs = with final.python313Packages; [
+            aiosqlite
+            aiolimiter
+            attrs
+            authlib
+            bleach
+            botocore
+            fastapi
+            fastmcp
+            filelock
+            gitpython
+            httpx
+            jinja2
+            jsonschema
+            litellm
+            markdown2
+            orjson
+            pathspec
+            pillow
+            psutil
+            pynacl
+            python-decouple
+            pyyaml
+            redis
+            rich
+            ruff
+            sqlalchemy
+            sqlmodel
+            structlog
+            tenacity
+            tiktoken
+            tinycss2
+            typer
+            uvicorn
+          ];
+
+          nativeCheckInputs = with final.python313Packages; [pytestCheckHook];
+          doCheck = false;
+
+          nativeInstallCheckInputs = [final.versionCheckHook];
+          versionCheckProgramArg = "--version";
+          doInstallCheck = false;
+
+          postInstall = ''
+            agent_mail_python_path="$out/${final.python313.sitePackages}:${final.python313Packages.makePythonPath (with final.python313Packages; [
+              aiosqlite
+              aiolimiter
+              attrs
+              authlib
+              bleach
+              botocore
+              fastapi
+              fastmcp
+              filelock
+              gitpython
+              httpx
+              jinja2
+              jsonschema
+              litellm
+              markdown2
+              orjson
+              pathspec
+              pillow
+              psutil
+              pynacl
+              python-decouple
+              pyyaml
+              redis
+              rich
+              ruff
+              sqlalchemy
+              sqlmodel
+              structlog
+              tenacity
+              tiktoken
+              tinycss2
+              typer
+              uvicorn
+            ])}"
+            makeWrapper ${final.python313.interpreter} $out/bin/mcp-agent-mail \
+              --prefix PYTHONPATH : "$agent_mail_python_path" \
+              --add-flags "-m mcp_agent_mail.cli" \
+              --set-default WORKTREES_ENABLED 1 \
+              --set-default AGENT_MAIL_GUARD_MODE warn
+            makeWrapper $out/bin/mcp-agent-mail $out/bin/am \
+              --set-default WORKTREES_ENABLED 1 \
+              --set-default AGENT_MAIL_GUARD_MODE warn
+          '';
+
+          meta = {
+            description = "Mail-like coordination layer for coding agents";
+            homepage = "https://github.com/Dicklesworthstone/mcp_agent_mail";
+            license = final.lib.licenses.mit;
+            mainProgram = "mcp-agent-mail";
+          };
+        };
 
         br = final.rustPlatform.buildRustPackage {
           pname = "br";
@@ -93,16 +209,16 @@
 
         rtk = final.rustPlatform.buildRustPackage {
           pname = "rtk";
-          version = "0.43.0";
+          version = "0.44.1";
 
           src = final.fetchFromGitHub {
             owner = "rtk-ai";
             repo = "rtk";
-            rev = "v0.43.0";
-            hash = "sha256-n5bkPPsrdM4fE5ltocTjlq+JwRgp39yib6S79fci4m4=";
+            rev = "v0.44.1";
+            hash = "sha256-5AN/sK0IOIqcLX0FviFPOJ9QX9xJpliSN1XY3isxyrA=";
           };
 
-          cargoHash = "sha256-XKUKdhxfnwUCOx9slqx4oUFa09HcosPLVh5Xkh87oSk=";
+          cargoHash = "sha256-Hd8dy0atCeTie2rZ3nfpbwbTHrIueNlXo7kpmK6QQNU=";
 
           doCheck = false;
 
@@ -146,6 +262,11 @@
             mainProgram = "ai-dashboard";
           };
         };
+      })
+      (final: prev: {
+        python313Packages = prev.python313Packages.overrideScope (pyFinal: pyPrev: {
+          fastmcp = pyPrev.fastmcp.overridePythonAttrs {doCheck = false;};
+        });
       })
     ];
     nixpkgs.config.allowUnfree = true;

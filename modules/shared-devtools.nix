@@ -21,10 +21,11 @@
           just
           bash-preexec
           claude-code
+          herdr
           pi
           omp
           bv
-          # mcp-agent-mail  # disabled: fastmcp test flake
+          mcp-agent-mail
         ]
         ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
           rtk

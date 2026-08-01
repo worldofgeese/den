@@ -221,23 +221,23 @@ mv \"$tmp\" \"$target\""))
                       (list
                        (oci-container-configuration
                         (provision "headroom")
-                        (image "ghcr.io/chopratejas/headroom:latest")
+                        ;; Pinned release tag, not :code — that tag resolves to a
+                        ;; main-branch dev build. Bump on upstream release.
+                        (image "ghcr.io/headroomlabs-ai/headroom:0.33.0-code")
                         (ports '("127.0.0.1:8787:8787"))
                         (volumes '(("headroom-data" . "/data")))
                         (environment
                          (list
                           "HEADROOM_HOST=0.0.0.0"
-                          "HEADROOM_DEFAULT_MODE=optimize"
                           "HEADROOM_STORE_URL=sqlite:////data/headroom.db"
                           "HEADROOM_SAVINGS_PATH=/data/proxy_savings.json"
                           "HEADROOM_TELEMETRY=off"
-                          "ANTHROPIC_TARGET_API_URL=https://models.assistant.legogroup.io/claude"))
+                          "ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude"))
                         (command
                          '("--host" "0.0.0.0"
                            "--port" "8787"
                            "--memory"
-                           "--learn"
-                           "--code-graph"))
+                           "--learn"))
                         (extra-arguments '("--pull" "always"))
                         (respawn? #t)
                         (auto-start? #t)

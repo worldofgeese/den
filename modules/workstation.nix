@@ -55,7 +55,6 @@
           (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
         ];
 
-
       xdg.configFile."autostart/synology-drive.desktop".text = ''
         [Desktop Entry]
         Name=Synology Drive Client

@@ -24,61 +24,62 @@
           pinentry-gnome3
           unzip
         ];
-        emacsPackageOverrides = eself: esuper:
-          let
-            addAgentShellDep = pkg:
-              pkg.overrideAttrs (old: {
-                packageRequires = (old.packageRequires or []) ++ [eself.agent-shell];
-              });
-            tramp-rpc-server = pkgs.pkgsCross.musl64.callPackage "${inputs.emacs-tramp-rpc}/default.nix" {};
-            tramp-rpc-server-aarch64 = pkgs.pkgsCross.aarch64-multiplatform-musl.callPackage "${inputs.emacs-tramp-rpc}/default.nix" {};
-            emacs-reader-src = pkgs.fetchFromGitea {
-              domain = "codeberg.org";
-              owner = "MonadicSheep";
-              repo = "emacs-reader";
-              rev = "0.3.2";
-              hash = "sha256-rZ+1PgRS68QN0yXdYyEJafJmbCceaKeDQhT+GfsPiFA=";
-            };
-          in {
-            tramp-rpc = eself.melpaBuild rec {
-              pname = "tramp-rpc";
-              version = "0.9.0";
-              src = inputs.emacs-tramp-rpc;
-              files = ''("lisp/*")'';
-              postInstall = ''
-                install -m755 -D ${tramp-rpc-server}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/x86_64-linux/tramp-rpc-server
-                install -m755 -D ${tramp-rpc-server-aarch64}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/aarch64-linux/tramp-rpc-server
-              '';
-              packageRequires = [eself.tramp eself.msgpack];
-            };
-            reader = eself.melpaBuild {
-              pname = "emacs-reader";
-              ename = "reader";
-              version = "0.3.2";
-              src = emacs-reader-src;
-              files = ''(:defaults "render-core.so")'';
-              nativeBuildInputs = [pkgs.pkg-config pkgs.gcc pkgs.gnumake];
-              buildInputs = [pkgs.mupdf];
-              preBuild = "make clean all";
-            };
-            agent-shell-manager = addAgentShellDep esuper.agent-shell-manager;
-            agent-shell-sidebar = addAgentShellDep esuper.agent-shell-sidebar;
-            agent-shell-bookmark = addAgentShellDep esuper.agent-shell-bookmark;
-            agent-shell-notifications = (addAgentShellDep esuper.agent-shell-notifications).overrideAttrs (old: {
-              postPatch = (old.postPatch or "") + ''
+        emacsPackageOverrides = eself: esuper: let
+          addAgentShellDep = pkg:
+            pkg.overrideAttrs (old: {
+              packageRequires = (old.packageRequires or []) ++ [eself.agent-shell];
+            });
+          tramp-rpc-server = pkgs.pkgsCross.musl64.callPackage "${inputs.emacs-tramp-rpc}/default.nix" {};
+          tramp-rpc-server-aarch64 = pkgs.pkgsCross.aarch64-multiplatform-musl.callPackage "${inputs.emacs-tramp-rpc}/default.nix" {};
+          emacs-reader-src = pkgs.fetchFromGitea {
+            domain = "codeberg.org";
+            owner = "MonadicSheep";
+            repo = "emacs-reader";
+            rev = "0.3.2";
+            hash = "sha256-rZ+1PgRS68QN0yXdYyEJafJmbCceaKeDQhT+GfsPiFA=";
+          };
+        in {
+          tramp-rpc = eself.melpaBuild rec {
+            pname = "tramp-rpc";
+            version = "0.9.0";
+            src = inputs.emacs-tramp-rpc;
+            files = ''("lisp/*")'';
+            postInstall = ''
+              install -m755 -D ${tramp-rpc-server}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/x86_64-linux/tramp-rpc-server
+              install -m755 -D ${tramp-rpc-server-aarch64}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/aarch64-linux/tramp-rpc-server
+            '';
+            packageRequires = [eself.tramp eself.msgpack];
+          };
+          reader = eself.melpaBuild {
+            pname = "emacs-reader";
+            ename = "reader";
+            version = "0.3.2";
+            src = emacs-reader-src;
+            files = ''(:defaults "render-core.so")'';
+            nativeBuildInputs = [pkgs.pkg-config pkgs.gcc pkgs.gnumake];
+            buildInputs = [pkgs.mupdf];
+            preBuild = "make clean all";
+          };
+          agent-shell-manager = addAgentShellDep esuper.agent-shell-manager;
+          agent-shell-sidebar = addAgentShellDep esuper.agent-shell-sidebar;
+          agent-shell-bookmark = addAgentShellDep esuper.agent-shell-bookmark;
+          agent-shell-notifications = (addAgentShellDep esuper.agent-shell-notifications).overrideAttrs (old: {
+            postPatch =
+              (old.postPatch or "")
+              + ''
                 rm -f agent-shell-notifications-knockknock.el
               '';
-            });
-            agent-shell-org-transcript = addAgentShellDep esuper.agent-shell-org-transcript;
-            ob-agent-shell = addAgentShellDep esuper.ob-agent-shell;
-            agent-recall = addAgentShellDep esuper.agent-recall;
-            agent-review = esuper.agent-review.overrideAttrs (old: {
-              packageRequires = (old.packageRequires or []) ++ [eself.agent-shell eself.acp];
-            });
-            meta-agent-shell = esuper.meta-agent-shell.overrideAttrs (old: {
-              packageRequires = (old.packageRequires or []) ++ [eself.agent-shell eself.shell-maker];
-            });
-          };
+          });
+          agent-shell-org-transcript = addAgentShellDep esuper.agent-shell-org-transcript;
+          ob-agent-shell = addAgentShellDep esuper.ob-agent-shell;
+          agent-recall = addAgentShellDep esuper.agent-recall;
+          agent-review = esuper.agent-review.overrideAttrs (old: {
+            packageRequires = (old.packageRequires or []) ++ [eself.agent-shell eself.acp];
+          });
+          meta-agent-shell = esuper.meta-agent-shell.overrideAttrs (old: {
+            packageRequires = (old.packageRequires or []) ++ [eself.agent-shell eself.shell-maker];
+          });
+        };
       };
 
       # Override Guix system's emacs.desktop so GNOME launches our wrapper
@@ -114,19 +115,19 @@
         '';
       in [
         (pkgs.runCommand "doom-emacs-wrapped" {
-          nativeBuildInputs = [pkgs.makeBinaryWrapper];
-        } ''
-          mkdir -p $out/bin $out/share
-          makeBinaryWrapper "${emacsPkg}/bin/emacs" "$out/bin/emacs" \
-            --unset EMACSLOADPATH \
-            --set FONTCONFIG_FILE "${emacsFontconfig}"
-          makeBinaryWrapper "${emacsPkg}/bin/emacsclient" "$out/bin/emacsclient" \
-            --unset EMACSLOADPATH \
-            --set FONTCONFIG_FILE "${emacsFontconfig}"
-          for f in ${emacsPkg}/share/*; do
-            ln -s "$f" "$out/share/$(basename "$f")"
-          done
-        '')
+            nativeBuildInputs = [pkgs.makeBinaryWrapper];
+          } ''
+            mkdir -p $out/bin $out/share
+            makeBinaryWrapper "${emacsPkg}/bin/emacs" "$out/bin/emacs" \
+              --unset EMACSLOADPATH \
+              --set FONTCONFIG_FILE "${emacsFontconfig}"
+            makeBinaryWrapper "${emacsPkg}/bin/emacsclient" "$out/bin/emacsclient" \
+              --unset EMACSLOADPATH \
+              --set FONTCONFIG_FILE "${emacsFontconfig}"
+            for f in ${emacsPkg}/share/*; do
+              ln -s "$f" "$out/share/$(basename "$f")"
+            done
+          '')
       ];
     };
   };

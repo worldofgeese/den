@@ -35,7 +35,13 @@
       url = "github:oxcl/nix-flake-helium-browser";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    llm-agents.url = "github:numtide/llm-agents.nix";
+    # The lock already pinned llm-agents to the root nixpkgs, but nothing here
+    # declared it -- so `nix flake update` kept splitting off a second nixpkgs
+    # copy (nixpkgs_2). Declare it like every other input.
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     ewm = {
       url = "git+https://codeberg.org/ezemtsov/ewm";
       inputs.nixpkgs.follows = "nixpkgs";

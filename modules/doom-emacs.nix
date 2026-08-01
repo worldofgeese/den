@@ -9,12 +9,33 @@
       config,
       lib,
       ...
-    }: {
+    }: let
+      # Headroom publishes 8787 on the host under Guix Home
+      # (guix/home-configuration.scm:225). On darwin the same logical port is
+      # 18787 -- this aspect only ships to mahakala (modules/mahakala.nix:3).
+      gatewayBaseUrl = "http://127.0.0.1:8787";
+      # Printed on stdout, resolved when an agent process starts. Same secret
+      # and same mechanism as modules/M-02877/dktaohan.nix:97.
+      gatewayKeyCommand = "secretspec get -f ${config.home.homeDirectory}/.config/home-manager/secretspec.toml LEGO_GATEWAY_API_KEY";
+    in {
       imports = [inputs.nix-doom-emacs-unstraightened.homeModule];
 
       programs.doom-emacs = {
         enable = true;
-        doomDir = ./doom.d;
+        # doom.d is not copied verbatim: the agent-shell module needs the model
+        # gateway's address and a key-lookup command, and neither may be a
+        # literal in tracked elisp. --replace-fail makes a renamed or dropped
+        # placeholder a build error instead of a silent miss.
+        #
+        # TODO(home-manager-0pr.2): take these two values from the gateway
+        # aspect once it exists, instead of restating them here.
+        doomDir = pkgs.runCommandLocal "doom-dir" {} ''
+          cp -r ${./doom.d} $out
+          chmod -R u+w $out
+          substituteInPlace $out/modules/tools/agent-shell/config.el \
+            --replace-fail '@GATEWAY_BASE_URL@' ${lib.escapeShellArg gatewayBaseUrl} \
+            --replace-fail '@GATEWAY_KEY_COMMAND@' ${lib.escapeShellArg gatewayKeyCommand}
+        '';
         emacs = pkgs.emacs30-pgtk;
         provideEmacs = false;
         extraBinPackages = with pkgs; [

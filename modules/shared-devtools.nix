@@ -21,6 +21,10 @@
           just
           bash-preexec
           claude-code
+          # Secret lookups for both hosts, declared in secretspec.toml. Shared so
+          # mahakala and M-02877 resolve gateway/API credentials the same way
+          # rather than mahakala falling back to gopass for the same secret.
+          secretspec
           herdr
           pi
           omp

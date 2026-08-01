@@ -230,7 +230,7 @@
         podman-compose
         devpod
         odo
-        secretspec
+        # secretspec moved to shared-devtools.nix -- mahakala needs it too
         ripgrep
         cheat
         exercism

@@ -37,20 +37,70 @@
                 (setq shell-maker--busy nil)
                 (apply orig-fn args)))
 
+  ;; --- Model gateway ---
+  ;;
+  ;; Both values are substituted from Nix at build time (see
+  ;; modules/doom-emacs.nix); the placeholders below are never what ships.
+  ;; The key is resolved when an agent process starts, not when this file
+  ;; loads, so a locked keyring does not break Emacs startup -- and a missing
+  ;; key raises here instead of arriving as a 400 mid-session.
+
+  (defvar lego-gateway-base-url "@GATEWAY_BASE_URL@"
+    "Base URL of the model gateway agent-shell talks to.")
+
+  (defvar lego-gateway-key-command "@GATEWAY_KEY_COMMAND@"
+    "Shell command printing the gateway API key on stdout.")
+
+  (defvar lego-gateway--key-cache nil
+    "Resolved gateway key, cached for the Emacs session.")
+
+  (defun lego-gateway-key (&optional refresh)
+    "Return the gateway API key via `lego-gateway-key-command'.
+With REFRESH non-nil, discard the cached value first.  Signals a
+`user-error' when the command fails or prints nothing."
+    (interactive "p")
+    (when refresh (setq lego-gateway--key-cache nil))
+    (or lego-gateway--key-cache
+        (setq lego-gateway--key-cache
+              (with-temp-buffer
+                (let* ((status (call-process-shell-command
+                                lego-gateway-key-command nil t))
+                       (output (string-trim (buffer-string))))
+                  (cond
+                   ((not (eq status 0))
+                    (user-error "Gateway key lookup failed (exit %s): %s: %s"
+                                status lego-gateway-key-command output))
+                   ((string-empty-p output)
+                    (user-error "Gateway key lookup printed nothing: %s"
+                                lego-gateway-key-command))
+                   (t output)))))))
+
+  (defun lego-gateway-claude-environment ()
+    "Environment for the Claude client, with the gateway key resolved now."
+    (agent-shell-make-environment-variables
+     "ANTHROPIC_BASE_URL" lego-gateway-base-url
+     "ANTHROPIC_AUTH_TOKEN" (lego-gateway-key)
+     "ANTHROPIC_DEFAULT_OPUS_MODEL" "anthropic.claude-opus-4-6-v1"
+     "ANTHROPIC_DEFAULT_SONNET_MODEL" "anthropic.claude-sonnet-4-6"
+     "ANTHROPIC_DEFAULT_HAIKU_MODEL" "anthropic.claude-haiku-4-5-20251001-v1:0"
+     "ANTHROPIC_MODEL" "anthropic.claude-opus-4-6-v1"
+     "ANTHROPIC_SMALL_FAST_MODEL" "anthropic.claude-haiku-4-5-20251001-v1:0"
+     "CLAUDE_CODE_SUBAGENT_MODEL" "anthropic.claude-opus-4-6-v1"
+     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "1"
+     "CLAUDE_CODE_EXECUTABLE" (executable-find "claude")))
+
+  ;; agent-shell reads `agent-shell-anthropic-claude-environment' inside
+  ;; `agent-shell-anthropic-make-claude-client', i.e. at process start -- so
+  ;; refreshing it there covers every entry point (dwim, sidebar, manager)
+  ;; without any of them resolving the key at load time.
+  (defun lego-gateway-refresh-claude-environment (&rest _)
+    (setq agent-shell-anthropic-claude-environment
+          (lego-gateway-claude-environment)))
+  (advice-add 'agent-shell-anthropic-make-claude-client :before
+              #'lego-gateway-refresh-claude-environment)
+
   ;; --- Claude Code (primary agent) ---
   (setq agent-shell-anthropic-default-model-id "anthropic.claude-opus-4-6-v1")
-  (setq agent-shell-anthropic-claude-environment
-        (agent-shell-make-environment-variables
-         "ANTHROPIC_BASE_URL" "http://127.0.0.1:8787"
-         "ANTHROPIC_AUTH_TOKEN" "***PURGED-ROTATED-CREDENTIAL***"
-         "ANTHROPIC_DEFAULT_OPUS_MODEL" "anthropic.claude-opus-4-6-v1"
-         "ANTHROPIC_DEFAULT_SONNET_MODEL" "anthropic.claude-sonnet-4-6"
-         "ANTHROPIC_DEFAULT_HAIKU_MODEL" "anthropic.claude-haiku-4-5-20251001-v1:0"
-         "ANTHROPIC_MODEL" "anthropic.claude-opus-4-6-v1"
-         "ANTHROPIC_SMALL_FAST_MODEL" "anthropic.claude-haiku-4-5-20251001-v1:0"
-         "CLAUDE_CODE_SUBAGENT_MODEL" "anthropic.claude-opus-4-6-v1"
-         "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS" "1"
-         "CLAUDE_CODE_EXECUTABLE" (executable-find "claude")))
   (setq agent-shell-anthropic-authentication
         (agent-shell-anthropic-make-authentication :api-key "dummy"))
   (setq agent-shell-preferred-agent-config

@@ -7,6 +7,7 @@
     includes = [
       den.aspects.pi
       den.aspects.terminal
+      den.aspects.doom-emacs
     ];
     homeManager = {
       pkgs,
@@ -23,6 +24,7 @@
         (with pkgs; [
           ewm
           brush
+          gnomeExtensions.all-in-one-clipboard
           wl-clipboard
           wl-clip-persist
           gopass
@@ -53,17 +55,6 @@
           (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
         ];
 
-      # Guix system fonts: HM fontconfig only knows Nix store paths, so GTK/GNOME
-      # apps show tofu (□□□) for fonts installed by Guix. Add both system and
-      # user Guix font directories.
-      xdg.configFile."fontconfig/conf.d/90-guix-fonts.conf".text = ''
-        <?xml version="1.0"?>
-        <!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">
-        <fontconfig>
-          <dir>/run/current-system/profile/share/fonts</dir>
-          <dir prefix="relative">.guix-home/profile/share/fonts</dir>
-        </fontconfig>
-      '';
 
       xdg.configFile."autostart/synology-drive.desktop".text = ''
         [Desktop Entry]
@@ -133,10 +124,9 @@
             assume_yes = true;
             pre_sudo = true;
             show_distribution_summary = false;
-            disable = ["nix" "home_manager" "node" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
+            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
           };
           commands = {
-            "Doom Emacs" = "doom upgrade --force";
             "Distrobox (arch)" = "distrobox-upgrade arch";
             "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'export HOMEBREW_NO_ASK=1; brew update && brew upgrade'";
           };

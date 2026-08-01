@@ -127,6 +127,12 @@
       };
 
       dconf.settings = {
+        "org/gnome/shell" = {
+          enabled-extensions = [
+            "appindicatorsupport@rgcjonas.gmail.com"
+            "all-in-one-clipboard@NiffirgkcaJ.github.com"
+          ];
+        };
         "org/gnome/Console" = {
           use-system-font = false;
           custom-font = "JetBrains Mono 11";

@@ -46,16 +46,17 @@
           idleTimeout = 10;
         };
         mcpServers = {
-          "agent-mail" = {
-            command = "${pkgs.mcp-agent-mail}/bin/mcp-agent-mail";
-            args = ["serve-stdio"];
-            lifecycle = "lazy";
-            directTools = true;
-            env = {
-              WORKTREES_ENABLED = "1";
-              AGENT_MAIL_GUARD_MODE = "warn";
-            };
-          };
+          # "agent-mail" disabled: fastmcp test flake
+          # "agent-mail" = {
+          #   command = "${pkgs.mcp-agent-mail}/bin/mcp-agent-mail";
+          #   args = ["serve-stdio"];
+          #   lifecycle = "lazy";
+          #   directTools = true;
+          #   env = {
+          #     WORKTREES_ENABLED = "1";
+          #     AGENT_MAIL_GUARD_MODE = "warn";
+          #   };
+          # };
           "context-mode" = {
             command = "context-mode";
             lifecycle = "lazy";

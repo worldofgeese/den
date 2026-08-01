@@ -24,7 +24,7 @@
           pi
           omp
           bv
-          mcp-agent-mail
+          # mcp-agent-mail  # disabled: fastmcp test flake
         ]
         ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
           rtk

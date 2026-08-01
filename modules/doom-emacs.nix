@@ -1,5 +1,6 @@
 {
   den,
+  gateway,
   inputs,
   ...
 }: {
@@ -10,13 +11,15 @@
       lib,
       ...
     }: let
-      # Headroom publishes 8787 on the host under Guix Home
-      # (guix/home-configuration.scm:225). On darwin the same logical port is
-      # 18787 -- this aspect only ships to mahakala (modules/mahakala.nix:3).
-      gatewayBaseUrl = "http://127.0.0.1:8787";
-      # Printed on stdout, resolved when an agent process starts. Same secret
-      # and same mechanism as modules/M-02877/dktaohan.nix:97.
-      gatewayKeyCommand = "secretspec get -f ${config.home.homeDirectory}/.config/home-manager/secretspec.toml LEGO_GATEWAY_API_KEY";
+      # agent-shell talks to headroom on the loopback interface, not to the
+      # gateway directly, so prior turns get frozen for the prefix cache. This
+      # aspect only ships to mahakala (modules/mahakala.nix:3), which is why
+      # mahakala's published port is the one read here; on M-02877 the same
+      # logical port is published as 18787. Both are in gateway.json.
+      gatewayBaseUrl = gateway.headroom.loopbackUrl "mahakala";
+      # Printed on stdout, resolved when an agent process starts -- the same
+      # command pi embeds in models.json, from the same owner.
+      gatewayKeyCommand = gateway.keyCommand config.home.homeDirectory;
     in {
       imports = [inputs.nix-doom-emacs-unstraightened.homeModule];
 
@@ -26,9 +29,6 @@
         # gateway's address and a key-lookup command, and neither may be a
         # literal in tracked elisp. --replace-fail makes a renamed or dropped
         # placeholder a build error instead of a silent miss.
-        #
-        # TODO(home-manager-0pr.2): take these two values from the gateway
-        # aspect once it exists, instead of restating them here.
         doomDir = pkgs.runCommandLocal "doom-dir" {} ''
           cp -r ${./doom.d} $out
           chmod -R u+w $out

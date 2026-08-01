@@ -1,4 +1,8 @@
-{den, ...}: {
+{
+  den,
+  gateway,
+  ...
+}: {
   den.aspects.dktaohan = {
     includes = [
       den.batteries.define-user
@@ -87,14 +91,20 @@
 
       # The gateway is a faithful Anthropic Messages passthrough, so pi can talk
       # to it through the built-in `anthropic-messages` API declared in
-      # models.json — no provider extension needed. The key is read from the
-      # macOS keychain at request time and never touches disk.
+      # models.json — no provider extension needed. pi goes straight to the
+      # gateway rather than through headroom; the proxy chain on this machine is
+      # for Claude Code. The `!` prefix is pi's marker for "run this and use the
+      # output", so the key is resolved per request and never touches disk.
+      #
+      # Address and key command both come from the gateway aspect
+      # (modules/gateway.nix); the provider key stays "anthropic-proxy" because
+      # agent frontmatter and tier-defs.json reference that name as a string.
       piModelsJson = pkgs.writeText "pi-models.json" (builtins.toJSON {
         providers."anthropic-proxy" = {
           name = "LEGO AI Model Gateway";
-          baseUrl = "https://api.genai.thelegogroup.com/anthropic";
+          baseUrl = gateway.anthropicUrl;
           api = "anthropic-messages";
-          apiKey = "!secretspec get -f ${config.home.homeDirectory}/.config/home-manager/secretspec.toml LEGO_GATEWAY_API_KEY";
+          apiKey = "!${gateway.keyCommand config.home.homeDirectory}";
           authHeader = true;
           models = gatewayModels;
         };

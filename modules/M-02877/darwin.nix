@@ -1,5 +1,6 @@
 {
   den,
+  gateway,
   inputs,
   ...
 }: {
@@ -9,7 +10,12 @@
       lib,
       pkgs,
       ...
-    }: {
+    }: let
+      # Which machine's published ports to read out of the gateway aspect.
+      # 8787 is container-internal here and published as 18787; on mahakala
+      # the same logical port is also the host port. See gateway.json.
+      entity = "M-02877";
+    in {
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "hm-bak";
 
@@ -71,9 +77,11 @@
                 # HEADROOM_MODE (not HEADROOM_DEFAULT_MODE, which does not exist) --
                 # `cache` freezes prior turns so the gateway's prefix cache keeps hitting.
                 # `token` compresses harder but rewrites history, busting the cache and
-                # costing more on a prefix-caching provider. Explicit args replace the
-                # image CMD, so --host/--port must be repeated here.
-                $C image pull ghcr.io/headroomlabs-ai/headroom:latest && exec $C run --rm --name headroom --network proxy-chain -p 18787:8787 -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=cache -e 'HEADROOM_STORE_URL=sqlite:////data/headroom.db' -e HEADROOM_SAVINGS_PATH=/data/proxy_savings.json -e HEADROOM_TELEMETRY=off ghcr.io/headroomlabs-ai/headroom:latest --host 0.0.0.0 --port 8787 --memory --learn
+                # costing more on a prefix-caching provider. The value now lives in
+                # gateway.json so Guix Home cannot silently run a different mode, which
+                # is exactly what it was doing. Explicit args replace the image CMD, so
+                # --host/--port must be repeated here.
+                $C image pull ${gateway.headroom.image} && exec $C run --rm --name headroom --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=${gateway.headroom.mode} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;
@@ -96,7 +104,7 @@
                 $C network create proxy-chain 2>/dev/null || true
                 $C stop phoenix 2>/dev/null || true
                 $C rm phoenix 2>/dev/null || true
-                $C image pull docker.io/arizephoenix/phoenix:latest && exec $C run --rm --name phoenix --network proxy-chain -p 16006:6006 -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy docker.io/arizephoenix/phoenix:latest
+                $C image pull ${gateway.phoenix.image} && exec $C run --rm --name phoenix --network proxy-chain -p ${gateway.phoenix.publishSpec entity} -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy ${gateway.phoenix.image}
               ''
             ];
             RunAtLoad = true;
@@ -143,7 +151,7 @@
                 # even while headroom is otherwise serving.
                 HEADROOM_READY=false
                 for i in $(seq 1 30); do
-                  if /usr/bin/curl -sf -m 2 http://''${GATEWAY_IP}:18787/livez >/dev/null 2>&1; then
+                  if /usr/bin/curl -sf -m 2 http://''${GATEWAY_IP}:${toString (gateway.headroom.port entity)}/livez >/dev/null 2>&1; then
                     HEADROOM_READY=true
                     break
                   fi
@@ -154,15 +162,15 @@
                   exit 1
                 fi
 
-                $C image pull ghcr.io/lego/local-model-proxy:latest
-                exec $C run --rm --name local-model-proxy --network proxy-chain -p 18788:8788 \
-                  -e PROXY_HOST=0.0.0.0 -e PROXY_PORT=8788 \
-                  -e MPS_BASE_URL="http://''${GATEWAY_IP}:18787" \
+                $C image pull ${gateway.proxy.image}
+                exec $C run --rm --name local-model-proxy --network proxy-chain -p ${gateway.proxy.publishSpec entity} \
+                  -e PROXY_HOST=0.0.0.0 -e PROXY_PORT=${toString gateway.proxy.containerPort} \
+                  -e MPS_BASE_URL="http://''${GATEWAY_IP}:${toString (gateway.headroom.port entity)}" \
                   -e LOG_LEVEL=INFO -e PRICING_PLAN=lego \
                   -e OTEL_PROJECT_NAME=local-model-proxy \
                   -e OTEL_SERVICE_NAME=local-model-proxy \
-                  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://''${GATEWAY_IP}:16006" \
-                  ghcr.io/lego/local-model-proxy:latest
+                  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://''${GATEWAY_IP}:${toString (gateway.phoenix.port entity)}" \
+                  ${gateway.proxy.image}
               ''
             ];
             RunAtLoad = true;

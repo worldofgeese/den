@@ -1,0 +1,43 @@
+{
+  "_": "Single owner of how an agent reaches a model. Read by Nix (modules/gateway.nix) and by Guile (guix/home-configuration.scm). Rationale and vocabulary: CONTEXT.md; seam decision: docs/adr/0001-gateway-facts-cross-the-guix-seam-as-json.md. Nothing here is a secret -- only the name of one.",
+
+  "baseUrl": "https://api.genai.thelegogroup.com",
+  "paths": {
+    "claude": "/claude",
+    "anthropic": "/anthropic"
+  },
+
+  "secret": {
+    "name": "LEGO_GATEWAY_API_KEY",
+    "profile": "secretspec.toml"
+  },
+
+  "headroom": {
+    "image": "ghcr.io/headroomlabs-ai/headroom:latest",
+    "containerPort": 8787,
+    "mode": "cache",
+    "storeUrl": "sqlite:////data/headroom.db",
+    "savingsPath": "/data/proxy_savings.json",
+    "telemetry": "off",
+    "published": {
+      "M-02877": {"host": "", "port": 18787},
+      "mahakala": {"host": "127.0.0.1", "port": 8787}
+    }
+  },
+
+  "proxy": {
+    "image": "ghcr.io/lego/local-model-proxy:latest",
+    "containerPort": 8788,
+    "published": {
+      "M-02877": {"host": "", "port": 18788}
+    }
+  },
+
+  "phoenix": {
+    "image": "docker.io/arizephoenix/phoenix:latest",
+    "containerPort": 6006,
+    "published": {
+      "M-02877": {"host": "", "port": 16006}
+    }
+  }
+}

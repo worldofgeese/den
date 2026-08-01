@@ -1,368 +1,213 @@
 # Local Proxy Chain & Agentic Harness Authentication
 
-How LLM requests flow from your coding agent to the LEGO Model Proxy Service,
-and how to connect any harness to the chain.
+How LLM requests flow from a coding agent to the LEGO AI Model Gateway, and how
+to connect a harness to the chain.
 
-## Explanation: The Proxy Chain
+> **Every address, port, image, and mode named in this document is owned by
+> `gateway.json`.** Do not copy a value out of here into a module — read it from
+> `modules/gateway.nix` (Nix) or `gateway-ref` (Guile). See
+> `docs/adr/0001-gateway-facts-cross-the-guix-seam-as-json.md` and `CONTEXT.md`.
 
-Three layers sit between your coding agent and the upstream model vendor (AWS Bedrock):
+## Explanation: what actually runs where
+
+The chain is **not** the same on both machines, and that is deliberate.
+
+### M-02877 (darwin) — the full chain
 
 ```
-Your Agent (Claude Code, OMP, OpenCode, Codex, …)
-    │
+Claude Code
     │  ANTHROPIC_BASE_URL=http://127.0.0.1:18788
     ▼
-┌─────────────────────────────────────────────────────────────┐
-│  local-model-proxy  (host 18788 → 8788)                             │
-│                                                             │
-│  What it does:                                              │
-│  • Transparent HTTP proxy — forwards every header as-is     │
-│  • Tees SSE response streams to extract token counts        │
-│  • Emits OpenTelemetry spans to Phoenix for cost analysis   │
-│  • Does NOT inject or modify auth headers                   │
-│                                                             │
-│  Key fact: it only strips RFC 7230 hop-by-hop headers       │
-│  (Connection, Transfer-Encoding, etc). Authorization,       │
-│  x-api-key, and all other headers pass through untouched.   │
-└─────────────────────────────────────────────────────────────┘
-    │
-    │  MPS_BASE_URL=http://<gateway>:18787
-    │  (Apple container has no inter-container DNS, and container
-    │   IPs change on every restart — address headroom via the
-    │   proxy-chain gateway's published host port, which is stable)
+┌──────────────────────────────────────────────────────────┐
+│  local-model-proxy   (host 18788 → container 8788)       │
+│  • forwards every header as-is; adds no auth             │
+│  • tees SSE streams to extract token counts              │
+│  • emits OpenTelemetry spans to Phoenix                  │
+│  • strips only RFC 7230 hop-by-hop headers               │
+└──────────────────────────────────────────────────────────┘
+    │  MPS_BASE_URL=http://<proxy-chain gateway IP>:18787
+    │  (Apple's container tool has no inter-container DNS and
+    │   reassigns container IPs on restart, so headroom is
+    │   reached through the network gateway's published host
+    │   port, which outlives individual containers)
     ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Headroom  (host 18787 → 8787)                                      │
-│                                                             │
-│  What it does:                                              │
-│  • Context compression — scores messages by value, drops    │
-│    low-signal content before forwarding (47–92% savings)    │
-│  • CCR (Compress-Cache-Retrieve) — caches originals for     │
-│    lossless on-demand retrieval                             │
-│  • SmartCrusher — JSON/array-aware compression (70-90%)     │
-│  • Code compression — needs a -code image; :latest omits it │
-│  • Semantic caching — deduplicates repeated queries         │
-│  • Cache alignment — stabilizes prefixes for KV cache hits  │
-│                                                             │
-│  Auth handling: passes through to upstream unchanged.       │
-│  Mode: HEADROOM_MODE=cache (prefix-cache hits preserved)    │
-└─────────────────────────────────────────────────────────────┘
-    │
+┌──────────────────────────────────────────────────────────┐
+│  headroom            (host 18787 → container 8787)       │
+│  • compresses context; caches originals for retrieval    │
+│  • HEADROOM_MODE=cache — freezes prior turns so the      │
+│    gateway's prefix cache keeps hitting. `token` would   │
+│    compress harder but rewrites history, busting the     │
+│    cache and costing more on a prefix-caching provider.  │
+│  • passes auth through unchanged                         │
+└──────────────────────────────────────────────────────────┘
     │  ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude
     ▼
-┌─────────────────────────────────────────────────────────────┐
-│  LEGO Model Proxy Service (MPS)                             │
-│                                                             │
-│  What it does:                                              │
-│  • Routes requests to AWS Bedrock                           │
-│  • Handles model access control, rate limiting, billing     │
-│  • Exposes Anthropic-compatible endpoints                   │
-│                                                             │
-│  Endpoints:                                                 │
-│    /claude/v1/messages — Claude Code / native Anthropic     │
-│    /anthropic/v1/messages — SDK-style (Anthropic Python)    │
-│                                                             │
-│  Auth: accepts both Authorization: Bearer <key> AND         │
-│        x-api-key: <key>                                     │
-│        where <key> = <account_id>:<secret> from MPS portal  │
-└─────────────────────────────────────────────────────────────┘
-    │
-    ▼
-  AWS Bedrock (actual model inference)
+  LEGO AI Model Gateway ──► upstream model vendor
 ```
 
-### Why three layers?
+Phoenix runs alongside on host `16006` → container `6006`.
 
-| Layer | Purpose | Can you skip it? |
-|-------|---------|-----------------|
-| local-model-proxy | Observability (token cost, traces) | Yes, point directly at Headroom :8787 |
-| Headroom | Token compression (saves budget) | Yes, point directly at MPS |
-| MPS | Model access & billing | No — this is the gateway to Bedrock |
+**pi does not use this chain.** pi talks straight to
+`https://api.genai.thelegogroup.com/anthropic` through the built-in
+`anthropic-messages` API declared in `models.json`
+(`modules/M-02877/dktaohan.nix`). The chain is for Claude Code.
 
-The full chain gives you maximum token savings AND full cost visibility.
-Skipping Headroom loses compression. Skipping local-model-proxy loses Phoenix traces.
+### mahakala (Guix System + Guix Home) — headroom only
 
-## Reference: Authentication
+headroom runs as a Guix Home OCI service under rootless podman
+(`guix/home-configuration.scm`), published on `127.0.0.1:8787`. There is **no
+local-model-proxy and no Phoenix** on mahakala, so there is no telemetry there.
+Its consumer is agent-shell inside Doom Emacs
+(`modules/doom.d/modules/tools/agent-shell/config.el`), which points
+`ANTHROPIC_BASE_URL` at `http://127.0.0.1:8787`.
 
-### The MPS API Key
+`HEADROOM_MODE` was absent from the Guix side until `home-manager-0pr.2`, so
+mahakala silently ran headroom's built-in default mode. It is now set from
+`gateway.json` on both substrates.
 
-Format: `<account_id>:<secret>` (roughly 375 characters).
+### Why the layers, and what you lose by skipping one
 
-Obtain it from [assistant.legogroup.io/developer/models](https://assistant.legogroup.io/developer/models):
-1. Create an account (any name)
-2. Request access to Claude Sonnet 4.6, Haiku 4.5, and Opus 4.8
-3. Copy the API key from your account page
+| layer | buys you | skippable? |
+|---|---|---|
+| local-model-proxy | token counts and Phoenix traces | yes — point at headroom directly, lose telemetry |
+| headroom | context compression and prefix-cache stability | yes — point at the gateway directly, lose savings |
+| gateway | model access, quota, billing | no |
 
-### Auth headers the proxy chain accepts
+## Reference: authentication
 
-The `/claude` MPS endpoint accepts **either**:
+One secret for every consumer: **`LEGO_GATEWAY_API_KEY`**, a gateway virtual key
+(`vk_…`), declared in `secretspec.toml` and stored per host by
+`secretspec set`. Per-harness keys were considered and rejected
+(`home-manager-0pr.2`); see `CONTEXT.md`.
 
-| Header | Format | Used by |
-|--------|--------|---------|
-| `Authorization: Bearer <key>` | Standard Bearer token | Claude Code (via ANTHROPIC_AUTH_TOKEN) |
-| `x-api-key: <key>` | Anthropic SDK convention | Anthropic Python SDK, some harnesses |
+The key is never a value in this repo — always a **command** that prints it:
 
-Both work through the full proxy chain (local-model-proxy and Headroom pass them unchanged).
+| consumer | how it resolves the key |
+|---|---|
+| pi | `apiKey` in `models.json` is `!secretspec get -f …/secretspec.toml LEGO_GATEWAY_API_KEY`; `!` is pi's marker for "run this and use the output" |
+| agent-shell | runs the same command at agent-process start, via advice on `agent-shell-anthropic-make-claude-client`; an empty or failing lookup raises a `user-error` naming the command instead of sending a blank header |
+| Claude Code | reads its own `~/.claude/settings.json` `env` block, which is **outside this repo** |
 
-### Environment variable for Claude Code
+Both `Authorization: Bearer <key>` and `x-api-key: <key>` reach the gateway
+unchanged through the chain.
 
-```bash
-export ANTHROPIC_AUTH_TOKEN="<your MPS API key>"
-export ANTHROPIC_BASE_URL="http://127.0.0.1:18788"
-```
+### Why `ANTHROPIC_*` is not set in launchd for Claude Code
 
-Claude Code reads `ANTHROPIC_AUTH_TOKEN` and sends it as `Authorization: Bearer`.
+`modules/M-02877/darwin.nix` deliberately sets no `ANTHROPIC_*` variables on the
+`gascity-supervisor` agent. Claude Code's `~/.claude/settings.json` `env` block
+overrides the inherited environment, so anything set in launchd is silently
+ignored. Gateway URL, token, and model IDs live there.
 
-## How-To: Connect Any Agentic Harness
+## Reference: model IDs
 
-The proxy chain is harness-agnostic. Any tool that speaks the Anthropic Messages API
-can connect by setting its base URL to `http://127.0.0.1:18788` and providing the MPS key.
+Model IDs are **not** owned by `gateway.json` — they are routing, not
+addressing, and the two consumers currently disagree:
 
-### Pattern: What every harness needs
+| consumer | IDs |
+|---|---|
+| pi (`modules/M-02877/dktaohan.nix`) | `eu.anthropic.claude-opus-5`, `eu.anthropic.claude-sonnet-5`, `eu.anthropic.claude-haiku-4-5-20251001-v1:0` |
+| agent-shell (`config.el`) | `anthropic.claude-opus-4-6-v1`, `anthropic.claude-sonnet-4-6`, `anthropic.claude-haiku-4-5-20251001-v1:0` |
 
-1. **Base URL**: `http://127.0.0.1:18788` (or `:18787` to skip telemetry, or MPS directly)
-2. **API key**: Your MPS key (`<account_id>:<secret>`)
-3. **Model IDs**: Use Bedrock-style IDs with `anthropic.` prefix:
-   - `anthropic.claude-sonnet-4-6`
-   - `anthropic.claude-opus-4-8`
-   - `anthropic.claude-haiku-4-5-20251001-v1:0`
+That divergence is real and untracked by this document's owner. It belongs to
+`home-manager-0pr.3` (one tier-routing module instead of two).
 
-### Claude Code
+`anthropic-proxy` is pi's *provider name* in `models.json` and nothing more. The
+pi extension of that name was deleted in `d45ddd8`; there is no
+`pi-extensions/anthropic-proxy` and no provider extension is needed, because the
+gateway is a faithful Anthropic Messages passthrough.
 
-```bash
-export ANTHROPIC_BASE_URL="http://127.0.0.1:18788"
-export ANTHROPIC_AUTH_TOKEN="<key>"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="anthropic.claude-sonnet-4-6"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="anthropic.claude-haiku-4-5-20251001-v1:0"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="anthropic.claude-opus-4-8"
-claude
-```
+## How-To: connect another harness
 
-### OpenCode
+1. **Base URL** — `http://127.0.0.1:18788` on M-02877 for the full chain,
+   `http://127.0.0.1:18787` to skip telemetry, or
+   `https://api.genai.thelegogroup.com/anthropic` to go direct. On mahakala,
+   `http://127.0.0.1:8787`.
+2. **Key** — resolve `LEGO_GATEWAY_API_KEY` through `secretspec get`, as a
+   command, not a pasted value.
+3. **Model IDs** — copy from the table above for the harness you are matching.
 
-In `~/.config/opencode/opencode.json`:
-
-```json
-{
-  "enabled_providers": ["lego-anthropic"],
-  "provider": {
-    "lego-anthropic": {
-      "npm": "@ai-sdk/anthropic",
-      "name": "LEGO Anthropic",
-      "options": {
-        "baseURL": "http://127.0.0.1:18788/v1",
-        "apiKey": "<key>",
-        "headers": { "api-key": "<key>" }
-      },
-      "models": {
-        "sonnet": { "id": "anthropic.claude-sonnet-4-6", "name": "Sonnet 4.6" },
-        "opus":   { "id": "anthropic.claude-opus-4-8", "name": "Opus 4.8" },
-        "haiku":  { "id": "anthropic.claude-haiku-4-5-20251001-v1:0", "name": "Haiku 4.5" }
-      }
-    }
-  }
-}
-```
-
-### OMP (Oh My Pi) / Pi
-
-OMP and Pi share the same config system. In `~/.omp/agent/models.yml`:
-
-```yaml
-providers:
-  lego:
-    api: anthropic-messages
-    baseUrl: "http://127.0.0.1:18788"
-    apiKey: "!security find-generic-password -ws lego-mps"
-    models:
-      - id: anthropic.claude-sonnet-4-6
-        name: Claude Sonnet 4.6
-      - id: anthropic.claude-opus-4-8
-        name: Claude Opus 4.8
-      - id: anthropic.claude-haiku-4-5-20251001-v1:0
-        name: Claude Haiku 4.5
-```
-
-Store the key in macOS Keychain:
-```bash
-security add-generic-password -a "$USER" -s 'lego-mps' -w "<your MPS API key>"
-```
-
-**Caveat**: OMP has a bug where `apiKey: ENV_VAR_NAME` resolves the env var in
-non-interactive (`-p`) mode but sends the literal string in interactive mode.
-The `!command` prefix forces shell execution which works in both modes.
-Use `!security find-generic-password -ws lego-mps` (Keychain) or `!cat <file>`.
-
-#### Pi native (without local proxy chain)
-
-Pi can also connect directly to MPS without the local proxy chain.
-In `models.json` (Pi's native config format):
-
-```json
-{
-  "providers": {
-    "lego-mps": {
-      "name": "LEGO MPS",
-      "baseUrl": "https://models.assistant.legogroup.io/openai",
-      "apiKey": "!security find-generic-password -ws lego-mps",
-      "api": "openai-responses",
-      "headers": {
-        "api-key": "!security find-generic-password -ws lego-mps",
-        "x-api-key": "!security find-generic-password -ws lego-mps"
-      },
-      "models": [
-        {
-          "id": "anthropic.claude-opus-4-8",
-          "name": "Claude Opus 4.8",
-          "api": "anthropic-messages",
-          "baseUrl": "https://models.assistant.legogroup.io/anthropic"
-        },
-        {
-          "id": "anthropic.claude-sonnet-4-6",
-          "name": "Claude Sonnet 4.6",
-          "api": "anthropic-messages",
-          "baseUrl": "https://models.assistant.legogroup.io/anthropic"
-        },
-        {
-          "id": "anthropic.claude-haiku-4-5-20251001-v1:0",
-          "name": "Claude Haiku 4.5",
-          "api": "anthropic-messages",
-          "baseUrl": "https://models.assistant.legogroup.io/anthropic",
-          "compat": { "supportsEagerToolInputStreaming": false }
-        }
-      ]
-    }
-  }
-}
-```
-
-This bypasses the local proxy chain (no telemetry, no compression) but works
-without Docker containers running. The `anthropic-messages` API type with per-model
-`baseUrl` overrides lets Anthropic models use the `/anthropic` endpoint while
-the provider-level `baseUrl` points at `/openai` for GPT models.
-
-#### Proxy chain vs direct: when to use which
-
-| Approach | Telemetry | Compression | Requires Docker | Use when |
-|----------|-----------|-------------|-----------------|----------|
-| Through proxy chain (`:18788`) | Yes (Phoenix) | Yes (Headroom) | Yes | Daily work — maximises budget |
-| Direct to MPS | No | No | No | Quick test, containers down, travel |
-
-### Anthropic Python SDK
+Example, Anthropic Python SDK against the full chain on M-02877:
 
 ```python
+import os, subprocess
 from anthropic import Anthropic
 
-client = Anthropic(
-    api_key="<key>",
-    base_url="http://127.0.0.1:18788",
-    default_headers={"api-key": "<key>"}
-)
+key = subprocess.check_output(
+    ["secretspec", "get", "-f",
+     os.path.expanduser("~/.config/home-manager/secretspec.toml"),
+     "LEGO_GATEWAY_API_KEY"], text=True).strip()
+
+client = Anthropic(api_key=key, base_url="http://127.0.0.1:18788")
 ```
 
-### Generic (curl)
+## How-To: verify a Guix-side change without mahakala
 
-```bash
-curl -X POST http://127.0.0.1:18788/v1/messages \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $ANTHROPIC_AUTH_TOKEN" \
-  -H "anthropic-version: 2023-06-01" \
-  -d '{"model":"anthropic.claude-sonnet-4-6","max_tokens":100,"messages":[{"role":"user","content":"hi"}]}'
+`just check` does not evaluate the Guix files at all
+(`home-manager-0pr.4`), and darwin has no `guile` or `guix`. Run real Guix in a
+container instead — this is how the `gateway.json` seam was validated:
+
+```sh
+container image pull registry.gitlab.com/debdistutils/guix/container:latest
+
+# Render the actual OCI record out of home-configuration.scm and inspect it.
+# Feed the script and gateway.json in on stdin; HOME must be set for guix.
+container run --rm -i --platform linux/arm64 \
+  --entrypoint /bin/sh \
+  registry.gitlab.com/debdistutils/guix/container:latest -s <<'EOF'
+mkdir -p /root/.config/home-manager
+export HOME=/root
+# ... copy gateway.json to /root/.config/home-manager/ and a probe .scm in,
+# then:
+guix repl -- /root/probe.scm
+EOF
 ```
 
-## Reference: Available Models
+A probe that imports `(gnu services containers)`, constructs the
+`oci-container-configuration`, and calls `oci-container-configuration->options`
+prints the exact podman arguments Guix Home will use. Diffing that output
+against the pre-change file is a real before/after check.
 
-| Model ID | Name | Context | Max Output |
-|----------|------|---------|-----------|
-| `anthropic.claude-opus-4-8` | Claude Opus 4.8 | 200K | 64K |
-| `anthropic.claude-sonnet-4-6` | Claude Sonnet 4.6 | 200K | 64K |
-| `anthropic.claude-haiku-4-5-20251001-v1:0` | Claude Haiku 4.5 | 200K | 64K |
+Two things this caught that review would not have:
 
-Check [MPS Swagger UI](https://models.assistant.legogroup.io/docs) for the current list.
-Request access via [assistant.legogroup.io/developer/models](https://assistant.legogroup.io/developer/models).
+- Guix's guile-json decodes JSON objects to **alists**, not hash tables, so
+  `hash-ref` fails. `gateway-object-ref` accepts either.
+- `(use-modules (json))` does resolve under Guix's own Guile, which is what made
+  the whole approach viable.
 
-## Explanation: Pi Extension vs Native Config
-
-Pi has a community extension (`anthropic-proxy`) and a native `models.json` approach.
-The choice depends on whether you route through the local proxy chain or go direct.
-
-| Approach | Through proxy chain? | Thinking works? | Prompt caching? | Setup |
-|----------|---------------------|-----------------|-----------------|-------|
-| `anthropic-proxy` extension | Yes (:18788) | Yes (custom SSE parser) | Yes (injects `cache_control`) | Extension install |
-| Native `models.json` (Jonas's) | No (direct to MPS) | Unverified | No | Config only |
-| OMP via `models.yml` | Yes (:18788) | Yes | OMP-managed | Config only |
-
-### Why the extension is required through the proxy chain
-
-**Verified**: Pi's native `anthropic-messages` type sends auth via `x-api-key` header.
-Our proxy chain's final hop (MPS `/claude` endpoint) rejects `x-api-key` and only
-accepts `Authorization: Bearer`. The native transport has no config option to change
-this — `auth: oauth` and `authHeader: true` both trigger interactive login flows that
-block non-interactively.
-
-The extension sends auth via the `api-key` header which MPS accepts at the `/anthropic`
-endpoint, and also solves:
-- SSE stream parsing for thinking blocks (Bedrock backend returns non-standard SSE)
-- Prompt caching via `cache_control: { type: 'ephemeral' }` injection
-- Auto-compact warnings at 80% context
-
-### Jonas's native approach (no proxy chain)
-
-Jonas's config works because it points **directly at MPS** (`models.assistant.legogroup.io/anthropic`),
-bypassing the local proxy chain entirely. At that endpoint, `x-api-key` is accepted.
-The tradeoff: no Phoenix telemetry, no Headroom compression.
-
-```json
-{
-  "providers": {
-    "lego-mps": {
-      "name": "LEGO MPS",
-      "baseUrl": "https://models.assistant.legogroup.io/openai",
-      "apiKey": "!security find-generic-password -ws lego-mps",
-      "api": "openai-responses",
-      "headers": {
-        "api-key": "!security find-generic-password -ws lego-mps",
-        "x-api-key": "!security find-generic-password -ws lego-mps"
-      },
-      "models": [
-        {
-          "id": "anthropic.claude-sonnet-4-6",
-          "name": "Claude Sonnet 4.6",
-          "api": "anthropic-messages",
-          "baseUrl": "https://models.assistant.legogroup.io/anthropic"
-        }
-      ]
-    }
-  }
-}
-```
-
-### Summary: when to use which
-
-| Your goal | Use |
-|-----------|-----|
-| Pi + telemetry + compression (full stack) | `anthropic-proxy` extension through `:18788` |
-| Pi + simplest setup (no Docker needed) | Native `models.json` direct to MPS |
-| OMP + telemetry + compression | `models.yml` with `!security` apiKey through `:18788` |
+Building a full `guix home` derivation additionally needs `guix-daemon` running
+with build users — see the container project's README for that setup. It is not
+required just to check field types and rendered options.
 
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `401 Not authenticated` | Missing or empty auth header | Verify key is set and non-empty |
-| `400 Malformed Authorization header` | Either the auth value is the literal env var name (not resolved), **or** the request hit the wrong stack on a colliding port (see below) | Use `!cat <file>` / `!security …` so the key resolves; confirm the base URL points at the Apple-container host port (`127.0.0.1:18788`), not a colliding runtime |
-| `406 Not found any available model` | Model ID missing `anthropic.` prefix | Use full Bedrock-style ID |
-| Connection refused on :18788 | Proxy containers not running | `container ls` (Apple `container` CLI) — restart the launchd agents if headroom / phoenix / local-model-proxy are missing |
-| Intermittent `400` from a working config | **Host-port collision**: another runtime (e.g. a Podman `ai-model-gateway` stack) bound the same port. `localhost` resolves IPv6-first and can hit the wrong stack | The Apple-container chain is pinned to distinct host ports (18788 / 18787 / 16006) and OMP uses `127.0.0.1` (IPv4) to avoid ambiguity. Verify with `lsof -nP -iTCP:18788 -sTCP:LISTEN` |
-| 200 but slow | Headroom compression overhead on first request per session | Normal; subsequent requests are faster |
-| `502` on every request; all containers `running` and launchd healthy | Headroom restarted onto a new container IP and `local-model-proxy` still holds the old one. Fixed in `darwin.nix` by targeting the network gateway, but any hand-run container hits this | Restart `local-model-proxy` **after** headroom. Check with `container inspect local-model-proxy \| grep MPS_BASE_URL` against `container ls` |
-| Requests hang for minutes, then the harness stalls | Headroom's upstream connection pool wedged (seen after ~2 days uptime, sockets in `CLOSE_WAIT`). `/livez` and `/stats` still return 200, so the container looks healthy | Compare `/livez` (fast) against `/readyz` (hangs) to confirm, then `container stop headroom` and let launchd `KeepAlive` relaunch it |
+| symptom | cause | fix |
+|---|---|---|
+| `401 Not authenticated` | missing or empty auth header | run the `secretspec get` command by hand; confirm it prints a `vk_…` value |
+| `400 Malformed Authorization header` | the auth value is a literal variable name rather than a resolved key, **or** the request hit a colliding port | ensure the key comes from a `!command` / `call-process`; confirm the base URL is the Apple-container host port, not another runtime |
+| `406 Not found any available model` | model ID not in the gateway's list | use an ID from the model table above |
+| connection refused on `:18788` | chain containers not running | `container ls`; restart the launchd agents if headroom / phoenix / local-model-proxy are missing |
+| intermittent `400` from a working config | **host-port collision** — another runtime bound the same port, and `localhost` resolves IPv6-first | the chain is pinned to distinct host ports and consumers use `127.0.0.1`; verify with `lsof -nP -iTCP:18788 -sTCP:LISTEN` |
+| `502` on every request, all containers `running` | headroom restarted onto a new container IP and local-model-proxy holds the old one | handled in `darwin.nix` by targeting the network gateway; for a hand-run container, restart local-model-proxy **after** headroom |
+| requests hang for minutes | headroom's upstream connection pool wedged (seen after ~2 days uptime, sockets in `CLOSE_WAIT`); `/livez` still returns 200 | compare `/livez` (fast) against `/readyz` (hangs), then `container stop headroom` and let launchd `KeepAlive` relaunch it |
+| mahakala costs look different from M-02877 | before `home-manager-0pr.2`, `HEADROOM_MODE` was unset there | fixed; takes effect on the next `guix home reconfigure` |
+| 200 but slow on the first request of a session | headroom compression overhead | normal |
 
-## Reference: Observability
+`/livez` is pure process liveness. `/readyz` and `/health` also probe upstream
+and will hang when the pool wedges, which is why startup gating uses `/livez`.
 
-With the full chain running:
+## Reference: observability
 
-- **Phoenix UI**: http://localhost:16006 — per-request token counts, cost, session grouping
-- **Headroom stats**: http://localhost:18787/stats — compression savings
-- **Headroom liveness vs readiness**: `/livez` is pure process liveness; `/readyz` and `/health` also probe upstream and will hang if the connection pool wedges. Use `/livez` for startup gating, `/readyz` for diagnosis
-- **RTK**: `rtk gain` — CLI output compression savings (separate from proxy chain)
+Full chain on M-02877 only:
+
+- **Phoenix UI** — <http://localhost:16006>, per-request token counts and cost
+- **headroom stats** — <http://localhost:18787/stats>, compression savings
+- **RTK** — `rtk gain`, CLI output compression, unrelated to the chain
+
+## Related beads
+
+- `home-manager-0pr.2` — gave the gateway one owner (this document's premise)
+- `home-manager-0pr.3` — one tier-routing module; owns the model-ID divergence
+- `home-manager-0pr.4` — `just check` does not cover Guix, images, or tofu
+- `home-manager-zdo` — `/v1/*` is unauthenticated on a non-loopback bind;
+  `HEADROOM_PROXY_TOKEN` unset. M-02877 publishes headroom on all interfaces,
+  which is a one-value change in `gateway.json`

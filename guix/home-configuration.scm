@@ -1,4 +1,5 @@
-(use-modules (gnu home)
+(use-modules (json)
+             (gnu home)
              (gnu packages)
              (gnu packages emacs-xyz)
              (gnu packages gnupg)
@@ -23,6 +24,71 @@
     (rde-config
      (features
       (list (feature-pipewire)))))))
+
+;;; --------------------------------------------------------------------------
+;;; Model gateway facts
+;;; --------------------------------------------------------------------------
+;;
+;; Guile cannot import Nix, so the gateway's address, ports, image, and mode
+;; live in ../gateway.json and both substrates read that one file.  The Nix
+;; side reads it in modules/gateway.nix; this is the Guix Home reader.
+;;
+;; This exists because the two substrates had already drifted: HEADROOM_MODE
+;; was set on M-02877 with a written rationale and simply absent here, so this
+;; machine silently ran headroom's built-in default mode -- no error, just a
+;; different cost and cache-hit tradeoff.  Setting it from shared data is why
+;; that cannot recur.
+;;
+;; See docs/adr/0001-gateway-facts-cross-the-guix-seam-as-json.md.
+;; Refs: home-manager-0pr.2
+
+(define gateway-facts
+  (call-with-input-file
+      (string-append (getenv "HOME") "/.config/home-manager/gateway.json")
+    json->scm))
+
+(define (gateway-object-ref obj key)
+  "Look up KEY in one decoded JSON object.  guile-json 4 decodes objects to
+alists, but other versions decode them to hash tables, and which one this
+machine's Guix ships is not something the Nix side can check -- so accept
+either rather than crashing a reconfigure on the wrong accessor."
+  (cond
+   ((hash-table? obj) (hash-ref obj key 'gateway-key-missing))
+   ((list? obj)
+    (let ((entry (assoc key obj)))
+      (if (pair? entry) (cdr entry) 'gateway-key-missing)))
+   (else 'gateway-key-missing)))
+
+(define (gateway-ref . keys)
+  "Follow KEYS through gateway.json, erroring loudly on a missing key rather
+than quietly substituting #f into a container's environment."
+  (let loop ((obj gateway-facts) (path keys))
+    (if (null? path)
+        obj
+        (let ((value (gateway-object-ref obj (car path))))
+          (if (eq? value 'gateway-key-missing)
+              (error "gateway.json: missing key" (car path) keys)
+              (loop value (cdr path)))))))
+
+(define (gateway-port->string port)
+  ;; guile-json returns exact integers for JSON integers.  Round-tripping
+  ;; through inexact->exact keeps a port from ever rendering as "8787.0" if a
+  ;; future reader hands back a float.
+  (number->string (inexact->exact (round port))))
+
+(define (gateway-publish-spec service)
+  "Render podman's -p value for SERVICE as published on this machine.  An
+empty host means all interfaces and yields a bare port pair; a non-empty one
+yields the three-part form, e.g. 127.0.0.1:8787:8787."
+  (let ((host (gateway-ref service "published" "mahakala" "host"))
+        (port (gateway-ref service "published" "mahakala" "port"))
+        (container-port (gateway-ref service "containerPort")))
+    (string-append (if (string-null? host)
+                       ""
+                       (string-append host ":"))
+                   (gateway-port->string port)
+                   ":"
+                   (gateway-port->string container-port))))
 
 (home-environment
  (packages (append
@@ -221,21 +287,30 @@ mv \"$tmp\" \"$target\""))
                       (list
                        (oci-container-configuration
                         (provision "headroom")
-                        (image "ghcr.io/headroomlabs-ai/headroom:latest")
-                        (ports '("127.0.0.1:8787:8787"))
+                        (image (gateway-ref "headroom" "image"))
+                        (ports (list (gateway-publish-spec "headroom")))
                         (volumes '(("headroom-data" . "/data")))
                         (environment
                          (list
                           "HEADROOM_HOST=0.0.0.0"
-                          "HEADROOM_STORE_URL=sqlite:////data/headroom.db"
-                          "HEADROOM_SAVINGS_PATH=/data/proxy_savings.json"
-                          "HEADROOM_TELEMETRY=off"
-                          "ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude"))
+                          (string-append "HEADROOM_STORE_URL="
+                                         (gateway-ref "headroom" "storeUrl"))
+                          (string-append "HEADROOM_SAVINGS_PATH="
+                                         (gateway-ref "headroom" "savingsPath"))
+                          (string-append "HEADROOM_TELEMETRY="
+                                         (gateway-ref "headroom" "telemetry"))
+                          ;; Was missing here entirely; see the note above.
+                          (string-append "HEADROOM_MODE="
+                                         (gateway-ref "headroom" "mode"))
+                          (string-append "ANTHROPIC_TARGET_API_URL="
+                                         (gateway-ref "baseUrl")
+                                         (gateway-ref "paths" "claude"))))
                         (command
-                         '("--host" "0.0.0.0"
-                           "--port" "8787"
-                           "--memory"
-                           "--learn"))
+                         (list "--host" "0.0.0.0"
+                               "--port" (gateway-port->string
+                                         (gateway-ref "headroom" "containerPort"))
+                               "--memory"
+                               "--learn"))
                         (extra-arguments '("--pull" "always"))
                         (respawn? #t)
                         (auto-start? #t)

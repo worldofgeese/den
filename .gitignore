@@ -58,3 +58,6 @@ result/
 
 # Chorus runtime state/lock
 .chorus/
+
+# Local scratch space for in-flight investigations
+.scratch/

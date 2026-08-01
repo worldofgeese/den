@@ -18,8 +18,8 @@
 ;; To upgrade: just upgrade-kernel
 
 (define %cachyos-upstream-version "7.1")
-(define %cachyos-version "7.1.1")
-(define %cachyos-revision "2")
+(define %cachyos-version "7.1.5")
+(define %cachyos-revision "1")
 (define %cachyos-tag
   (string-append "cachyos-" %cachyos-version "-" %cachyos-revision))
 
@@ -30,7 +30,7 @@
           "https://github.com/CachyOS/linux/releases/download/"
           %cachyos-tag "/" %cachyos-tag ".tar.gz"))
     (sha256
-     (base32 "1n1zjy5qmpnxjlh7xf3i27l81z9qnhcq55hy9h3j7mcm9yy0fspl"))))
+     (base32 "1f8khws8ss8frd51sl4l2yp8yak0rpxvkxwy4cwgw2saf9yj36lg"))))
 
 ;; BORE variant uses upstream Linux + vanilla bore patch (no pre-patched CachyOS tarball)
 ;; The bore-cachy patch contains #ifdef CONFIG_CACHY guards that expect the CachyOS
@@ -43,7 +43,7 @@
           "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-"
           %cachyos-version ".tar.xz"))
     (sha256
-     (base32 "0z8x6wafxzc5vkim9jh8wpycdkk9y5bpxgsirmdpyznw84szl5aj"))
+     (base32 "1rs162gcf6hsafrrmp3y8k9myn20s3s62xdp4zf39pxw7imik812"))
     (patches
      (list
       (origin
@@ -92,7 +92,7 @@
 (define-public linux-cachyos
   (make-cachyos-kernel #:name "linux-cachyos"
                        #:localversion "-cachyos"
-                       #:extra-configs '()))
+                       #:extra-configs '("CONFIG_SCHED_BORE=y")))
 
 (define-public linux-cachyos-bore
   (make-cachyos-kernel #:name "linux-cachyos-bore"

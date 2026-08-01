@@ -30,21 +30,43 @@ if [[ "$VERSION" == "$CURRENT_VERSION" && "$REVISION" == "$CURRENT_REVISION" ]];
   exit 0
 fi
 
-URL="https://github.com/CachyOS/linux/releases/download/$TAG/$TAG.tar.gz"
-echo "Downloading and hashing: $URL"
-HASH=$(guix download "$URL" 2>&1 | tail -1)
+PATCHES_URL="https://github.com/CachyOS/linux/releases/download/$TAG/$TAG.tar.gz"
+echo "Downloading and hashing CachyOS patches: $PATCHES_URL"
+PATCHES_HASH=$(guix download "$PATCHES_URL" 2>&1 | tail -1)
+echo "Patches hash: $PATCHES_HASH"
 
-echo "New hash: $HASH"
+# Only download kernel source if the major.minor.patch version changed
+KERNEL_URL="https://cdn.kernel.org/pub/linux/kernel/v${VERSION%%.*}.x/linux-$VERSION.tar.xz"
+if [[ "$VERSION" != "$CURRENT_VERSION" ]]; then
+  echo "Downloading and hashing kernel source: $KERNEL_URL"
+  KERNEL_HASH=$(guix download "$KERNEL_URL" 2>&1 | tail -1)
+  echo "Kernel hash: $KERNEL_HASH"
+fi
 
 # Patch the .scm file
-sed -i "s|(define %cachyos-version \".*\")|(define %cachyos-version \"$VERSION\")|" "$SCM_FILE"
-sed -i "s|(define %cachyos-revision \".*\")|(define %cachyos-revision \"$REVISION\")|" "$SCM_FILE"
-sed -i "0,/|(base32 \".*\")|{s|(base32 \".*\")|(base32 \"$HASH\")|}" "$SCM_FILE"
+sed -i "s/(define %cachyos-version \".*\")/(define %cachyos-version \"$VERSION\")/" "$SCM_FILE"
+sed -i "s/(define %cachyos-revision \".*\")/(define %cachyos-revision \"$REVISION\")/" "$SCM_FILE"
+
+# Update CachyOS patches hash (first base32 occurrence)
+sed -i "0,/(base32 \".*\")/{s/(base32 \".*\")/(base32 \"$PATCHES_HASH\")/}" "$SCM_FILE"
+
+# Update kernel source hash (second base32 occurrence) if version changed
+if [[ "$VERSION" != "$CURRENT_VERSION" && -n "${KERNEL_HASH:-}" ]]; then
+  # Use awk to replace the second (base32 ...) occurrence
+  awk -v hash="$KERNEL_HASH" '
+    /\(base32 "/ { count++ }
+    count == 2 { sub(/\(base32 "[^"]*"\)/, "(base32 \"" hash "\")"); count++ }
+    { print }
+  ' "$SCM_FILE" > "$SCM_FILE.tmp" && mv "$SCM_FILE.tmp" "$SCM_FILE"
+fi
 
 echo ""
 echo "Updated $SCM_FILE:"
 echo "  version:  $VERSION"
 echo "  revision: $REVISION"
-echo "  hash:     $HASH"
+echo "  patches:  $PATCHES_HASH"
+if [[ -n "${KERNEL_HASH:-}" ]]; then
+  echo "  kernel:   $KERNEL_HASH"
+fi
 echo ""
 echo "Next: just deploy-mahakala-system"

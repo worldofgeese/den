@@ -21,6 +21,7 @@
 
 (define username "worldofgeese")
 
+
 (define %my-services
   (modify-services %desktop-services
     (guix-service-type
@@ -134,7 +135,7 @@ DesktopNames=EWM
 
 (operating-system
   ;; BORE scheduler active; keep ananicy-cpp disabled (conflicts with BORE).
-  (kernel linux-cachyos-bore)
+  (kernel linux-cachyos)
   (initrd microcode-initrd)
   ;; PSR disabled — causes GNOME Shell compositor to spin at 15% CPU on this panel.
   ;; ASPM left enabled (managed by TLP, no observed WiFi issues).
@@ -154,7 +155,7 @@ DesktopNames=EWM
 root ALL=(ALL) ALL
 %wheel ALL=NOPASSWD: ALL\n"))
   (packages (append (specifications->packages
-                     (list "nix" "emacs-pgtk" "xdg-dbus-proxy"))
+                     (list "emacs-pgtk" "xdg-dbus-proxy"))
                     (list ewm-desktop-session)
                     %base-packages))
   (services

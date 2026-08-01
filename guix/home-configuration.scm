@@ -340,6 +340,77 @@ mv \"$tmp\" \"$target\""))
        (respawn? #t)
        (auto-start? #t))))
 
+    ;; Ollama embedding server (Nix package; used by crucible semantic search)
+    ;; Bound to loopback only — crucible hardcodes http://localhost:11434.
+    (simple-service
+     'ollama-daemon
+     home-shepherd-service-type
+     (list
+      (shepherd-service
+       (provision '(ollama))
+       (documentation "Ollama local inference server (embeddings for crucible)")
+       (start #~(make-forkexec-constructor
+                 (list (string-append (getenv "HOME") "/.nix-profile/bin/ollama")
+                       "serve")
+                 #:environment-variables
+                 (append (default-environment-variables)
+                         (list "OLLAMA_HOST=127.0.0.1:11434"
+                               ;; Unload models promptly; this is a laptop.
+                               "OLLAMA_KEEP_ALIVE=5m"
+                               "OLLAMA_MAX_LOADED_MODELS=1"
+                               (string-append "HOME=" (getenv "HOME"))))
+                 #:log-file (string-append (getenv "HOME")
+                                           "/.local/state/ollama.log")))
+       (stop #~(make-kill-destructor))
+       (respawn? #t)
+       (auto-start? #t))))
+
+    ;; howm periodic sync — the backstop that makes the knowledge base durable.
+    ;;
+    ;; git-auto-commit-mode only stages the single org file being saved, and only
+    ;; while Emacs runs; the repo's post-commit hook only fires on commits that
+    ;; already happened. Neither catches a file nothing ever committed, so this
+    ;; loop stages the whole repo every 5 minutes and retries pushes that failed
+    ;; earlier while offline. See ADR-0006 in the howm repo.
+    ;;
+    ;; Not a shepherd timer: 1.0.9 has make-timer-constructor, but wiring it
+    ;; through Guix Home needs extra module plumbing and breaks more easily on
+    ;; upgrade. A sleep loop is dull and hard to get wrong.
+    (simple-service
+     'howm-sync
+     home-shepherd-service-type
+     (list
+      (shepherd-service
+       (provision '(howm-sync))
+       (documentation "Periodically commit and push the howm knowledge base")
+       (start #~(make-forkexec-constructor
+                 (list #$(file-append (specification->package "bash") "/bin/sh")
+                       "-c"
+                       (string-append
+                        "while :; do "
+                        (getenv "HOME")
+                        "/Downloads/projects/howm/bin/howm-sync"
+                        "; sleep 300; done"))
+                 #:environment-variables
+                 (append (default-environment-variables)
+                         (list (string-append "HOME=" (getenv "HOME"))
+                               ;; git needs the gpg-agent ssh socket to reach
+                               ;; GitHub, and gpg itself to sign commits
+                               ;; (commit.gpgsign is true). Neither path is in
+                               ;; default-environment-variables.
+                               "SSH_AUTH_SOCK=/run/user/1000/gnupg/S.gpg-agent.ssh"
+                               (string-append "GNUPGHOME=" (getenv "HOME")
+                                              "/.gnupg")
+                               (string-append "PATH="
+                                              (getenv "HOME") "/.nix-profile/bin:"
+                                              (getenv "HOME") "/.guix-home/profile/bin:"
+                                              "/run/current-system/profile/bin")))
+                 #:log-file (string-append (getenv "HOME")
+                                           "/.local/state/howm-sync-service.log")))
+       (stop #~(make-kill-destructor))
+       (respawn? #t)
+       (auto-start? #t))))
+
     ;; Guix channels — single source of truth in this repo
     (simple-service 'guix-channels
                     home-xdg-configuration-files-service-type

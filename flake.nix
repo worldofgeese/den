@@ -53,6 +53,14 @@
       inputs.nixpkgs.follows = "nixpkgs-nod";
       inputs.home-manager.follows = "home-manager-nod";
     };
+    emacs-tramp-rpc = {
+      url = "github:ArthurHeymans/emacs-tramp-rpc";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nix-doom-emacs-unstraightened = {
+      url = "github:marienz/nix-doom-emacs-unstraightened";
+      inputs.nixpkgs.follows = "";
+    };
   };
 
   outputs = inputs:

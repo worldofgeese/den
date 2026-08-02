@@ -15,21 +15,40 @@ default:
 deploy-mahakala:
     just guix-pull-system
     just deploy-mahakala-system
-    guix pull --substitute-urls="{{guix-substitute-urls}}"
+    just guix-pull-home
+    just deploy-mahakala-guix-only
     just update
-    guix home reconfigure guix/home-configuration.scm
-    NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
-    update-desktop-database ~/.local/share/applications
+    just deploy-mahakala-hm-only
 
-# Deploy only Home Manager on mahakala
+# Deploy only Home Manager on mahakala (refreshes flake inputs first)
 deploy-mahakala-hm:
     just update
+    just deploy-mahakala-hm-only
+
+# Switch Home Manager against the CURRENT flake.lock -- no input refresh.
+# Split from deploy-mahakala-hm so an unattended runner can treat the input
+# refresh and the switch as independently-failing steps: a forge outage during
+# `just update` then leaves the already-locked closure deployable.
+
+# Switch Home Manager without touching flake.lock
+deploy-mahakala-hm-only:
     NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
 
-# Deploy only Guix Home on mahakala
+# Deploy only Guix Home on mahakala (pulls user channels first)
 deploy-mahakala-guix:
-    guix pull
+    just guix-pull-home
+    just deploy-mahakala-guix-only
+
+# Pull the user's Guix channels. Uses the repo channels.scm and the same
+# substituters as every other recipe; a bare `guix pull` inherited neither.
+
+# Pull the user's Guix channels only (no reconfigure)
+guix-pull-home:
+    guix pull --substitute-urls="{{guix-substitute-urls}}" -C guix/channels.scm
+
+# Reconfigure Guix Home against the user's CURRENT channels (no pull)
+deploy-mahakala-guix-only:
     guix home reconfigure guix/home-configuration.scm
 
 # Split out from reconfigure because a pull can bump nonguix's kernel base config

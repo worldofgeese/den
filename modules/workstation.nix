@@ -123,11 +123,29 @@
           # adopted it, so 12 days of runs landed zero system generations while
           # rebuilding the kernel repeatedly. Kernel upgrades are now explicit:
           #   just upgrade-kernel && just deploy-mahakala-system-full
+          #
+          # Separate steps rather than one `just deploy-mahakala`, for the same
+          # reason as the darwin config: `deploy-mahakala` is a flat recipe, so a
+          # persistent Guix forge outage aborted every later line -- including the
+          # Home Manager switch, whose closure is already locked and would have
+          # succeeded. Split, each failure is contained to its own step. Ordering
+          # is preserved by the numeric prefixes (topgrade sorts keys).
           pre_commands = {
-            "1. Deploy mahakala via Justfile" = "cd ~/.config/home-manager && just deploy-mahakala";
+            "1. Deploy Guix System" = "cd ~/.config/home-manager && just guix-pull-system && just deploy-mahakala-system";
+            "2. Deploy Guix Home" = "cd ~/.config/home-manager && just guix-pull-home && just deploy-mahakala-guix-only";
+            "3. Flake inputs" = "cd ~/.config/home-manager && just update";
+            "4. Deploy Home Manager" = "cd ~/.config/home-manager && just deploy-mahakala-hm-only";
           };
           misc = {
             assume_yes = true;
+            # Retry transient failures instead of aborting the run. `guix pull`
+            # fetches four channels from codeberg/sourcehut mirrors, and a single
+            # forge hiccup (observed: "Git error: unexpected http status code:
+            # 504" from the nonguix mirror) otherwise kills the whole deploy --
+            # including the Home Manager switch that had nothing to do with it.
+            # ask_retry must be off too, or an unattended run blocks on a prompt.
+            auto_retry = 2;
+            ask_retry = false;
             pre_sudo = true;
             show_distribution_summary = false;
             disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];

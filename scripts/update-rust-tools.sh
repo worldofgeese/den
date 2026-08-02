@@ -100,41 +100,6 @@ open(path, "w", encoding="utf-8").write(updated)
 PY
 }
 
-patch_rtk() {
-  local tag="$1"
-  local version="${tag#v}"
-  local source_hash="$2"
-  local cargo_hash="$3"
-
-  run_python - "$OVERLAYS_FILE" "$version" "$tag" "$source_hash" "$cargo_hash" <<'PY'
-import re
-import sys
-
-path, version, tag, source_hash, cargo_hash = sys.argv[1:]
-text = open(path, encoding="utf-8").read()
-
-def replace_block(match):
-    block = match.group(0)
-    block = re.sub(r'version = "[^"]+";', f'version = "{version}";', block, count=1)
-    block = re.sub(r'rev = "[^"]+";', f'rev = "{tag}";', block, count=1)
-    block = re.sub(r'hash = "[^"]+";', f'hash = "{source_hash}";', block, count=1)
-    replacement = "cargoHash = final.lib.fakeHash;" if cargo_hash == "fake" else f'cargoHash = "{cargo_hash}";'
-    block = re.sub(r'cargoHash = (?:"[^"]+"|final\.lib\.fakeHash);', replacement, block)
-    return block
-
-updated, count = re.subn(
-    r'(?ms)^        rtk = final\.rustPlatform\.buildRustPackage \{.*?^        \};',
-    replace_block,
-    text,
-    count=1,
-)
-if count != 1:
-    raise SystemExit("Could not patch rtk block")
-
-open(path, "w", encoding="utf-8").write(updated)
-PY
-}
-
 nix_package_expr() {
   local package="$1"
 
@@ -184,20 +149,13 @@ latest_decapod_version=$(
     | sed -n 's/^version: //p' \
     | head -1
 )
-latest_rtk_tag=$(run_with_nix gh gh release view --repo rtk-ai/rtk --json tagName --jq .tagName)
 
 if [[ -z "$latest_decapod_version" ]]; then
   echo "ERROR: Could not determine latest decapod crate version" >&2
   exit 1
 fi
 
-if [[ -z "$latest_rtk_tag" || "$latest_rtk_tag" == "null" ]]; then
-  echo "ERROR: Could not determine latest rtk release tag" >&2
-  exit 1
-fi
-
 current_decapod_version=$(overlay_value decapod version)
-current_rtk_rev=$(overlay_value rtk rev)
 
 if [[ "${SKIP_DECAPOD_UPDATE:-0}" == "1" ]]; then
   latest_decapod_version="$current_decapod_version"
@@ -209,10 +167,8 @@ if [[ "${SKIP_DECAPOD_UPDATE:-0}" == "1" ]]; then
 else
   echo "Latest decapod:  $latest_decapod_version"
 fi
-echo "Current rtk:     $current_rtk_rev"
-echo "Latest rtk:      $latest_rtk_tag"
 
-if [[ "$current_decapod_version" == "$latest_decapod_version" && "$current_rtk_rev" == "$latest_rtk_tag" ]]; then
+if [[ "$current_decapod_version" == "$latest_decapod_version" ]]; then
   echo "Rust tools are already up to date."
   exit 0
 fi
@@ -232,15 +188,6 @@ if [[ "$current_decapod_version" != "$latest_decapod_version" ]]; then
   echo "Updated decapod to $latest_decapod_version"
 fi
 
-if [[ "$current_rtk_rev" != "$latest_rtk_tag" ]]; then
-  echo "Prefetching rtk $latest_rtk_tag..."
-  rtk_source_hash=$(prefetch_unpack_hash "https://github.com/rtk-ai/rtk/archive/refs/tags/${latest_rtk_tag}.tar.gz")
-  patch_rtk "$latest_rtk_tag" "$rtk_source_hash" fake
-  echo "Computing rtk cargoHash..."
-  rtk_cargo_hash=$(compute_cargo_hash rtk)
-  patch_rtk "$latest_rtk_tag" "$rtk_source_hash" "$rtk_cargo_hash"
-  echo "Updated rtk to $latest_rtk_tag"
-fi
 
 updated=true
 echo "Updated $OVERLAYS_FILE"

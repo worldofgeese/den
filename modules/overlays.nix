@@ -16,15 +16,15 @@
       (final: prev: {
         decapod = final.rustPlatform.buildRustPackage {
           pname = "decapod";
-          version = "0.88.0";
+          version = "0.95.0";
 
           src = final.fetchzip {
-            url = "https://static.crates.io/crates/decapod/decapod-0.88.0.crate";
+            url = "https://static.crates.io/crates/decapod/decapod-0.95.0.crate";
             extension = "tar.gz";
-            hash = "sha256-eLX2p8NuFhLOv08Je1Jq/LTo5MuOGqnAKuU4v2Fzfq0=";
+            hash = "sha256-n6NsoCl43zXSdg2K0DoM9t/xy6Yn8YtbHejLsWDGvhs=";
           };
 
-          cargoHash = "sha256-0O5rj+nZy51Wtkh1QPNGj3R0a8BDzxnA4ypdZ3CiURA=";
+          cargoHash = "sha256-mQslz+/iyBM+HkIOhHB1mquFdx3azp7GBZOXNMnFG8Q=";
 
           doCheck = false;
 
@@ -204,29 +204,6 @@
             homepage = "https://github.com/Dicklesworthstone/beads_viewer";
             license = final.lib.licenses.mit;
             mainProgram = "bv";
-          };
-        };
-
-        rtk = final.rustPlatform.buildRustPackage {
-          pname = "rtk";
-          version = "0.44.1";
-
-          src = final.fetchFromGitHub {
-            owner = "rtk-ai";
-            repo = "rtk";
-            rev = "v0.44.1";
-            hash = "sha256-5AN/sK0IOIqcLX0FviFPOJ9QX9xJpliSN1XY3isxyrA=";
-          };
-
-          cargoHash = "sha256-Hd8dy0atCeTie2rZ3nfpbwbTHrIueNlXo7kpmK6QQNU=";
-
-          doCheck = false;
-
-          meta = {
-            description = "CLI proxy that reduces LLM token consumption by 60-90%";
-            homepage = "https://github.com/rtk-ai/rtk";
-            license = final.lib.licenses.mit;
-            mainProgram = "rtk";
           };
         };
 

@@ -13,7 +13,6 @@
         [
           nodejs
           bun
-          uv
           kubectl
           shellcheck
           yq-go
@@ -36,6 +35,51 @@
           decapod
           br
         ];
+
+      # uv, plus the tools it manages. Declarative replacement for
+      # `uv tool install`: entries are installed and upgraded on activation.
+      #
+      # crucible-llm is not on PyPI in a usable state (PyPI 0.1.0 is stale), so
+      # it is installed from git. The `name @ git+url` form is required rather
+      # than a bare `git+...` URL for two reasons: `uv tool upgrade` rejects a
+      # bare URL ("URL requirement must be preceded by a package name"), and
+      # `tool.prune` derives the keep-list by regex from the leading name, which
+      # for a bare URL yields "git" and would uninstall the tool on every
+      # activation.
+      programs.uv = {
+        enable = true;
+
+        # uv's own CPython builds come from python-build-standalone, which are
+        # FHS binaries requesting /lib64/ld-linux-x86-64.so.2. Guix System has
+        # no /lib64, so they cannot execute at all:
+        #   $ ~/.local/share/uv/python/cpython-3.14.6-*/bin/python3.14 --version
+        #   cannot execute: required file not found
+        # uv reports that as "Python interpreter not found", which is misleading
+        # since the file is present; the missing piece is the loader. When uv had
+        # pinned a tool to one of those, `uv tool upgrade` failed and took the
+        # whole activation with it.
+        #
+        # only-system keeps uv off those downloads, but it does not by itself
+        # give uv something to run: activation uses a fixed PATH of Nix store
+        # paths, so neither ~/.guix-home/profile/bin nor home.packages is
+        # visible and uv fails with "No interpreter found in search path".
+        # home.extraActivationPath below puts python3 on that PATH; uv resolves
+        # an interpreter by searching PATH, so UV_PYTHON with an absolute path
+        # does not work here (uv treats it as a version request and resolves it
+        # back to the unusable managed install).
+        settings.python-preference = "only-system";
+
+        tool = {
+          packages = [
+            "crucible-llm @ git+https://github.com/jkitchin/crucible"
+          ];
+          prune = true;
+        };
+      };
+
+      # uv resolves its interpreter from PATH during activation, and activation
+      # does not inherit the login PATH. See programs.uv above.
+      home.extraActivationPath = [pkgs.python3];
 
       programs.github-copilot-cli.enable = true;
       programs.direnv = {

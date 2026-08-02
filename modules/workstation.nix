@@ -48,6 +48,7 @@
           opencode
           agent-browser
           beeper
+          ollama # embedding server for crucible semantic search (shepherd service in guix/home-configuration.scm)
           stdenv.cc.cc.lib # libstdc++.so.6 for Signet's ONNX native module
         ])
         ++ [
@@ -115,9 +116,15 @@
       programs.topgrade = {
         enable = true;
         settings = {
+          # Deliberately excludes the kernel. `just upgrade-kernel` used to run
+          # here, bumping to whatever CachyOS tagged that day, and the deploy
+          # then built it inline for ~3h -- unattended, unreviewed. Worse, the
+          # post_commands `guix gc` deleted the result before any reconfigure
+          # adopted it, so 12 days of runs landed zero system generations while
+          # rebuilding the kernel repeatedly. Kernel upgrades are now explicit:
+          #   just upgrade-kernel && just deploy-mahakala-system-full
           pre_commands = {
-            "1. Upgrade CachyOS kernel metadata" = "cd ~/.config/home-manager && just upgrade-kernel";
-            "2. Deploy mahakala via Justfile" = "cd ~/.config/home-manager && just deploy-mahakala";
+            "1. Deploy mahakala via Justfile" = "cd ~/.config/home-manager && just deploy-mahakala";
           };
           misc = {
             assume_yes = true;
@@ -131,7 +138,10 @@
           };
           post_commands = {
             "Garbage collect Nix" = "nix-collect-garbage -d";
-            "Garbage collect Guix" = "guix package --delete-generations && guix home delete-generations && (sudo guix system delete-generations 1d 2> >(grep -v 'no matching generation' >&2) || true) && sudo guix gc";
+            # Retain 2w of system generations, not 1d: a same-day kernel needs a
+            # rollback target that outlives the day it was deployed. The kernel
+            # itself is pinned by the kernel-gc-root GC root in the Justfile.
+            "Garbage collect Guix" = "guix package --delete-generations 2w && guix home delete-generations 2w && (sudo guix system delete-generations 2w 2> >(grep -v 'no matching generation' >&2) || true) && sudo guix gc";
             "Remove unused Flatpak runtimes" = "flatpak uninstall --unused -y";
             "Prune Podman images" = "podman image prune -a -f";
             "Empty Trash" = "chmod -R u+w ~/.local/share/Trash/files ~/.local/share/Trash/info 2>/dev/null || true; rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*";

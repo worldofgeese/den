@@ -135,7 +135,7 @@ DesktopNames=EWM
 
 (operating-system
   ;; BORE scheduler active; keep ananicy-cpp disabled (conflicts with BORE).
-  (kernel linux-cachyos)
+  (kernel linux-cachyos-bore)
   (initrd microcode-initrd)
   ;; PSR disabled — causes GNOME Shell compositor to spin at 15% CPU on this panel.
   ;; ASPM left enabled (managed by TLP, no observed WiFi issues).
@@ -205,6 +205,11 @@ root ALL=(ALL) ALL
              (nix-configuration
               (extra-config
                (list "trusted-users = root worldofgeese\n"
+                     ;; Must match the user-level nix.conf in home-configuration.scm.
+                     ;; The daemon fetches substitutes and reads only /etc/nix/nix.conf,
+                     ;; so setting this solely on the user side left the daemon on the
+                     ;; 64MB default -- the source of "download buffer is full".
+                     "download-buffer-size = 536870912\n"
                      "extra-trusted-substituters = https://cache.floxdev.com https://devenv.cachix.org https://nixpkgs-python.cachix.org https://cache.numtide.com\n"
                      "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=\n"
                      "experimental-features = nix-command flakes\n"))))

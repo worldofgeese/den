@@ -4,12 +4,17 @@
 # Passing --substitute-urls overrides daemon config until reconfigure applies new settings.
 guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.moe https://guix.tobias.gr/substitutes/ https://bordeaux.guix.gnu.org https://ci.guix.gnu.org"
 
+# GC root for the built CachyOS kernel. Keeps a kernel alive between
+# `just kernel-build` and the `guix system reconfigure` that adopts it.
+kernel-gc-root := "/var/guix/gcroots/cachyos-bore-kernel"
+
 default:
     @just --list
 
 # Deploy everything on mahakala (Guix System + Guix Home + Home Manager)
 deploy-mahakala:
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{guix-substitute-urls}}" -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --substitute-urls="{{guix-substitute-urls}}" --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
+    just guix-pull-system
+    just deploy-mahakala-system
     guix pull --substitute-urls="{{guix-substitute-urls}}"
     just update
     guix home reconfigure guix/home-configuration.scm
@@ -27,9 +32,83 @@ deploy-mahakala-guix:
     guix pull
     guix home reconfigure guix/home-configuration.scm
 
-# Reconfigure Guix System (requires sudo)
+# Split out from reconfigure because a pull can bump nonguix's kernel base config
+# (e.g. 7.0-x86_64.conf -> 7.1-x86_64.conf), which changes the
+# linux-cachyos-bore derivation hash and silently orphans an already-built
+# kernel. Pull deliberately, then check, then reconfigure.
+
+# Pull root's Guix channels only (no reconfigure)
+guix-pull-system:
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{guix-substitute-urls}}" -C /home/worldofgeese/.config/home-manager/guix/channels.scm'
+
+# No pull: reconfigures against root's CURRENT channels. If the kernel derivation
+# is not already in the store this builds it inline (~3h on 4 cores). Run
+# `just kernel-status` first, or `just kernel-build` to do it detached.
+
+# Reconfigure Guix System against root's current channels (requires sudo)
 deploy-mahakala-system:
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{guix-substitute-urls}}" -C /home/worldofgeese/.config/home-manager/guix/channels.scm && guix system reconfigure --substitute-urls="{{guix-substitute-urls}}" --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix system reconfigure --substitute-urls="{{guix-substitute-urls}}" --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
+
+# The occasional "I accept a multi-hour kernel build" path.
+
+# Full enchilada: pull channels, build kernel, then reconfigure Guix System
+deploy-mahakala-system-full:
+    just guix-pull-system
+    just kernel-build
+    just deploy-mahakala-system
+
+# Evaluates with root's guix on purpose: your user profile is usually a different
+# generation and resolves a DIFFERENT derivation, so a user-side build is wasted.
+
+# Report whether the kernel root's Guix wants is already built
+kernel-status:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # -n as well as -d: a bare `guix build -d` blocks on the build lock whenever a
+    # kernel build is already running, and a status probe must never hang.
+    # -n prints prose rather than a bare path, so scrape the .drv out of it.
+    drv=$(sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build -n -d -L /home/worldofgeese/.config/home-manager/guix-packages -e "(@ (linux-cachyos) linux-cachyos-bore)"' 2>&1 \
+        | grep -ao '/gnu/store/[a-z0-9]\{32\}-linux-cachyos-bore-[0-9.]*\.drv' | head -1)
+    if [[ -z "$drv" || ! -e "$drv" ]]; then
+        echo "kernel-status: could not evaluate kernel derivation" >&2
+        exit 1
+    fi
+    out=$(grep -ao '/gnu/store/[a-z0-9]\{32\}-linux-cachyos-bore-[0-9.]*' "$drv" | head -1)
+    echo "derivation: $drv"
+    echo "output:     $out"
+    if [[ -n "$out" && -e "$out" ]]; then
+        echo "status:     BUILT (reconfigure will reuse it)"
+    else
+        echo "status:     NOT BUILT (reconfigure would build it inline, ~3h)"
+    fi
+    # -e, not just readlink: readlink -f on a missing path echoes the path back,
+    # which would misreport "stale" when no root has ever been created.
+    if [[ -L {{kernel-gc-root}} ]] && root=$(readlink -f {{kernel-gc-root}}) && [[ -e "$root" ]]; then
+        if [[ "$root" == "$out" ]]; then
+            echo "gc-root:    pinned (survives guix gc)"
+        else
+            echo "gc-root:    STALE, points at $root"
+        fi
+    else
+        echo "gc-root:    none (a built kernel is GC-eligible immediately)"
+    fi
+    echo "running:    $(uname -r)"
+    echo "system gen: $(sudo guix system describe 2>/dev/null | sed -n 's/^  label: //p' | head -1)"
+
+# Registers a GC root at {{kernel-gc-root}}. Without one, a freshly built kernel
+# has zero referrers and `guix gc` (which topgrade runs) deletes it before any
+# reconfigure can adopt it -- burning a ~3h build every single time.
+# Safe to re-run: if it is already built this returns in seconds.
+
+# Build the kernel root's Guix wants and pin it against GC
+kernel-build:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    log="/tmp/cachyos-bore-build-$(date +%Y%m%d-%H%M%S).log"
+    echo "kernel-build: logging to $log"
+    echo "kernel-build: follow with  tail -f $log"
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{guix-substitute-urls}}" --fallback --root={{kernel-gc-root}} -L /home/worldofgeese/.config/home-manager/guix-packages -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
+    echo "kernel-build: done -> $(readlink -f {{kernel-gc-root}})"
 
 # Deploy NixOS on paphos (remote server)
 deploy-paphos host="paphos":
@@ -94,7 +173,8 @@ update-rust-tools:
 update-input input:
     nix flake update --no-warn-dirty {{input}}
 
-# Upgrade CachyOS kernel to latest stable release
+# Bump the pinned CachyOS kernel version/hashes in guix-packages/linux-cachyos.scm.
+# Edits the file only -- builds nothing. Follow with `just kernel-build`.
 upgrade-kernel:
     ./scripts/upgrade-cachyos-kernel.sh
 

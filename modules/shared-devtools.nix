@@ -24,6 +24,8 @@
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.
           secretspec
+          # Pushes to the worldofgeese binary cache via `just cachix-push`.
+          cachix
           herdr
           pi
           omp

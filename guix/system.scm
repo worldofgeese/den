@@ -211,7 +211,12 @@ root ALL=(ALL) ALL
                      ;; 64MB default -- the source of "download buffer is full".
                      "download-buffer-size = 536870912\n"
                      "extra-trusted-substituters = https://cache.floxdev.com https://devenv.cachix.org https://nixpkgs-python.cachix.org https://cache.numtide.com\n"
-                     "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=\n"
+                     ;; The entries above are only *permitted*, not enabled: a
+                     ;; trusted substituter still has to be requested per build.
+                     ;; This one is enabled outright so decapod and anything else
+                     ;; pushed by `just cachix-push` is fetched instead of rebuilt.
+                     "extra-substituters = https://worldofgeese.cachix.org\n"
+                     "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=\n"
                      "experimental-features = nix-command flakes\n"))))
     (service tailscale-service-type)
     (simple-service 'msr-module kernel-module-loader-service-type '("msr"))

@@ -183,6 +183,18 @@ typecheck-pi-extensions:
 update:
     nix flake update --no-warn-dirty
 
+# Push this machine's Home Manager closure to the worldofgeese Cachix cache so
+# other hosts fetch instead of rebuilding. Reads CACHIX_AUTH_TOKEN from
+# secretspec (keyring) so the token never lands in a file or shell history.
+# Requires the cache's public key in guix/system.scm to consume the result.
+#
+# Push the current closure to Cachix
+cachix-push:
+    secretspec run -- sh -c '\
+      nix build --no-link --print-out-paths --no-warn-dirty \
+        .#homeConfigurations.worldofgeese.activationPackage \
+      | cachix push worldofgeese'
+
 # Update a single flake input
 update-input input:
     nix flake update --no-warn-dirty {{input}}

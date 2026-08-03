@@ -26,28 +26,32 @@ When implementing a plan, present intended changes for each phase before writing
 
 
 <!-- BEGIN BEADS INTEGRATION v:2 profile:br-agent-mail -->
+<!-- Hand-edited: switched from br to bd (2026-08-03). If a beads installer
+     regenerates this block back to br guidance, re-apply this change. -->
 ## Beads Issue Tracker
 
-This project uses **br (Beads Rust)** for issue tracking. `br` is canonical for all Beads operations. If older guidance mentions `bd`, treat it as stale and use `br` instead.
+This project uses **bd (beads)** for issue tracking. `bd` is canonical for all Beads operations. If older guidance mentions `br`, treat it as stale and use `bd` instead.
 
-Run `br robot-docs guide` for agent-focused command guidance. Prefer `RUST_LOG=error br ...` to suppress noisy Rust dependency logs while preserving normal stdout/JSON output.
+Run `bd prime` for agent-focused workflow context and command guidance.
 
 ### Quick Reference
 
 ```bash
-br ready --json                         # Find available work
-br show <id> --json                      # View issue details
-br update <id> --status in_progress      # Mark work in progress
-br close <id> --reason "Completed"        # Complete work
-br sync --flush-only                     # Ensure JSONL export is current
+bd ready --json                         # Find available work
+bd show <id> --json                     # View issue details
+bd update <id> --claim                  # Claim work (assignee + in_progress)
+bd close <id> --reason "Completed"      # Complete work
+bd export --output .beads/issues.jsonl  # Refresh the JSONL export
 ```
 
 ### Rules
 
-- Use `br` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
-- `br` has no `prime` or `remember` subcommands. Use `br robot-docs guide` for command guidance; store durable knowledge as Bead comments, Bead descriptions, follow-up Beads, or Agent Mail threads. Do NOT use MEMORY.md files
-- `br` is non-invasive: it never commits, pushes, pulls, installs hooks, or runs as a background service. Git handoff is your responsibility
-- `br` mutations auto-flush JSONL by default; still run `br sync --flush-only` as a final export check before committing/pushing
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Use `bd remember "insight"` for durable project memory. Do NOT create MEMORY.md files
+- `bd` has no `sync` subcommand — `bd export` is the JSONL flush path, and there is no `robot-docs`
+- Git handoff is your responsibility: `bd` does not commit or push for you
+- This repo runs embedded-Dolt mode (`.beads/embeddeddolt/`), where `bd doctor` is unsupported and exits with guidance instead of running checks
+- `bd export` omits `source_repo` / `source_repo_path`, which the committed `.beads/issues.jsonl` carries on every issue. Do not commit an export that drops them — check `git diff .beads/issues.jsonl` before staging
 
 ## Session Completion
 
@@ -61,7 +65,7 @@ br sync --flush-only                     # Ensure JSONL export is current
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   br sync --flush-only
+   bd export --output .beads/issues.jsonl
    git status --short  # .beads changes must be committed before push
    git push
    git status  # MUST show "up to date with origin"

@@ -8,6 +8,15 @@ guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.
 # `just kernel-build` and the `guix system reconfigure` that adopts it.
 kernel-gc-root := "/var/guix/gcroots/cachyos-bore-kernel"
 
+# Closure `just cachix-push` uploads by default. Cache entries are per system,
+# so each host pushes its own: mahakala the Home Manager activation package,
+# M-02877 the nix-darwin system.
+default-cachix-attr := if os() == "macos" {
+  ".#darwinConfigurations.M-02877.system"
+} else {
+  ".#homeConfigurations.worldofgeese.activationPackage"
+}
+
 default:
     @just --list
 
@@ -183,16 +192,18 @@ typecheck-pi-extensions:
 update:
     nix flake update --no-warn-dirty
 
-# Push this machine's Home Manager closure to the worldofgeese Cachix cache so
-# other hosts fetch instead of rebuilding. Reads CACHIX_AUTH_TOKEN from
-# secretspec (keyring) so the token never lands in a file or shell history.
-# Requires the cache's public key in guix/system.scm to consume the result.
+# Push this machine's closure to the worldofgeese Cachix cache so other hosts
+# fetch instead of rebuilding. Reads CACHIX_AUTH_TOKEN from secretspec
+# (keyring) so the token never lands in a file, argv, or shell history.
+#
+# Each host must push its own builds: a cache entry is per system, and mahakala
+# is x86_64-linux with no aarch64-darwin capability, so it cannot populate
+# anything M-02877 would consume. Run this on both.
 #
 # Push the current closure to Cachix
-cachix-push:
+cachix-push flake-attr=default-cachix-attr:
     secretspec run -- sh -c '\
-      nix build --no-link --print-out-paths --no-warn-dirty \
-        .#homeConfigurations.worldofgeese.activationPackage \
+      nix build --no-link --print-out-paths --no-warn-dirty {{flake-attr}} \
       | cachix push worldofgeese'
 
 # Update a single flake input

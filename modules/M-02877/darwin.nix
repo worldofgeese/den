@@ -42,6 +42,13 @@
         auto-optimise-store = true;
         extra-deprecated-features = ["or-as-identifier"];
         trusted-users = ["root" "dktaohan"];
+        # Pull decapod and anything else `just cachix-push` uploads from mahakala
+        # instead of recompiling it here. Upstream publishes no cache, so without
+        # this every version bump costs a local Rust build.
+        extra-substituters = ["https://worldofgeese.cachix.org"];
+        extra-trusted-public-keys = [
+          "worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs="
+        ];
       };
 
       users.users.dktaohan.home = "/Users/dktaohan";

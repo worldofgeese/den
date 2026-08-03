@@ -94,6 +94,16 @@
       # libsql publishes a cp314 wheel.
       home.extraActivationPath = [pkgs.python313 pkgs.git];
 
+      # `uv tool install` warns "`~/.local/bin` is not on your PATH" on every
+      # activation. The directory is on the *login* PATH via home.sessionPath;
+      # it is only missing from the store-only activation PATH described above,
+      # so the warning is noise. Prepending it here silences it. Activation
+      # entries share one bash process, so this export also reaches later
+      # entries -- harmless, since the login shell has the same directory.
+      home.activation.uvToolBinOnPath = lib.hm.dag.entryBefore ["uvTool"] ''
+        export PATH="$HOME/.local/bin:$PATH"
+      '';
+
       programs.github-copilot-cli.enable = true;
       programs.direnv = {
         enable = true;

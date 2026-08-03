@@ -14,34 +14,12 @@
         omp = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
       })
       (final: prev: {
-        decapod = final.rustPlatform.buildRustPackage {
-          pname = "decapod";
-          version = "0.95.2";
-
-          src = final.fetchzip {
-            url = "https://static.crates.io/crates/decapod/decapod-0.95.2.crate";
-            extension = "tar.gz";
-            hash = "sha256-o34LmBSnloAQbhpXGnyKhUdY+uwNnQxoulQhq035WOQ=";
-          };
-
-          cargoHash = "sha256-1fWp9LlpK/n7og8oP+0mRbQW/CSSGSJYxT3ByxbEMKI=";
-
-          doCheck = false;
-
-          nativeBuildInputs = with final;
-            [pkg-config]
-            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [lld autoPatchelfHook];
-          nativeCheckInputs = [final.git];
-          buildInputs =
-            [final.sqlite]
-            ++ final.lib.optionals final.stdenv.hostPlatform.isLinux [final.openssl final.stdenv.cc.cc.lib];
-
-          meta = {
-            description = "Decapod CLI — repo-native governance kernel for AI agents";
-            homepage = "https://crates.io/crates/decapod";
-            mainProgram = "decapod";
-          };
-        };
+        # Upstream ships packages.default as of DecapodLabs/decapod#1169, so the
+        # version and both hashes now come from flake.lock. This previously was a
+        # buildRustPackage here, which meant scripts/update-rust-tools.sh had to
+        # re-derive the crate hash and discover cargoHash by building with a fake
+        # one and scraping the mismatch out of stderr on every release.
+        decapod = inputs.decapod.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
         # Re-enabled: the fastmcp test flake that motivated disabling this is
         # handled by the python313Packages fastmcp doCheck=false overlay below.

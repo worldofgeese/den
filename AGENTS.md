@@ -2,9 +2,8 @@
 
 Use the repository `Justfile` for updates and deployments instead of running the underlying Nix/Guix commands directly.
 
-- `just update` updates all flake inputs and then runs `just update-rust-tools` so pinned Rust tools stay current.
-- `just update-rust-tools` refreshes Rust tool pins in `modules/overlays.nix` to the latest upstream releases and recomputes source and Cargo hashes.
-- `just update-input <input>` updates one flake input only; run `just update-rust-tools` separately if Rust tool pins should also be refreshed.
+- `just update` updates all flake inputs. Rust tools no longer need a separate step: `decapod` comes from its upstream flake and `rtk` from nixpkgs, so both track through `flake.lock`.
+- `just update-input <input>` updates one flake input only, e.g. `just update-input decapod`.
 - `just check` evaluates the NixOS, Home Manager, nix-darwin, and nix-on-droid entrypoints explicitly to avoid known-noise custom-output warnings from `nix flake check`.
 - `just deploy-mahakala` updates and deploys Guix System, Guix Home, and Home Manager for mahakala.
 - `just deploy-mahakala-hm` updates and applies only the mahakala Home Manager profile.

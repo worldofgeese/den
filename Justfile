@@ -182,11 +182,6 @@ typecheck-pi-extensions:
 # Update all flake inputs
 update:
     nix flake update --no-warn-dirty
-    just update-rust-tools
-
-# Update pinned Rust tools to latest upstream releases
-update-rust-tools:
-    ./scripts/update-rust-tools.sh
 
 # Update a single flake input
 update-input input:

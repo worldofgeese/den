@@ -42,9 +42,11 @@
         auto-optimise-store = true;
         extra-deprecated-features = ["or-as-identifier"];
         trusted-users = ["root" "dktaohan"];
-        # Pull decapod and anything else `just cachix-push` uploads from mahakala
-        # instead of recompiling it here. Upstream publishes no cache, so without
-        # this every version bump costs a local Rust build.
+        # Fetch whatever this host has already pushed with `just cachix-push`
+        # instead of recompiling it. Upstream publishes no cache, so every
+        # decapod bump otherwise costs a local Rust build. Note the cache cannot
+        # be populated from mahakala: entries are per system and this host is
+        # aarch64-darwin.
         extra-substituters = ["https://worldofgeese.cachix.org"];
         extra-trusted-public-keys = [
           "worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs="

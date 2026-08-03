@@ -31,10 +31,13 @@
           omp
           bv
           mcp-agent-mail
+          # Governance kernel, used on every host. Was Darwin-excluded and
+          # installed there by `cargo install decapod` in an activation hook,
+          # which failed silently and left the version unpinned.
+          decapod
         ]
         ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
           rtk
-          decapod
           br
         ];
 

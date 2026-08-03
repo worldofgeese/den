@@ -58,11 +58,6 @@
         "$HOME/.dotnet/tools"
       ];
 
-      home.activation.cargoInstall = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        export PATH="${pkgs.rustup}/bin:$HOME/.cargo/bin:$PATH"
-        run cargo install decapod 2>/dev/null || true
-      '';
-
       # Pi reaches the gateway through a models.json provider, not an extension.
       # models.json is deliberately left unmanaged: it reloads live when /model
       # is opened, so the endpoint can be re-pointed without a rebuild when the

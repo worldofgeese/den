@@ -151,7 +151,7 @@
         alejandra
         nh
         headsetcontrol
-        texlive.combined.scheme-small
+        texliveSmall
         vale
         pnpm
         rustup

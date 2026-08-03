@@ -302,6 +302,12 @@ mv \"$tmp\" \"$target\""))
                           ;; Was missing here entirely; see the note above.
                           (string-append "HEADROOM_MODE="
                                          (gateway-ref "headroom" "mode"))
+                          ;; Load-bearing: the gateway speaks HTTP/2 and recycles
+                          ;; connections with a GOAWAY that headroom's pool does not
+                          ;; recover from, wedging its single uvicorn worker so even
+                          ;; /livez stops answering. See modules/M-02877/darwin.nix.
+                          (string-append "HEADROOM_HTTP2="
+                                         (gateway-ref "headroom" "http2"))
                           (string-append "ANTHROPIC_TARGET_API_URL="
                                          (gateway-ref "baseUrl")
                                          (gateway-ref "paths" "claude"))))

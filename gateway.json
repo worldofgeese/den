@@ -16,6 +16,7 @@
     "image": "ghcr.io/headroomlabs-ai/headroom:latest",
     "containerPort": 8787,
     "mode": "cache",
+    "http2": "off",
     "storeUrl": "sqlite:////data/headroom.db",
     "savingsPath": "/data/proxy_savings.json",
     "telemetry": "off",

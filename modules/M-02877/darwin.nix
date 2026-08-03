@@ -90,7 +90,19 @@
                 # gateway.json so Guix Home cannot silently run a different mode, which
                 # is exactly what it was doing. Explicit args replace the image CMD, so
                 # --host/--port must be repeated here.
-                $C image pull ${gateway.headroom.image} && exec $C run --rm --name headroom --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=${gateway.headroom.mode} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
+                #
+                # HEADROOM_HTTP2=off is load-bearing, not a tuning knob. The gateway
+                # speaks HTTP/2, and headroom multiplexes many streams onto one upstream
+                # connection. When the gateway's LB recycled that connection it sent a
+                # GOAWAY (ConnectionTerminated error_code:0 -- NO_ERROR, i.e. routine),
+                # which headroom's pool did not recover from. Uvicorn defaults to a single
+                # worker, so the hung upstream calls saturated the only event loop and the
+                # proxy stopped answering everything -- including /livez, which touches no
+                # upstream. Container status stayed `running` throughout, so nothing
+                # noticed. HTTP/1.1 gives up multiplexing we do not benefit from here
+                # (few, long, streaming requests) and removes the shared-connection blast
+                # radius entirely.
+                $C image pull ${gateway.headroom.image} && exec $C run --rm --name headroom --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;

@@ -112,6 +112,93 @@
           };
         };
 
+        # Nothing above notices a headroom that is alive but serving nothing.
+        # KeepAlive only fires when the process *dies*, and on 2026-08-03 it
+        # never died: an upstream stall saturated its single uvicorn worker, so
+        # every endpoint timed out -- including /livez, which touches no
+        # upstream -- while `container list` still said `running`. That outage
+        # ran for hours before a human noticed. HEADROOM_HTTP2=off removes the
+        # trigger we hit; this removes the whole category.
+        #
+        # Probe /readyz, not /livez: /readyz exercises the upstream and fails
+        # first. Three consecutive failures (~3 min) clears headroom's ~30s
+        # model-load startup and a deploy restart without false-firing.
+        #
+        # Recovery is the sequence proven during that incident. Killing the
+        # container-runtime-linux helper is what actually frees the container:
+        # `container stop` cannot be relied on, because Apple container 1.2.0
+        # fails to deliver the signal over XPC ("missing signal in xpc
+        # message") and hangs forever -- which also deadlocks the KeepAlive
+        # agent above on its own prestart `$C stop`. Kill the helper first so
+        # that prestart line can return; only then kill a supervisor that has
+        # not exited on its own.
+        headroom-watchdog = {
+          serviceConfig = {
+            Label = "com.headroom.watchdog";
+            ProgramArguments = [
+              "/bin/sh"
+              "-c"
+              ''
+                URL=${gateway.headroom.loopbackUrl entity}/readyz
+                STATE=/tmp/headroom-watchdog.state
+                COOLDOWN=/tmp/headroom-watchdog.cooldown
+                THRESHOLD=3
+
+                if /usr/bin/curl -sf -o /dev/null -m 10 "$URL"; then
+                  rm -f "$STATE"
+                  exit 0
+                fi
+
+                FAILS=$(cat "$STATE" 2>/dev/null || echo 0)
+                FAILS=$((FAILS + 1))
+                echo "$FAILS" > "$STATE"
+                echo "$(/bin/date -Iseconds) /readyz failed ($FAILS/$THRESHOLD)"
+                [ "$FAILS" -lt "$THRESHOLD" ] && exit 0
+
+                # Never thrash: a headroom that is broken rather than wedged
+                # would otherwise be restarted every three minutes forever.
+                NOW=$(/bin/date +%s)
+                LAST=$(cat "$COOLDOWN" 2>/dev/null || echo 0)
+                if [ $((NOW - LAST)) -lt 600 ]; then
+                  echo "$(/bin/date -Iseconds) still failing, but within 10m cooldown -- not acting"
+                  exit 0
+                fi
+
+                # Match the helper for *this* container only, and anchor on the
+                # command path: this agent's own `/bin/sh -c <script>` process
+                # carries the whole script -- including these very strings -- in
+                # its command line, so a substring search would match the
+                # watchdog itself and kill the wrong pid. $2 is the executable,
+                # which is /bin/sh for this agent and /usr/bin/awk for the
+                # search. Both the --root path and --uuid carry the container
+                # name, so phoenix and local-model-proxy cannot be hit either.
+                HELPER=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && index($0,"containers/headroom") {print $1; exit}')
+                if [ -n "$HELPER" ]; then
+                  echo "$(/bin/date -Iseconds) recovering: killing wedged headroom VM helper pid $HELPER"
+                  kill -9 "$HELPER" 2>/dev/null || true
+                fi
+
+                # `container run --rm` normally exits once its container is
+                # gone; if it has not, it is the orphan case from the incident.
+                sleep 5
+                SUP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container$/ && index($0,"--name headroom") {print $1; exit}')
+                if [ -n "$SUP" ]; then
+                  echo "$(/bin/date -Iseconds) supervisor pid $SUP did not exit; killing it too"
+                  kill -9 "$SUP" 2>/dev/null || true
+                fi
+
+                echo "$NOW" > "$COOLDOWN"
+                rm -f "$STATE"
+                echo "$(/bin/date -Iseconds) recovery done; KeepAlive will recreate headroom"
+              ''
+            ];
+            RunAtLoad = true;
+            StartInterval = 60;
+            StandardOutPath = "/tmp/headroom-watchdog.log";
+            StandardErrorPath = "/tmp/headroom-watchdog.err";
+          };
+        };
+
         phoenix = {
           serviceConfig = {
             Label = "com.phoenix";

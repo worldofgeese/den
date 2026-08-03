@@ -61,3 +61,6 @@ result/
 
 # Local scratch space for in-flight investigations
 .scratch/
+
+# Cave agent worktrees and session scratch.
+.cave/

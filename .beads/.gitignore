@@ -6,6 +6,7 @@
 
 # Lock files
 *.lock
+.write.lock
 
 # Temporary
 last-touched
@@ -39,8 +40,21 @@ daemon.pid
 bd.sock
 sync-state.json
 
+# Per-machine runtime state upstream never tracks (trackedRuntimePatterns /
+# trackedRuntimeDirPrefixes in cmd/bd/doctor/tracked_runtime.go). `backup/` is
+# Dolt-native full-DB backup for off-machine recovery — local-only unless
+# `backup.git-push` is set, which it is not here.
+.local_version
+backup/
+
 # Worktree redirect file
 redirect
 
 # bv (beads viewer) lock file
 .bv.lock
+
+# Local interaction log (per-machine). Records who changed which field and why,
+# so it carries operator names and free-text reasons. `br sync --flush-only`
+# does not touch it, and no tracked beads file references it — it is local
+# telemetry, not shared state.
+interactions.jsonl

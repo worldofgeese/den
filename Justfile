@@ -153,8 +153,11 @@ deploy-oracle host="nixos@158.180.52.169" build-host="nixos@158.180.52.169":
 # own step, so input refreshes still happen — they just fail independently.
 #
 # Deploy nix-darwin on M-02877 (macOS)
+# `--option warn-dirty false`, not `env NIX_CONFIG=...`: the sudoers rule in
+# modules/M-02877/darwin.nix whitelists `darwin-rebuild switch *`, and wrapping
+# it in env makes /usr/bin/env the command sudo matches, which is denied.
 deploy-darwin:
-    sudo -H env NIX_CONFIG='warn-dirty = false' darwin-rebuild switch --flake .#M-02877
+    sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --flake .#M-02877
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:

@@ -83,8 +83,16 @@
       };
 
       # uv resolves its interpreter from PATH during activation, and activation
-      # does not inherit the login PATH. See programs.uv above.
-      home.extraActivationPath = [pkgs.python3];
+      # does not inherit the login PATH. See programs.uv above. git is needed for
+      # the same reason: uv shells out to it for `git+` tool requirements and
+      # otherwise fails with "Git executable not found".
+      #
+      # python313, not python3: crucible-llm depends on libsql, whose newest
+      # release (0.1.11) ships macOS arm64 wheels only up to cp313. On 3.14 uv
+      # falls back to building it from source, which needs a Rust toolchain and a
+      # linker that the store-only activation PATH does not have. Bump this when
+      # libsql publishes a cp314 wheel.
+      home.extraActivationPath = [pkgs.python313 pkgs.git];
 
       programs.github-copilot-cli.enable = true;
       programs.direnv = {

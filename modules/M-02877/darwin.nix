@@ -102,7 +102,23 @@
                 # noticed. HTTP/1.1 gives up multiplexing we do not benefit from here
                 # (few, long, streaming requests) and removes the shared-connection blast
                 # radius entirely.
-                $C image pull ${gateway.headroom.image} && exec $C run --rm --name headroom --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
+                # -m is not optional. Measured on 2026-08-03: memory.current sat
+                # at 967 MB against Apple container's 1024 MB default cap --
+                # 94.5% and still climbing -- with SwapTotal 0, five minutes
+                # after a restart. onnxruntime embeddings plus --memory --learn
+                # plus 76k-token requests do not fit, so a large request trips
+                # the kernel OOM killer. headroom is SIGKILLed before it can log
+                # anything, the launchd job records exit 137, and the
+                # container-runtime-linux helper is left orphaned -- which then
+                # presents as the same total wedge as an upstream stall, with no
+                # traceback to tell them apart.
+                #
+                # The value lives in gateway.json because the ~1 GB working set
+                # is a property of headroom, not of this machine: mahakala would
+                # OOM at the same ceiling. Only Apple container caps at 1 GB by
+                # default -- podman does not -- so leaving it implicit is exactly
+                # the silent cross-substrate drift that file exists to prevent.
+                $C image pull ${gateway.headroom.image} && exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;

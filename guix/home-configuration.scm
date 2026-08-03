@@ -317,7 +317,14 @@ mv \"$tmp\" \"$target\""))
                                          (gateway-ref "headroom" "containerPort"))
                                "--memory"
                                "--learn"))
-                        (extra-arguments '("--pull" "always"))
+                        ;; -m matters here even though podman, unlike Apple
+                        ;; container, does not cap memory by default: headroom's
+                        ;; working set measured ~967 MB with no swap, so an
+                        ;; unbounded container just moves the OOM up to the host.
+                        ;; See modules/M-02877/darwin.nix for the measurement.
+                        (extra-arguments
+                         (list "--pull" "always"
+                               "-m" (gateway-ref "headroom" "memory")))
                         (respawn? #t)
                         (auto-start? #t)
                         (log-file

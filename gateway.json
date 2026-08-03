@@ -17,6 +17,7 @@
     "containerPort": 8787,
     "mode": "cache",
     "http2": "off",
+    "memory": "4g",
     "storeUrl": "sqlite:////data/headroom.db",
     "savingsPath": "/data/proxy_savings.json",
     "telemetry": "off",

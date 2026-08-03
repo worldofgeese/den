@@ -56,6 +56,10 @@
         "$HOME/.local/share/pnpm/bin"
         "/opt/homebrew/bin"
         "$HOME/.dotnet/tools"
+        # bao compiles to $HOME/.bun/bin (hardcoded in its build script);
+        # `bun add -g` puts everything else in $HOME/.cache/.bun/bin.
+        "$HOME/.bun/bin"
+        "$HOME/.cache/.bun/bin"
       ];
 
       # Pi reaches the gateway through a models.json provider, not an extension.

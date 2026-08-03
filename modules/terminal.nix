@@ -35,6 +35,8 @@
         fileWidget.options = ["--preview 'bat --color=always --style=numbers --line-range=:500 {}'"];
         changeDirWidget.command = "fd --type d --hidden --follow --exclude .git";
         changeDirWidget.options = ["--preview 'eza --tree --color=always --icons {} | head -200'"];
+        # Atuin owns Ctrl-R; keep fzf off that key to avoid the clash.
+        historyWidget.command = "";
         tmux.enableShellIntegration = true;
       };
 

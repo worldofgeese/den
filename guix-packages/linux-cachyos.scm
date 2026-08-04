@@ -8,7 +8,7 @@
 
 ;; CachyOS kernel — upstream source with CachyOS patches.
 ;; linux-cachyos: pre-patched CachyOS/linux release tarball (POC scheduler).
-;; linux-cachyos-bore: upstream Linux kernel.org tarball + BORE scheduler patch.
+;; linux-cachyos-bore: same CachyOS tarball + the bore-cachy scheduler patch.
 ;;
 ;; Includes: BBR3, CachyOS tuning, MGLRU improvements, ACS override,
 ;; ADIOS I/O scheduler, v4l2loopback, NTFS, and more.
@@ -32,25 +32,22 @@
     (sha256
      (base32 "1f8khws8ss8frd51sl4l2yp8yak0rpxvkxwy4cwgw2saf9yj36lg"))))
 
-;; BORE variant uses upstream Linux + vanilla bore patch (no pre-patched CachyOS tarball)
-;; The bore-cachy patch contains #ifdef CONFIG_CACHY guards that expect the CachyOS
-;; kernel tree; when applied to upstream, the context doesn't match. The vanilla
-;; bore patch applies cleanly.
+;; BORE variant: CachyOS tarball + bore-cachy patch. The bore-cachy patch has
+;; #ifdef CONFIG_CACHY guards written against the CachyOS tree, so it must be
+;; applied to the CachyOS tarball, not to upstream kernel.org sources. The
+;; CachyOS tarball itself defines no CONFIG_SCHED_BORE symbol; this patch adds it.
 (define %cachyos-bore-source
   (origin
-    (method url-fetch)
-    (uri (string-append
-          "https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-"
-          %cachyos-version ".tar.xz"))
-    (sha256
-     (base32 "1rs162gcf6hsafrrmp3y8k9myn20s3s62xdp4zf39pxw7imik812"))
+    (inherit %cachyos-source)
     (patches
      (list
       (origin
         (method url-fetch)
-        (uri "https://raw.githubusercontent.com/cachyos/kernel-patches/master/7.1/sched/0001-bore.patch")
+        (uri (string-append
+              "https://raw.githubusercontent.com/cachyos/kernel-patches/master/"
+              %cachyos-upstream-version "/sched/0001-bore-cachy.patch"))
         (sha256
-         (base32 "1sgzl6qhl9nlxclr8gf8ri1aaw3s4sw46bhwd8rlm50gg1d7xjg4")))))))
+         (base32 "0lc62n7llaqnk8n45dc9wly2yczqqyzgacjpb71sj8qsrq0l30a4")))))))
 
 (define %cachyos-base-configs
   '("CONFIG_CACHY=y"
@@ -67,11 +64,6 @@
     ;; in CachyOS config. Explicitly unset them.
     "# CONFIG_USB_KBD is not set"
     "# CONFIG_USB_MOUSE is not set"))
-
-;; Upstream vanilla Linux has no CONFIG_CACHY (CachyOS tarball only).
-(define %cachyos-bore-base-configs
-  (filter (lambda (c) (not (string=? c "CONFIG_CACHY=y")))
-          %cachyos-base-configs))
 
 (define* (make-cachyos-kernel #:key name localversion extra-configs
                               (source %cachyos-source)
@@ -92,11 +84,10 @@
 (define-public linux-cachyos
   (make-cachyos-kernel #:name "linux-cachyos"
                        #:localversion "-cachyos"
-                       #:extra-configs '("CONFIG_SCHED_BORE=y")))
+                       #:extra-configs '()))
 
 (define-public linux-cachyos-bore
   (make-cachyos-kernel #:name "linux-cachyos-bore"
                        #:localversion "-cachyos-bore"
                        #:source %cachyos-bore-source
-                       #:base-configs %cachyos-bore-base-configs
                        #:extra-configs '("CONFIG_SCHED_BORE=y")))

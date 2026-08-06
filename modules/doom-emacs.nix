@@ -182,12 +182,12 @@
                 export DOOMPROFILE="nix"
                 export DOOMDIR="${emacsPkg.doomEmacs.doomProfile}/doomdir"
                 export DOOMLOCALDIR="${emacsPkg.doomEmacs.doomLocalDir}"
-                exec /Applications/Emacs.app/Contents/MacOS/Emacs --init-directory="${emacsPkg.doomEmacs.doomSource}" "$@"
+                exec ${config.home.homeDirectory}/Applications/Emacs.app/Contents/MacOS/Emacs --init-directory="${emacsPkg.doomEmacs.doomSource}" "$@"
                 EOF
                 cat >$out/bin/emacsclient <<'EOF'
                 #!${pkgs.runtimeShell}
                 unset EMACSLOADPATH
-                exec /Applications/Emacs.app/Contents/MacOS/bin/emacsclient "$@"
+                exec ${config.home.homeDirectory}/Applications/Emacs.app/Contents/MacOS/bin/emacsclient "$@"
                 EOF
                 chmod +x $out/bin/emacs $out/bin/emacsclient
                 mkdir -p "$out/Applications/Doom Emacs.app/Contents/MacOS"

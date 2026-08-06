@@ -404,6 +404,7 @@
       homebrew = {
         enable = true;
         global.autoUpdate = true;
+        caskArgs.appdir = "/Users/dktaohan/Applications";
         onActivation.autoUpdate = true;
         onActivation.upgrade = true;
         onActivation.cleanup = "none"; # TODO: restore to "zap" once nix-darwin#1774 is merged (Homebrew broke --cleanup without --force)

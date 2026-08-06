@@ -195,8 +195,8 @@ check-doom-darwin:
     test -x "$wrapper/bin/emacs"
     test -x "$wrapper/bin/emacsclient"
     test -x "$wrapper/Applications/Doom Emacs.app/Contents/MacOS/Doom Emacs"
-    [[ "$(<"$wrapper/bin/emacs")" == *'/Applications/Emacs.app/Contents/MacOS/Emacs'* ]]
-    [[ "$(<"$wrapper/bin/emacsclient")" == *'/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'* ]]
+    [[ "$(<"$wrapper/bin/emacs")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/Emacs'* ]]
+    [[ "$(<"$wrapper/bin/emacsclient")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'DOOMPROFILE="nix"'* ]]
     echo "Darwin Doom launchers validated: $wrapper"
 

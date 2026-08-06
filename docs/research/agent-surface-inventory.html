@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coding agent surface inventory — OMP · Pi · Copilot CLI · Claude Code</title>
+<style>
+:root {
+  --bg: #fbfaf8;
+  --panel: #ffffff;
+  --ink: #1b1a17;
+  --ink-soft: #55524c;
+  --ink-faint: #8a857c;
+  --rule: #e3dfd7;
+  --rule-strong: #cfc9bd;
+  --accent: #8a4b1f;
+  --accent-soft: #f3e7dc;
+  --yes: #2f6b3a;
+  --yes-bg: #e6f0e5;
+  --no: #9a3232;
+  --no-bg: #f6e6e4;
+  --warn: #7a5a10;
+  --warn-bg: #f7eed4;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131311;
+    --panel: #1a1a18;
+    --ink: #ece8e0;
+    --ink-soft: #b3aea3;
+    --ink-faint: #7d786e;
+    --rule: #2c2b28;
+    --rule-strong: #3d3b36;
+    --accent: #e0a273;
+    --accent-soft: #2a211a;
+    --yes: #8fce9b;
+    --yes-bg: #1c2a1e;
+    --no: #e79c96;
+    --no-bg: #2c1d1c;
+    --warn: #e2c079;
+    --warn-bg: #2b2517;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+  font-feature-settings: "kern", "liga";
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 3.5rem 1.5rem 6rem; }
+
+header.masthead { border-bottom: 2px solid var(--ink); padding-bottom: 1.4rem; margin-bottom: 2.6rem; }
+.eyebrow {
+  font: 600 0.72rem/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.9rem;
+}
+h1 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); line-height: 1.15; margin: 0 0 0.7rem; letter-spacing: -0.02em; }
+.subtitle { color: var(--ink-soft); margin: 0 0 1.3rem; max-width: 62ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1.6rem; font: 0.8rem/1.5 var(--mono); color: var(--ink-faint); }
+.meta b { color: var(--ink-soft); font-weight: 600; }
+
+nav.toc {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 3rem;
+}
+nav.toc h2 { font: 600 0.72rem/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.7rem; }
+nav.toc ol { margin: 0; padding-left: 1.3rem; columns: 2; column-gap: 2.5rem; }
+@media (max-width: 640px) { nav.toc ol { columns: 1; } }
+nav.toc li { margin: 0.18rem 0; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+section { margin-bottom: 3.4rem; }
+h2 {
+  font-size: 1.3rem; letter-spacing: -0.01em;
+  margin: 0 0 0.4rem; padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--rule-strong);
+}
+h2 .num { font: 600 0.85rem/1 var(--mono); color: var(--accent); margin-right: 0.6rem; }
+h3 { font-size: 1rem; margin: 2rem 0 0.5rem; letter-spacing: -0.005em; }
+h3 .num { font: 600 0.8rem/1 var(--mono); color: var(--ink-faint); margin-right: 0.5rem; }
+p { margin: 0.7rem 0; max-width: 80ch; }
+p.lede { color: var(--ink-soft); margin-top: 0.8rem; }
+
+code, kbd { font: 0.855em/1.4 var(--mono); background: var(--accent-soft); color: var(--ink); padding: 0.1em 0.34em; border-radius: 3px; word-break: break-word; }
+
+.tablewrap { overflow-x: auto; margin: 1.1rem 0; border: 1px solid var(--rule); background: var(--panel); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+caption { text-align: left; font: 600 0.72rem/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); padding: 0.8rem 0.9rem 0.4rem; }
+th, td { text-align: left; padding: 0.6rem 0.9rem; border-top: 1px solid var(--rule); vertical-align: top; }
+thead th { border-top: none; border-bottom: 2px solid var(--rule-strong); font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+tbody tr:nth-child(even) { background: color-mix(in srgb, var(--rule) 26%, transparent); }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+th[scope="row"] { font-weight: 600; white-space: nowrap; }
+
+.badge { display: inline-block; font: 600 0.72rem/1.5 var(--mono); padding: 0.05rem 0.45rem; border-radius: 3px; white-space: nowrap; }
+.y { background: var(--yes-bg); color: var(--yes); }
+.n { background: var(--no-bg); color: var(--no); }
+.q { background: var(--warn-bg); color: var(--warn); }
+
+.callout { border: 1px solid var(--rule); border-left: 3px solid var(--accent); background: var(--panel); padding: 0.9rem 1.2rem; margin: 1.3rem 0; }
+.callout.risk { border-left-color: var(--no); }
+.callout .label { font: 600 0.7rem/1 var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 0.4rem; }
+.callout p:first-of-type { margin-top: 0; }
+.callout p:last-child { margin-bottom: 0; }
+
+ul.pillbox { list-style: none; padding: 0; margin: 0.9rem 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+ul.pillbox li { font: 0.8rem/1.5 var(--mono); background: var(--panel); border: 1px solid var(--rule); padding: 0.1rem 0.5rem; border-radius: 3px; }
+ul.pillbox.danger li { border-color: color-mix(in srgb, var(--no) 45%, var(--rule)); }
+
+ol.ranked { counter-reset: r; list-style: none; padding: 0; margin: 1.2rem 0 0; }
+ol.ranked > li { counter-increment: r; position: relative; padding: 0.75rem 0 0.75rem 3rem; border-top: 1px solid var(--rule); max-width: 88ch; }
+ol.ranked > li::before {
+  content: counter(r);
+  position: absolute; left: 0; top: 0.72rem;
+  font: 600 0.85rem/1.6 var(--mono);
+  width: 1.9rem; height: 1.9rem; text-align: center;
+  color: var(--accent); background: var(--accent-soft); border-radius: 50%;
+}
+ol.ranked > li:last-child { border-bottom: 1px solid var(--rule); }
+ol.ranked b { letter-spacing: -0.005em; }
+
+footer { border-top: 1px solid var(--rule-strong); padding-top: 1.2rem; color: var(--ink-faint); font-size: 0.84rem; }
+footer p { max-width: 80ch; }
+
+@media print {
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  .wrap { padding: 0; max-width: none; }
+  nav.toc { display: none; }
+  section { break-inside: avoid-page; }
+  .tablewrap { overflow: visible; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">Configuration audit · inventory only</p>
+  <h1>Coding agent surface inventory</h1>
+  <p class="subtitle">What differs between the four installed coding agents across skills, plugins, and <em>global</em> instruction files. Repository-scoped instruction files are deliberately out of scope. Nothing here has been changed — this is a port-decision worksheet.</p>
+  <div class="meta">
+    <span><b>Date</b> 2026-08-06</span>
+    <span><b>Host</b> M-02877 (darwin arm64)</span>
+    <span><b>Issue</b> home-manager-07t</span>
+    <span><b>Agents</b> OMP · Pi · GitHub Copilot CLI · Claude Code</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#instructions">Global instruction files</a></li>
+    <li><a href="#skills">Skill stores</a></li>
+    <li><a href="#plugins">Plugins and packages</a></li>
+    <li><a href="#ports">Port candidates, ranked</a></li>
+  </ol>
+</nav>
+
+<section id="instructions">
+  <h2><span class="num">1</span>Global instruction files</h2>
+  <p class="lede">User-level instruction files only. Every path below was probed directly.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption>User-level instruction files, by harness</caption>
+      <thead>
+        <tr><th>Harness</th><th>Global file</th><th class="num">Bytes</th><th>Content</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Claude Code</th>
+          <td><code>~/.claude/CLAUDE.md</code></td>
+          <td class="num">372</td>
+          <td><code>@RTK.md</code> import + Beads rules</td>
+          <td><code>~/.claude/RTK.md</code> (964 B) pulled in by reference</td>
+        </tr>
+        <tr>
+          <th scope="row">OMP</th>
+          <td><span class="badge q">none of its own</span></td>
+          <td class="num">—</td>
+          <td>Reads <code>~/.claude/CLAUDE.md</code></td>
+          <td>Confirmed: the live session's injected repo-rules block cites that exact path</td>
+        </tr>
+        <tr>
+          <th scope="row">Pi</th>
+          <td><span class="badge n">none</span></td>
+          <td class="num">—</td>
+          <td>—</td>
+          <td>No <code>AGENTS.md</code>, <code>SYSTEM.md</code> or <code>CLAUDE.md</code> anywhere under <code>~/.pi</code></td>
+        </tr>
+        <tr>
+          <th scope="row">Copilot CLI</th>
+          <td><span class="badge n">none</span></td>
+          <td class="num">—</td>
+          <td>—</td>
+          <td>Supported paths <code>$HOME/.copilot/copilot-instructions.md</code> and <code>$HOME/.copilot/instructions/**/*.instructions.md</code> are both absent</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="num">1a</span>Signet layer (separate from the above)</h3>
+  <div class="tablewrap">
+    <table>
+      <caption><code>~/.agents</code> identity files</caption>
+      <thead><tr><th>File</th><th class="num">Bytes</th><th>State</th></tr></thead>
+      <tbody>
+        <tr><td><code>AGENTS.md</code></td><td class="num">465</td><td><span class="badge n">unfilled template</span> — still says “Add information about yourself here”</td></tr>
+        <tr><td><code>IDENTITY.md</code></td><td class="num">696</td><td><span class="badge y">real content</span></td></tr>
+        <tr><td><code>SOUL.md</code></td><td class="num">1015</td><td><span class="badge y">present</span></td></tr>
+        <tr><td><code>USER.md</code></td><td class="num">1325</td><td><span class="badge y">present</span></td></tr>
+        <tr><td><code>MEMORY.md</code></td><td class="num">15465</td><td><span class="badge y">auto-generated</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><code>~/.agents/agent.yaml</code> declares <code>harnesses: [claude-code]</code> and startup-loads <em>only</em> <code>AGENTS.md</code> at budget 12000. So the template stub is what actually gets injected, and only into Claude. The files with real content are not on the startup path.</p>
+
+  <div class="callout risk">
+    <span class="label">Net effect</span>
+    <p>RTK and Beads policy reaches <b>Claude and OMP only</b>. Pi and Copilot run with zero global instructions.</p>
+  </div>
+</section>
+
+<section id="skills">
+  <h2><span class="num">2</span>Skill stores</h2>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Where skills physically live</caption>
+      <thead><tr><th>Store</th><th class="num">Count</th><th>Nature</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>~/.agents/skills</code></th><td class="num">36</td><td>Real files. The upstream store</td></tr>
+        <tr><th scope="row"><code>~/.claude/skills</code></th><td class="num">53</td><td>36 symlinks → <code>~/.agents</code>, 6 symlinks → external worktree, 10 local dirs, 1 stray <code>.md</code></td></tr>
+        <tr><th scope="row"><code>~/.pi/agent/skills</code></th><td class="num">28</td><td>27 symlinks → <code>~/.agents</code>, plus Nix-managed <code>plan-implement</code></td></tr>
+        <tr><th scope="row"><code>~/.copilot/skills</code></th><td class="num">47</td><td>Independent copies. No sharing mechanism with the other three</td></tr>
+        <tr><th scope="row"><code>~/.omp/agent/skills</code></th><td class="num">absent</td><td>OMP aggregates Claude's stores plus Claude's plugin caches</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="num">2a</span>Fan-out of the <code>~/.agents</code> store (36 skills)</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Harness</th><th class="num">Has</th><th>Missing</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Claude</th><td class="num">36</td><td><span class="badge y">complete</span></td></tr>
+        <tr><th scope="row">Pi</th><td class="num">27</td><td><code>agent-architect</code>, <code>dreaming</code>, <code>memory-debug</code>, <code>onboarding</code>, <code>recall</code>, <code>remember</code>, <code>signet</code>, <code>skill-creator</code>, <code>web-search</code></td></tr>
+        <tr><th scope="row">OMP</th><td class="num">36</td><td>All reachable, but ~12 absent from the model-facing catalog — see <a href="#dmi">2d</a></td></tr>
+        <tr><th scope="row">Copilot</th><td class="num">4</td><td>32. Only <code>grill-me</code>, <code>handoff</code>, <code>improve-codebase-architecture</code>, <code>tdd</code> overlap</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The nine Pi is missing are exactly the Signet family plus skill authoring — consistent with <code>agent.yaml</code> registering <code>claude-code</code> only. Pi's other 27 arrived via the Matt Pocock installer, not via Signet.</p>
+
+  <h3><span class="num">2b</span>Claude-local skills (10) — absent from <code>~/.agents</code>, so Pi and Copilot lack them</h3>
+  <ul class="pillbox">
+    <li>cavecrew</li><li>caveman</li><li>caveman-commit</li><li>caveman-compress</li><li>caveman-help</li><li>caveman-review</li><li>caveman-stats</li><li>git-merge</li><li>humanizer</li><li>update-all</li>
+  </ul>
+  <p>Visible to OMP. Note that Pi and OMP both carry the <code>pi-caveman</code> package, which is the same capability in extension form — porting the caveman <em>skills</em> to Pi would duplicate it.</p>
+
+  <h3><span class="num">2c</span>Fragile symlinks — six Claude skills point outside managed paths</h3>
+  <ul class="pillbox danger">
+    <li>beads</li><li>instruction-writer</li><li>memory-plugin</li><li>repos</li><li>review-pr</li><li>setup-assistant</li>
+  </ul>
+  <p>All six resolve into <code>~/Documents/GitHub/ai-daily-assistant/.claude/worktrees/ai-model-gateway/plugins/…</code> — a git worktree.</p>
+  <div class="callout risk">
+    <span class="label">Risk</span>
+    <p>Prune or delete that worktree and Claude <em>and</em> OMP silently lose six skills. No error, no fallback.</p>
+  </div>
+
+  <h3 id="dmi"><span class="num">2d</span>Why some skills exist but never appear in OMP's catalog</h3>
+  <p>Not a missing-description problem — frontmatter was checked directly and every one has both <code>name</code> and <code>description</code>. The cause is <code>disable-model-invocation: true</code>, which marks a skill user-invoked only. It applies to the Matt Pocock set: <code>teach</code>, <code>wayfinder</code>, <code>to-spec</code>, <code>handoff</code>, <code>implement</code>, <code>grill-me</code>, <code>triage</code>, <code>ask-matt</code> and the rest. Invocable by name; excluded from the model-facing list by design.</p>
+
+  <h3><span class="num">2e</span>Copilot's independent store (47)</h3>
+  <p>Two different compound-engineering vintages are installed side by side.</p>
+  <div class="tablewrap">
+    <table>
+      <caption>Compound-engineering skill divergence</caption>
+      <thead><tr><th>Set</th><th class="num">Count</th><th>Skills</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">Copilot only</th><td class="num">14</td>
+          <td><code>ce-agent-native-architecture</code>, <code>ce-agent-native-audit</code>, <code>ce-clean-gone-branches</code>, <code>ce-demo-reel</code>, <code>ce-dhh-rails-style</code>, <code>ce-frontend-design</code>, <code>ce-gemini-imagegen</code>, <code>ce-polish-beta</code>, <code>ce-release-notes</code>, <code>ce-report-bug</code>, <code>ce-sessions</code>, <code>ce-slack-research</code>, <code>ce-update</code>, <code>ce-work-beta</code></td>
+        </tr>
+        <tr>
+          <th scope="row">Claude only</th><td class="num">8</td>
+          <td><code>ce-babysit-pr</code>, <code>ce-dogfood</code>, <code>ce-explain</code>, <code>ce-handoff</code>, <code>ce-pov</code>, <code>ce-promote</code>, <code>ce-retune</code>, <code>ce-sweep</code></td>
+        </tr>
+        <tr>
+          <th scope="row">Test fixtures</th><td class="num">4</td>
+          <td><code>skill-one</code>, <code>default-skill</code>, <code>disabled-skill</code>, <code>claude-only-skill</code> — polluting the live store</td>
+        </tr>
+        <tr>
+          <th scope="row">Orphan</th><td class="num">1</td>
+          <td><code>coding-tutor</code> — appears in no other store</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="plugins">
+  <h2><span class="num">3</span>Plugins and packages</h2>
+
+  <div class="tablewrap">
+    <table>
+      <caption>Installed plugin and package sets</caption>
+      <thead><tr><th>Harness</th><th>State</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">Claude</th>
+          <td>
+            <b>Enabled (8):</b> compound-engineering 3.21.4, context-mode 1.0.169, crew@0xmmo, obsidian 1.0.1, ponytail 4.8.4, visual-explainer 0.8.1, workiq-preview 0.5.1, chorus 0.15.0.<br>
+            <b>Disabled (4):</b> amma, nexus, pro-workflow 3.3.0, emacs-skills.<br>
+            <b>Project-scoped:</b> frontend-design. <b>In cache, unreferenced:</b> aws-core, typescript-lsp
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">Copilot</th>
+          <td><b>Enabled (2):</b> obsidian 1.0.1, workiq-preview 0.5.0. Also <code>compound-engineering</code> sitting in <code>installed-plugins/</code> but <em>not</em> enabled — its skills were written straight into <code>~/.copilot/skills</code> instead</td>
+        </tr>
+        <tr>
+          <th scope="row">OMP</th>
+          <td><code>pi-caveman ^1.0.7</code> — that is the entire declared plugin set</td>
+        </tr>
+        <tr>
+          <th scope="row">Pi</th>
+          <td>
+            <b>Declared (5, work profile):</b> <code>pi-minimal-subagent</code>, <code>pi-ask-user</code>, <code>pi-compound-engineering</code>, <code>pi-mcp-adapter</code>, <code>pi-beads-extension</code> — <code>modules/M-02877/dktaohan.nix:109-118</code>.<br>
+            <b>Actually in the npm store (14):</b> those plus <code>pi-caveman</code>, <code>pi-cursor-sdk</code>, <code>pi-intercom</code>, <code>pi-observational-memory</code>, <code>pi-opencode-bridge</code>, <code>pi-paster</code>, <code>pi-rtk-optimizer</code>, <code>pi-web-access</code>, <code>context-mode</code>, <code>@feniix/pi-specdocs</code> — leftovers from the shared list in <code>pi-packages.nix</code>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="num">3a</span>Plugin-provided skills, by plugin</h3>
+  <div class="tablewrap">
+    <table>
+      <caption>Plugin skill availability per harness</caption>
+      <thead>
+        <tr><th>Plugin</th><th class="num">Skills</th><th>Claude</th><th>OMP</th><th>Copilot</th><th>Pi</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">compound-engineering</th><td class="num">32</td><td><span class="badge y">yes</span></td><td><span class="badge y">yes</span></td><td><span class="badge q">own store, other vintage</span></td><td><span class="badge q">extension form</span></td></tr>
+        <tr><th scope="row">pro-workflow</th><td class="num">34</td><td><span class="badge n">disabled</span></td><td><span class="badge q">live anyway</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">emacs-skills</th><td class="num">19</td><td><span class="badge n">disabled</span></td><td><span class="badge q">live anyway</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">aws-core</th><td class="num">19</td><td><span class="badge q">cache only</span></td><td><span class="badge q">live anyway</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">chorus</th><td class="num">9</td><td><span class="badge y">yes</span></td><td><span class="badge y">yes</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">context-mode</th><td class="num">8</td><td><span class="badge y">yes</span></td><td><span class="badge y">yes</span></td><td><span class="badge n">no</span></td><td><span class="badge q">binary via package</span></td></tr>
+        <tr><th scope="row">nexus</th><td class="num">6</td><td><span class="badge n">disabled</span></td><td><span class="badge q">live anyway</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">ponytail</th><td class="num">6</td><td><span class="badge y">yes</span></td><td><span class="badge y">yes</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">amma</th><td class="num">5</td><td><span class="badge n">disabled</span></td><td><span class="badge q">live anyway</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">obsidian</th><td class="num">5</td><td><span class="badge y">yes</span></td><td><span class="badge y">yes</span></td><td><span class="badge y">yes</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">workiq-preview</th><td class="num">1</td><td><span class="badge y">0.5.1</span></td><td><span class="badge y">yes</span></td><td><span class="badge q">0.5.0</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">frontend-design</th><td class="num">1</td><td><span class="badge q">project only</span></td><td><span class="badge y">yes</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+        <tr><th scope="row">crew · visual-explainer · typescript-lsp</th><td class="num">0</td><td><span class="badge y">yes</span></td><td><span class="badge q">n/a</span></td><td><span class="badge n">no</span></td><td><span class="badge n">no</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout risk">
+    <span class="label">Key asymmetry</span>
+    <p><b>OMP ignores Claude's <code>enabledPlugins</code> map.</b> Everything installed under <code>~/.claude/plugins</code> loads. That is roughly 84 extra skills active in OMP that were deliberately switched off in Claude — amma, nexus, pro-workflow, emacs-skills, aws-core.</p>
+  </div>
+
+  <h3><span class="num">3b</span>Version drift in caches</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Plugin</th><th>Versions present</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">compound-engineering</th><td>3.19.0, 3.21.4</td></tr>
+        <tr><th scope="row">context-mode</th><td>1.0.162, 1.0.164, 1.0.166, 1.0.169</td></tr>
+        <tr><th scope="row">chorus</th><td>0.14.2, 0.15.0</td></tr>
+        <tr><th scope="row">workiq-preview</th><td>0.5.0 (Copilot) vs 0.5.1 (Claude)</td></tr>
+        <tr><th scope="row">emacs-skills</th><td>two revisions</td></tr>
+        <tr><th scope="row">crew</th><td>two revisions</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="ports">
+  <h2><span class="num">4</span>Port candidates, ranked by asymmetry</h2>
+  <ol class="ranked">
+    <li><b>Global instructions → Pi and Copilot.</b> Both run blind. Copilot wants <code>~/.copilot/copilot-instructions.md</code>; Pi has no user-level file at all. Beads and RTK policy is the obvious payload.</li>
+    <li><b>Copilot's 14 CE skills → Claude/OMP</b>, or unify on one CE version. Two vintages coexisting is the messiest item in this inventory.</li>
+    <li><b>Signet skills → Pi</b> (9 skills) if memory/recall parity is wanted. Otherwise accept Claude-only and stop half-integrating.</li>
+    <li><b><code>~/.agents/AGENTS.md</code> is a template stub</b> occupying a 12000-token startup budget in Claude. Fill it or drop it from the startup path.</li>
+    <li><b>Six worktree symlinks</b> — copy the targets into <code>~/.agents/skills</code> so they survive worktree cleanup.</li>
+    <li><b>Decide OMP's plugin story.</b> Either accept “everything installed” or give it an explicit set. Right now it inherits Claude's <em>installs</em> while ignoring Claude's <em>decisions</em>.</li>
+    <li><b>Delete Copilot's four test fixtures</b> and reconcile Pi's 14-installed-versus-5-declared package drift.</li>
+  </ol>
+</section>
+
+<footer>
+  <p>Inventory only — no configuration was modified. Every count and path was read from the live filesystem on 2026-08-06. Copilot instruction-path support confirmed against GitHub's Copilot CLI custom-instructions documentation. Tracked as beads issue <code>home-manager-07t</code>.</p>
+</footer>
+
+</div>
+</body>
+</html>

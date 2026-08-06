@@ -241,6 +241,7 @@ Prompts for source type: book (page table) or conversation (bullet list)."
   :config
   (advice-add 'tramp-rpc-deploy--ensure-local-binary :filter-return #'file-truename))
 
+
 ;;; --------------------------------------------------------------------------
 ;;; org-crypt — auto-encrypt journal entries
 ;;; --------------------------------------------------------------------------

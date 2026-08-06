@@ -7,11 +7,6 @@
     nixpkgs.overlays = [
       (final: prev: {
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
-        pi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
-        # shared-devtools.nix listed `omp` but no overlay ever defined it, so
-        # every eval failed with `undefined variable 'omp'`. llm-agents exports
-        # it alongside pi.
-        omp = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.omp;
       })
       (final: prev: {
         # Upstream ships packages.default as of DecapodLabs/decapod#1169, so the

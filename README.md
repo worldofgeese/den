@@ -234,7 +234,6 @@ modules/
 ├── git-common.nix       # Shared git settings aspect (hosts add identity)
 ├── terminal.nix         # Shared terminal UX (Dracula delta, previews, persistence)
 ├── shared-devtools.nix  # Dev tooling shared by mahakala + M-02877
-├── pi.nix               # Pi coding agent (extensions, MCP, skills, chains)
 ├── workstation.nix      # Desktop/dev packages + topgrade
 ├── ssh.nix              # Fleet SSH matchBlocks (Tailscale hostnames)
 ├── server.nix           # Reusable NixOS server aspect

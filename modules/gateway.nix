@@ -1,13 +1,6 @@
 #
 # The model gateway: one owner for how an agent reaches a model.
 #
-# Before this module, four sites each held the complete set of facts -- the
-# launchd agents in modules/M-02877/darwin.nix, pi's models.json in
-# modules/M-02877/dktaohan.nix, the Guix Home OCI service in
-# guix/home-configuration.scm, and the agent-shell elisp -- and they had
-# already drifted: HEADROOM_MODE was set on darwin and silently absent under
-# Guix Home, so the two substrates ran different cache/cost tradeoffs.
-#
 # The facts live in ../gateway.json rather than here because Guile cannot
 # import Nix. Both substrates read that one file; see
 # docs/adr/0001-gateway-facts-cross-the-guix-seam-as-json.md for why the
@@ -62,10 +55,8 @@ in {
   _module.args.gateway = {
     inherit (facts) baseUrl;
 
-    # headroom rewrites prior turns and forwards to the gateway's Claude
-    # endpoint; pi talks to the Anthropic-compatible endpoint directly.
+    # headroom rewrites prior turns and forwards to gateway's Claude endpoint.
     claudeUrl = facts.baseUrl + facts.paths.claude;
-    anthropicUrl = facts.baseUrl + facts.paths.anthropic;
 
     headroom = service "headroom";
     proxy = service "proxy";
@@ -74,12 +65,10 @@ in {
     # One secret for every consumer, deliberately: per-harness virtual keys
     # were considered and rejected on 2026-08-01 (recorded in
     # home-manager-0pr.2) because one secret to set per host beat
-    # per-virtual-key usage attribution in the gateway console.
+    # per-virtual-key usage attribution in gateway console.
     #
     # A command, never a value: callers embed this string and run it when an
-    # agent process starts, so the key never enters the store or the tree.
-    # pi's models.json prefixes it with `!` to mark it executable; the elisp
-    # runs it through call-process-shell-command.
+    # agent process starts, so the key never enters the store or tree.
     secretName = facts.secret.name;
     keyCommand = homeDirectory: "secretspec get -f ${homeDirectory}/.config/home-manager/${facts.secret.profile} ${facts.secret.name}";
   };

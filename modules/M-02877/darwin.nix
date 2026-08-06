@@ -425,6 +425,7 @@
           "gascity"
         ];
         casks = [
+          "d12frosted/emacs-plus/emacs-plus-app"
           "zed"
           "github-copilot-app"
           "jordanbaird-ice"
@@ -443,12 +444,10 @@
           "background-music"
           "secretive"
           "aerospace"
-          "cursor"
           "chatgpt"
           "visual-studio-code"
           "visual-studio-code@insiders"
           "monokle"
-          "codex-app"
           "genai-menu"
         ];
         taps = [
@@ -458,6 +457,10 @@
           "nikitabobko/tap"
           "pulumi/tap"
           "ankitpokhrel/jira-cli"
+          {
+            name = "d12frosted/emacs-plus";
+            trusted = true;
+          }
           {
             name = "lego/tap";
             clone_target = "git@github.com:LEGO/homebrew-tap.git";

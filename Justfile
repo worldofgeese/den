@@ -171,25 +171,85 @@ check:
     # Forces every package name rather than activationPackage.drvPath: doom-emacs
     # is built via IFD, so asking for the drvPath makes eval *build*
     # doom-intermediates, which needs a real x86_64-linux builder we don't have on
-    # darwin. Forcing home.packages names still catches the undefined-variable /
-    # missing-attribute breakage that motivated this check (verified: it fails on
-    # a tree with the `omp` overlay mapping removed). Not stateVersion -- that
-    # evaluates without ever touching the package list.
+    # darwin. Forcing home.packages names still catches undefined variables and
+    # missing package attributes. Not stateVersion -- that evaluates without
+    # ever touching the package list.
     nix eval --no-warn-dirty --json .#homeConfigurations.worldofgeese.config.home.packages --apply 'ps: builtins.length (map (p: p.name) ps)' >/dev/null
     nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
+    if [[ "$(uname -s)" == Darwin ]]; then just check-doom-darwin; fi
     nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
-    just typecheck-pi-extensions
     just check-fmt
 
-# TypeScript type-check pi-extensions/governance/index.ts; skips if npx absent
-typecheck-pi-extensions:
+# Build Darwin Doom wrapper and verify generated CLI and GUI launchers
+check-doom-darwin:
     #!/usr/bin/env bash
     set -euo pipefail
-    if ! command -v npx >/dev/null 2>&1; then
-        echo "typecheck-pi-extensions: npx not found, skipping"
-        exit 0
-    fi
-    ( cd pi-extensions/governance && npm install --silent && npx tsc -p tsconfig.json )
+    wrapper=$(nix build --no-link --print-out-paths --impure --expr '
+      let
+        flake = builtins.getFlake (toString ./.);
+        packages = flake.darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.packages;
+      in
+        builtins.head (builtins.filter
+          (package: flake.inputs.nixpkgs.lib.getName package == "doom-emacs-wrapped")
+          packages)')
+    test -x "$wrapper/bin/emacs"
+    test -x "$wrapper/bin/emacsclient"
+    test -x "$wrapper/Applications/Doom Emacs.app/Contents/MacOS/Doom Emacs"
+    [[ "$(<"$wrapper/bin/emacs")" == *'/Applications/Emacs.app/Contents/MacOS/Emacs'* ]]
+    [[ "$(<"$wrapper/bin/emacsclient")" == *'/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'* ]]
+    [[ "$(<"$wrapper/bin/emacs")" == *'DOOMPROFILE="nix"'* ]]
+    echo "Darwin Doom launchers validated: $wrapper"
+
+# Build worldofgeese Doom under amd64 Linux emulation and validate agent wiring
+# through emacsclient. Reuses a named Nix volume across runs.
+check-doom-linux-image:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    podman run --rm --arch amd64 --privileged --security-opt label=disable \
+      -v doom-linux-nix:/nix -v "{{justfile_directory()}}:/work:ro" -w /work \
+      docker.io/nixos/nix:2.31.2 sh -lc '
+        set -euo pipefail
+        git config --global --add safe.directory /work
+        export NIX_CONFIG="extra-experimental-features = nix-command flakes
+        sandbox = false
+        filter-syscalls = false
+        max-jobs = 2
+        cores = 2"
+        wrapper=$(nix build --no-link --print-out-paths --impure --expr '\''
+          let
+            flake = builtins.getFlake (toString /work);
+            packages = flake.homeConfigurations.worldofgeese.config.home.packages;
+          in
+            builtins.head (builtins.filter
+              (package: flake.inputs.nixpkgs.lib.getName package == "doom-emacs-wrapped")
+              packages)'\'')
+        socket=doom-linux-image-test
+        cleanup() {
+          "$wrapper/bin/emacsclient" --socket-name="$socket" --eval "(kill-emacs)" >/dev/null 2>&1 || true
+        }
+        trap cleanup EXIT
+        "$wrapper/bin/emacs" --daemon="$socket"
+        "$wrapper/bin/emacsclient" --socket-name="$socket" --eval '\''
+          (progn
+            (require (quote agent-shell))
+            (require (quote agent-shell-anthropic))
+            (require (quote agent-shell-github))
+            (let ((mcp-names
+                   (mapcar (lambda (server) (alist-get (quote name) server))
+                           agent-shell-mcp-servers)))
+              (unless (and
+                       (fboundp (quote agent-shell-anthropic-start-claude-code))
+                       (fboundp (quote agent-shell-github-start-copilot))
+                       (fboundp (quote agent-shell-omp-start))
+                       (equal agent-shell-github-acp-command (quote ("copilot" "--acp")))
+                       (equal agent-shell-omp-acp-command (quote ("omp" "acp")))
+                       (equal mcp-names (quote ("nixos" "emacs" "emcp"))))
+                (error "agent-shell image validation failed: copilot=%S omp=%S mcp=%S"
+                       agent-shell-github-acp-command agent-shell-omp-acp-command mcp-names))
+              (format "agent-shell image validation passed: Claude Code, Copilot, OMP; MCP %S"
+                      mcp-names)))'\''
+      '
+
 
 # Update all flake inputs
 update:

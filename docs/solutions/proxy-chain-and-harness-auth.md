@@ -104,31 +104,23 @@ ignored. Gateway URL, token, and model IDs live there.
 ## Reference: model IDs
 
 Model IDs are **not** owned by `gateway.json` — they are routing, not
-addressing. Their owner is the catalogue in `modules/pi-tiers.nix`, which
-reaches consumers as the `piTiers` module argument (`home-manager-0pr.3`).
+addressing. Nix-owned Claude IDs live in the `slots` attrset in
+`modules/doom-emacs.nix`. User-managed OMP owns its model configuration.
 
-The two Nix consumers used to disagree, and the elisp was the stale one:
+The two declarative consumers previously disagreed: Pi used the current
+`eu.anthropic.…-5` IDs while agent-shell still used stale Claude 4.6 IDs.
+Declarative Pi management has since been removed. `config.el` carries
+`@GATEWAY_{OPUS,SONNET,HAIKU}_MODEL@` placeholders that
+`modules/doom-emacs.nix` substitutes from `slots` with `--replace-fail`, so a
+renamed or dropped placeholder is a build error.
 
-| consumer | IDs before `0pr.3` |
-|---|---|
-| pi (`modules/M-02877/dktaohan.nix`) | `eu.anthropic.claude-opus-5`, `eu.anthropic.claude-sonnet-5`, `eu.anthropic.claude-haiku-4-5-20251001-v1:0` |
-| agent-shell (`config.el`) | `anthropic.claude-opus-4-6-v1`, `anthropic.claude-sonnet-4-6`, `anthropic.claude-haiku-4-5-20251001-v1:0` |
+User-managed OMP and the hand-written `~/.cave/agent/models.json` are outside
+this repository. Update them deliberately when gateway model generations
+change; see `home-manager-l23` and `home-manager-8vh` for known Cave metadata
+and key problems.
 
-Both now derive from the catalogue: `config.el` carries
-`@GATEWAY_{OPUS,SONNET,HAIKU}_MODEL@` placeholders that `modules/doom-emacs.nix`
-substitutes with `--replace-fail`, so a renamed or dropped id is a build error.
-The elisp's IDs were confirmed stale against `~/.cave/agent/models.json` on
-mahakala, which reaches the *same* endpoint (`http://127.0.0.1:8787`) with the
-`eu.anthropic.…-5` ids.
-
-A third copy of the catalogue still exists in that hand-written
-`~/.cave/agent/models.json` — see `home-manager-l23` (it also embeds a literal
-key) and `home-manager-8vh` (its `contextWindow`/`maxTokens` disagree).
-
-`anthropic-proxy` is pi's *provider name* in `models.json` and nothing more. The
-pi extension of that name was deleted in `d45ddd8`; there is no
-`pi-extensions/anthropic-proxy` and no provider extension is needed, because the
-gateway is a faithful Anthropic Messages passthrough.
+`anthropic-proxy` was Pi's provider name in `models.json` and nothing more.
+Declarative Pi and its extensions are no longer managed by this repository.
 
 ## How-To: connect another harness
 

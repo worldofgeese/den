@@ -109,7 +109,7 @@
        ;;tmux              ; an API for interacting with tmux
        ;;tree-sitter       ; syntax and parsing, sitting in a tree...
        ;;upload            ; map local to remote projects via ssh/ftp
-       agent-shell       ; ACP-powered LLM agents (Pi primary, Claude fallback)
+       agent-shell       ; ACP-powered Claude Code integration
 
        :os
        (:if (featurep :system 'macos) macos)  ; improve compatibility with macOS

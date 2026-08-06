@@ -1,23 +1,18 @@
 ;;; tools/agent-shell/config.el -*- lexical-binding: t; -*-
 
 ;;; --------------------------------------------------------------------------
-;;; agent-shell + Pi coding agent (primary) + Claude (fallback)
-;;; --------------------------------------------------------------------------
+;;; agent-shell + Claude Code / Oh My Pi
 ;;
-;; Pi is the primary agent interface via pi-acp (ACP adapter).
-;; Claude Code remains available as a secondary agent.
 ;; claude-code-ide provides Emacs MCP tools server — xref, project
 ;; navigation, tree-sitter, diagnostics, imenu — so agents inside
 ;; agent-shell become Emacs-aware.
-;;
-;; Requires: pi-acp (managed by Home Manager, see modules/pi.nix)
 
 (use-package! agent-shell
   :defer t
   :commands (agent-shell
-             agent-shell-pi-start-agent
              agent-shell-anthropic-start-claude-code
-             agent-shell-caveman-start)
+             agent-shell-github-start-copilot
+             agent-shell-omp-start)
   :config
   ;; Evil keybindings: RET always submits, M-j inserts newline.
   ;; Must use a mode-hook with local-set-key to override all layers
@@ -51,12 +46,8 @@
   (defvar lego-gateway-key-command "@GATEWAY_KEY_COMMAND@"
     "Shell command printing the gateway API key on stdout.")
 
-  ;; Model ids are substituted from the same catalogue pi routes by
-  ;; (modules/pi-tiers.nix), so this file cannot pin a model generation the
-  ;; gateway has moved past -- which is exactly what happened while these were
-  ;; literals here: they still named `claude-opus-4-6-v1` after the gateway had
-  ;; gone to Opus 5.  Claude Code's own vocabulary is opus/sonnet/haiku, so the
-  ;; catalogue is keyed by that slot rather than by pi's tier names.
+  ;; Model ids are substituted from modules/doom-emacs.nix so Claude Code
+  ;; follows LEGO AI Model Gateway's current model generation.
 
   (defvar lego-gateway-opus-model "@GATEWAY_OPUS_MODEL@"
     "Gateway id for the model Claude Code treats as Opus.")
@@ -122,37 +113,34 @@ With REFRESH non-nil, discard the cached value first.  Signals a
   (setq agent-shell-preferred-agent-config
         (agent-shell-anthropic-make-claude-code-config))
 
-  ;; --- Pi (disabled — out-of-turn ACP bug in Pi v0.79.8) ---
-  ;; (setq agent-shell-preferred-agent-config
-  ;;       (agent-shell-pi-make-agent-config))
+  ;; OMP remains user-installed; agent-shell launches its native ACP server.
+  (defcustom agent-shell-omp-acp-command '("omp" "acp")
+    "Command and parameters for the Oh My Pi ACP server."
+    :type '(repeat string)
+    :group 'agent-shell)
 
-  ;; --- Caveman Code (Pi fork, routes through Headroom proxy) ---
-  (setq agent-shell-caveman-environment
-        (agent-shell-make-environment-variables
-         "PI_ACP_PI_COMMAND" "caveman-code"
-         "PI_CODING_AGENT_DIR" (expand-file-name "~/.cave/agent")))
+  (defun agent-shell-omp-make-client (buffer)
+    "Create an Oh My Pi ACP client for BUFFER."
+    (agent-shell--make-acp-client
+     :command (car agent-shell-omp-acp-command)
+     :command-params (cdr agent-shell-omp-acp-command)
+     :context-buffer buffer))
 
-  (defun agent-shell-caveman-make-agent-config ()
-    "Create a Caveman Code agent configuration via pi-acp."
+  (defun agent-shell-omp-make-config ()
+    "Create an Oh My Pi agent configuration."
     (agent-shell-make-agent-config
-     :identifier 'caveman
-     :mode-line-name "Cave"
-     :buffer-name "Caveman"
-     :shell-prompt "Cave> "
-     :shell-prompt-regexp "Cave> "
-     :welcome-function (lambda (_config) "Caveman Code (via Headroom proxy)")
-     :client-maker (lambda (buffer)
-                     (agent-shell--make-acp-client
-                      :command "pi-acp"
-                      :command-params nil
-                      :environment-variables agent-shell-caveman-environment
-                      :context-buffer buffer))
-     :install-instructions "npm i -g @juliusbrussee/caveman-code"))
+     :identifier 'omp
+     :mode-line-name "OMP"
+     :buffer-name "OMP"
+     :shell-prompt "OMP> "
+     :shell-prompt-regexp "OMP> "
+     :client-maker #'agent-shell-omp-make-client
+     :install-instructions "Install Oh My Pi and ensure `omp' is on PATH."))
 
-  (defun agent-shell-caveman-start ()
-    "Start an interactive Caveman Code agent shell."
+  (defun agent-shell-omp-start ()
+    "Start an interactive Oh My Pi agent shell."
     (interactive)
-    (agent-shell--dwim :config (agent-shell-caveman-make-agent-config)
+    (agent-shell--dwim :config (agent-shell-omp-make-config)
                        :new-shell t))
 
   ;; --- Shared agent-shell settings ---
@@ -163,7 +151,11 @@ With REFRESH non-nil, discard the cached value first.  Signals a
 
   ;; MCP servers: expose Emacs MCP tools to agents.
   (setq agent-shell-mcp-servers
-        `(,@(when (locate-library "claude-code-ide-emacs-tools")
+        `(((name . "nixos")
+           (command . ,(or (executable-find "mcp-nixos") "mcp-nixos"))
+           (args . ())
+           (env . ()))
+          ,@(when (locate-library "claude-code-ide-emacs-tools")
               `(((name . "emacs")
                  (type . "http")
                  (headers . ())
@@ -186,9 +178,7 @@ With REFRESH non-nil, discard the cached value first.  Signals a
            (headers . ())
            (url . ,(lambda ()
                      (require 'emcp)
-                     (let ((server (emcp-start emcp-default-profile)))
-                       (emcp-server-url server)))))))
-  )
+                     (emcp-server-url (emcp-start emcp-default-profile))))))))
 
 ;;; --------------------------------------------------------------------------
 ;;; emcp (works independently of agent-shell backend)
@@ -196,9 +186,8 @@ With REFRESH non-nil, discard the cached value first.  Signals a
 
 (use-package! emcp
   :config
-(setq emcp-http-port 38913)
-(setq emcp-tools-eval-default-policy 'allow)
-(setq emcp-tools-send-keys-default-policy 'allow))
+  (setq emcp-default-profile 'full-control)
+  (setq emcp-http-port 38913))
 
 
 ;;; --------------------------------------------------------------------------

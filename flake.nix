@@ -43,13 +43,6 @@
       url = "github:oxcl/nix-flake-helium-browser";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # The lock already pinned llm-agents to the root nixpkgs, but nothing here
-    # declared it -- so `nix flake update` kept splitting off a second nixpkgs
-    # copy (nixpkgs_2). Declare it like every other input.
-    llm-agents = {
-      url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     # ewm-core depends on the libdisplay-info-sys crate, whose build script
     # requires libdisplay-info 0.3.x. nixpkgs moved to 0.4.0, so following the
     # root nixpkgs fails with "system library `libdisplay-info` ... not found"

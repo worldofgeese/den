@@ -1,15 +1,11 @@
-{
-  den,
-  gateway,
-  piTiers,
-  ...
-}: {
+{den, ...}: {
   den.aspects.dktaohan = {
     includes = [
       den.batteries.define-user
       den.batteries.primary-user
       den.aspects.ssh
-      den.aspects.pi
+      den.aspects.sharedDevtools
+      den.aspects.doom-emacs
       den.aspects.gitcommon
       den.aspects.terminal
     ];
@@ -19,28 +15,7 @@
       lib,
       config,
       ...
-    }: let
-      # The gateway is a faithful Anthropic Messages passthrough, so pi can talk
-      # to it through the built-in `anthropic-messages` API declared in
-      # models.json — no provider extension needed. pi goes straight to the
-      # gateway rather than through headroom; the proxy chain on this machine is
-      # for Claude Code. The `!` prefix is pi's marker for "run this and use the
-      # output", so the key is resolved per request and never touches disk.
-      #
-      # Address and key command both come from the gateway aspect
-      # (modules/gateway.nix); the provider key stays "anthropic-proxy" because
-      # agent frontmatter and tier-defs.json reference that name as a string.
-      piModelsJson = pkgs.writeText "pi-models.json" (builtins.toJSON {
-        providers."anthropic-proxy" = {
-          name = "LEGO AI Model Gateway";
-          baseUrl = gateway.anthropicUrl;
-          api = "anthropic-messages";
-          apiKey = "!${gateway.keyCommand config.home.homeDirectory}";
-          authHeader = true;
-          models = piTiers.models;
-        };
-      });
-    in {
+    }: {
       programs.home-manager.enable = true;
       xdg.enable = true;
       fonts.fontconfig.enable = true;
@@ -61,86 +36,6 @@
         "$HOME/.bun/bin"
         "$HOME/.cache/.bun/bin"
       ];
-
-      # Pi reaches the gateway through a models.json provider, not an extension.
-      # models.json is deliberately left unmanaged: it reloads live when /model
-      # is opened, so the endpoint can be re-pointed without a rebuild when the
-      # proxy chain or gateway is unreachable. Seeded once, never overwritten.
-      home.activation.seedPiModelsJson = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        models_json="$HOME/.pi/agent/models.json"
-        if [ ! -e "$models_json" ]; then
-          run mkdir -p "$(dirname "$models_json")"
-          run install -m 644 ${piModelsJson} "$models_json"
-        fi
-      '';
-
-      # This profile's agent routing. Models are the gateway catalogue's, reached
-      # through the "anthropic-proxy" provider declared in models.json above.
-      # The transform lives in modules/pi-tiers.nix; this is the whole caller.
-      pi.tiers.tiers = let
-        gatewayModel = slot: "anthropic-proxy/${piTiers.slots.${slot}}";
-      in {
-        orchestrator = {
-          model = gatewayModel "opus";
-          thinking = "high";
-          fallbackModels = [];
-        };
-        creative = {
-          model = gatewayModel "sonnet";
-          thinking = "high";
-          fallbackModels = [];
-        };
-        execution = {
-          model = gatewayModel "sonnet";
-          thinking = "medium";
-          fallbackModels = [(gatewayModel "opus")];
-        };
-      };
-
-      home.file.".pi/agent/settings.json".text = builtins.toJSON {
-        provider = "anthropic-proxy";
-        model = "eu.anthropic.claude-opus-5";
-        defaultThinkingLevel = "high";
-        compaction = {
-          enabled = true;
-        };
-        # Work profile deliberately runs a minimal extension set. The shared
-        # list in ../../pi-packages.nix still applies to every other host.
-        packages = [
-          "git:github.com/elpapi42/pi-minimal-subagent"
-          "npm:pi-ask-user"
-          "npm:pi-compound-engineering"
-          # Beads task tracking via the Python `bd` CLI. The shared profile
-          # prefers the beads-rust extension (`br`), but that one is force-
-          # disabled on this profile, so use the npm package here instead.
-          "npm:pi-beads-extension"
-        ];
-      };
-
-      # Disable the shared aspects.pi extensions on this profile.
-      home.file.".pi/agent/extensions/beads-rust/index.ts".enable = lib.mkForce false;
-      home.file.".pi/agent/extensions/governance/index.ts".enable = lib.mkForce false;
-
-      # context-mode's binary ships with the npm:context-mode extension, which
-      # is no longer installed here, so the MCP server would fail to start.
-      home.file.".pi/agent/mcp.json".text = lib.mkForce (builtins.toJSON {
-        settings = {
-          toolPrefix = "server";
-          idleTimeout = 10;
-        };
-        mcpServers = {
-          "agent-mail" = {
-            command = "${pkgs.mcp-agent-mail}/bin/mcp-agent-mail";
-            args = ["serve-stdio"];
-            lifecycle = "lazy";
-            directTools = true;
-            env = {
-              WORKTREES_ENABLED = "1";
-              AGENT_MAIL_GUARD_MODE = "warn";
-            };
-          };
-        };
-      });
 
       home.shellAliases = {
         catp = "bat -P";

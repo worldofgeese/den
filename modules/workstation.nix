@@ -5,7 +5,7 @@
 }: {
   den.aspects.workstation = {
     includes = [
-      den.aspects.pi
+      den.aspects.sharedDevtools
       den.aspects.terminal
       den.aspects.doom-emacs
     ];
@@ -45,7 +45,6 @@
           python-launcher
           kn
           megasync
-          opencode
           agent-browser
           beeper
           ollama # embedding server for crucible semantic search (shepherd service in guix/home-configuration.scm)

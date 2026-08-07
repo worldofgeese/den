@@ -22,6 +22,16 @@
         (pkgs.writeShellScriptBin "pi-acp" ''
           exec ${pkgs.nodejs}/bin/npx --yes pi-acp "$@"
         '')
+        # Caveman Code is forked from an older pi and never emits the
+        # `agent_settled` event that pi-acp >= 0.0.33 requires to resolve an
+        # ACP turn, so agent-shell stays busy forever after the first reply
+        # and cancel cannot free it either. 0.0.32 resolves on `agent_end`,
+        # which Caveman does emit. Upstream pi does emit `agent_settled` and
+        # wants the newer adapter, so this is a second pinned wrapper rather
+        # than a downgrade of `pi-acp` above.
+        (pkgs.writeShellScriptBin "pi-acp-caveman" ''
+          exec ${pkgs.nodejs}/bin/npx --yes pi-acp@0.0.32 "$@"
+        '')
       ];
 
       # Pi extension: beads-rust — br CLI integration for task tracking,

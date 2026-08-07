@@ -143,7 +143,12 @@ With REFRESH non-nil, discard the cached value first.  Signals a
      :welcome-function (lambda (_config) "Caveman Code (via Headroom proxy)")
      :client-maker (lambda (buffer)
                      (agent-shell--make-acp-client
-                      :command "pi-acp"
+                      ;; Pinned adapter, not plain `pi-acp': see modules/pi.nix.
+                      ;; pi-acp >= 0.0.33 only resolves an ACP turn on pi's
+                      ;; `agent_settled' event, which Caveman's older fork never
+                      ;; emits -- the shell answered once and then stayed busy
+                      ;; forever, deaf to cancel, queueing every later prompt.
+                      :command "pi-acp-caveman"
                       :command-params nil
                       :environment-variables agent-shell-caveman-environment
                       :context-buffer buffer))

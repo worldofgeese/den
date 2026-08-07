@@ -205,8 +205,10 @@ check-doom-darwin:
     [[ "$(<"$wrapper/bin/emacs")" == *'/etc/profiles/per-user/dktaohan/bin'* ]]
     package_names=$(nix eval --no-warn-dirty --json .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.packages \
       --apply 'ps: map (p: p.pname or p.name) ps')
+    [[ "$package_names" == *'"omp"'* ]]
+    [[ "$package_names" == *'"claude-code"'* ]]
     [[ "$package_names" == *'"claude-agent-acp"'* ]]
-    [[ "$package_names" == *'"github-copilot-cli"'* ]]
+    [[ "$package_names" == *'"copilot-cli"'* ]]
     echo "Darwin Doom launchers validated: $wrapper"
 
 # Build worldofgeese Doom under amd64 Linux emulation and validate agent wiring

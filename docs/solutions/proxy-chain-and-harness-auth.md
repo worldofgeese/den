@@ -105,7 +105,8 @@ ignored. Gateway URL, token, and model IDs live there.
 
 Model IDs are **not** owned by `gateway.json` — they are routing, not
 addressing. Nix-owned Claude IDs live in the `slots` attrset in
-`modules/doom-emacs.nix`. User-managed OMP owns its model configuration.
+`modules/doom-emacs.nix`. OMP owns its model configuration, while its executable
+is supplied declaratively by `llm-agents.nix` on both hosts.
 
 The two declarative consumers previously disagreed: Pi used the current
 `eu.anthropic.…-5` IDs while agent-shell still used stale Claude 4.6 IDs.
@@ -114,8 +115,8 @@ Declarative Pi management has since been removed. `config.el` carries
 `modules/doom-emacs.nix` substitutes from `slots` with `--replace-fail`, so a
 renamed or dropped placeholder is a build error.
 
-User-managed OMP and the hand-written `~/.cave/agent/models.json` are outside
-this repository. Update them deliberately when gateway model generations
+OMP model configuration and the hand-written `~/.cave/agent/models.json` are
+outside this repository. Update them deliberately when gateway model generations
 change; see `home-manager-l23` and `home-manager-8vh` for known Cave metadata
 and key problems.
 

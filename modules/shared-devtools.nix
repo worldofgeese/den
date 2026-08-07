@@ -1,4 +1,8 @@
-{den, ...}: {
+{
+  den,
+  inputs,
+  ...
+}: {
   # Shared developer tooling aspect — packages and programs used on both
   # mahakala (Linux workstation) and M-02877 (macOS work machine).
   # Host-specific additions go in workstation.nix or dktaohan.nix.
@@ -8,7 +12,9 @@
       pkgs,
       lib,
       ...
-    }: {
+    }: let
+      agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+    in {
       home.packages = with pkgs;
         [
           nodejs
@@ -19,8 +25,10 @@
           glab
           just
           bash-preexec
-          claude-code
-          claude-agent-acp
+          agents.omp
+          agents.claude-code
+          agents.claude-agent-acp
+          agents.copilot-cli
           # Secret lookups for both hosts, declared in secretspec.toml. Shared so
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.
@@ -105,7 +113,6 @@
         export PATH="$HOME/.local/bin:$PATH"
       '';
 
-      programs.github-copilot-cli.enable = true;
       programs.direnv = {
         enable = true;
         nix-direnv.enable = true;

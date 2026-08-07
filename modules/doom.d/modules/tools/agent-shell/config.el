@@ -113,7 +113,7 @@ With REFRESH non-nil, discard the cached value first.  Signals a
   (setq agent-shell-preferred-agent-config
         (agent-shell-anthropic-make-claude-code-config))
 
-  ;; OMP remains user-installed; agent-shell launches its native ACP server.
+  ;; OMP is supplied by the shared llm-agents.nix package set.
   (defcustom agent-shell-omp-acp-command '("omp" "acp")
     "Command and parameters for the Oh My Pi ACP server."
     :type '(repeat string)
@@ -135,7 +135,7 @@ With REFRESH non-nil, discard the cached value first.  Signals a
      :shell-prompt "OMP> "
      :shell-prompt-regexp "OMP> "
      :client-maker #'agent-shell-omp-make-client
-     :install-instructions "Install Oh My Pi and ensure `omp' is on PATH."))
+     :install-instructions "Enable the shared developer tooling aspect."))
 
   (defun agent-shell-omp-start ()
     "Start an interactive Oh My Pi agent shell."

@@ -25,6 +25,9 @@
       url = "github:DecapodLabs/decapod";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Coding-agent binaries share one tested runtime closure across Darwin and
+    # Guix System. Keep upstream's nixpkgs input for cache compatibility.
+    llm-agents.url = "github:numtide/llm-agents.nix";
     import-tree.url = "github:vic/import-tree";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     devenv = {

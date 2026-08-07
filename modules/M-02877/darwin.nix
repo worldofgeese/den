@@ -327,7 +327,7 @@
               # `env` block overrides the inherited environment, so anything set here
               # is silently ignored. Gateway URL, token, and model IDs live there.
               CLAUDE_CODE_EFFORT_LEVEL = "MAX";
-              PATH = "/Users/dktaohan/.local/bin:/Users/dktaohan/bin:/opt/homebrew/bin:/etc/profiles/per-user/dktaohan/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/dktaohan/.bun/bin:/opt/homebrew/sbin";
+              PATH = "/etc/profiles/per-user/dktaohan/bin:/Users/dktaohan/.local/bin:/Users/dktaohan/bin:/opt/homebrew/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/dktaohan/.bun/bin:/opt/homebrew/sbin";
             };
             StandardOutPath = "/Users/dktaohan/.gc/supervisor.log";
             StandardErrorPath = "/Users/dktaohan/.gc/supervisor.log";

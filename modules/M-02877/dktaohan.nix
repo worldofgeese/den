@@ -25,6 +25,7 @@
       };
 
       home.sessionPath = [
+        "${config.home.profileDirectory}/bin"
         "$HOME/bin"
         "$HOME/.local/bin"
         "$HOME/.cargo/bin"

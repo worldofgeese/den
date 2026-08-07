@@ -167,6 +167,11 @@
             <cachedir prefix="xdg">fontconfig</cachedir>
           </fontconfig>
         '';
+        # Community Doom icon shipped by Emacs Plus: Doom demon plus Emacs glyph.
+        doomIcon = pkgs.fetchurl {
+          url = "https://raw.githubusercontent.com/d12frosted/homebrew-emacs-plus/fc02ca5435498272b5221a228bc5676ef7b4672c/community/icons/modern-doom3/icon.icns";
+          hash = "sha256-8IATmQrht98Zmfcg2mrWLFYD7PxM2LXsfjJtNt+PHok=";
+        };
       in [
         (pkgs.runCommand "doom-emacs-wrapped" {
             nativeBuildInputs = lib.optionals pkgs.stdenv.isLinux [pkgs.makeBinaryWrapper];
@@ -178,6 +183,13 @@
                 cat >$out/bin/emacs <<'EOF'
                 #!${pkgs.runtimeShell}
                 unset EMACSLOADPATH
+                # Emacs Plus links native-comp output through Homebrew GCC.
+                for emutls in /opt/homebrew/opt/gcc/lib/gcc/current/gcc/*/*/libemutls_w.a; do
+                  if [ -f "$emutls" ]; then
+                    export LIBRARY_PATH="$(dirname "$emutls")''${LIBRARY_PATH:+:$LIBRARY_PATH}"
+                    break
+                  fi
+                done
                 export DOOMPROFILELOADFILE="${emacsPkg.doomEmacs.doomProfile}/loader/init"
                 export DOOMPROFILE="nix"
                 export DOOMDIR="${emacsPkg.doomEmacs.doomProfile}/doomdir"
@@ -190,7 +202,8 @@
                 exec ${config.home.homeDirectory}/Applications/Emacs.app/Contents/MacOS/bin/emacsclient "$@"
                 EOF
                 chmod +x $out/bin/emacs $out/bin/emacsclient
-                mkdir -p "$out/Applications/Doom Emacs.app/Contents/MacOS"
+                mkdir -p "$out/Applications/Doom Emacs.app/Contents/"{MacOS,Resources}
+                cp ${doomIcon} "$out/Applications/Doom Emacs.app/Contents/Resources/DoomEmacs.icns"
                 cat >"$out/Applications/Doom Emacs.app/Contents/Info.plist" <<'EOF'
                 <?xml version="1.0" encoding="UTF-8"?>
                 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -199,6 +212,7 @@
                   <key>CFBundleExecutable</key><string>Doom Emacs</string>
                   <key>CFBundleIdentifier</key><string>org.worldofgeese.doom-emacs</string>
                   <key>CFBundleName</key><string>Doom Emacs</string>
+                  <key>CFBundleIconFile</key><string>DoomEmacs</string>
                   <key>CFBundlePackageType</key><string>APPL</string>
                   <key>CFBundleVersion</key><string>1</string>
                 </dict>

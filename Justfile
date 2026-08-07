@@ -195,9 +195,12 @@ check-doom-darwin:
     test -x "$wrapper/bin/emacs"
     test -x "$wrapper/bin/emacsclient"
     test -x "$wrapper/Applications/Doom Emacs.app/Contents/MacOS/Doom Emacs"
+    test -f "$wrapper/Applications/Doom Emacs.app/Contents/Resources/DoomEmacs.icns"
+    [[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIconFile' "$wrapper/Applications/Doom Emacs.app/Contents/Info.plist")" == DoomEmacs ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/Emacs'* ]]
     [[ "$(<"$wrapper/bin/emacsclient")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'DOOMPROFILE="nix"'* ]]
+    [[ "$(<"$wrapper/bin/emacs")" == *'libemutls_w.a'* ]]
     echo "Darwin Doom launchers validated: $wrapper"
 
 # Build worldofgeese Doom under amd64 Linux emulation and validate agent wiring

@@ -107,6 +107,15 @@ Prompts for source type: book (page table) or conversation (bullet list)."
   (evil-define-key 'normal howm-mode-map (kbd "<backtab>") #'action-lock-goto-previous-link)
   (add-hook 'howm-mode-hook #'evil-normalize-keymaps)
 
+  ;; howm-org-font-lock-minor-mode installs org's font-lock keywords into
+  ;; non-org howm-view buffers. Native src-block fontification then calls
+  ;; `org-element-at-point', which since Org 9.7 emits a `display-warning' in a
+  ;; non-Org buffer -- once per jit-lock chunk, so on every j/k.
+  (defun my/howm-view-disable-native-src-fontification ()
+    (setq-local org-src-fontify-natively nil))
+  (add-hook 'howm-view-summary-mode-hook #'my/howm-view-disable-native-src-fontification)
+  (add-hook 'howm-view-contents-mode-hook #'my/howm-view-disable-native-src-fontification)
+
   ;; Summary buffer (search results list)
   (add-hook 'howm-view-summary-mode-hook
             (lambda ()

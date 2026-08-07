@@ -149,8 +149,11 @@ With REFRESH non-nil, discard the cached value first.  Signals a
   (setq agent-shell-permission-responder-function
         #'agent-shell-permission-allow-always)
 
-  ;; MCP servers: expose Emacs MCP tools to agents.
-  (setq agent-shell-mcp-servers
+  ;; MCP-NixOS is always available. Emacs-aware servers are opt-in.
+  (defvar lego-agent-shell-emcp-profile 'inspect
+    "emcp profile granted when Emacs MCP servers are enabled.")
+
+  (defvar lego-agent-shell-mcp-servers
         `(((name . "nixos")
            (command . ,(or (executable-find "mcp-nixos") "mcp-nixos"))
            (args . ())
@@ -178,7 +181,37 @@ With REFRESH non-nil, discard the cached value first.  Signals a
            (headers . ())
            (url . ,(lambda ()
                      (require 'emcp)
-                     (emcp-server-url (emcp-start emcp-default-profile))))))))
+                     (let ((server (emcp-start lego-agent-shell-emcp-profile)))
+                       (emcp-server-url server))))))
+    "MCP-NixOS plus optional Emacs MCP servers.")
+
+  (setq agent-shell-mcp-servers
+        (list (car lego-agent-shell-mcp-servers)))
+
+  (defun lego-agent-shell-toggle-mcp ()
+    "Toggle Emacs MCP servers for agent-shell sessions started from now on."
+    (interactive)
+    (setq agent-shell-mcp-servers
+          (if (equal agent-shell-mcp-servers lego-agent-shell-mcp-servers)
+              (list (car lego-agent-shell-mcp-servers))
+            lego-agent-shell-mcp-servers))
+    (message "agent-shell Emacs MCP %s (affects new sessions)"
+             (if (equal agent-shell-mcp-servers lego-agent-shell-mcp-servers)
+                 (format "enabled, emcp profile %s" lego-agent-shell-emcp-profile)
+               "disabled")))
+
+  (defun lego-agent-shell-mcp-profile (profile)
+    "Enable Emacs MCP servers, granting emcp PROFILE."
+    (interactive (list (progn
+                         (require 'emcp)
+                         (intern (completing-read "emcp profile: "
+                                                  (mapcar #'car emcp-profiles)
+                                                  nil t)))))
+    (setq lego-agent-shell-emcp-profile profile
+          agent-shell-mcp-servers lego-agent-shell-mcp-servers)
+    (message "agent-shell Emacs MCP enabled, emcp profile %s (affects new sessions)"
+             profile))
+  )
 
 ;;; --------------------------------------------------------------------------
 ;;; emcp (works independently of agent-shell backend)
@@ -186,7 +219,7 @@ With REFRESH non-nil, discard the cached value first.  Signals a
 
 (use-package! emcp
   :config
-  (setq emcp-default-profile 'full-control)
+  (setq emcp-default-profile 'inspect)
   (setq emcp-http-port 38913))
 
 

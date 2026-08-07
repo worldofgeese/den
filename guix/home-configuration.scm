@@ -621,7 +621,7 @@ download-buffer-size = 536870912
 
     (simple-service 'additional-env-vars-service
                     home-environment-variables-service-type
-                    `(                      ("PATH" . "$HOME/.nix-profile/bin:$HOME/.local/bin:$HOME/.config/emacs/bin:$HOME/.krew/bin:$PATH")
+                    `(                      ("PATH" . "$HOME/.nix-profile/bin:$HOME/.local/bin:$HOME/.krew/bin:$PATH")
                       ("XDG_DATA_DIRS" . "$XDG_DATA_DIRS:/var/lib/flatpak/exports/share:$HOME/.local/share/flatpak/exports/share:$HOME/.nix-profile/share:$HOME/.local/share/fonts")
                       ("FONTCONFIG_FILE" . "$HOME/.config/fontconfig/fonts.conf")
                       ;; Fix blurry small text in Chromium/Electron apps on dark backgrounds

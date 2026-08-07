@@ -183,6 +183,7 @@
                 cat >$out/bin/emacs <<'EOF'
                 #!${pkgs.runtimeShell}
                 unset EMACSLOADPATH
+                export PATH="${lib.concatStringsSep ":" config.home.sessionPath}:${config.home.profileDirectory}/bin:$PATH"
                 # Emacs Plus links native-comp output through Homebrew GCC.
                 for emutls in /opt/homebrew/opt/gcc/lib/gcc/current/gcc/*/*/libemutls_w.a; do
                   if [ -f "$emutls" ]; then

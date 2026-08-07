@@ -201,6 +201,12 @@ check-doom-darwin:
     [[ "$(<"$wrapper/bin/emacsclient")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'DOOMPROFILE="nix"'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'libemutls_w.a'* ]]
+    [[ "$(<"$wrapper/bin/emacs")" == *'/opt/homebrew/bin'* ]]
+    [[ "$(<"$wrapper/bin/emacs")" == *'/etc/profiles/per-user/dktaohan/bin'* ]]
+    package_names=$(nix eval --no-warn-dirty --json .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.packages \
+      --apply 'ps: map (p: p.pname or p.name) ps')
+    [[ "$package_names" == *'"claude-agent-acp"'* ]]
+    [[ "$package_names" == *'"github-copilot-cli"'* ]]
     echo "Darwin Doom launchers validated: $wrapper"
 
 # Build worldofgeese Doom under amd64 Linux emulation and validate agent wiring
@@ -238,19 +244,25 @@ check-doom-linux-image:
             (require (quote agent-shell-anthropic))
             (require (quote agent-shell-github))
             (let ((mcp-names
-                   (mapcar (lambda (server) (alist-get (quote name) server))
-                           agent-shell-mcp-servers)))
+                   (lambda ()
+                     (mapcar (lambda (server) (alist-get (quote name) server))
+                             agent-shell-mcp-servers))))
               (unless (and
                        (fboundp (quote agent-shell-anthropic-start-claude-code))
                        (fboundp (quote agent-shell-github-start-copilot))
                        (fboundp (quote agent-shell-omp-start))
                        (equal agent-shell-github-acp-command (quote ("copilot" "--acp")))
                        (equal agent-shell-omp-acp-command (quote ("omp" "acp")))
-                       (equal mcp-names (quote ("nixos" "emacs" "emcp"))))
-                (error "agent-shell image validation failed: copilot=%S omp=%S mcp=%S"
-                       agent-shell-github-acp-command agent-shell-omp-acp-command mcp-names))
-              (format "agent-shell image validation passed: Claude Code, Copilot, OMP; MCP %S"
-                      mcp-names)))'\''
+                       (equal (funcall mcp-names) (quote ("nixos")))
+                       (progn
+                         (lego-agent-shell-toggle-mcp)
+                         (equal (funcall mcp-names) (quote ("nixos" "emacs" "emcp"))))
+                       (eq lego-agent-shell-emcp-profile (quote inspect)))
+                (error "agent-shell image validation failed: copilot=%S omp=%S mcp=%S profile=%S"
+                       agent-shell-github-acp-command agent-shell-omp-acp-command
+                       (funcall mcp-names) lego-agent-shell-emcp-profile))
+              (format "agent-shell image validation passed: Claude Code, Copilot, OMP; opt-in MCP %S"
+                      (funcall mcp-names))))'\''
       '
 
 

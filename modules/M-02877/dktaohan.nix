@@ -345,6 +345,7 @@
               "brew_cask"
               "bun"
               "bun_packages"
+              "node"
               "bob"
               "helm"
               "github_cli_extensions"

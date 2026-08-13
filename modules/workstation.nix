@@ -147,7 +147,7 @@
             ask_retry = false;
             pre_sudo = true;
             show_distribution_summary = false;
-            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
+            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "node" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
           };
           commands = {
             "Distrobox (arch)" = "distrobox-upgrade arch";

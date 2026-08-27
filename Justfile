@@ -168,23 +168,40 @@ deploy-pixel-fold:
     just update
     NIX_CONFIG='warn-dirty = false' nix-on-droid switch --flake .#pixel-fold
 
-# Check host outputs evaluate without known-noise custom-output warnings.
+# Evaluate every registry-derived entity, without known-noise custom-output
+# warnings. Coverage is defined in modules/checks.nix, so adding a host or home
+# to modules/hosts.nix extends this gate with no edit here.
 # Depends on install-hooks so a fresh clone arms the pre-commit gate the first
 # time it runs the gate manually, instead of relying on someone remembering.
 check: install-hooks
-    nix eval --no-warn-dirty --json .#nixosConfigurations.paphos.config.system.stateVersion >/dev/null
-    nix eval --no-warn-dirty --json .#nixosConfigurations.oracle.config.system.stateVersion >/dev/null
-    # Forces every package name rather than activationPackage.drvPath: doom-emacs
-    # is built via IFD, so asking for the drvPath makes eval *build*
-    # doom-intermediates, which needs a real x86_64-linux builder we don't have on
-    # darwin. Forcing home.packages names still catches undefined variables and
-    # missing package attributes. Not stateVersion -- that evaluates without
-    # ever touching the package list.
-    nix eval --no-warn-dirty --json .#homeConfigurations.worldofgeese.config.home.packages --apply 'ps: builtins.length (map (p: p.name) ps)' >/dev/null
-    nix eval --no-warn-dirty .#darwinConfigurations.M-02877.config.system.build.toplevel.drvPath >/dev/null
+    nix eval --no-warn-dirty --json .#evalChecks >/dev/null
     if [[ "$(uname -s)" == Darwin ]]; then just check-doom-darwin; fi
-    nix eval --no-warn-dirty --json .#nixOnDroidConfigurations.pixel-fold.config.system.stateVersion >/dev/null
+    just check-guix
     just check-fmt
+
+# Syntax- and load-check the Guix modules. Skips cleanly where guix is absent:
+# it only exists on mahakala, and a check that fails on darwin for a missing
+# interpreter is worse than no check. Loading each file evaluates the record it
+# defines (operating-system, home-environment, package), so this catches the
+# unbound-variable and bad-field class without building anything.
+check-guix:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v guix >/dev/null 2>&1; then
+        echo "check-guix: guix not found, skipping"
+        exit 0
+    fi
+    for scm in guix/system.scm guix/home-configuration.scm guix-packages/linux-cachyos.scm; do
+        echo "check-guix: loading $scm"
+        guix repl -L guix-packages "$scm" >/dev/null
+    done
+
+# Everything `just check` covers, plus the checks that need extra tooling or
+# provider state and so must stay out of the pre-commit path.
+check-all: check
+    just check-oracle-image
+    just oracle-tofu-fmt-check
+    just oracle-tofu-validate
 
 # Build Darwin Doom wrapper and verify generated CLI and GUI launchers
 check-doom-darwin:

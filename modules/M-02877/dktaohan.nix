@@ -1,15 +1,5 @@
 {den, ...}: {
   den.aspects.dktaohan = {
-    includes = [
-      den.batteries.define-user
-      den.batteries.primary-user
-      den.aspects.ssh
-      den.aspects.sharedDevtools
-      den.aspects.doom-emacs
-      den.aspects.gitcommon
-      den.aspects.terminal
-    ];
-
     homeManager = {
       pkgs,
       lib,

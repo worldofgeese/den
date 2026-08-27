@@ -46,14 +46,4 @@
       }
     ];
   };
-
-  den.aspects.kypris = {
-    includes = [den.aspects.ssh];
-    homeManager = {...}: {
-      home.username = "kypris";
-      home.homeDirectory = "/home/kypris";
-      home.stateVersion = "25.11";
-      programs.home-manager.enable = true;
-    };
-  };
 }

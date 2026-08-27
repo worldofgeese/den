@@ -4,8 +4,10 @@
   ...
 }: {
   # Shared developer tooling aspect — packages and programs used on both
-  # mahakala (Linux workstation) and M-02877 (macOS work machine).
-  # Host-specific additions go in workstation.nix or dktaohan.nix.
+  # mahakala (Linux workstation) and M-02877 (macOS work machine). Which entities
+  # receive it is declared in modules/hosts.nix: worldofgeese takes it through
+  # den.aspects.workstation, dktaohan names it directly. Host-specific additions
+  # go in workstation.nix or M-02877/dktaohan.nix.
   den.aspects.sharedDevtools = {
     includes = [den.aspects.devtools];
     homeManager = {

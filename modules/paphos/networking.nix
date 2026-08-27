@@ -1,8 +1,4 @@
 {den, ...}: {
-  den.aspects.paphos = {
-    includes = [den.aspects.ssh-server];
-  };
-
   den.aspects.paphos.nixos = {pkgs, ...}: {
     networking.hostName = "paphos";
     networking.networkmanager.enable = true;

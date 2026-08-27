@@ -4,11 +4,6 @@
   ...
 }: {
   den.aspects.worldofgeese = {
-    includes = [
-      den._.primary-user
-      den.aspects.gitcommon
-    ];
-
     homeManager = {pkgs, ...}: {
       imports = [inputs.helium.homeModules.default];
       home.username = "worldofgeese";

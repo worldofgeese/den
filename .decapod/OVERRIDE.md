@@ -136,10 +136,3 @@
 ### plugins/DECIDE.md
 
 ### plugins/AUTOUPDATE.md
-
-## Project Entrypoint Policy
-
-- Treat `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and `CODEX.md` as Decapod-generated projections; do not hand-edit them for project-specific policy.
-- Put repository-specific governance and operating instructions in this override file.
-- Use `decapod constitution get core/DECAPOD` for the canonical constitution router.
-- Use `decapod docs show docs/agent/<document>.md` or `decapod docs search` for embedded agent documentation; do not reference repository paths such as `core/DECAPOD.md` or `docs/PLAYBOOK.md` as local files.

@@ -138,10 +138,14 @@ kernel-build:
     sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{guix-substitute-urls}}" --fallback --root={{kernel-gc-root}} -L /home/worldofgeese/.config/home-manager/guix-packages -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
     echo "kernel-build: done -> $(readlink -f {{kernel-gc-root}})"
 
-# Deploy NixOS on paphos (remote server)
-deploy-paphos host="paphos":
+# Deploy NixOS on paphos (remote server; build on target by default)
+deploy-paphos host="paphos" build-host="paphos" user="kypris":
     just update
-    NIX_CONFIG='warn-dirty = false' nixos-rebuild switch --flake .#paphos --target-host {{host}} --use-remote-sudo
+    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{user}}@{{host}} --build-host {{user}}@{{build-host}} --use-remote-sudo
+
+# Deploy Paphos against current flake.lock without refreshing inputs.
+deploy-paphos-locked host="paphos" build-host="paphos" user="kypris":
+    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{user}}@{{host}} --build-host {{user}}@{{build-host}} --use-remote-sudo
 
 # Deploy NixOS on oracle (Oracle Cloud aarch64; build on target by default)
 deploy-oracle host="nixos@158.180.52.169" build-host="nixos@158.180.52.169":

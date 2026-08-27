@@ -303,73 +303,6 @@
             StandardErrorPath = "/tmp/local-model-proxy.err";
           };
         };
-
-        gascity-supervisor = {
-          serviceConfig = {
-            Label = "com.gascity.supervisor";
-            ProgramArguments = ["/opt/homebrew/bin/gc" "supervisor" "run"];
-            RunAtLoad = true;
-            KeepAlive = {
-              Crashed = true;
-              SuccessfulExit = false;
-            };
-            EnvironmentVariables = {
-              GC_HOME = "/Users/dktaohan/.gc";
-              HOME = "/Users/dktaohan";
-              LANG = "en_US.UTF-8";
-              USER = "dktaohan";
-              LOGNAME = "dktaohan";
-              SHELL = "/bin/zsh";
-              XDG_CONFIG_HOME = "/Users/dktaohan/.config";
-              XDG_STATE_HOME = "/Users/dktaohan/.local/state";
-              GC_SUPERVISOR_PRESERVE_SESSIONS_ON_SIGNAL = "1";
-              # No ANTHROPIC_* here on purpose: Claude Code's ~/.claude/settings.json
-              # `env` block overrides the inherited environment, so anything set here
-              # is silently ignored. Gateway URL, token, and model IDs live there.
-              CLAUDE_CODE_EFFORT_LEVEL = "MAX";
-              PATH = "/etc/profiles/per-user/dktaohan/bin:/Users/dktaohan/.local/bin:/Users/dktaohan/bin:/opt/homebrew/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/dktaohan/.bun/bin:/opt/homebrew/sbin";
-            };
-            StandardOutPath = "/Users/dktaohan/.gc/supervisor.log";
-            StandardErrorPath = "/Users/dktaohan/.gc/supervisor.log";
-          };
-        };
-
-        nanoclaw-container-runtime = {
-          serviceConfig = {
-            Label = "com.nanoclaw.container-runtime";
-            ProgramArguments = ["/opt/homebrew/bin/container" "system" "start"];
-            WorkingDirectory = "/Users/dktaohan";
-            RunAtLoad = true;
-            KeepAlive = false;
-            EnvironmentVariables = {
-              PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin";
-              HOME = "/Users/dktaohan";
-            };
-            StandardOutPath = "/Users/dktaohan/nanoclaw/logs/container-runtime.log";
-            StandardErrorPath = "/Users/dktaohan/nanoclaw/logs/container-runtime.log";
-          };
-        };
-
-        nanoclaw = {
-          serviceConfig = {
-            Label = "com.nanoclaw";
-            ProgramArguments = [
-              "/usr/bin/caffeinate"
-              "-s"
-              "/etc/profiles/per-user/dktaohan/bin/node"
-              "/Users/dktaohan/nanoclaw/dist/index.js"
-            ];
-            WorkingDirectory = "/Users/dktaohan/nanoclaw";
-            RunAtLoad = true;
-            KeepAlive = true;
-            EnvironmentVariables = {
-              PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Users/dktaohan/.local/bin";
-              HOME = "/Users/dktaohan";
-            };
-            StandardOutPath = "/Users/dktaohan/nanoclaw/logs/nanoclaw.log";
-            StandardErrorPath = "/Users/dktaohan/nanoclaw/logs/nanoclaw.error.log";
-          };
-        };
       };
 
       security.pam.services.sudo_local.touchIdAuth = true;
@@ -426,6 +359,7 @@
           "gascity"
         ];
         casks = [
+          "claude"
           "d12frosted/emacs-plus/emacs-plus-app"
           "zed"
           "github-copilot-app"

@@ -60,6 +60,20 @@
         };
       };
 
+      # tmux >= 3.7 hard-errors on darwin unless jemalloc is chosen explicitly
+      # (macOS calloc(3) does not reliably zero allocations). nixpkgs fixed this
+      # on master in 56d4d710bd0b; nixpkgs-unstable still ships 3.7c without it.
+      # Drop this overlay once the channel carries that commit.
+      nixpkgs.overlays = [
+        (final: prev:
+          lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
+            tmux = prev.tmux.overrideAttrs (old: {
+              buildInputs = old.buildInputs ++ [final.jemalloc];
+              configureFlags = old.configureFlags ++ ["--enable-jemalloc"];
+            });
+          })
+      ];
+
       programs.tmux = {
         enable = true;
         terminal = "tmux-256color";

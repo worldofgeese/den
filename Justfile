@@ -168,8 +168,10 @@ deploy-pixel-fold:
     just update
     NIX_CONFIG='warn-dirty = false' nix-on-droid switch --flake .#pixel-fold
 
-# Check host outputs evaluate without known-noise custom-output warnings
-check:
+# Check host outputs evaluate without known-noise custom-output warnings.
+# Depends on install-hooks so a fresh clone arms the pre-commit gate the first
+# time it runs the gate manually, instead of relying on someone remembering.
+check: install-hooks
     nix eval --no-warn-dirty --json .#nixosConfigurations.paphos.config.system.stateVersion >/dev/null
     nix eval --no-warn-dirty --json .#nixosConfigurations.oracle.config.system.stateVersion >/dev/null
     # Forces every package name rather than activationPackage.drvPath: doom-emacs
@@ -311,11 +313,11 @@ fmt:
 check-fmt:
     nix run nixpkgs#alejandra -- --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
 
-# Install git hooks (pre-commit runs 'just check')
+# Install git hooks (pre-commit runs 'just check'). Also runs as a `just check`
+# prerequisite, so this is idempotent and safe to re-run.
 install-hooks:
     cp .githooks/pre-commit .git/hooks/pre-commit
     chmod +x .git/hooks/pre-commit
-    @echo "Hooks installed."
 
 # Build Oracle Cloud NixOS OCI qcow2 (aarch64-linux; cross-build needs binfmt)
 build-oracle-image:

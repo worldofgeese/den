@@ -15,7 +15,7 @@
       # Darwin uses M-02877's published loopback port; Linux uses mahakala's.
       # Both addresses come from gateway.json.
       gatewayBaseUrl = gateway.headroom.loopbackUrl (
-        if pkgs.stdenv.isDarwin
+        if pkgs.stdenv.hostPlatform.isDarwin
         then "M-02877"
         else "mahakala"
       );
@@ -49,7 +49,7 @@
         # Doom packages are built with matching Emacs 30 ABIs. On Darwin the
         # installed launcher below uses Homebrew Emacs Plus at runtime.
         emacs =
-          if pkgs.stdenv.isDarwin
+          if pkgs.stdenv.hostPlatform.isDarwin
           then pkgs.emacs30
           else pkgs.emacs30-pgtk;
         provideEmacs = false;
@@ -60,7 +60,7 @@
             gnupg
             unzip
           ])
-          ++ lib.optionals pkgs.stdenv.isLinux [pkgs.pinentry-gnome3];
+          ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.pinentry-gnome3];
         emacsPackageOverrides = eself: esuper: let
           addAgentShellDep = pkg:
             pkg.overrideAttrs (old: {
@@ -99,7 +99,7 @@
             ename = "reader";
             version = "0.3.2";
             src = emacs-reader-src;
-            postPatch = lib.optionalString pkgs.stdenv.isDarwin ''
+            postPatch = lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
               substituteInPlace Makefile \
                 --replace-fail 'else ifeq ($(OS_NAME),Darwin)' 'else ifeq ($(OS_NAME),DisabledDarwinBranch)'
             '';
@@ -110,7 +110,7 @@
               ''
                 make clean all USE_PKGCONFIG=yes CC=cc
               ''
-              + lib.optionalString pkgs.stdenv.isDarwin ''
+              + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
                 cp render-core.dylib render-core.so
               '';
           };
@@ -136,7 +136,7 @@
         };
       };
 
-      home.file = lib.mkIf pkgs.stdenv.isLinux {
+      home.file = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
         # Override Guix system's emacs.desktop so GNOME launches our wrapper.
         ".local/share/applications/emacs.desktop".text = ''
           [Desktop Entry]
@@ -174,11 +174,11 @@
         };
       in [
         (pkgs.runCommand "doom-emacs-wrapped" {
-            nativeBuildInputs = lib.optionals pkgs.stdenv.isLinux [pkgs.makeBinaryWrapper];
+            nativeBuildInputs = lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.makeBinaryWrapper];
           } ''
             mkdir -p $out/bin $out/share
             ${
-              if pkgs.stdenv.isDarwin
+              if pkgs.stdenv.hostPlatform.isDarwin
               then ''
                 cat >$out/bin/emacs <<'EOF'
                 #!${pkgs.runtimeShell}

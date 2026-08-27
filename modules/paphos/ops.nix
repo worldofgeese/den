@@ -46,8 +46,8 @@ in {
         record_failure nixos-upgrade-failed
       fi
 
-      if ${systemd}/bin/systemctl list-unit-files forgesync-github.timer >/dev/null 2>&1; then
-        if ! ${systemd}/bin/systemctl is-active --quiet forgesync-github.timer; then
+      if ${systemd}/bin/systemctl list-unit-files forgesync-job-github.timer >/dev/null 2>&1; then
+        if ! ${systemd}/bin/systemctl is-active --quiet forgesync-job-github.timer; then
           record_failure forgesync-timer
         fi
       fi

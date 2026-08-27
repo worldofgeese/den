@@ -41,7 +41,14 @@
           feature = ["issues" "pull-requests"];
           mirror-interval = "8h0m0s";
           log = "INFO";
-          exclude = ["goetia-dashboard" "openclaw-config" "kypris-workspace" "meridian" "form-bus"];
+          exclude = [
+            "cataphract"
+            "goetia-dashboard"
+            "openclaw-config"
+            "kypris-workspace"
+            "meridian"
+            "form-bus"
+          ];
         };
         secretFile = "/etc/forgesync/github.env";
         timerConfig = {

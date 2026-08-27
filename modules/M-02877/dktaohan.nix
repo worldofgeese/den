@@ -27,10 +27,11 @@
       home.sessionPath = [
         "${config.home.profileDirectory}/bin"
         "$HOME/bin"
+        # Homebrew provides the CGO-enabled beads binary used by this workspace.
+        "/opt/homebrew/bin"
         "$HOME/.local/bin"
         "$HOME/.cargo/bin"
         "$HOME/.local/share/pnpm/bin"
-        "/opt/homebrew/bin"
         "$HOME/.dotnet/tools"
         # bao compiles to $HOME/.bun/bin (hardcoded in its build script);
         # `bun add -g` puts everything else in $HOME/.cache/.bun/bin.

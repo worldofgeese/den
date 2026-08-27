@@ -130,55 +130,63 @@
           };
         };
 
-        br = final.rustPlatform.buildRustPackage {
-          pname = "br";
+        # version is the single source of truth: the git tag is derived from it, so
+        # a release bump cannot leave rev pointing at the previous tag.
+        br = let
           version = "0.2.11";
+        in
+          final.rustPlatform.buildRustPackage {
+            pname = "br";
+            inherit version;
 
-          src = final.fetchFromGitHub {
-            owner = "Dicklesworthstone";
-            repo = "beads_rust";
-            rev = "v0.2.11";
-            hash = "sha256-XfxO1gDt51CWv6T/wEX97uLm89Px0rEmCZEcofeWZG0=";
+            src = final.fetchFromGitHub {
+              owner = "Dicklesworthstone";
+              repo = "beads_rust";
+              rev = "v${version}";
+              hash = "sha256-XfxO1gDt51CWv6T/wEX97uLm89Px0rEmCZEcofeWZG0=";
+            };
+
+            cargoHash = "sha256-3u7GMriV2ZG0mjjGYLXGcUDQrs83uRYDMy5NKXTdaTI=";
+
+            RUSTC_BOOTSTRAP = "1";
+            doCheck = false;
+
+            nativeBuildInputs = with final; [pkg-config];
+            buildInputs = final.lib.optionals final.stdenv.hostPlatform.isLinux [final.openssl];
+
+            meta = {
+              description = "Fast Rust port of Beads issue tracker";
+              homepage = "https://github.com/Dicklesworthstone/beads_rust";
+              license = final.lib.licenses.mit;
+              mainProgram = "br";
+            };
           };
 
-          cargoHash = "sha256-3u7GMriV2ZG0mjjGYLXGcUDQrs83uRYDMy5NKXTdaTI=";
-
-          RUSTC_BOOTSTRAP = "1";
-          doCheck = false;
-
-          nativeBuildInputs = with final; [pkg-config];
-          buildInputs = final.lib.optionals final.stdenv.hostPlatform.isLinux [final.openssl];
-
-          meta = {
-            description = "Fast Rust port of Beads issue tracker";
-            homepage = "https://github.com/Dicklesworthstone/beads_rust";
-            license = final.lib.licenses.mit;
-            mainProgram = "br";
-          };
-        };
-
-        bv = final.buildGoModule {
-          pname = "bv";
+        bv = let
           version = "0.16.4";
+        in
+          final.buildGoModule {
+            pname = "bv";
+            inherit version;
 
-          src = final.fetchFromGitHub {
-            owner = "Dicklesworthstone";
-            repo = "beads_viewer";
-            rev = "v0.16.4";
-            hash = "sha256-rKwrtbJ7PBo951BA35oeiuc+49R3vrj2Owz31jPc9uk=";
+            src = final.fetchFromGitHub {
+              owner = "Dicklesworthstone";
+              repo = "beads_viewer";
+              rev = "v${version}";
+              hash = "sha256-rKwrtbJ7PBo951BA35oeiuc+49R3vrj2Owz31jPc9uk=";
+            };
+
+            vendorHash = null;
+            subPackages = ["cmd/bv"];
+            doCheck = false;
+
+            meta = {
+              description = "Graph-aware TUI and robot-mode viewer for Beads";
+              homepage = "https://github.com/Dicklesworthstone/beads_viewer";
+              license = final.lib.licenses.mit;
+              mainProgram = "bv";
+            };
           };
-
-          vendorHash = null;
-          subPackages = ["cmd/bv"];
-          doCheck = false;
-
-          meta = {
-            description = "Graph-aware TUI and robot-mode viewer for Beads";
-            homepage = "https://github.com/Dicklesworthstone/beads_viewer";
-            license = final.lib.licenses.mit;
-            mainProgram = "bv";
-          };
-        };
 
         agent-token-dashboard = final.buildGoModule {
           pname = "agent-token-dashboard";

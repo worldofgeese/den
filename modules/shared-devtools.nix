@@ -49,7 +49,6 @@
         ]
         ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
           rtk
-          br
         ];
 
       # uv, plus the tools it manages. Declarative replacement for

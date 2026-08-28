@@ -132,36 +132,6 @@
 
         # version is the single source of truth: the git tag is derived from it, so
         # a release bump cannot leave rev pointing at the previous tag.
-        br = let
-          version = "0.2.11";
-        in
-          final.rustPlatform.buildRustPackage {
-            pname = "br";
-            inherit version;
-
-            src = final.fetchFromGitHub {
-              owner = "Dicklesworthstone";
-              repo = "beads_rust";
-              rev = "v${version}";
-              hash = "sha256-XfxO1gDt51CWv6T/wEX97uLm89Px0rEmCZEcofeWZG0=";
-            };
-
-            cargoHash = "sha256-3u7GMriV2ZG0mjjGYLXGcUDQrs83uRYDMy5NKXTdaTI=";
-
-            RUSTC_BOOTSTRAP = "1";
-            doCheck = false;
-
-            nativeBuildInputs = with final; [pkg-config];
-            buildInputs = final.lib.optionals final.stdenv.hostPlatform.isLinux [final.openssl];
-
-            meta = {
-              description = "Fast Rust port of Beads issue tracker";
-              homepage = "https://github.com/Dicklesworthstone/beads_rust";
-              license = final.lib.licenses.mit;
-              mainProgram = "br";
-            };
-          };
-
         bv = let
           version = "0.16.4";
         in

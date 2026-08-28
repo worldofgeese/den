@@ -1,4 +1,8 @@
-{den, ...}: {
+{
+  den,
+  oracleHost,
+  ...
+}: {
   den.aspects.ssh.homeManager = {
     config,
     lib,
@@ -36,8 +40,10 @@
           User = "nixos";
         };
         "oracle-public" = {
-          HostName = "158.180.52.169";
-          User = "nixos";
+          # oracle.json owns the public IP; terraform/oracle/reserved_ip.tf is its
+          # upstream source of truth.
+          HostName = oracleHost.publicIp;
+          User = oracleHost.deployUser;
         };
         pixel-fold = {
           HostName = "google-pixel-fold.hound-celsius.ts.net";

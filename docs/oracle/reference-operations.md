@@ -18,7 +18,7 @@ Quick lookup for Terraform, NixOS, ports, and commands. No narrative — see [tu
 | `just oracle-tofu-backup-state` | Copy `terraform.tfstate` (+ backup) to gopass |
 | `just oracle-tofu-restore-state` | Restore state from gopass (destructive overwrite) |
 
-Default deploy host: `nixos@158.180.52.169`.
+Default deploy host: `<deployUser>@<publicIp>` from `oracle.json`.
 
 ## Flake outputs
 
@@ -66,12 +66,12 @@ State backup gopass paths: `dev/oci/oracle-cloud-nixos/terraform-state`, `.../te
 
 Peer relay uses **40000** explicitly via `extraSetFlags`.
 
-## NixOS module knobs (`modules/oracle/_configuration.nix`)
+## NixOS module knobs (`modules/oracle/system.nix`)
 
 | Setting | Value |
 |---------|-------|
-| `services.tailscale.enable` | `true` |
-| `services.tailscale.extraSetFlags` | `--relay-server-port=40000`, `--relay-server-static-endpoints=158.180.52.169:40000` |
+| `services.tailscale.enable` | `true` (from `den.aspects.ssh-server`) |
+| `services.tailscale.extraSetFlags` | `--relay-server-port=<relayPort>`, `--relay-server-static-endpoints=<publicIp>:<relayPort>`, both from `oracle.json` |
 | `networking.firewall.allowedUDPPorts` | `[ 40000 ]` |
 | Exit node / subnet router | disabled (defaults) |
 | `system.autoUpgrade.enable` | `true` |
@@ -115,7 +115,7 @@ tailscale netcheck
 
 ## SSH
 
-Fleet SSH (`modules/ssh.nix`): `oracle` → `oracle.hound-celsius.ts.net`, `oracle-public` → `158.180.52.169`. Direct:
+Fleet SSH (`modules/ssh.nix`): `oracle` → `oracle.hound-celsius.ts.net`, `oracle-public` → `publicIp` from `oracle.json`. Direct:
 
 ```bash
 ssh nixos@$(just oracle-tofu-output instance_public_ip)

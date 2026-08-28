@@ -147,9 +147,19 @@ deploy-paphos host="paphos" build-host="paphos" user="kypris":
 deploy-paphos-locked host="paphos" build-host="paphos" user="kypris":
     NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{user}}@{{host}} --build-host {{user}}@{{build-host}} --use-remote-sudo
 
-# Deploy NixOS on oracle (Oracle Cloud aarch64; build on target by default)
-deploy-oracle host="nixos@158.180.52.169" build-host="nixos@158.180.52.169":
-    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#oracle --target-host {{host}} --build-host {{build-host}} --use-remote-sudo
+# Deploy NixOS on oracle (Oracle Cloud aarch64; build on target by default).
+# The address comes from oracle.json, the same file modules/oracle/facts.nix reads,
+# so the deploy default and the tailscale relay endpoint cannot disagree. Override
+# for a one-off: just deploy-oracle host=nixos@NEW_IP build-host=nixos@NEW_IP
+deploy-oracle host="" build-host="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    default="$(python3 -c 'import json; f = json.load(open("oracle.json")); print(f["deployUser"] + "@" + f["publicIp"])')"
+    target="{{host}}"
+    build="{{build-host}}"
+    [[ -n "$target" ]] || target="$default"
+    [[ -n "$build" ]] || build="$default"
+    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#oracle --target-host "$target" --build-host "$build" --use-remote-sudo
 
 # Deliberately does NOT run `just update`: coupling deploy to a 15-input flake
 # update means any single forge outage (codeberg 503, github stall) blocks a

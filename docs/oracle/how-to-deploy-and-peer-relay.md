@@ -8,7 +8,11 @@ After the instance exists, push flake updates from a machine with SSH access:
 just deploy-oracle
 ```
 
-Defaults: `--target-host` and `--build-host` both `nixos@158.180.52.169`. Override when the public IP changes:
+`--target-host` and `--build-host` both default to `<deployUser>@<publicIp>` read
+from `oracle.json`, which owns that address. When the OCI reserved IP changes, edit
+`oracle.json` — the deploy default, the tailscale relay endpoint
+(`modules/oracle/system.nix`) and the `oracle-public` SSH host (`modules/ssh.nix`)
+all follow. Override for a one-off without editing the file:
 
 ```bash
 just deploy-oracle host=nixos@NEW_IP build-host=nixos@NEW_IP
@@ -19,8 +23,8 @@ Manual equivalent:
 ```bash
 just update
 NIX_CONFIG='warn-dirty = false' nixos-rebuild switch --flake .#oracle \
-  --target-host nixos@158.180.52.169 \
-  --build-host nixos@158.180.52.169 \
+  --target-host "nixos@$(python3 -c 'import json; print(json.load(open("oracle.json"))["publicIp"])')" \
+  --build-host "nixos@$(python3 -c 'import json; print(json.load(open("oracle.json"))["publicIp"])')" \
   --use-remote-sudo
 ```
 
@@ -28,7 +32,7 @@ Building on the ARM instance avoids cross-compiling the full system closure on x
 
 ## What the NixOS module enables
 
-`modules/oracle/_configuration.nix` sets:
+`modules/oracle/system.nix` sets:
 
 - `services.tailscale.enable = true`
 - `services.tailscale.extraSetFlags = [ "--relay-server-port=40000" ]`
@@ -76,16 +80,18 @@ Tag `oracle` (or the relay node) with `tag:oracle-relay`. Adjust `src`/`dst` to 
 
 ## Static relay endpoint (declarative)
 
-`modules/oracle/_configuration.nix` sets:
+`modules/oracle/system.nix` derives the flags from `oracle.json`:
 
 ```nix
 services.tailscale.extraSetFlags = [
-  "--relay-server-port=40000"
-  "--relay-server-static-endpoints=158.180.52.169:40000"
+  "--relay-server-port=${toString oracleHost.relayPort}"
+  "--relay-server-static-endpoints=${oracleHost.relayEndpoint}"
 ];
 ```
 
-`tailscaled-set.service` re-applies these flags on boot. **When the OCI public IP changes**, update the IP in that module and in `just deploy-oracle` default host, then redeploy.
+`tailscaled-set.service` re-applies these flags on boot. **When the OCI public IP
+changes**, edit `publicIp` in `oracle.json` and redeploy: the relay endpoint, the
+`deploy-oracle` default and the `oracle-public` SSH host all read it.
 
 Manual override (until next deploy):
 

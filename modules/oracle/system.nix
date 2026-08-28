@@ -11,6 +11,7 @@
 {
   den,
   inputs,
+  oracleHost,
   ...
 }: {
   den.aspects.oracle.nixos = {
@@ -66,10 +67,10 @@
     # oracle-only and stay here.
     services.tailscale = {
       # Peer relay only — no exit node or subnet router (useRoutingFeatures default "none")
-      # Public IP 158.180.52.169 (2026-06-09). Update when OCI reserved IP changes; see docs/oracle/how-to-deploy-and-peer-relay.md.
+      # The endpoint is derived from oracle.json, which owns the public IP.
       extraSetFlags = [
-        "--relay-server-port=40000"
-        "--relay-server-static-endpoints=158.180.52.169:40000"
+        "--relay-server-port=${toString oracleHost.relayPort}"
+        "--relay-server-static-endpoints=${oracleHost.relayEndpoint}"
       ];
     };
 

@@ -1,0 +1,7 @@
+{
+  "_": "Single owner of oracle's reachable address. Read by Nix (modules/oracle/facts.nix) and by the Justfile (deploy-oracle). JSON for the same reason gateway.json is: two languages read it. The real upstream source of truth is terraform/oracle/reserved_ip.tf; terraform does not write back here, so this file is updated by hand when the OCI reserved IP changes -- see docs/oracle/how-to-deploy-and-peer-relay.md.",
+
+  "publicIp": "158.180.52.169",
+  "deployUser": "nixos",
+  "relayPort": 40000
+}

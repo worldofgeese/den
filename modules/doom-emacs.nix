@@ -46,11 +46,14 @@
             --replace-fail '@GATEWAY_SONNET_MODEL@' ${lib.escapeShellArg slots.sonnet} \
             --replace-fail '@GATEWAY_HAIKU_MODEL@' ${lib.escapeShellArg slots.haiku}
         '';
-        # Doom packages are built with matching Emacs 30 ABIs. On Darwin the
-        # installed launcher below uses Homebrew Emacs Plus at runtime.
+        # Doom's generated profile init is version-stamped
+        # (profile/nix/0/init.MAJOR.MINOR.el) and only loaded when the file name
+        # matches the running Emacs, so this must track the Emacs the launcher
+        # below execs. Darwin runs Homebrew Emacs Plus (31.1), Linux runs the
+        # nix build directly.
         emacs =
           if pkgs.stdenv.hostPlatform.isDarwin
-          then pkgs.emacs30
+          then pkgs.emacs31
           else pkgs.emacs30-pgtk;
         provideEmacs = false;
         extraBinPackages =

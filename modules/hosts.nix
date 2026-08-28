@@ -40,4 +40,10 @@
   den.aspects.kypris.includes = [
     den.aspects.ssh
   ];
+
+  den.hosts.aarch64-linux.oracle = {};
+  den.aspects.oracle.includes = [
+    den.aspects.ssh-server
+    den.aspects.server
+  ];
 }

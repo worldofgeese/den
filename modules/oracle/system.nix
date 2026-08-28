@@ -54,7 +54,6 @@
 
     oci.efi = true;
 
-    networking.hostName = "oracle";
     networking.firewall = {
       enable = true;
       allowedTCPPorts = [22 80 443];

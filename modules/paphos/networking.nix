@@ -1,6 +1,5 @@
 {den, ...}: {
   den.aspects.paphos.nixos = {pkgs, ...}: {
-    networking.hostName = "paphos";
     networking.networkmanager.enable = true;
 
     time.timeZone = "Europe/Copenhagen";

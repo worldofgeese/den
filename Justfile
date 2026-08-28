@@ -168,13 +168,19 @@ deploy-pixel-fold:
     just update
     NIX_CONFIG='warn-dirty = false' nix-on-droid switch --flake .#pixel-fold
 
-# Evaluate every registry-derived entity, without known-noise custom-output
+# Force every registry-derived entity's check, without known-noise custom-output
 # warnings. Coverage is defined in modules/checks.nix, so adding a host or home
 # to modules/hosts.nix extends this gate with no edit here.
+#
+# Forces drvPaths rather than running `nix flake check`: the checks for the four
+# non-darwin entities cannot be BUILT here, only evaluated, and evaluating them is
+# what catches the regression class. `nix flake check` remains valid on a machine
+# that can build them.
+#
 # Depends on install-hooks so a fresh clone arms the pre-commit gate the first
 # time it runs the gate manually, instead of relying on someone remembering.
 check: install-hooks
-    nix eval --no-warn-dirty --json .#evalChecks >/dev/null
+    nix eval --no-warn-dirty --json .#checks --apply 'ss: builtins.mapAttrs (_: cs: builtins.mapAttrs (_: c: c.drvPath) cs) ss' >/dev/null
     if [[ "$(uname -s)" == Darwin ]]; then just check-doom-darwin; fi
     just check-guix
     just check-fmt

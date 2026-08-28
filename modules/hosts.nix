@@ -46,4 +46,13 @@
     den.aspects.ssh-server
     den.aspects.server
   ];
+
+  # pixel-fold is built by inputs.nix-on-droid.lib.nixOnDroidConfiguration in
+  # modules/pixel-fold/system.nix, not by den: the pinned den rev has no
+  # nixOnDroid class (its instantiate/intoAttr defaults cover nixos, darwin and
+  # systemManager only). `intoAttr = []` is den's supported way to declare a host
+  # it must not build, so the phone is visible from the registry and can carry
+  # aspects without den trying to instantiate it. home-manager-0pr.7 owns the
+  # question of whether den should build it.
+  den.hosts.aarch64-linux.pixel-fold = {intoAttr = [];};
 }

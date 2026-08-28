@@ -130,34 +130,6 @@
           };
         };
 
-        # version is the single source of truth: the git tag is derived from it, so
-        # a release bump cannot leave rev pointing at the previous tag.
-        bv = let
-          version = "0.16.4";
-        in
-          final.buildGoModule {
-            pname = "bv";
-            inherit version;
-
-            src = final.fetchFromGitHub {
-              owner = "Dicklesworthstone";
-              repo = "beads_viewer";
-              rev = "v${version}";
-              hash = "sha256-rKwrtbJ7PBo951BA35oeiuc+49R3vrj2Owz31jPc9uk=";
-            };
-
-            vendorHash = null;
-            subPackages = ["cmd/bv"];
-            doCheck = false;
-
-            meta = {
-              description = "Graph-aware TUI and robot-mode viewer for Beads";
-              homepage = "https://github.com/Dicklesworthstone/beads_viewer";
-              license = final.lib.licenses.mit;
-              mainProgram = "bv";
-            };
-          };
-
         agent-token-dashboard = final.buildGoModule {
           pname = "agent-token-dashboard";
           version = "0-unstable-2026-06-19";

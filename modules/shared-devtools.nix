@@ -38,7 +38,6 @@
           # Pushes to the worldofgeese binary cache via `just cachix-push`.
           cachix
           herdr
-          bv
           # ACP agents query current NixOS, Home Manager, and nix-darwin data.
           mcp-nixos
           mcp-agent-mail

@@ -5,9 +5,9 @@
 }: let
   # Hashing the joined names forces each one explicitly. `home.packages` is a
   # `listOf package`, so the module system's type check already forces every
-  # element -- verified by renaming an overlay attribute the lists consume (`bv`):
-  # the gate fails. The digest does not rely on that, and keeps the report a fixed
-  # size.
+  # element -- verified by renaming an overlay attribute the lists consume
+  # (`mcp-agent-mail`): the gate fails. The digest does not rely on that, and keeps
+  # the report a fixed size.
   digest = names: builtins.hashString "sha256" (lib.concatStringsSep "," names);
 
   homePackages = hm: digest (map (p: p.name) hm.home.packages);

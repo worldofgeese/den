@@ -24,7 +24,6 @@ outranks prior session notes; prior session notes outrank recollection.
 
 **Stop conditions:**
 
-- `DEC-1` unanswered — U1-U5 must not start (see Open Questions). U6-U11 are unaffected.
 - A migration step is about to write to `~/.agents` without a restore-verified backup.
 - Post-migration recall reports `keyword`, memory count drops below 81, or the 4-repo source is
   absent.
@@ -69,9 +68,10 @@ Three problems, one root cause each:
 - **R2** — Memory data survives the migration: recall answers in `hybrid` mode, memory count is at
   least 81, and the 4-repo GitHub source is still registered and indexed.
 - **R3** — A restore-verified backup of the workspace exists before any migration step writes to it.
-- **R4** — The native install is absent afterwards: no compiled binary on `PATH`, no npm-installed
-  package, no `ai.signet.daemon*` LaunchAgent, and no `signet-daemon` block in the nix-darwin
-  aspect. Whatever CLI entry point remains is the one `DEC-1` selects.
+- **R4** — The native install is absent afterwards: no native executable at
+  `~/.local/bin/signet`, no npm-installed package, no `ai.signet.daemon*` LaunchAgent, and no
+  `signet-daemon` block in the nix-darwin aspect. Distrobox replaces the native executable with its
+  generated container launcher at the standard host path.
 - **R5** — Host integrations that depend on Signet keep working, or are explicitly retired with the
   loss stated: Claude Code hooks, the Oh My Pi extension, transcript capture, the encrypted secret
   store, GraphIQ code retrieval, and dreaming's route through the loopback gateway shim.
@@ -97,7 +97,8 @@ Three problems, one root cause each:
 - **The agent runs `just deploy-darwin` and merges PR #85** (session-settled: user-directed — chosen
   over reserving both for the human).
 - **Docs go container-first and recommend the Caveman v2 proxy** (session-settled: user-approved —
-  chosen over documenting both install paths with native as the reader default). Governs R6, R7.
+  chosen over documenting both install paths with native as the reader default). The public guide
+  uses Distrobox with either Docker or Podman and does not require nix. Governs R6, R7.
 
 ### Success Criteria
 
@@ -120,12 +121,12 @@ evaluation failure; upstream triage of the filed issues.
 
 ### Outstanding Questions
 
-- **DEC-1 (blocking, owns U1-U5)** — see Open Questions below.
+None. DEC-1 is resolved below.
 
 ### Sources
 
 - `deploy/docker/compose.yml`, `deploy/docker/README.md`, `deploy/docker/entrypoint.sh` in the
-  Signet source checkout at `~/.agents/signetai` (v0.214.22) — the first-party container shape.
+  Signet source checkout at `~/.agents/signetai` (originally v0.214.22; migration target v0.214.27) — the first-party container shape.
 - `https://signetai.sh/skill.md` — the authoritative agent install guide. Documents native, bun, and
   npm paths; **contains no Docker install path** and no containerised-workstation guidance.
 - Live daemon: `signet status`, `signet dream status`, `curl /api/pipeline/status` — extraction
@@ -143,8 +144,8 @@ evaluation failure; upstream triage of the filed issues.
   hosts three services, but Signet's first-party assets are Docker Compose files and Apple
   `container` has no compose support and no inter-container DNS. `podman-machine-default` already
   exists (applehv, 8 CPU, 16 GiB). Docker Desktop is not installed and adds a licence question.
-  Podman runs the published compose file unchanged and gives `host.containers.internal` for reaching
-  the loopback gateway shim.
+  Podman runs the pinned first-party image through Distrobox and gives
+  `host.containers.internal` for reaching the loopback gateway shim.
 - **KTD2 — The workspace is a bind mount, not a named volume, and SQLite integrity is the risk to
   manage.** The first-party compose file uses a named volume (`signet_data:/data/agents`), which is
   correct for a server but would fork the workspace away from `~/.agents`, where the harness
@@ -155,11 +156,12 @@ evaluation failure; upstream triage of the filed issues.
   `agent.yaml` on first run and the README mints bearer tokens. That is a server posture; this is a
   workstation. The migration pins single-user auth and asserts it after first boot, because a silent
   flip to team mode breaks every existing local caller at once.
-- **KTD4 — The gateway auth shim stays a host service.** Dreaming cannot use an ACPX target on any
-  native build (upstream #1731) and reaches the gateway through the loopback shim on 3851. The shim
-  is nix-declared and reads its key from `secretspec` at start; moving it into the container network
-  would drag the credential path in with it. The container reaches it via
-  `host.containers.internal:3851`, and the target endpoint changes accordingly.
+- **KTD4 — The gateway auth shim stays a host service.** Dreaming cannot use an ACPX target from
+  the compiled image (upstream #1731) and reaches the gateway through the loopback shim on 3851.
+  The shim is nix-declared and reads `LEGO_GENAI_TOKEN` from Signet's portable encrypted store at
+  start; moving it into the container network would duplicate the host credential path. The
+  container reaches it via `host.containers.internal:3851`, and the target endpoint changes
+  accordingly.
 - **KTD5 — The setup guide becomes container-first for Signet.** Two documents drifted because both
   described the same configuration; the guide is the source of truth for install mechanics, so the
   container path lands there and the use-case page links to it.
@@ -186,8 +188,8 @@ Recorded because the scoping confirmation did not return before research continu
   │  harnesses: Claude Code hooks, omp extension, gemini,     │
   │  codex, hermes  ──────────────┐                           │
   │                               │ http 127.0.0.1:3850       │
-  │  signet CLI entry point ──────┤ (DEC-1 decides its shape) │
-  │                               ▼                           │
+  │  distrobox-export: signet ────┤ host CLI from container          │
+  │                               │ Docker or Podman runtime         │
   │  ┌─────────────── podman machine (applehv) ────────────┐  │
   │  │  container: ghcr.io/signet-ai/signet                 │  │
   │  │    SIGNET_BIND 0.0.0.0, port 3850 → host loopback    │  │
@@ -207,17 +209,17 @@ than merely relocated (U4 asserts this rather than assuming it).
 
 ### Sequencing
 
-U1 → U2 → U3 → U4 → U5 for the migration, gated on DEC-1. U6 is independent and lands first. U7 and
-U8 both edit the same two files, so they are sequential, then U9 reviews and merges. U10 is
-independent. U11 runs after the plan and beads exist and hands the rest to subagents.
+U1 → U2 → U3 → U4 → U5 for the migration. U6 is independent and lands first. U7 and U8 both edit
+the same two files, so they are sequential, then U9 reviews and merges. U10 is independent. U11
+hands the remaining executable tracks to Sonnet 5 subagents after the plan and beads exist.
 
 ## Implementation Units
 
 | U-ID | Title | Files touched | Depends on |
 |---|---|---|---|
-| U1 | Restore-verified workspace backup | `~/.agents` (read), backup target outside it | DEC-1 |
-| U2 | Containerised daemon on podman | new compose/quadlet under `modules/M-02877/`, `gateway.json` | U1 |
-| U3 | Re-plumb host integrations | `~/.claude/settings.json` (via connector), `~/.claude.json`, `~/.omp/agent/extensions/` | U2 |
+| U1 | Restore-verified workspace backup | `~/.agents` (read), backup target outside it | — |
+| U2 | Containerised daemon on Podman + Distrobox | `modules/M-02877/darwin.nix`, `~/.agents/agent.yaml` | U1 |
+| U3 | Re-plumb host integrations | Distrobox export path, `~/.claude.json` | U2 |
 | U4 | Parity and durability verification | none (verification only) | U3 |
 | U5 | Remove native path, deploy nix-darwin | `modules/M-02877/darwin.nix`, `~/.local/bin`, `/opt/homebrew` | U4 |
 | U6 | Merge PR #85 | none (remote) | — |
@@ -246,20 +248,22 @@ the restored tree.
 
 **Verification:** integrity check returns `ok`; counts match; scratch copy removed afterwards.
 
-### U2. Containerised daemon on podman
+### U2. Containerised daemon on Podman + Distrobox
 
-**Goal:** The daemon serves `http://127.0.0.1:3850` from a container, restarts with its runtime, and
-reads the existing workspace.
+**Goal:** The daemon serves `http://127.0.0.1:3850` from a Distrobox-managed container, restarts
+with its runtime, and reads the existing workspace.
 
 **Requirements:** R1.
 
-**Files:** a compose or quadlet unit declared from `modules/M-02877/`, so the runtime declaration
-lives with the host's other service declarations rather than in a hand-edited file.
+**Files:** `modules/M-02877/darwin.nix`, which declares Distrobox through Homebrew and supervises the
+Podman machine plus container with launchd.
 
 **Approach:** Start `podman-machine-default`. Run the published image with the workspace bind-mounted
-at `/data/agents`, the port published to loopback only, and single-user auth pinned per KTD3. Point
-the dreaming target's endpoint at `host.containers.internal:3851`. Confirm the entrypoint did not
-rewrite `agent.yaml`'s auth mode before any client depends on it.
+at `/data/agents`, the port published to loopback only, and single-user auth pinned per KTD3. Override
+the image's container-wide `SIGNET_DAEMON_ENTRYPOINT` to `0` so exported CLI commands remain CLI
+commands; the supervised daemon process alone receives `SIGNET_DAEMON_ENTRYPOINT=1`. Point the
+dreaming target's endpoint at `host.containers.internal:3851`. Confirm the entrypoint did not rewrite
+`agent.yaml`'s auth mode before any client depends on it.
 
 **Test scenarios:** health endpoint returns ready; `agent.yaml` auth mode unchanged; container
 survives `podman machine stop && start`; port is not reachable from a non-loopback interface.
@@ -274,11 +278,10 @@ recorded explicitly.
 
 **Requirements:** R5.
 
-**Approach:** Reinstall each connector against the daemon URL that `DEC-1` selects. Re-point the
-Signet MCP server entry. Establish that the container can see the transcript directories the watcher
-needs, and that GraphIQ's index still resolves the paths it was built against — an index built on
-host paths is useless to a container that mounts them elsewhere, so either the mount matches the host
-path or the index is rebuilt.
+**Approach:** Export `/app/bin/signet` through Distrobox so the host command is generated from the
+container rather than maintained as a bespoke wrapper. Re-point the Signet MCP server entry.
+Establish that the container can see transcript directories and that GraphIQ's index still resolves
+its paths; add only mounts needed for existing integrations.
 
 **Test scenarios:** a Claude Code session-start hook returns success; the MCP server completes a
 `tools/list` handshake; transcript capture reports healthy; `signet sources list` still shows 4 repos;
@@ -342,10 +345,9 @@ blocks it, that is a stop condition, not something to work around.
 **Files:** `docs/guides/setup-token-saving-toolchain.md` in the LEGO repo.
 
 **Approach:** Correct the retired per-session distillation framing, replace extraction-era
-troubleshooting rows with dreaming-era ones, and replace the native Signet install instructions with
-the container path this plan actually executed — the install section should describe what a colleague
-can reproduce, which after U2 is the container. Every claim re-verified against the live system or the
-tool's repository before it is written.
+troubleshooting rows with dreaming-era ones, and replace native Signet installation with a portable
+Distrobox path using either Docker or Podman. Every claim is re-verified against the live system or
+the tool's repository before it is written.
 
 **Test scenarios:** no occurrence of the per-session framing remains; troubleshooting rows name
 dreaming; the install path matches what U2 did; `npx prettier --check` passes with the repo config.
@@ -420,10 +422,12 @@ signet embed audit                        # coverage 1.0
 signet dream status
 curl -sf --max-time 10 http://127.0.0.1:3850/health/ready
 
-# Native path removal
-test ! -e ~/.local/bin/signet
+# Native path removal; the CLI remains a Distrobox-generated shell launcher
+file ~/.local/bin/signet                         # POSIX shell script
+grep -q distrobox-enter ~/.local/bin/signet
 test ! -e /opt/homebrew/lib/node_modules/signetai
-launchctl list | grep -c ai.signet.daemon        # 0
+test ! -e ~/Library/LaunchAgents/ai.signet.daemon.deede318fbb7.plist
+! launchctl print gui/"$(id -u)"/ai.signet.daemon.deede318fbb7
 grep -c signet-daemon modules/M-02877/darwin.nix  # 0
 
 # Host config
@@ -453,26 +457,17 @@ Per unit: the unit's own verification block passes. U1 is done only when the bac
 back. U4 is done only when the checks pass twice with a runtime restart between them. U5 is done only
 when the daemon still answers after the LaunchAgent is gone.
 
-## Open Questions
+## Resolved Questions
 
-- **DEC-1 (blocking, owns U1-U5): what is the CLI entry point after the native binary is deleted?**
-  Success criterion 4 of the objective asks for `~/.local/bin/signet` absent *and* for
-  `signet doctor` / `signet status` / `signet recall` as the verification commands. Those cannot both
-  hold on the host: with no host binary there is no host `signet`. Three resolutions, each with a
-  different cost:
-  1. **A thin host wrapper** at `~/.local/bin/signet` that execs into the container. Verification
-     commands keep working verbatim and harness hooks keep working. The native *binary* is gone but
-     the path is occupied, so "native path gone" holds in substance, not literally.
-  2. **Container-only CLI** (`podman exec signet signet …`). Literal criterion satisfied. Harness
-     hooks that shell out to `signet hook` break unless every connector is reinstalled as a remote
-     connector with an API key, which is supported but changes five integrations at once.
-  3. **Remote-connector posture**: mint an API key, reinstall connectors against the daemon URL, and
-     accept that ad-hoc CLI use goes through the container. Closest to the first-party server design,
-     furthest from how this machine currently works.
-
-  Recommendation: option 1 — it satisfies R4's substance while keeping R5 intact, and it is the only
-  one where a failed migration is a one-line revert. This needs a human answer because it trades the
-  literal wording of a success criterion against five working integrations.
+- **DEC-1 — host CLI entry point after native removal:** use `distrobox-export --bin` so the host
+  command is generated from the container rather than maintained as a bespoke wrapper. The original
+  success criterion's `~/.local/bin/signet` absence referred to the native executable; the generated
+  Distrobox launcher may occupy that path and must identify itself as a script using
+  `distrobox-enter`.
+- **Public guide portability:** nix is an implementation detail of M-02877, not a reader
+  prerequisite. The container-first guide installs Distrobox and gives Docker and Podman variants.
+  On macOS, upstream officially documents Docker Desktop; the Podman path follows the linked
+  community setup and must be proven on M-02877 before publication.
 
 ## Appendix
 

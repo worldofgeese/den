@@ -15,6 +15,38 @@
       # 8787 is container-internal here and published as 18787; on mahakala
       # the same logical port is also the host port. See gateway.json.
       entity = "M-02877";
+      pythonWithNacl = pkgs.python3.withPackages (pythonPackages: [pythonPackages.pynacl]);
+      signetReadLegoSecret = pkgs.writeTextFile {
+        name = "signet-read-lego-secret";
+        destination = "/bin/signet-read-lego-secret";
+        executable = true;
+        text = ''
+          #!${pythonWithNacl}/bin/python3
+          import base64
+          import hashlib
+          import json
+          import os
+          import sys
+
+          from nacl.secret import SecretBox
+
+          secret_dir = os.path.expanduser("~/.agents/.secrets")
+          with open(os.path.join(secret_dir, ".machine-id"), encoding="utf-8") as file:
+              machine_id = file.read().strip()
+          with open(os.path.join(secret_dir, "secrets.enc"), encoding="utf-8") as file:
+              store = json.load(file)
+
+          if store.get("version") != 1 or store.get("provider") == "native-keyring":
+              raise RuntimeError("Signet secret store is not the portable fallback format")
+          entry = store.get("secrets", {}).get("LEGO_GENAI_TOKEN")
+          if not entry:
+              raise RuntimeError("LEGO_GENAI_TOKEN is absent from the Signet secret store")
+
+          key = hashlib.blake2b(f"signet:secrets:{machine_id}".encode(), digest_size=32).digest()
+          plaintext = SecretBox(key).decrypt(base64.b64decode(entry["ciphertext"], validate=True))
+          sys.stdout.buffer.write(plaintext)
+        '';
+      };
     in {
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "hm-bak";
@@ -303,6 +335,183 @@
             StandardErrorPath = "/tmp/local-model-proxy.err";
           };
         };
+
+        # Containerised Signet daemon. Every flag
+        # here diverges from the first-party compose on purpose: that one is
+        # server-shaped (Caddy in front, 0.0.0.0 published, named volume, team
+        # auth) and a single-user workstation needs none of it.
+        #
+        # Three of them are load-bearing rather than taste:
+        #
+        #   --unshare-netns -- distrobox otherwise passes `--network host`, and
+        #     on macOS "host" is the podman VM, so a published port never
+        #     reaches the mac and `-p` silently does nothing. Unsharing the net
+        #     namespace puts the container on the normal bridge, which is the
+        #     only way a loopback 3850 can exist on this machine at all.
+        #   --volume /var/folders -- distrobox-enter forwards the *entire* host
+        #     environment, macOS TMPDIR=/var/folders/... included. Without the
+        #     mount every invocation dies inside materializeEmbeddedAssetTree
+        #     with EACCES mkdir '/var/folders'. Mounting it at the identical
+        #     path is the same trick as distrobox's own $HOME mount, and it is
+        #     what keeps host-indexed paths resolving inside the container.
+        #   SIGNET_DAEMON_ENTRYPOINT=0 -- the image sets it to 1 globally and
+        #     signet routes *any* invocation to the daemon while it is 1, so
+        #     left alone the exported `signet status` becomes a second daemon.
+        #     Only the exec line below re-enables it, for its own process.
+        #
+        # `distrobox assemble` would be the declarative way to say this and is
+        # unusable here: its ini parser runs sed 's/\s*$//g', BSD sed reads \s
+        # as a literal s, and every value silently loses a trailing "s"
+        # (/data/agents arrives as /data/agent). The create call is the manifest.
+        signet-container = {
+          serviceConfig = {
+            Label = "com.dktaohan.signet-container";
+            ProgramArguments = [
+              "/bin/sh"
+              "-c"
+              ''
+                set -eu
+                export PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+                home=${config.users.users.dktaohan.home}
+                bin=$home/.local/bin
+
+                # Podman's macOS VM shares /Users, /private, /var/folders and
+                # /etc/containers, and nothing else. distrobox derives
+                # distrobox-init/-export/-host-exec from dirname($0) and
+                # bind-mounts them into the container, so driving Homebrew's
+                # copy asks podman to mount an /opt/homebrew path the VM cannot
+                # see. Real copies under $HOME are visible at an identical path
+                # inside the VM; symlinks are not, they still resolve to
+                # /opt/homebrew. Refreshing them on every start is also what
+                # keeps them current after a `brew upgrade distrobox`, and the
+                # exported launcher hardcodes the distrobox-enter it was
+                # generated with, so this is the path every host `signet` call
+                # goes through.
+                mkdir -p "$bin"
+                for f in /opt/homebrew/opt/distrobox/bin/distrobox*; do
+                  cp -f "$f" "$bin/$(basename "$f")"
+                done
+                chmod +x "$bin"/distrobox*
+
+                # `machine inspect` can report a stale "running" state after an
+                # unclean host shutdown, and `machine start` then refuses, so
+                # trusting that state once leaves this loop spinning forever
+                # against a VM that never boots. Drive off real reachability:
+                # `machine start` blocks until the VM answers, and `stop`
+                # reconciles a stale state (a no-op when already stopped).
+                until podman info >/dev/null 2>&1; do
+                  podman machine stop >/dev/null 2>&1 || true
+                  podman machine start || sleep 5
+                done
+
+                podman container exists signet ||
+                  DBX_CONTAINER_MANAGER=podman "$bin/distrobox" create --yes --no-entry --unshare-netns \
+                    --name signet \
+                    --image ghcr.io/signet-ai/signet:0.214.27 \
+                    --volume "$home/.agents:/data/agents" \
+                    --volume /var/folders:/var/folders \
+                    --additional-flags "--publish 127.0.0.1:3850:3850 --env SIGNET_DAEMON_ENTRYPOINT=0 --env SIGNET_PATH=/data/agents --env SIGNET_BIND=0.0.0.0 --env SIGNET_PORT=3850"
+
+                # First enter runs distrobox-init (user, sudo, mounts, ~3 min);
+                # every later one is a no-op that just starts the container.
+                "$bin/distrobox-enter" --no-tty --name signet -- true
+
+                # Distrobox owns the host launcher; invoke the helper through
+                # its stable home-directory mount. The transient /usr/bin
+                # injection disappears before a no-TTY command can exec it.
+                # --clean-path prevents Linux from resolving host Mach-O tools.
+                "$bin/distrobox-enter" --no-tty --name signet -- \
+                  "$bin/distrobox-export" --bin /app/bin/signet \
+                    --export-path "$bin" --enter-flags "--clean-path"
+
+                # GraphIQ's verified installer reads GitHub release digests
+                # with jq. Its awk fallback uses a non-portable \s regexp and
+                # fails closed on this Debian image. Install jq only when a
+                # newly-created box lacks it.
+                if ! "$bin/distrobox-enter" --no-tty --name signet -- test -x /usr/bin/jq; then
+                  "$bin/distrobox-enter" --no-tty --name signet -- \
+                    sudo env DEBIAN_FRONTEND=noninteractive apt-get update
+                  "$bin/distrobox-enter" --no-tty --name signet -- \
+                    sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y jq
+                fi
+
+                # Host $HOME is shared into distrobox and contains a Mach-O
+                # graphiq binary. Install the checked Linux build in preserved
+                # workspace storage, then expose it on the container's clean
+                # FHS PATH. Keeping HOME unchanged for the daemon preserves
+                # host transcript discovery under ~/.claude.
+                graphiq=/data/agents/.container-home/.local/bin/graphiq
+                if ! "$bin/distrobox-enter" --no-tty --name signet -- test -x "$graphiq"; then
+                  "$bin/distrobox-enter" --no-tty --clean-path \
+                    --additional-flags "--env HOME=/data/agents/.container-home" \
+                    --name signet -- /app/bin/signet graphiq install
+                  "$bin/distrobox-enter" --no-tty --name signet -- test -x "$graphiq"
+                fi
+                "$bin/distrobox-enter" --no-tty --name signet -- \
+                  sudo ln -sf "$graphiq" /usr/local/bin/graphiq
+
+                # A host restart kills the daemon without releasing its lock,
+                # and the recorded pid belongs to the container's dead pid
+                # namespace, where the number is reusable after a restart, so
+                # the next daemon refuses to start. launchd owns the only
+                # instance: when nothing answers the published port, the lock
+                # is stale by definition.
+                if ! curl -sf --max-time 2 http://127.0.0.1:3850/health >/dev/null 2>&1; then
+                  rm -f "$home/.agents/.daemon/daemon.lock" "$home/.agents/.daemon/pid"
+                fi
+
+                # Clean PATH excludes host Mach-O binaries while retaining the
+                # normal host HOME for transcript and source paths.
+                exec "$bin/distrobox-enter" --no-tty --clean-path --name signet -- \
+                  env SIGNET_DAEMON_ENTRYPOINT=1 /app/bin/signet
+              ''
+            ];
+            RunAtLoad = true;
+            # Restart daemon failures; leave intentional clean exits stopped.
+            KeepAlive = {SuccessfulExit = false;};
+            ProcessType = "Background";
+            StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-container.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-container.log";
+          };
+        };
+
+        # Signet's `anthropic` executor sends its credential as `x-api-key`
+        # unless the key literally contains "sk-ant-oat" (isOAuthToken in the
+        # bundled pi-ai client). The gateway only accepts `Authorization:
+        # Bearer`, so a virtual key 401s. This shim is the smallest thing that
+        # closes that gap: loopback-only, rewrites the auth header, forwards
+        # everything else untouched including SSE.
+        #
+        # It matters because dreaming -- the only automatic semantic writer --
+        # cannot use an acpx target at all: resolveMcpEntrypoint() derives its
+        # MCP stdio path from import.meta.url, which inside the compiled binary
+        # is /$bunfs/mcp-stdio.js and does not exist. A non-acpx executor skips
+        # that binding entirely, so a direct gateway target is the only route
+        # dreaming has from the compiled container image.
+        signet-gateway-shim = {
+          serviceConfig = {
+            Label = "com.dktaohan.signet-gateway-shim";
+            ProgramArguments = [
+              "${pkgs.bun}/bin/bun"
+              "${config.users.users.dktaohan.home}/.local/libexec/signet-gateway-shim.mjs"
+            ];
+            EnvironmentVariables = {
+              HOME = config.users.users.dktaohan.home;
+              SHIM_PORT = "3851";
+              SHIM_UPSTREAM = gateway.claudeUrl;
+              # `secret exec` redacts captured stdout, so it cannot feed a
+              # credential command. This fixed-purpose reader decrypts only
+              # LEGO_GENAI_TOKEN from the same portable workspace store.
+              # The shim receives the value over a private child-process pipe.
+              SHIM_TOKEN_COMMAND = "${signetReadLegoSecret}/bin/signet-read-lego-secret";
+            };
+            RunAtLoad = true;
+            KeepAlive = true;
+            ProcessType = "Background";
+            StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-gateway-shim.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-gateway-shim.log";
+          };
+        };
       };
 
       security.pam.services.sudo_local.touchIdAuth = true;
@@ -347,6 +556,10 @@
         };
         brews = [
           "podman"
+          # Signet's daemon runs in a podman container via distrobox; the
+          # signet-container agent copies these scripts under $HOME because the
+          # podman VM cannot see /opt/homebrew.
+          "distrobox"
           "aws-nuke"
           "azure-cli"
           "pulumi"

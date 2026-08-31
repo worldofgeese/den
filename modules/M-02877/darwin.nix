@@ -16,6 +16,98 @@
       # the same logical port is also the host port. See gateway.json.
       entity = "M-02877";
       pythonWithNacl = pkgs.python3.withPackages (pythonPackages: [pythonPackages.pynacl]);
+
+      # The ambient team-Signet tunnel.
+      #
+      # projects/aws-signet in LEGO/devrel-infra has no public listener: the
+      # daemon is reached over IAM-authenticated Systems Manager port forwarding.
+      # This keeps that tunnel up without anyone thinking about it, and it is
+      # deliberately self-contained rather than calling the repository's
+      # scripts/connect.sh, so the agent does not break when a checkout moves.
+      # The portable equivalent for teammates who do not run Nix is
+      # `scripts/install-tunnel.sh` in that project; the two must stay in step.
+      signetTeamTunnel = pkgs.writeShellApplication {
+        name = "signet-team-tunnel";
+        runtimeInputs = [pkgs.awscli2 pkgs.jq pkgs.ssm-session-manager-plugin];
+        text = ''
+          set -eu
+          region="''${AWS_REGION:-eu-west-1}"
+          stage="''${SIGNET_STAGE:-production}"
+          port="''${SIGNET_LOCAL_PORT:-3860}"
+
+          # Wait for credentials rather than crash-looping against them. The
+          # account's SSO-Admin role caps a session at one hour, and the LEGO CLI
+          # credential process re-issues silently only while the Azure session
+          # lives; when that lapses a human has to sign in, and there is nothing
+          # useful to do until they do.
+          until aws sts get-caller-identity >/dev/null 2>&1; do sleep 60; done
+
+          # 3850 is where a personal Signet listens, so the team tunnel takes
+          # 3860. Refuse to bind over anything already there: adopting a local
+          # daemon would silently point every agent at one laptop's workspace.
+          if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
+            echo "port $port already in use; not starting a second tunnel" >&2
+            sleep 300
+            exit 1
+          fi
+
+          # Wait inside one invocation rather than exiting for launchd to retry.
+          # Exiting was measured costing about four minutes of downtime after a
+          # task replacement: the guard slept, exited, and then each restart found
+          # the new task's exec agent still PENDING and exited again. Polling here
+          # reconnects as soon as the agent is ready.
+          #
+          # The target is resolved on every pass because it embeds the container
+          # runtime id, which changes whenever ECS replaces the task.
+          target=""
+          while [ -z "$target" ]; do
+            cluster_arn=$(aws resourcegroupstaggingapi get-resources --region "$region" \
+              --resource-type-filters ecs:cluster \
+              --tag-filters "Key=sst:app,Values=aws-signet" "Key=sst:stage,Values=$stage" \
+              --query 'ResourceTagMappingList[0].ResourceARN' --output text 2>/dev/null || true)
+            if [ -z "$cluster_arn" ] || [ "$cluster_arn" = "None" ]; then
+              sleep 30
+              continue
+            fi
+            cluster="''${cluster_arn##*/}"
+
+            task=$(aws ecs list-tasks --region "$region" --cluster "$cluster" \
+              --desired-status RUNNING --query 'taskArns[0]' --output text 2>/dev/null || true)
+            if [ -z "$task" ] || [ "$task" = "None" ]; then
+              # The daemon exits 0 when it cannot take its workspace lock, so an
+              # absent task can mean a refused start rather than a deploy.
+              sleep 10
+              continue
+            fi
+
+            # Two queries rather than one line split by a heredoc: a heredoc
+            # terminator inside a Nix indented string only lands in column 1
+            # because Nix strips the common indentation, which is too fragile a
+            # thing to rely on.
+            agent_state=$(aws ecs describe-tasks --region "$region" --cluster "$cluster" \
+              --tasks "$task" --query 'tasks[0].containers[0].managedAgents[0].lastStatus' \
+              --output text 2>/dev/null || true)
+            runtime_id=$(aws ecs describe-tasks --region "$region" --cluster "$cluster" \
+              --tasks "$task" --query 'tasks[0].containers[0].runtimeId' \
+              --output text 2>/dev/null || true)
+            # The exec agent takes a couple of minutes to reach RUNNING after a
+            # task starts, and start-session fails until it does. Waiting here is
+            # what makes a deploy self-heal without anyone watching.
+            if [ "$agent_state" != "RUNNING" ] || [ -z "$runtime_id" ] || [ "$runtime_id" = "None" ]; then
+              sleep 10
+              continue
+            fi
+            target="ecs:''${cluster}_''${task##*/}_''${runtime_id}"
+          done
+
+          # exec, so launchd supervises the session itself and KeepAlive
+          # reconnects the moment it ends.
+          exec aws ssm start-session --region "$region" \
+            --target "$target" \
+            --document-name "Signet-$stage-Daemon" \
+            --parameters "localPortNumber=$port"
+        '';
+      };
       signetReadLegoSecret = pkgs.writeTextFile {
         name = "signet-read-lego-secret";
         destination = "/bin/signet-read-lego-secret";
@@ -472,6 +564,39 @@
             ProcessType = "Background";
             StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-container.log";
             StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-container.log";
+          };
+        };
+
+        # Team Signet, always reachable on http://127.0.0.1:3860.
+        #
+        # KeepAlive is unconditional rather than SuccessfulExit = false, because a
+        # clean end here is not a reason to stop: an SSM session ends whenever ECS
+        # replaces the task, and the point of this agent is that nobody has to
+        # notice. The script sleeps before failing on a missing prerequisite, so a
+        # missing credential or a stopped service costs one wait rather than a hot
+        # restart loop; ThrottleInterval is the floor under that.
+        #
+        # This does not repoint any tool at the team daemon. The personal Signet
+        # on 3850 keeps its own workspace, and switching an agent over is one
+        # explicit `SIGNET_DAEMON_URL=http://127.0.0.1:3860`.
+        signet-team-tunnel = {
+          serviceConfig = {
+            Label = "com.dktaohan.signet-team-tunnel";
+            ProgramArguments = ["${signetTeamTunnel}/bin/signet-team-tunnel"];
+            EnvironmentVariables = {
+              # Any profile whose credential_process is the LEGO CLI works; that
+              # is the one path that rotates without re-prompting for a second
+              # factor every hour.
+              AWS_PROFILE = "bts-devrel";
+              AWS_REGION = "eu-west-1";
+              HOME = config.users.users.dktaohan.home;
+            };
+            RunAtLoad = true;
+            KeepAlive = true;
+            ThrottleInterval = 30;
+            ProcessType = "Background";
+            StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-team-tunnel.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-team-tunnel.log";
           };
         };
 

@@ -74,3 +74,6 @@ result/
 .cave/
 .decapod/governance/workunits/
 !.decapod/data/knowledge.promotions.jsonl
+
+# Graphiq knowledge-graph index (1.3M SQLite, regenerated on demand).
+.graphiq/

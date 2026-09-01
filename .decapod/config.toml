@@ -1,7 +1,8 @@
 schema_version = "1.0.0"
 
 [init]
-specs = true
+specs = false
+ci = false
 diagram_style = "ascii"
 entrypoints = [
     "AGENTS.md",
@@ -12,6 +13,33 @@ entrypoints = [
 
 [repo]
 product_name = "home-manager"
-product_summary = "To quickly bring up my Home Manager config first install Nix then"
+product_summary = "Declarative Nix, Home Manager, nix-darwin, nix-on-droid, and Guix configuration for mahakala, paphos, oracle, M-02877, and pixel-fold."
 architecture_direction = "Composable repository architecture with explicit boundaries and proof-backed delivery invariants."
+product_type = "service_or_library"
 done_criteria = "Decapod validate passes, required tests pass, and promotion-relevant artifacts are present."
+base_branch = "main"
+primary_languages = ["nix", "shell"]
+detected_surfaces = ["shell"]
+external_tracker = true
+container_workspaces = true
+backend = "local"
+declared_capabilities = [
+    "infrastructure-management",
+    "secrets-handling",
+]
+
+[governance]
+protected_paths = []
+approval_categories = ["destructive_operations"]
+
+[proof]
+commands = []
+
+[custody]
+isolation = "container"
+
+[tracker]
+provider = "decapod"
+
+[context]
+declared_sources = []

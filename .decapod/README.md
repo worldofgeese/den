@@ -1,87 +1,36 @@
 # .decapod - Decapod Control Plane
 
-Decapod is a software engineering harness interfaced through AI coding agents.
-You get governed execution, proof-backed delivery, and integrated project management with near-zero operator overhead.
+Decapod is a repo-native governance kernel for AI coding agents. It turns human intent into bounded, durable, and proof-backed agent work. Its layer is explicit: models produce intelligence, agents perform work, repositories preserve state, and Decapod governs the transition from intent to proof. Reliability is designed, not hoped for. Agents invoke it at decision, validation, recovery, and publication boundaries; it does not perform the agent's work.
 
 GitHub: https://github.com/DecapodLabs/decapod
+Canonical Contract: `assets/constitution.json` section `core/DECAPOD`
 
 ## What This Directory Is
 
-This `.decapod/` directory is the local control plane for this repository.
-It keeps Decapod-owned state, generated artifacts, and isolated workspaces separate from your product source tree.
+This `.decapod/` directory is the durable execution surface for governed work in this repository. It keeps authored specifications, Decapod-owned state, generated projections and evidence, and isolated workspaces separate from product source.
 
 `OVERRIDE.md` and `README.md` intentionally stay at this top level.
 
 ## Quick Start
 
-1. `decapod init`
+1. `decapod init --proof`
 2. `decapod validate`
-3. `decapod docs ingest`
+3. `decapod constitution get core/DECAPOD`
 4. `decapod session acquire`
 5. `decapod rpc --op agent.init`
 6. `decapod workspace status`
 7. `decapod todo add \"<task>\" && decapod todo claim --id <task-id>`
 8. `decapod workspace ensure`
 
-## Skills - Your Personal Optimization Layer
+## Migrating Custom Agent Files
 
-**Skills are how you shape agent behavior.** Import skills to train agents how to interact with your codebase, your conventions, and your preferences.
+If you have existing files like `SOUL.md` or `MEMORY.md` that were used for agent instructions, you can migrate them into the Decapod governance layer.
 
-### Why Skills Matter
+After running `decapod init`, simply ask your agent to **"consolidate my [FILE.md] content into the .decapod/OVERRIDE.md substrate"**. This ensures your project-specific intent is merged into the correct constitutional sections while allowing Decapod to manage the primary entrypoints.
 
-- **Controls**: Add security reviews, code quality checks, or custom validation
-- **Optimization**: Encode your team's conventions, patterns, and best practices
-- **Context**: Give agents project-specific knowledge that persists across sessions
+## Aptitude Memory
 
-### Quick Skills Workflow
-
-```bash
-# Import a skill from a SKILL.md file
-decapod data aptitude skill import --path path/to/your/SKILL.md
-
-# List available skills
-decapod data aptitude skill list
-
-# Resolve skills for a specific task
-decapod data aptitude skill resolve --query "how to write tests"
-
-# Query aptitude memory for learned preferences
-decapod data aptitude prompt --query "git"
-```
-
-### Creating Your Own Skills
-
-Skills are just Markdown files with YAML frontmatter:
-
-```yaml
----
-name: my-security-review
-description: Custom security checks for our codebase
-allowed-tools: Bash
----
-
-# Security Review Skill
-
-## Triggers
-- "check security"
-- "review for vulnerabilities"
-
-## Workflow
-1. Run `semgrep --config=auto .`
-2. Check for hardcoded secrets
-3. Validate dependency vulnerabilities
-4. Report findings
-```
-
-Place SKILL.md files in `constitution/metadata/skills/` and import them:
-
-```bash
-decapod data aptitude skill import --path constitution/metadata/skills/my-security-review/SKILL.md
-```
-
-### Aptitude Memory
-
-Decapod learns from interactions. Use aptitude to record preferences:
+Decapod aptitude remains for preferences and behavior recall:
 
 ```bash
 # Record a preference
@@ -97,15 +46,23 @@ decapod data aptitude observe --category code_style --content "Team prefers asyn
 ## Canonical Layout
 
 - `README.md`: operator onboarding and control-plane map.
-- `OVERRIDE.md`: project-local override layer for embedded constitution.
+- `OVERRIDE.md`: project-local override layer for embedded constitution directives.
 - `data/`: canonical control-plane state (SQLite + ledgers).
-- `skills/`: imported skill cards (auto-generated, tracked for reproducibility).
-- `generated/specs/`: living project specs scaffolded by `decapod init`.
-- `generated/context/`: deterministic context capsule artifacts.
-- `generated/artifacts/provenance/`: promotion manifests and convergence checklist.
-- `generated/artifacts/inventory/`: deterministic release inventory artifacts.
-- `generated/artifacts/diagnostics/`: opt-in diagnostics artifacts.
+- `managed/specs/`: agent-authored living project specs; only fresh initialization scaffolds their starting structure.
+- `managed/context/`: generated deterministic context projections.
+- `managed/artifacts/provenance/`: promotion manifests and convergence checklist.
+- `managed/artifacts/inventory/`: deterministic release inventory artifacts.
+- `managed/artifacts/diagnostics/`: opt-in diagnostics artifacts.
 - `workspaces/`: isolated todo-scoped git worktrees for implementation.
+
+## How It Works
+
+Each Decapod process is ephemeral. The repository preserves the durable state that lets one task span many invocations, processes, models, and harnesses.
+
+1. **Intent and Boundaries**: The agent records its interpretation and accepts a governed task scope.
+2. **Execution**: The agent performs the work in an isolated workspace and maintains living specifications.
+3. **Validation and Recovery**: Decapod evaluates invariants. The agent follows supported remediation and revalidates.
+4. **Publication and Proof**: Publication remains blocked until required validation and evidence are satisfied.
 
 ## Why Teams Use This
 

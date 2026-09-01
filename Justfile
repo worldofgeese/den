@@ -194,6 +194,36 @@ check: install-hooks
     if [[ "$(uname -s)" == Darwin ]]; then just check-doom-darwin; fi
     just check-guix
     just check-fmt
+    just check-decapod-overrides
+
+# Prove the project overrides in .decapod/OVERRIDE.md are actually loaded.
+#
+# Decapod applies an override only from the four-backtick source block of a
+# current generated directive section. Prose written under the same heading but
+# outside that block is inert: it reads like policy, it validates, and Decapod
+# never loads a byte of it. This repository sat in exactly that state - every
+# override written, none applied - and nothing reported it, because an unapplied
+# override is indistinguishable from an empty one without asking the binary.
+#
+# `context.resolve` is the only honest source: it returns a resolved_authority
+# entry per applied override. Zero means the file is decorative again.
+check-decapod-overrides:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! command -v decapod >/dev/null 2>&1; then
+        echo "check-decapod-overrides: decapod not found, skipping"
+        exit 0
+    fi
+    applied=$(decapod rpc --op context.resolve 2>/dev/null \
+        | jq '[..|objects|select(has("directive_id"))]|length')
+    if [[ "${applied:-0}" -lt 1 ]]; then
+        echo "check-decapod-overrides: 0 overrides applied - OVERRIDE.md is inert." >&2
+        echo "  Each authored body must sit inside a bare four-backtick block:" >&2
+        echo "  a tagged opener such as '\`\`\`\`markdown' is not recognised and" >&2
+        echo "  fails with OVERRIDE_UNCLOSED_BODY_FENCE." >&2
+        exit 1
+    fi
+    echo "check-decapod-overrides: $applied override(s) applied"
 
 # Syntax- and load-check the Guix modules. Skips cleanly where guix is absent:
 # it only exists on mahakala, and a check that fails on darwin for a missing

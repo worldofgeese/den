@@ -28,7 +28,7 @@
       # `scripts/install-tunnel.sh` in that project; the two must stay in step.
       signetTeamTunnel = pkgs.writeShellApplication {
         name = "signet-team-tunnel";
-        runtimeInputs = [pkgs.awscli2 pkgs.jq pkgs.ssm-session-manager-plugin];
+        runtimeInputs = [pkgs.awscli2 pkgs.jq pkgs.ssm-session-manager-plugin pkgs.curl];
         text = ''
           set -eu
           region="''${AWS_REGION:-eu-west-1}"
@@ -100,12 +100,30 @@
             target="ecs:''${cluster}_''${task##*/}_''${runtime_id}"
           done
 
-          # exec, so launchd supervises the session itself and KeepAlive
-          # reconnects the moment it ends.
-          exec aws ssm start-session --region "$region" \
+          # Session Manager kills an idle session after 20 minutes - the AWS default,
+          # and this account sets no preference document to change it. Measured here:
+          # two consecutive sessions of 20m37s and 20m28s, each ended by the idle
+          # timer rather than by anything local. The loop then rebuilds the tunnel in
+          # about 80 seconds, so an agent that consults memory occasionally meets a
+          # dead port most times it asks, and the failure looks like the server rather
+          # than the session.
+          #
+          # A request every four minutes keeps data on the channel, so the session
+          # never becomes idle. /health/ready is open in team mode, so the keepalive
+          # carries no credential. The loop lives exactly as long as its session, so
+          # a replaced task still ends the process and lets KeepAlive reconnect.
+          aws ssm start-session --region "$region" \
             --target "$target" \
             --document-name "Signet-$stage-Daemon" \
-            --parameters "localPortNumber=$port"
+            --parameters "localPortNumber=$port" &
+          session_pid=$!
+
+          while kill -0 "$session_pid" 2>/dev/null; do
+            sleep 240
+            curl -fsS -m 5 -o /dev/null "http://127.0.0.1:$port/health/ready" 2>/dev/null || true
+          done
+
+          wait "$session_pid"
         '';
       };
       signetReadLegoSecret = pkgs.writeTextFile {

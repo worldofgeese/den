@@ -77,3 +77,6 @@ result/
 # Decapod entrypoint regeneration backups (`decapod init --force`).
 *.md.bak
 .decapod_archive/
+
+# Graphiq knowledge-graph index (1.3M SQLite, regenerated on demand).
+.graphiq/

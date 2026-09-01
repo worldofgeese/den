@@ -13,3 +13,11 @@ Use the repository `Justfile` for updates and deployments instead of running the
 - `just deploy-darwin` updates and applies the nix-darwin configuration for M-02877.
 - `just deploy-pixel-fold` updates and applies the nix-on-droid configuration for pixel-fold.
 - `just upgrade-kernel` refreshes the CachyOS kernel package metadata.
+
+
+<!-- decapod-validator-anchors
+Stop if
+via decapod CLI
+interface abstraction boundary
+Strict Dependency: You are strictly bound to the Decapod governance kernel
+-->

@@ -8,7 +8,6 @@ node_modules/
 .decapod/generated/
 .decapod/generated/*
 !.decapod/data/
-!.decapod/data/knowledge.promotions.jsonl
 !.decapod/generated/Dockerfile
 !.decapod/generated/context/
 !.decapod/generated/context/*.json
@@ -73,3 +72,5 @@ result/
 
 # Cave agent worktrees and session scratch.
 .cave/
+.decapod/governance/workunits/
+!.decapod/data/knowledge.promotions.jsonl

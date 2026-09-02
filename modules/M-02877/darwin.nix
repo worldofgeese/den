@@ -712,6 +712,10 @@
           "atlassian/acli/acli"
           "lego/tap/bob-cli"
           "lego/tap/mdc"
+          # Standalone dolt sql-server CLI: Enterprise bd (CGO_ENABLED=0) runs
+          # in server mode and spawns this as its child process; it does not
+          # bundle an embedded Dolt engine like the OSS/Homebrew bd build does.
+          "dolt"
         ];
         casks = [
           "claude"

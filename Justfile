@@ -351,7 +351,7 @@ update:
 #
 # Push the current closure to Cachix
 cachix-push flake-attr=default-cachix-attr:
-    secretspec run -- sh -c '\
+    secretspec run --reason "push closure to worldofgeese Cachix cache" -- sh -c '\
       nix build --no-link --print-out-paths --no-warn-dirty {{flake-attr}} \
       | cachix push worldofgeese'
 

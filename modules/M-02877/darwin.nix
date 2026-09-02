@@ -678,7 +678,7 @@
 
       system.activationScripts.preActivation.text = ''
         if [ -z "''${HOMEBREW_GITHUB_API_TOKEN:-}" ]; then
-          if token="$(sudo --user=${lib.escapeShellArg config.homebrew.user} --set-home sh -lc 'cd ${inputs.self} && ${pkgs.secretspec}/bin/secretspec get HOMEBREW_GITHUB_API_TOKEN' 2>/dev/null)"; then
+          if token="$(sudo --user=${lib.escapeShellArg config.homebrew.user} --set-home sh -lc 'cd ${inputs.self} && ${pkgs.secretspec}/bin/secretspec get HOMEBREW_GITHUB_API_TOKEN --reason "nix-darwin activation / Homebrew API rate limits"' 2>/dev/null)"; then
             export HOMEBREW_GITHUB_API_TOKEN="$token"
           elif token="$(sudo --user=${lib.escapeShellArg config.homebrew.user} --set-home ${pkgs.github-cli}/bin/gh auth token 2>/dev/null)"; then
             export HOMEBREW_GITHUB_API_TOKEN="$token"
@@ -712,7 +712,6 @@
           "atlassian/acli/acli"
           "lego/tap/bob-cli"
           "lego/tap/mdc"
-          "gascity"
         ];
         casks = [
           "claude"

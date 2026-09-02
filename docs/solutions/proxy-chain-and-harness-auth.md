@@ -87,7 +87,7 @@ The key is never a value in this repo — always a **command** that prints it:
 
 | consumer | how it resolves the key |
 |---|---|
-| pi | `apiKey` in `models.json` is `!secretspec get -f …/secretspec.toml LEGO_GATEWAY_API_KEY`; `!` is pi's marker for "run this and use the output" |
+| pi | `apiKey` in `models.json` is `!secretspec get -f …/secretspec.toml LEGO_GATEWAY_API_KEY --reason '...'`; `!` is pi's marker for "run this and use the output". `--reason` is required by secretspec's `require_reason` audit policy |
 | agent-shell | runs the same command at agent-process start, via advice on `agent-shell-anthropic-make-claude-client`; an empty or failing lookup raises a `user-error` naming the command instead of sending a blank header |
 | Claude Code | reads its own `~/.claude/settings.json` `env` block, which is **outside this repo** |
 
@@ -221,6 +221,7 @@ which rootless podman would silently ignore `-m`.
 | symptom | cause | fix |
 |---|---|---|
 | `401 Not authenticated` | missing or empty auth header | run the `secretspec get` command by hand; confirm it prints a `vk_…` value |
+| `secretspec` error `Accessing secrets requires a reason` | `require_reason` policy added to `secretspec.toml`/keyring after every `secretspec get`/`run` call in this repo was written | every embedded call needs `--reason "<why>"`; see `modules/gateway.nix` `keyCommand`, `modules/M-02877/{darwin,dktaohan}.nix` token lookups, and `Justfile`'s `cachix-push` |
 | `400 Malformed Authorization header` | the auth value is a literal variable name rather than a resolved key, **or** the request hit a colliding port | ensure the key comes from a `!command` / `call-process`; confirm the base URL is the Apple-container host port, not another runtime |
 | `406 Not found any available model` | model ID not in the gateway's list | use an ID from the model table above |
 | connection refused on `:18788` | chain containers not running | `container ls`; restart the launchd agents if headroom / phoenix / local-model-proxy are missing |

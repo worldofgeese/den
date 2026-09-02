@@ -12,6 +12,9 @@
 last-touched
 *.tmp
 
+# Local backup destination registration (machine-specific path)
+dolt-backup.json
+
 # Local history backups
 .br_history/
 

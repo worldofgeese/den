@@ -12,6 +12,10 @@
 
       home.sessionVariables = {
         EDITOR = "zed";
+        # Global npm installs (`npm install -g`) default their prefix to
+        # the Nix-store node path, which is read-only. Point npm at
+        # ~/.local, which is already on PATH via home.sessionPath below.
+        NPM_CONFIG_PREFIX = "$HOME/.local";
       };
 
       home.sessionPath = [
@@ -372,13 +376,24 @@
         if [ -z "''${HOMEBREW_GITHUB_API_TOKEN:-}" ]; then
           token=""
           if command -v secretspec &>/dev/null; then
-            token="$(secretspec get HOMEBREW_GITHUB_API_TOKEN 2>/dev/null || true)"
+            token="$(secretspec get HOMEBREW_GITHUB_API_TOKEN --reason "nix-darwin activation / Homebrew API rate limits" 2>/dev/null || true)"
           fi
           if [ -z "$token" ] && command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
             token="$(gh auth token)"
           fi
           if [ -n "$token" ]; then
             export HOMEBREW_GITHUB_API_TOKEN="$token"
+          fi
+        fi
+
+        # Chorus AI-DLC (https://chorus.devrel.internal.lego). URL is
+        # non-secret; the API key is read from secretspec so the live
+        # `cho_...` value never lands in this git-tracked Nix source.
+        export CHORUS_URL="https://chorus.devrel.internal.lego"
+        if [ -z "''${CHORUS_API_KEY:-}" ] && command -v secretspec &>/dev/null; then
+          chorus_key="$(secretspec get CHORUS_API_KEY --reason "omp/claude Chorus MCP server auth" 2>/dev/null || true)"
+          if [ -n "$chorus_key" ]; then
+            export CHORUS_API_KEY="$chorus_key"
           fi
         fi
       '';

@@ -70,6 +70,6 @@ in {
     # A command, never a value: callers embed this string and run it when an
     # agent process starts, so the key never enters the store or tree.
     secretName = facts.secret.name;
-    keyCommand = homeDirectory: "secretspec get -f ${homeDirectory}/.config/home-manager/${facts.secret.profile} ${facts.secret.name}";
+    keyCommand = homeDirectory: "secretspec get -f ${homeDirectory}/.config/home-manager/${facts.secret.profile} ${facts.secret.name} --reason 'model gateway auth for coding agent'";
   };
 }

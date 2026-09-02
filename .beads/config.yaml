@@ -10,3 +10,5 @@ dolt:
     database: beads
 sync:
     remote: "git+https://github.com/worldofgeese/den"
+agent:
+    profile: team-maintainer

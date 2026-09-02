@@ -30,6 +30,7 @@
 - When implementing a plan, present intended changes for each phase before writing code.
 - If a phase's success criteria are fully covered by automated checks (tests, linting, etc.), run them and proceed automatically when they pass. Pause for manual verification only when the plan includes manual verification items not covered by automated tests.
 - Update checkboxes in the plan file as items complete, and resume from the first unchecked item when checkboxes already exist.
+- Use `bd` (beads) for issue tracking in this repository, not markdown TODO lists. Run `bd prime` for workflow context and command guidance.
 ````
 
 ### core/PLUGINS.md

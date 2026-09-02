@@ -197,7 +197,7 @@
                 export DOOMPROFILELOADFILE="${emacsPkg.doomEmacs.doomProfile}/loader/init"
                 export DOOMPROFILE="nix"
                 export DOOMDIR="${emacsPkg.doomEmacs.doomProfile}/doomdir"
-                export DOOMLOCALDIR="${emacsPkg.doomEmacs.doomLocalDir}"
+                export DOOMLOCALDIR="${config.programs.doom-emacs.doomLocalDir}"
                 exec ${config.home.homeDirectory}/Applications/Emacs.app/Contents/MacOS/Emacs --init-directory="${emacsPkg.doomEmacs.doomSource}" "$@"
                 EOF
                 cat >$out/bin/emacsclient <<'EOF'

@@ -2,3 +2,11 @@
 # issue_prefix: home-manager
 # default_priority: 2
 # default_type: task
+
+dolt:
+    mode: server
+    host: 127.0.0.1
+    port: 3307
+    database: beads
+sync:
+    remote: "git+https://github.com/worldofgeese/den"

@@ -1,0 +1,10 @@
+log_level: warning
+behavior:
+    auto_gc_behavior:
+        archive_level: 0
+listener:
+    host: 127.0.0.1
+    port: 3307
+cfg_dir: /Users/dktaohan/.config/home-manager/.beads/dolt/.doltcfg
+user_session_vars: []
+jwks: []

@@ -58,3 +58,25 @@ redirect
 # does not touch it, and no tracked beads file references it — it is local
 # telemetry, not shared state.
 interactions.jsonl
+
+# Added by bd (missing required patterns)
+*.db?*
+.env
+bd.sock.startlock
+*.gate.lock*
+export-state/
+export-state.json
+last_pull
+dolt/
+embeddeddolt/
+proxieddb/
+ephemeral.sqlite3
+dolt-server.pid
+dolt-server.log
+dolt-server.lock
+dolt-server.port
+dolt-server.activity
+daemon.*
+*.corrupt.backup/
+.beads-credential-key
+proxied_server_client_info.json

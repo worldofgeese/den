@@ -77,3 +77,7 @@ result/
 
 # Graphiq knowledge-graph index (1.3M SQLite, regenerated on demand).
 .graphiq/
+
+# Beads / Dolt files (added by bd init)
+.beads/proxieddb/
+*.gate.lock*

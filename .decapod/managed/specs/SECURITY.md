@@ -105,23 +105,11 @@ Describe the security primitives and security controls implemented in this repos
 - **Input Validation**: Strictly validate all inputs at trust boundaries.
 - **Secure Storage**: Encrypt sensitive data at rest and in transit.
 
-<!-- decapod:capability-overlay:public-api:start -->
+<!-- decapod:codebase-attestation:start -->
 
-## Public API Security Overlay
+## Codebase Attestation
 
-### Authentication Requirements
-- All public endpoints MUST validate authentication tokens
-- Token validation MUST include expiry, revocation, and scope checks
-- Anonymous access MUST be explicitly documented and justified
-
-### Input Validation
-- All request bodies MUST be validated against schemas
-- Reject requests with unknown fields (strict schema validation)
-- Size limits MUST be enforced on all request bodies
-
-### Rate Limiting
-- Limits and enforcement boundaries MUST be selected for this deployment
-- Clustered enforcement behavior MUST be documented when applicable
-- Client-visible throttling behavior MUST be part of the contract when applicable
-<!-- decapod:capability-overlay:public-api:end -->
-
+- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
+- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod specs.refresh`
+<!-- decapod:codebase-attestation:end -->

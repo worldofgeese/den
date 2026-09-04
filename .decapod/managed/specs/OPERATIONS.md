@@ -125,20 +125,11 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 - [ ] Dependency vulnerability scan reviewed.
 - [ ] No unresolved critical/high security findings.
 
-<!-- decapod:capability-overlay:persistent-state:start -->
+<!-- decapod:codebase-attestation:start -->
 
-## Persistent State Operations Overlay
+## Codebase Attestation
 
-### Backup & Recovery
-- Backup scope, schedule, retention, and restore evidence MUST be selected for the project
-- Recovery point objectives MUST be explicit project decisions, not assumed values
-- Recovery time objectives MUST be explicit project decisions, not assumed values
-- Restore verification cadence MUST be recorded with the operational proof plan
-
-### Migration Operations
-- All schema changes via migration files
-- Migration rollback procedures documented
-- Zero-downtime migration strategy for production
-- Migration health checks and rollback triggers
-<!-- decapod:capability-overlay:persistent-state:end -->
-
+- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
+- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod specs.refresh`
+<!-- decapod:codebase-attestation:end -->

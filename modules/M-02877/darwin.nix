@@ -742,6 +742,8 @@
           "visual-studio-code"
           "visual-studio-code@insiders"
           "monokle"
+          # macOS client owns login, system extension, and tailscaled.
+          "tailscale-app"
           "genai-menu"
         ];
         taps = [

@@ -28,6 +28,7 @@
           just
           bash-preexec
           agents.omp
+          agents.pi
           agents.claude-code
           agents.claude-agent-acp
           agents.copilot-cli

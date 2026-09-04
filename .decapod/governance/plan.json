@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "title": "Land macOS Tailscale and Pi configuration",
+  "intent": "Merge the prepared macOS Tailscale Homebrew cask and llm-agents Pi package change into main, then deploy and verify Tailscale.",
+  "state": "APPROVED",
+  "todo_ids": [
+    "code_01m1p8p1swj28vx3",
+    "code_01m1p8qvbhwje4vf"
+  ],
+  "proof_hooks": [
+    "PR #4 merged; just deploy-darwin exits 0; Tailscale cask installed; Tailscale app launches"
+  ],
+  "unknowns": [],
+  "human_questions": [],
+  "stop_conditions": [],
+  "unresolved_contradictions": [],
+  "deferred_questions": [],
+  "constraints": {
+    "forbidden_paths": [
+      "Justfile",
+      "flake.lock",
+      "install.sh"
+    ],
+    "file_touch_budget": 20
+  },
+  "phases": [],
+  "updated_at": "1788529812Z"
+}

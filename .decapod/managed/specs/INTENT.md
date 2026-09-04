@@ -4,12 +4,7 @@
 
 ## Declared Capability Surfaces
 
-- `authentication`
-- `event-driven`
-- `external-integrations`
 - `infrastructure-management`
-- `persistent-state`
-- `public-api`
 - `secrets-handling`
 
 <!-- decapod:declared-capabilities:end -->
@@ -131,3 +126,12 @@ flowchart LR
 |---|---|---|---|
 | Which interfaces are versioned at launch? | TBD | YYYY-MM-DD | |
 | Which non-functional target is hardest to hit? | TBD | YYYY-MM-DD | |
+
+<!-- decapod:codebase-attestation:start -->
+
+## Codebase Attestation
+
+- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
+- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod specs.refresh`
+<!-- decapod:codebase-attestation:end -->

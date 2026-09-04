@@ -78,23 +78,11 @@ stateDiagram-v2
 ## Language Note
 - Primary language inferred: shell
 
-<!-- decapod:capability-overlay:persistent-state:start -->
+<!-- decapod:codebase-attestation:start -->
 
-## Persistent State Semantics Overlay
+## Codebase Attestation
 
-### Transaction Semantics
-- All multi-entity operations MUST be atomic
-- Read-after-write consistency within transaction boundaries
-- Eventual consistency windows MUST be documented
-
-### Migration Semantics
-- Schema migrations MUST be backward-compatible
-- Migration rollback procedures MUST be documented
-- Data integrity checks post-migration
-
-### Recovery Semantics
-- Point-in-time recovery capability
-- Recovery objectives MUST be selected for the project and recorded as proof obligations
-- Recovery test cadence MUST be selected for the project and recorded as a proof obligation
-<!-- decapod:capability-overlay:persistent-state:end -->
-
+- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
+- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod specs.refresh`
+<!-- decapod:codebase-attestation:end -->

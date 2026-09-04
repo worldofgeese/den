@@ -110,6 +110,15 @@ sequenceDiagram
 - Evidence generation failure blocks promotion when the affected proof is
   required by [VALIDATION.md](./VALIDATION.md).
 
+## macOS Host Configuration Boundary
+The M-02877 Darwin system owns macOS applications and privileged networking
+integration. Tailscale is installed as the `tailscale-app` Homebrew cask so its
+GUI login, system extension, and network service remain under nix-darwin.
+Home Manager owns user-space tools; Pi is sourced from the flake's
+`llm-agents.packages` set. Tailscale enrollment and runtime route choices stay
+manual because they are user credentials and network policy, not reproducible
+package state.
+
 ## Change Propagation Checklist
 - [ ] Component ownership remains singular and explicit.
 - [ ] Inbound/outbound calls and data flow are still represented.
@@ -133,23 +142,11 @@ sequenceDiagram
 | Contract drift across components | Medium | High | Spec + schema checks in CI |
 | Runtime saturation under peak load | Medium | High | Capacity model + load tests |
 
-<!-- decapod:capability-overlay:persistent-state:start -->
+<!-- decapod:codebase-attestation:start -->
 
-## Persistent State Architecture Overlay
+## Codebase Attestation
 
-### State Ownership
-- Each entity type MUST have a designated state owner
-- State ownership boundaries MUST be explicitly documented
-- Cross-boundary state access MUST go through defined interfaces
-
-### Transaction Boundaries
-- All multi-entity mutations MUST occur within explicit transactions
-- Transaction boundaries MUST be documented in ARCHITECTURE.md
-- Compensating transactions for distributed operations
-
-### Storage Abstraction
-- Storage ownership, consistency behavior, and access boundaries MUST be explicit
-- Portability or swappable implementations are project decisions, not universal requirements
-- Migration and rollback treatment MUST match the selected storage technology
-<!-- decapod:capability-overlay:persistent-state:end -->
-
+- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
+- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod specs.refresh`
+<!-- decapod:codebase-attestation:end -->

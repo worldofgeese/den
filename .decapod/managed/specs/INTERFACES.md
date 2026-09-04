@@ -96,24 +96,11 @@ export enum ApiErrorCode {
   dependency, and internal failures.
 - [ ] Backward compatibility or migration instructions are published.
 
-<!-- decapod:capability-overlay:public-api:start -->
+<!-- decapod:codebase-attestation:start -->
 
-## Public API Capability Overlay
+## Codebase Attestation
 
-### API Contract Requirements
-- All public endpoints MUST define explicit request/response schemas
-- Versioning strategy MUST be documented (URL path or header-based)
-- All public endpoints MUST implement idempotency for mutating operations
-- Rate limiting and pagination MUST be implemented for list endpoints
-
-### Compatibility Guarantees
-- Backward-compatible changes ONLY within a version
-- Breaking changes require new version (v1, v2, etc.)
-- Deprecation and removal policy MUST be selected for this project and proven against its consumers
-
-### Security Requirements
-- All public endpoints MUST implement authentication
-- Abuse-control enforcement point MUST be a documented project decision
-- Input validation MUST reject malformed requests with typed errors
-<!-- decapod:capability-overlay:public-api:end -->
-
+- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
+- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod specs.refresh`
+<!-- decapod:codebase-attestation:end -->

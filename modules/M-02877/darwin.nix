@@ -157,6 +157,39 @@
           sys.stdout.buffer.write(plaintext)
         '';
       };
+      # NearDrop is not in nixpkgs and its Homebrew tap is unusable: the cask in
+      # grishka/homebrew-grishka calls `depends_on macos: :catalina`, a DSL form
+      # Homebrew has disabled, so cask loading raises and `brew bundle` aborts
+      # the entire activation - every other cask included. Upstream regressed it
+      # in f295b07 ("use non-deprecated depends_on macos syntax", which replaced
+      # the still-supported `">= :catalina"` with the disabled bare symbol) and
+      # has not corrected it. Patching the tap checkout is not durable because
+      # onActivation.autoUpdate re-fetches it on every deploy.
+      #
+      # The release is a plain signed .app zip, so fetch it directly; putting it
+      # in environment.systemPackages lets nix-darwin link it into
+      # /Applications/Nix Apps, and the tap disappears from the Brewfile.
+      neardrop = pkgs.stdenvNoCC.mkDerivation rec {
+        pname = "neardrop";
+        version = "2.2.0";
+        src = pkgs.fetchurl {
+          url = "https://github.com/grishka/NearDrop/releases/download/v${version}/NearDrop.app.zip";
+          hash = "sha256-7m/tCXFEh3ifYFGYwEFb/Ql7Ye+lJ90hVg4Qr1xWpqU=";
+        };
+        nativeBuildInputs = [pkgs.unzip];
+        sourceRoot = ".";
+        installPhase = ''
+          runHook preInstall
+          mkdir -p "$out/Applications"
+          cp -R NearDrop.app "$out/Applications/"
+          runHook postInstall
+        '';
+        meta = {
+          description = "Unofficial Google Nearby Share app for macOS";
+          homepage = "https://github.com/grishka/NearDrop";
+          platforms = lib.platforms.darwin;
+        };
+      };
     in {
       home-manager.useUserPackages = true;
       home-manager.backupFileExtension = "hm-bak";
@@ -686,6 +719,8 @@
         fi
       '';
 
+      environment.systemPackages = [neardrop];
+
       homebrew = {
         enable = true;
         global.autoUpdate = true;
@@ -725,7 +760,6 @@
           "jordanbaird-ice"
           "alt-tab"
           "loop"
-          "neardrop"
           "raycast"
           "logseq"
           "notunes"
@@ -748,7 +782,6 @@
         ];
         taps = [
           "atlassian/homebrew-acli"
-          "grishka/grishka"
           "mrkai77/cask"
           "nikitabobko/tap"
           "pulumi/tap"

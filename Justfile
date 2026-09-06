@@ -269,6 +269,7 @@ check-doom-darwin:
     [[ "$(<"$wrapper/bin/emacs")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/Emacs'* ]]
     [[ "$(<"$wrapper/bin/emacsclient")" == *'/Users/dktaohan/Applications/Emacs.app/Contents/MacOS/bin/emacsclient'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'DOOMPROFILE="nix"'* ]]
+    [[ "$(<"$wrapper/bin/emacs")" == *'DOOMLOCALDIR="/Users/dktaohan/.local/share/nix-doom"'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'libemutls_w.a'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'/opt/homebrew/bin'* ]]
     [[ "$(<"$wrapper/bin/emacs")" == *'/etc/profiles/per-user/dktaohan/bin'* ]]

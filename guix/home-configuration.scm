@@ -334,35 +334,37 @@ mv \"$tmp\" \"$target\""))
     ;; Signet memory daemon.
     ;;
     ;; Upstream moved the daemon out of the npm package and into a published
-    ;; container image (ghcr.io/signet-ai/signet) around 2026-08-03; the old
-    ;; bun + dist/daemon.js invocation below has been dead since that release
-    ;; ("Module not found ... dist/daemon.js"). The replacement runs the same
-    ;; distrobox invocation the macOS launchd service uses
-    ;; (modules/M-02877/darwin.nix, signet-container agent): a rootless-Podman
-    ;; distrobox named "signet" bind-mounts the real ~/.agents workspace at
-    ;; /data/agents and re-enables the container's daemon entrypoint for this
-    ;; one exec. The box itself is created imperatively, once, the same way
-    ;; the pre-existing "arch" distrobox on this host is (see
-    ;; modules/workstation.nix topgrade config) -- Guix Home does not declare
-    ;; or create it.
-    (simple-service
-     'signet-daemon
-     home-shepherd-service-type
-     (list
-      (shepherd-service
-       (provision '(signet))
-       (documentation "Signet cross-session memory daemon (container, via distrobox)")
-       (start #~(make-forkexec-constructor
-                 (list (string-append (getenv "HOME") "/.guix-home/profile/bin/distrobox-enter")
-                       "--no-tty" "--clean-path" "--name" "signet" "--"
-                       "env" "SIGNET_DAEMON_ENTRYPOINT=1" "/app/bin/signet")
-                 #:environment-variables
-                 (default-environment-variables)
-                 #:log-file (string-append (getenv "HOME")
-                                           "/.local/state/signet.log")))
-       (stop #~(make-kill-destructor))
-       (respawn? #t)
-       (auto-start? #t))))
+    ;; container image (ghcr.io/signet-ai/signet) around 2026-08-03. This
+    ;; service manages that image with the same home-oci-service-type base
+    ;; declared above for headroom, not distrobox. Two reasons distrobox is
+    ;; wrong here: the image's own entrypoint.sh only seeds agent.yaml,
+    ;; memories.db, scripts, and skills templates when those files are
+    ;; absent, so it is safe against our already-populated ~/.agents
+    ;; workspace; and the entrypoint's last line execs the daemon as
+    ;; container PID 1, so a plain OCI-managed container delivers the
+    ;; Shepherd stop signal straight to the daemon process, matching the
+    ;; standard container lifecycle contract that headroom already relies
+    ;; on. The prior distrobox-enter design execed a second process into an
+    ;; already-running, separately-managed distrobox, so Shepherd's
+    ;; make-kill-destructor only killed the host-side distrobox-enter
+    ;; wrapper and left the real /app/bin/signet process orphaned inside
+    ;; the box on every stop.
+    (simple-service 'signet-daemon
+                    home-oci-service-type
+                    (oci-extension
+                     (containers
+                      (list
+                       (oci-container-configuration
+                        (provision "signet")
+                        (image "ghcr.io/signet-ai/signet:0.214.27")
+                        (ports (list "127.0.0.1:3850:3850"))
+                        (volumes (list (cons (string-append (getenv "HOME") "/.agents")
+                                             "/data/agents")))
+                        (respawn? #t)
+                        (auto-start? #t)
+                        (log-file
+                         (string-append (getenv "HOME")
+                                        "/.local/state/signet.log")))))))
 
     ;; Ollama embedding server (Nix package; used by crucible semantic search)
     ;; Bound to loopback only — crucible hardcodes http://localhost:11434.

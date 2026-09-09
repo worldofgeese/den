@@ -81,3 +81,5 @@ result/
 # Beads / Dolt files (added by bd init)
 .beads/proxieddb/
 *.gate.lock*
+# br doctor per-run artifacts
+.doctor/

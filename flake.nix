@@ -47,20 +47,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # ewm-core depends on the libdisplay-info-sys crate, whose build script
-    # requires libdisplay-info 0.3.x. nixpkgs moved to 0.4.0, so following the
-    # root nixpkgs fails with "system library `libdisplay-info` ... not found"
-    # even though 0.4.0 sits on PKG_CONFIG_PATH.
-    #
-    # Dropping `follows` is not enough: `nix flake lock` then resolves
-    # ewm/nixpkgs to a *fresh* nixpkgs (0.4.0 again) instead of honoring the
-    # nixpkgs ewm committed. Pin ewm's own locked rev explicitly so the
-    # dependency is visible here rather than hidden in ewm's lock.
-    # Revert to `follows = "nixpkgs"` once libdisplay-info-sys supports 0.4.
+    # required libdisplay-info 0.3.x. nixpkgs bumped the default to 0.4.0 on
+    # 2026-08-04 and added a `libdisplay-info_0_3` alias for exactly this
+    # back-compat case (dropping the old `libdisplay-info_0_2` alias, which
+    # was unused). Root nixpkgs now satisfies ewm's `inherit (pkgs)
+    # libdisplay-info_0_3` directly, so the separate nixpkgs-ewm pin used to
+    # work around the pre-alias nixpkgs is no longer needed.
     ewm = {
       url = "git+https://codeberg.org/ezemtsov/ewm";
-      inputs.nixpkgs.follows = "nixpkgs-ewm";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
-    nixpkgs-ewm.url = "github:NixOS/nixpkgs/0182a361324364ae3f436a63005877674cf45efb";
     # Use nix-on-droid's own tested nixpkgs + home-manager versions.
     # See: https://github.com/nix-community/nix-on-droid/issues/495
     # Remove these pins once nix-on-droid merges PR #529 (proot-termux update)

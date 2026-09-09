@@ -54,7 +54,7 @@
         emacs =
           if pkgs.stdenv.hostPlatform.isDarwin
           then pkgs.emacs31
-          else pkgs.emacs30-pgtk;
+          else pkgs.emacs-pgtk;
         provideEmacs = false;
         extraBinPackages =
           (with pkgs; [

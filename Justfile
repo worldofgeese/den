@@ -56,9 +56,11 @@ deploy-mahakala-guix:
 guix-pull-home:
     guix pull --substitute-urls="{{guix-substitute-urls}}" -C guix/channels.scm
 
-# Reconfigure Guix Home against the user's CURRENT channels (no pull)
+# Reconfigure Guix Home against the user's CURRENT channels (no pull).
+# Telegram's C++ build exhausts 16 GiB at the daemon's four-core default,
+# so serialize Home builds when no substitute is available.
 deploy-mahakala-guix-only:
-    guix home reconfigure guix/home-configuration.scm
+    guix home reconfigure --substitute-urls="{{guix-substitute-urls}}" --cores=1 guix/home-configuration.scm
 
 # Split out from reconfigure because a pull can bump nonguix's kernel base config
 # (e.g. 7.0-x86_64.conf -> 7.1-x86_64.conf), which changes the

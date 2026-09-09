@@ -32,6 +32,12 @@
           agents.claude-code
           agents.claude-agent-acp
           agents.copilot-cli
+          # Beads Rust (br) is canonical for issue tracking per AGENTS.md; bv is
+          # its advisory graph/triage sidecar. llm-agents.nix restructured its
+          # bundle so these are no longer pulled in transitively via another
+          # agent's closure -- list them explicitly.
+          agents.beads-rust
+          agents.beads-viewer
           # Secret lookups for both hosts, declared in secretspec.toml. Shared so
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.

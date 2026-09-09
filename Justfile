@@ -189,10 +189,18 @@ deploy-pixel-fold:
 # what catches the regression class. `nix flake check` remains valid on a machine
 # that can build them.
 #
+# Runs scripts/check-drvpaths.sh instead of one blanket `nix eval`: some darwin
+# checks trigger an import-from-derivation (IFD) build that this host cannot
+# perform without a remote aarch64-darwin builder, and that failure is a
+# daemon-level build error that a single `nix eval` call cannot isolate. The
+# script forces each check's drvPath separately, skips only the specific
+# missing-builder failure with a clear warning, and still hard-fails on any
+# other evaluation or build error.
+#
 # Depends on install-hooks so a fresh clone arms the pre-commit gate the first
 # time it runs the gate manually, instead of relying on someone remembering.
 check: install-hooks
-    nix eval --no-warn-dirty --json .#checks --apply 'ss: builtins.mapAttrs (_: cs: builtins.mapAttrs (_: c: c.drvPath) cs) ss' >/dev/null
+    ./scripts/check-drvpaths.sh
     if [[ "$(uname -s)" == Darwin ]]; then just check-doom-darwin; fi
     just check-guix
     just check-fmt

@@ -7,5 +7,5 @@ is consumed while evaluating cross-system configurations.
 */
 builtins.fetchurl {
   url = "https://github.com/worldofgeese.keys";
-  sha256 = "1v3kxh74bbyblv1lg1bljaic1zv9qliqkwiz5r6rrvlj5vinqad7";
+  sha256 = "0515dw3bygk240b0bhwa7kjha0fdmy4gbf5kx4spbm7jl2qw7j9w";
 }

@@ -280,7 +280,7 @@ root ALL=(ALL) ALL
             "[storage]\ndriver = \"overlay\""))
         (containers-registries
           (plain-file "registries.conf"
-            "[registries.search]\nregistries = ['quay.io', 'docker.io']"))))
+            "unqualified-search-registries = [\"quay.io\", \"docker.io\"]"))))
 
     (set-xorg-configuration
      (xorg-configuration

@@ -157,6 +157,77 @@
           sys.stdout.buffer.write(plaintext)
         '';
       };
+      # The hand-written com.lego.btsbox.devrel.serve plist carried the box's
+      # external password inline as an EnvironmentVariables value. That cannot be
+      # brought across literally: every string in this file is committed to git
+      # and lands world-readable in /nix/store, so inlining it would turn a
+      # 0600 file into a published credential. The same reasoning already governs
+      # signetReadLegoSecret above.
+      #
+      # The value is not a fourth copy of a secret -- it is byte-identical to
+      # ~/.config/bts-box/boxes/devrel/gateway.token, which is also the `user`
+      # field of the workspace's proxied_server_client_info.json. The box issues
+      # one token and reuses it as gateway credential, SQL user, and this
+      # password, so reading that file is reading the authoritative source rather
+      # than duplicating it. Box-scoped path, not the top-level gateway.token, so
+      # a second box cannot silently inherit devrel's credential.
+      #
+      # Failing loudly on an absent token beats starting a server that then
+      # refuses every proxied write with an opaque auth error.
+      btsboxDevrelServe = pkgs.writeShellApplication {
+        name = "btsbox-devrel-serve";
+        text = ''
+          set -eu
+          token_file="$HOME/.config/bts-box/boxes/devrel/gateway.token"
+          if [ ! -r "$token_file" ]; then
+            echo "btsbox-devrel-serve: $token_file is missing or unreadable" >&2
+            exit 1
+          fi
+          BEADS_PROXIED_SERVER_EXTERNAL_PASSWORD="$(cat "$token_file")"
+          export BEADS_PROXIED_SERVER_EXTERNAL_PASSWORD
+
+          # bd is a prebuilt arm64 binary installed out of band under
+          # ~/.local/bin; it is not a Nix package, so it is referenced by
+          # absolute path rather than through runtimeInputs.
+          exec "$HOME/.local/bin/bd" serve \
+            --addr 127.0.0.1:7377 \
+            --auth-token-file "$HOME/.config/bts-box/boxes/devrel/serve.token"
+        '';
+      };
+
+      # A self-hosted PR review daemon. Packaged here rather than installed with
+      # `cargo install` for the same reason decapod stopped being installed that
+      # way (see modules/shared-devtools.nix): an activation-time cargo build
+      # fails silently and leaves the version unpinned, and a LaunchAgent whose
+      # ProgramArguments point into ~/.cargo/bin breaks the moment that tree is
+      # cleaned. Upstream ships no flake and it is absent from nixpkgs, so this
+      # is a buildRustPackage against a pinned revision -- there are no tags, so
+      # the rev is the only stable coordinate and `version` tracks Cargo.toml.
+      #
+      # Tests are skipped: the suite's httpest cases bind loopback sockets, which
+      # the Nix sandbox refuses, and it shells out to git.
+      pr-reviewer = pkgs.rustPlatform.buildRustPackage {
+        pname = "pr-reviewer";
+        version = "0.1.0-unstable-2026-05-01";
+
+        src = pkgs.fetchFromGitHub {
+          owner = "NicholaiVogel";
+          repo = "pr-reviewer";
+          rev = "4d27724c09bc242444a6946bf9f39b85819689a3";
+          hash = "sha256-Z6z3UovEM0Eqs8Di9Am4+oTtWIEdbU3tSP8Yudf40Mk=";
+        };
+
+        cargoHash = "sha256-XpFZLDgppAkIPmj95ihi5hkd+k5pgnKDa3c74xUJBuQ=";
+        doCheck = false;
+
+        meta = {
+          description = "Self-hosted PR review daemon that drives local AI CLI tools";
+          homepage = "https://github.com/NicholaiVogel/pr-reviewer";
+          mainProgram = "pr-reviewer";
+          platforms = lib.platforms.unix;
+        };
+      };
+
       # NearDrop is not in nixpkgs and its Homebrew tap is unusable: the cask in
       # grishka/homebrew-grishka calls `depends_on macos: :catalina`, a DSL form
       # Homebrew has disabled, so cask loading raises and `brew bundle` aborts
@@ -686,6 +757,217 @@
             ProcessType = "Background";
             StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-gateway-shim.log";
             StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-gateway-shim.log";
+          };
+        };
+
+        # `start`, not `start --daemon`. The --daemon flag forks and detaches,
+        # which is precisely what launchd must not have: it would see the
+        # foreground process exit immediately, believe the job finished, and with
+        # KeepAlive below would restart it forever while orphaned daemons
+        # accumulated behind it. launchd owns the process lifetime here.
+        #
+        # The daemon guards itself with a pidfile in its own state directory, so
+        # a manually started instance and this agent cannot both run. That makes
+        # a refused start a *clean* exit rather than a crash, hence
+        # SuccessfulExit=false: restart it when it dies unexpectedly, but do not
+        # spin against a lock that another instance legitimately holds. Anyone
+        # who has been running it by hand must `pr-reviewer stop` once, after
+        # which this agent is the only thing that starts it.
+        #
+        # PATH is explicit because a LaunchAgent inherits almost nothing. The
+        # daemon shells out to git for diffs and spawns the claude harness named
+        # in its config, so both must resolve: git and gh come from the store,
+        # claude from the user profile (it is a per-user package, not a
+        # system-wide one). Its config, encrypted token, keyfile and state.db stay
+        # in ~/Library/Application Support/pr-reviewer -- deliberately not
+        # declared here, because they are mutable runtime state holding a
+        # credential, not configuration this repository should own.
+        pr-reviewer = {
+          serviceConfig = {
+            Label = "com.dktaohan.pr-reviewer";
+            ProgramArguments = ["${pr-reviewer}/bin/pr-reviewer" "start"];
+            EnvironmentVariables = {
+              HOME = config.users.users.dktaohan.home;
+              PATH = lib.concatStringsSep ":" [
+                (lib.makeBinPath [pkgs.git pkgs.gh])
+                "/etc/profiles/per-user/dktaohan/bin"
+                "/usr/bin"
+                "/bin"
+              ];
+            };
+            RunAtLoad = true;
+            KeepAlive = {SuccessfulExit = false;};
+            ProcessType = "Background";
+            ThrottleInterval = 30;
+            StandardOutPath = "${config.users.users.dktaohan.home}/Library/Logs/pr-reviewer.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/Library/Logs/pr-reviewer.log";
+          };
+        };
+
+        # The four agents below were hand-written plists in ~/Library/LaunchAgents
+        # until now, which meant a wiped machine came back without them and
+        # nothing recorded why they were configured the way they are.
+        #
+        # A note that applies to all four: their programs are deliberately *not*
+        # Nix store paths. foundry-proxy.py is a working-tree script, btsbox and
+        # bd are installed out of band under ~/.local/bin, and gasworks-companion
+        # ships inside bd's own Application Support tree. Declaring the agents
+        # here fixes how they start, not where their programs come from; pinning
+        # those into the store would mean packaging three upstreams that do not
+        # currently support it.
+        foundry-proxy = {
+          serviceConfig = {
+            Label = "com.dktaohan.foundry-proxy";
+            ProgramArguments = [
+              "${pkgs.uv}/bin/uv"
+              "run"
+              "--script"
+              "${config.users.users.dktaohan.home}/projects/juniper/foundry-proxy.py"
+            ];
+            WorkingDirectory = "${config.users.users.dktaohan.home}/projects/juniper";
+            EnvironmentVariables = {
+              HOME = config.users.users.dktaohan.home;
+              PATH = lib.concatStringsSep ":" [
+                "/etc/profiles/per-user/dktaohan/bin"
+                "/opt/homebrew/bin"
+                "/usr/bin"
+                "/bin"
+                "/usr/sbin"
+                "/sbin"
+              ];
+            };
+            RunAtLoad = true;
+            KeepAlive = {SuccessfulExit = false;};
+            ThrottleInterval = 10;
+            StandardOutPath = "${config.users.users.dktaohan.home}/Library/Logs/foundry-proxy.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/Library/Logs/foundry-proxy.log";
+          };
+        };
+
+        # Keeps the private BTS workstation connection joined and supervised.
+        #
+        # The interpreter stays Apple's CommandLineTools python3, as in the
+        # original plist: btsbox is an out-of-band script whose import set is not
+        # known here, and swapping it to a Nix python risks a missing module at
+        # login for no gain in this change.
+        #
+        # The awscli2 entry on PATH is the one thing that had to change. The
+        # hand-written plist carried an absolute
+        # /nix/store/c7spfvdq...-awscli2-2.35.11/bin, a path that is correct only
+        # until the next garbage collection removes that exact build -- after
+        # which the agent silently loses aws. Referring to the package lets the
+        # path move with the closure and keeps it alive as a real dependency.
+        btsbox-devrel = {
+          serviceConfig = {
+            Label = "com.lego.btsbox.devrel";
+            ProgramArguments = [
+              "/Library/Developer/CommandLineTools/usr/bin/python3"
+              "${config.users.users.dktaohan.home}/.local/bin/btsbox"
+              "supervise"
+              "${config.users.users.dktaohan.home}/.config/bts-box/boxes/devrel/manifest.json"
+            ];
+            EnvironmentVariables = {
+              AWS_PROFILE = "bts-devrel";
+              AWS_REGION = "eu-west-1";
+              PATH = lib.concatStringsSep ":" [
+                "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin"
+                (lib.makeBinPath [pkgs.awscli2])
+                "${config.users.users.dktaohan.home}/bin"
+                "/opt/homebrew/bin"
+                "/usr/local/bin"
+                "/usr/bin"
+                "/bin"
+                "/usr/sbin"
+                "/sbin"
+              ];
+            };
+            RunAtLoad = true;
+            KeepAlive = true;
+            ThrottleInterval = 15;
+            StandardOutPath = "${config.users.users.dktaohan.home}/Library/Logs/btsbox/devrel.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/Library/Logs/btsbox/devrel.log";
+          };
+        };
+
+        # The beads HTTP server for the devrel box. Runs through the wrapper
+        # defined above so its external password is read from the box's token
+        # file at startup instead of being frozen into this file.
+        btsbox-devrel-serve = {
+          serviceConfig = {
+            Label = "com.lego.btsbox.devrel.serve";
+            ProgramArguments = ["${btsboxDevrelServe}/bin/btsbox-devrel-serve"];
+            WorkingDirectory = "${config.users.users.dktaohan.home}/.local/share/bts-box/workspaces/bd_partner_pilot";
+            EnvironmentVariables = {
+              HOME = config.users.users.dktaohan.home;
+              PATH = lib.concatStringsSep ":" [
+                "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin"
+                (lib.makeBinPath [pkgs.awscli2])
+                "${config.users.users.dktaohan.home}/bin"
+                "/opt/homebrew/bin"
+                "/usr/local/bin"
+                "/usr/bin"
+                "/bin"
+                "/usr/sbin"
+                "/sbin"
+              ];
+            };
+            RunAtLoad = true;
+            KeepAlive = true;
+            ProcessType = "Background";
+            ThrottleInterval = 15;
+            StandardOutPath = "${config.users.users.dktaohan.home}/Library/Logs/btsbox/devrel-serve.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/Library/Logs/btsbox/devrel-serve.log";
+          };
+        };
+
+        # The bd observer companion: tails approved Claude project transcripts
+        # and ships events to the local collector.
+        #
+        # Umask 63 is decimal for octal 077, which is how launchd wants it and
+        # what the original plist carried: state, cursors and the ingest token it
+        # writes stay owner-only. OBSERVER_CONTENT_UPLOAD=0 keeps transcript
+        # *content* local -- only metadata leaves -- so it is a privacy setting,
+        # not tuning, and must survive this migration verbatim.
+        #
+        # The identifiers below (source id, workspace uuid, bead prefix, project)
+        # enrol this machine into one specific pilot workspace. They are
+        # identifiers rather than credentials -- the actual credential is the
+        # ingest token, which stays a file reference.
+        bd-companion = {
+          serviceConfig = {
+            Label = "com.gascity.bd.companion";
+            ProgramArguments = [
+              "${config.users.users.dktaohan.home}/Library/Application Support/bd/observer/bin/gasworks-companion"
+              "daemon"
+              "-dir"
+              "${config.users.users.dktaohan.home}/Library/Application Support/bd/observer/state"
+              "-socket"
+              "/tmp/gasworks-observer-502/socket"
+              "-source-id"
+              "src_fdda705093bbcc71"
+              "-workspace"
+              "ws_01a01e4c-665d-7543-ae55-e807443ff811"
+              "-collector"
+              "https://127.0.0.1:8443"
+              "-token-file"
+              "${config.users.users.dktaohan.home}/Library/Application Support/bd/observer/config/ingest.token"
+              "-approved-root"
+              "${config.users.users.dktaohan.home}/.claude/projects/-Users-dktaohan-projects-devrel-infra"
+              "-cursor-dir"
+              "${config.users.users.dktaohan.home}/Library/Application Support/bd/observer/state/cursors"
+              "-bead-prefix"
+              "partner-"
+              "-beads-project"
+              "partner_pilot"
+            ];
+            EnvironmentVariables = {OBSERVER_CONTENT_UPLOAD = "0";};
+            RunAtLoad = true;
+            KeepAlive = {SuccessfulExit = false;};
+            ProcessType = "Background";
+            ThrottleInterval = 5;
+            Umask = 63;
+            StandardOutPath = "${config.users.users.dktaohan.home}/Library/Logs/bd/observer/observer.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/Library/Logs/bd/observer/observer.err.log";
           };
         };
       };

@@ -11,6 +11,42 @@
 ## Deployment Model
 Describe the operational runtime model, scheduling, and system deployment architecture.
 
+### Adopting a service that was previously started by hand
+`just deploy-darwin` writes and loads the plists for every agent declared in
+`modules/M-02877/darwin.nix`. Bringing a service that a human used to start
+manually under launchd needs one extra step, because launchd's copy and the
+hand-started copy are two independent processes:
+
+1. Stop the manual instance first, using its own command where it has one
+   (`pr-reviewer stop`) so it releases its lock and removes its pidfile.
+   Otherwise the launchd job starts, finds the lock held, and exits; with
+   `SuccessfulExit = false` that exit is correctly *not* retried, so the service
+   looks installed while nothing runs.
+2. If a hand-written plist for the same label already exists in
+   `~/Library/LaunchAgents`, unload it before deploying
+   (`launchctl bootout gui/$UID/<label>`) and delete the file. Two definitions
+   for one label is not a state launchd resolves in the operator's favour, and
+   nix-darwin will not remove a file it never created.
+3. Deploy, then confirm the label is actually loaded rather than merely
+   installed: `launchctl print gui/$UID/<label>` reports the last exit status
+   and the resolved program path. A `0` exit with no running pid is the
+   signature of the case in step 1.
+
+### Verifying a migrated agent kept its behaviour
+A plist migration is faithful only if the *resolved* configuration matches the
+original, not the source that produced it. Compare the evaluated
+`serviceConfig` against the file that was replaced:
+
+```bash
+nix eval --impure --json \
+  '.#darwinConfigurations.M-02877.config.launchd.user.agents.<name>.serviceConfig'
+```
+
+Paths assembled with `lib.makeBinPath` or `lib.makeSearchPath "bin"` warrant
+specific attention: those helpers append `/bin` to each entry, so a literal
+`/usr/bin` passed to them silently becomes `/usr/bin/bin` and the agent loses
+the system utilities it appeared to have.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

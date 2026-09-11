@@ -30,6 +30,45 @@ This project's architecture consists of the following key layers/directories:
 ## Strongest Existing Primitives
 - Define the strongest existing primitives in the codebase (e.g., helper utilities, base controllers, data access layers).
 
+## Background Services on M-02877 (launchd)
+Every per-user background service on the Darwin host is declared in
+`modules/M-02877/darwin.nix` under `launchd.user.agents`. That module is the
+single source of truth: a hand-written plist in `~/Library/LaunchAgents` is
+considered drift, because it does not survive a rebuilt machine and it records
+no reason for its own settings.
+
+| Agent | Label | Program origin | Restart policy |
+|---|---|---|---|
+| `headroom-proxy` | `com.headroom.proxy` | Apple `container` image | `KeepAlive` |
+| `headroom-watchdog` | `com.headroom.watchdog` | inline shell | `StartInterval` 60 |
+| `phoenix` | `com.phoenix` | Apple `container` image | `KeepAlive` |
+| `local-model-proxy` | `com.local-model-proxy` | Apple `container` image | `KeepAlive` |
+| `signet-container` | `com.dktaohan.signet-container` | inline shell + AWS ECS exec | `KeepAlive` |
+| `signet-team-tunnel` | `com.dktaohan.signet-team-tunnel` | Nix store (`writeShellApplication`) | `KeepAlive` |
+| `signet-gateway-shim` | `com.dktaohan.signet-gateway-shim` | Nix store (`bun`) + working-tree script | `KeepAlive` |
+| `pr-reviewer` | `com.dktaohan.pr-reviewer` | Nix store (`buildRustPackage`) | `KeepAlive.SuccessfulExit=false` |
+| `foundry-proxy` | `com.dktaohan.foundry-proxy` | Nix store `uv` + working-tree script | `KeepAlive.SuccessfulExit=false` |
+| `btsbox-devrel` | `com.lego.btsbox.devrel` | Apple python3 + `~/.local/bin` script | `KeepAlive` |
+| `btsbox-devrel-serve` | `com.lego.btsbox.devrel.serve` | Nix store wrapper -> `~/.local/bin/bd` | `KeepAlive` |
+| `bd-companion` | `com.gascity.bd.companion` | `Application Support` binary | `KeepAlive.SuccessfulExit=false` |
+
+Two distinctions carry design weight:
+
+- **Program origin is not uniform, and deliberately so.** Agents whose program
+  is a Nix package point at a store path, so the closure keeps the dependency
+  alive and garbage collection cannot break the agent. Agents whose program is
+  installed out of band (`~/.local/bin/btsbox`, `~/.local/bin/bd`,
+  `gasworks-companion` inside `Application Support`) keep absolute paths.
+  Declaring those agents fixes *how they start*, not *where their programs come
+  from*; pinning them into the store would mean packaging three upstreams that
+  do not currently support it. What must never appear is a *literal* store path
+  written out by hand, which names one build and rots at the next collection.
+- **`KeepAlive = true` versus `SuccessfulExit = false`.** Unconditional restart
+  suits a service whose clean exit is always a fault. Services that hold a
+  single-instance lock (`pr-reviewer`'s pidfile) or that can exit deliberately
+  use `SuccessfulExit = false`, so a refused start is respected instead of being
+  retried forever.
+
 ## Topology
 ```text
 Host Application -> Library API -> Domain Core -> Adapters (Store / Network)

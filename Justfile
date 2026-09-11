@@ -389,9 +389,20 @@ check-fmt:
 
 # Install git hooks (pre-commit runs 'just check'). Also runs as a `just check`
 # prerequisite, so this is idempotent and safe to re-run.
+#
+# The hook directory is resolved with `git rev-parse --git-dir` rather than
+# written as `.git/hooks`. In a linked worktree -- which is where all Decapod
+# agent work happens, since it refuses to touch a protected branch -- `.git` is
+# a *file* pointing at the real gitdir, so the literal path made `cp` fail with
+# "Not a directory". Because install-hooks is a prerequisite of `just check`,
+# that took the entire check gate down from every worktree.
 install-hooks:
-    cp .githooks/pre-commit .git/hooks/pre-commit
-    chmod +x .git/hooks/pre-commit
+    #!/usr/bin/env bash
+    set -euo pipefail
+    hooks="$(git rev-parse --git-dir)/hooks"
+    mkdir -p "$hooks"
+    cp .githooks/pre-commit "$hooks/pre-commit"
+    chmod +x "$hooks/pre-commit"
 
 # Build Oracle Cloud NixOS OCI qcow2 (aarch64-linux; cross-build needs binfmt)
 build-oracle-image:

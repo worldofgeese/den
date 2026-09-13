@@ -32,6 +32,7 @@
           agents.claude-code
           agents.claude-agent-acp
           agents.copilot-cli
+          agents.codex
           # Beads Rust (br) is canonical for issue tracking per AGENTS.md; bv is
           # its advisory graph/triage sidecar. llm-agents.nix restructured its
           # bundle so these are no longer pulled in transitively via another

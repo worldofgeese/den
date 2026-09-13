@@ -90,7 +90,6 @@
             pname = "tramp-rpc";
             version = "0.9.0";
             src = inputs.emacs-tramp-rpc;
-            files = ''("lisp/*")'';
             postInstall = ''
               install -m755 -D ${tramp-rpc-server}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/x86_64-linux/tramp-rpc-server
               install -m755 -D ${tramp-rpc-server-aarch64}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/aarch64-linux/tramp-rpc-server
@@ -102,10 +101,16 @@
             ename = "reader";
             version = "0.3.2";
             src = emacs-reader-src;
-            postPatch = lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
-              substituteInPlace Makefile \
-                --replace-fail 'else ifeq ($(OS_NAME),Darwin)' 'else ifeq ($(OS_NAME),DisabledDarwinBranch)'
-            '';
+            postPatch =
+              ''
+                substituteInPlace reader.el \
+                  --replace-fail "(add-to-list 'body 'progn)" "(push 'progn body)" \
+                  --replace-fail "(add-to-list 'arglist 'list)" "(push 'list arglist)"
+              ''
+              + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
+                substituteInPlace Makefile \
+                  --replace-fail 'else ifeq ($(OS_NAME),Darwin)' 'else ifeq ($(OS_NAME),DisabledDarwinBranch)'
+              '';
             files = ''(:defaults "render-core.so")'';
             nativeBuildInputs = [pkgs.pkg-config pkgs.gnumake];
             buildInputs = [pkgs.mupdf];

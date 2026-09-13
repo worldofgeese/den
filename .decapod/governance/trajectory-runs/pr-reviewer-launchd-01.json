@@ -36,11 +36,19 @@
       "status": "passed"
     },
     {
+      "name": "container-validate",
+      "status": "passed"
+    },
+    {
       "name": "darwin-system-build",
       "status": "passed"
     },
     {
       "name": "decapod-0.100.0-builds",
+      "status": "passed"
+    },
+    {
+      "name": "deploy-switch",
       "status": "passed"
     },
     {
@@ -64,7 +72,19 @@
       "status": "passed"
     },
     {
+      "name": "lineage-event-source-bound",
+      "status": "passed"
+    },
+    {
       "name": "nix-build-pr-reviewer-crate",
+      "status": "passed"
+    },
+    {
+      "name": "pr-reviewer-running-under-launchd",
+      "status": "passed"
+    },
+    {
+      "name": "proof-hook-pruned",
       "status": "passed"
     },
     {
@@ -90,7 +110,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "caution"
   },
-  "artifact_hash": "sha256:31035cf53401b9233b7c6a9cc66b47c28d6ae1977b73daf26131f394cd08bc3a",
+  "artifact_hash": "sha256:5c091e2f89909b9d4df05345633ca3f54090814e31e1cbedfee662e5372ee1cf",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -143,6 +163,13 @@
       {
         "sequence": 6,
         "event_id": "event:6",
+        "intent_id": "intent:pr-reviewer-launchd-01",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:pr-reviewer-launchd-01"
+      },
+      {
+        "sequence": 7,
+        "event_id": "event:7",
         "intent_id": "intent:pr-reviewer-launchd-01",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:pr-reviewer-launchd-01"
@@ -215,12 +242,29 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:6"
+          },
+          {
+            "sequence": 7,
+            "action": "trajectory.record",
+            "scope": [
+              "nix-darwin launchd agents on M-02877"
+            ],
+            "observations": [],
+            "proof_refs": [
+              "container-validate",
+              "proof-hook-pruned",
+              "lineage-event-source-bound",
+              "deploy-switch",
+              "pr-reviewer-running-under-launchd"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:7"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 6
+    "next_sequence": 7
   }
 }

@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "title": "Package pr-reviewer in nix and migrate four manual LaunchAgents",
-  "intent": "Declare pr-reviewer as a nix package (buildRustPackage pinned to upstream rev 4d27724, since upstream ships no flake and it is absent from nixpkgs) and add it as a nix-darwin LaunchAgent so it starts at login. Additionally migrate four hand-written plists (com.dktaohan.foundry-proxy, com.lego.btsbox.devrel, com.lego.btsbox.devrel.serve, com.gascity.bd.companion) into modules/M-02877/darwin.nix launchd.user.agents. Also repoint pr-reviewer's devrel-infra local_path off a stale ephemeral Decapod worktree onto the real checkout.",
-  "state": "DRAFT",
+  "intent": "Declare pr-reviewer as a nix package (buildRustPackage pinned to upstream rev 4d27724, since upstream ships no flake and it is absent from nixpkgs) and add it as a nix-darwin LaunchAgent so it starts at login. Migrate four hand-written plists (com.dktaohan.foundry-proxy, com.lego.btsbox.devrel, com.lego.btsbox.devrel.serve, com.gascity.bd.companion) into modules/M-02877/darwin.nix launchd.user.agents, reading the btsbox external password from its token file rather than inlining it. Regenerate the four governed entrypoints for the installed Decapod release (0.99.11 -> 0.99.15) and record correct beads tracker metadata. RESOLVED during execution: cargoHash derived by building (sha256-XpFZLDgppAkIPmj95ihi5hkd+k5pgnKDa3c74xUJBuQ=); btsbox/bd/gasworks-companion keep absolute non-store paths because they are installed out of band; pr-reviewer's stale devrel-infra local_path needed no change, because concurrent sessions had already moved all three repos to managed clones, which is what auto_fix requires.",
+  "state": "APPROVED",
   "todo_ids": [
     "code_01m2845c43t1d5e1"
   ],
@@ -12,10 +12,7 @@
     "decapod validate passes",
     "launchctl list shows the five labels after switch"
   ],
-  "unknowns": [
-    "cargoHash must be derived by building; not knowable ahead of time",
-    "btsbox and bd binaries live in ~/.local/bin and are not nix-managed, so their plists must keep absolute non-store paths"
-  ],
+  "unknowns": [],
   "human_questions": [],
   "stop_conditions": [],
   "unresolved_contradictions": [],
@@ -28,5 +25,5 @@
     "file_touch_budget": 12
   },
   "phases": [],
-  "updated_at": "1789126790Z"
+  "updated_at": "1789279857Z"
 }

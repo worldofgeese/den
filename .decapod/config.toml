@@ -18,7 +18,10 @@ architecture_direction = "Composable repository architecture with explicit bound
 product_type = "service_or_library"
 done_criteria = "Decapod validate passes, required tests pass, and promotion-relevant artifacts are present."
 base_branch = "main"
-primary_languages = ["nix", "shell"]
+primary_languages = [
+    "nix",
+    "shell",
+]
 detected_surfaces = ["shell"]
 external_tracker = true
 container_workspaces = true
@@ -39,7 +42,9 @@ commands = []
 isolation = "container"
 
 [tracker]
-provider = "decapod"
+provider = "beads"
+project = "home-manager"
+url = "https://github.com/worldofgeese/den"
 
 [context]
 declared_sources = []

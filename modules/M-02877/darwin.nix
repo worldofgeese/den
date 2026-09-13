@@ -778,7 +778,17 @@
         # daemon shells out to git for diffs and spawns the claude harness named
         # in its config, so both must resolve: git and gh come from the store,
         # claude from the user profile (it is a per-user package, not a
-        # system-wide one). Its config, encrypted token, keyfile and state.db stay
+        # system-wide one).
+        #
+        # /usr/sbin is on that list because the daemon also runs ioreg, which
+        # lives there and nowhere else. Omitting it cost a crash loop: ioreg is
+        # how it derives the machine identity behind its encrypted-token keyfile,
+        # so every start failed with "failed to run ioreg: No such file or
+        # directory (os error 2)" -- an error that names the binary but not the
+        # reason, and which does not reproduce from an interactive shell, where
+        # /usr/sbin is always present.
+        #
+        # Its config, encrypted token, keyfile and state.db stay
         # in ~/Library/Application Support/pr-reviewer -- deliberately not
         # declared here, because they are mutable runtime state holding a
         # credential, not configuration this repository should own.
@@ -793,6 +803,8 @@
                 "/etc/profiles/per-user/dktaohan/bin"
                 "/usr/bin"
                 "/bin"
+                "/usr/sbin"
+                "/sbin"
               ];
             };
             RunAtLoad = true;

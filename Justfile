@@ -172,8 +172,15 @@ deploy-oracle host="" build-host="":
 # `--option warn-dirty false`, not `env NIX_CONFIG=...`: the sudoers rule in
 # modules/M-02877/darwin.nix whitelists `darwin-rebuild switch *`, and wrapping
 # it in env makes /usr/bin/env the command sudo matches, which is denied.
+# Pushes what it just activated, so the cache is populated by deploying rather
+# than by remembering. Measured 2026-09-19: this closure contains
+# emacs-with-packages, the doom chain and decapod's Rust build -- 25 source
+# derivations, 10m35s -- none of which were cached, because the push was a
+# manual target nobody ran. The push is non-fatal on purpose: a failed upload
+# means a slow next deploy, not a broken this one.
 deploy-darwin:
     sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
+    @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:

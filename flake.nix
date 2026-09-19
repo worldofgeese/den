@@ -2,8 +2,19 @@
   description = "Den mono-repo: unified Nix infrastructure for all hosts";
 
   nixConfig = {
-    extra-substituters = ["https://cache.numtide.com"];
-    extra-trusted-public-keys = ["niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="];
+    extra-substituters = [
+      "https://cache.numtide.com"
+      # nixarchy's own cache and the Hyprland cache its overlay pulls from.
+      # Without these, importing homeManagerModules.nixarchy means building
+      # Hyprland and ~80 runtime dependencies locally.
+      "https://nixarchy.cachix.org"
+      "https://hyprland.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      "nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM="
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE="
+    ];
   };
 
   inputs = {
@@ -78,6 +89,18 @@
       url = "github:marienz/nix-doom-emacs-unstraightened";
       inputs.nixpkgs.follows = "";
     };
+    # Omarchy vendored for Nix. Only homeManagerModules.nixarchy is used:
+    # nixosModules.nixarchy is unusable on Guix System, which has no
+    # services.displayManager, security.pam.services or programs.hyprland --
+    # the session entry and the lock-screen PAM stack are ported by hand in
+    # guix/system.scm instead.
+    #
+    # nixpkgs deliberately NOT followed. The module's `package` option defaults
+    # to `(pkgs.extend nixarchy.overlays.default).omarchy`, i.e. it builds
+    # against THIS flake's nixpkgs already; the input's own nixpkgs is what its
+    # binary cache is keyed on, and overriding it would mean building Hyprland
+    # and ~80 dependencies from source.
+    nixarchy.url = "github:olafkfreund/nixarchy";
   };
 
   outputs = inputs:

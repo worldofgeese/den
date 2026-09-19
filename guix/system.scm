@@ -159,6 +159,65 @@ DesktopNames=EWM
     (description "Desktop entry file for launching EWM from GDM.")
     (license license:gpl3+)))
 
+;; Omarchy (via nixarchy) Wayland session entry.
+;;
+;; Nixarchy's own session entry cannot be reused: it is delivered through
+;; services.displayManager.sessionPackages, and its launcher wraps the
+;; compositor in `uwsm start -N Omarchy -D Hyprland`, which requires a systemd
+;; user manager. pid1 here is shepherd. So the entry is ported the same way
+;; ewm-desktop-session above is, and omarchy-session.sh execs Hyprland
+;; directly.
+;;
+;; Losing uwsm costs the per-app app.slice isolation that `uwsm-app --` gives
+;; each launched program; every one of Omarchy's ~30 launch sites funnels
+;; through default/hypr/helpers.lua, so apps still start, they just share one
+;; cgroup. app.slice is a systemd concept with no shepherd equivalent.
+;;
+;; The launcher resolves the Omarchy tree and the compositor out of the Home
+;; Manager profile at RUN time rather than naming them here. Two reasons: the
+;; Omarchy tree is a /nix/store path Guix cannot reference, and pinning a
+;; compositor at build time would make every `guix system reconfigure` build
+;; Hyprland just to emit a 200-byte desktop file.
+(define omarchy-desktop-session
+  (package
+    (name "omarchy-desktop-session")
+    (version "0.1")
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     (list #:modules '((guix build utils))
+           #:builder
+           (with-imported-modules '((guix build utils))
+             #~(begin
+                 (use-modules (guix build utils))
+                 (let ((bin (string-append #$output "/bin"))
+                       (sessions (string-append #$output "/share/wayland-sessions")))
+                   (mkdir-p bin)
+                   (copy-file #$(local-file "omarchy-session.sh")
+                              (string-append bin "/omarchy-session"))
+                   (chmod (string-append bin "/omarchy-session") #o555)
+                   (mkdir-p sessions)
+                   ;; The basename is the session id GDM persists as "the
+                   ;; session this user last picked", so it matches nixarchy's
+                   ;; `omarchy` rather than being renamed to match the label.
+                   (call-with-output-file
+                       (string-append sessions "/omarchy.desktop")
+                     (lambda (port)
+                       (display "[Desktop Entry]
+Type=Application
+Name=Omarchy
+Comment=Omarchy on Guix System, through Hyprland
+Exec=omarchy-session
+DesktopNames=Hyprland
+" port))))))))
+    (home-page "https://github.com/olafkfreund/nixarchy")
+    (synopsis "Omarchy Wayland session desktop entry")
+    (description
+     "Desktop entry and launcher that start Omarchy's Hyprland session from GDM
+on Guix System, resolving the Omarchy tree and the compositor out of the Home
+Manager profile at run time.")
+    (license license:expat)))
+
 (operating-system
   ;; BORE scheduler active; keep ananicy-cpp disabled (conflicts with BORE).
   (kernel linux-cachyos-bore)
@@ -182,7 +241,7 @@ root ALL=(ALL) ALL
 %wheel ALL=NOPASSWD: ALL\n"))
   (packages (append (specifications->packages
                      (list "emacs-pgtk" "xdg-dbus-proxy"))
-                    (list ewm-desktop-session)
+                    (list ewm-desktop-session omarchy-desktop-session)
                     %base-packages))
   (services
    (cons*
@@ -384,6 +443,24 @@ COMMIT
     (service pam-limits-service-type
              (list
               (pam-limits-entry "*" 'both 'nofile 100000)))
+    ;; Omarchy's lock screen authenticates through PAM by stack NAME: the
+    ;; Quickshell plugin opens PamContext { config: "omarchy-lock-password" }
+    ;; (shell/plugins/lock/Service.qml:321) and live-watches
+    ;; /etc/pam.d/omarchy-lock-password to decide whether to offer password
+    ;; auth at all (:485). With the file absent the lock screen has no way to
+    ;; unlock, which is why this is not optional the way the theming shims are.
+    ;;
+    ;; unix-pam-service produces the same pam_unix stack that NixOS's empty
+    ;; `security.pam.services.omarchy-lock-password = { }` does. pam_unix
+    ;; checking a non-root password needs the setuid unix_chkpwd helper, and
+    ;; pam-root-service-type already installs it.
+    ;;
+    ;; No omarchy-lock-fingerprint counterpart on purpose: the shell gates the
+    ;; fingerprint method on that file AND on fprintd-list reporting enrolled
+    ;; fingers, so a pam_unix stack under that name would advertise a
+    ;; "fingerprint" prompt that silently waits for a typed password.
+    (simple-service 'omarchy-lock-pam pam-root-service-type
+                    (list (unix-pam-service "omarchy-lock-password")))
     %my-services))
   (bootloader (bootloader-configuration
                (bootloader grub-efi-bootloader)

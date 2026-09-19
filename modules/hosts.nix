@@ -19,6 +19,7 @@
     den.aspects.gitcommon
     den.aspects.workstation
     den.aspects.ssh
+    den.aspects.omarchy
   ];
 
   den.hosts.aarch64-darwin.M-02877.users.dktaohan = {};

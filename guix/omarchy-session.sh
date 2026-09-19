@@ -1,0 +1,130 @@
+#!/bin/sh
+# Launch Omarchy's Hyprland session. Installed into the system profile by
+# omarchy-desktop-session in system.scm and named by Exec= in omarchy.desktop.
+#
+# GDM runs this, so nothing has sourced a shell profile yet: hm-session-vars.sh
+# has not run and OMARCHY_PATH is unset. Everything gets resolved here.
+set -eu
+
+hm_profile="$HOME/.local/state/nix/profiles/home-manager/home-path"
+omarchy_path="$hm_profile/share/omarchy"
+
+# Hyprland comes from the nixarchy overlay via the omarchy package's
+# passthru.runtimeDeps, not from Guix. Guix does package hyprland (0.55.4), and
+# switching to it means pointing this one variable at
+# /run/current-system/profile/bin/Hyprland -- but nixarchy pins 0.56.2 from the
+# Hyprland flake and that is the pair upstream tests the Lua config against.
+hyprland="$hm_profile/bin/Hyprland"
+
+# Omarchy's 460 scripts are unwrapped by design -- the CLI scans them for
+# metadata comments and wrapping breaks that -- so their dependencies have to be
+# on the session PATH instead. They call hyprctl, quickshell and uwsm-app by
+# bare name, never by store path, which is what makes this work at all.
+#
+# /run/current-system/profile keeps the Guix side reachable: loginctl (elogind),
+# herd (shepherd), dbus-update-activation-environment.
+#
+# Set BEFORE the log block below, not after it: the mkdir and date on the next
+# few lines are themselves bare-name lookups. Verified with `env -i` (the worst
+# case GDM could hand us) while PATH was still exported further down -- the
+# script died with "mkdir: command not found" before the log it writes the
+# diagnosis to existed, which is the one failure mode this whole file is
+# structured to avoid.
+export OMARCHY_PATH="$omarchy_path"
+export PATH="$hm_profile/bin:$omarchy_path/bin:/run/current-system/profile/bin:/run/setuid-programs${PATH:+:$PATH}"
+
+# A session that exits drops straight back to the greeter with nothing printed
+# anywhere, so keep a log the next GNOME login can read. Truncated per run: the
+# failure worth diagnosing is always the most recent one.
+log="$HOME/.local/state/omarchy-session.log"
+# Not `set -e`'s implicit abort: if this fails there is no log to explain why,
+# which is the one outcome this block exists to prevent.
+if ! mkdir -p "$HOME/.local/state"; then
+  echo "omarchy-session FATAL: cannot create $HOME/.local/state" >&2
+  exit 1
+fi
+exec >"$log" 2>&1
+echo "omarchy-session: starting $(date -Is)"
+
+if [ ! -d "$omarchy_path" ]; then
+  echo "FATAL: no Omarchy tree at $omarchy_path"
+  echo "The nixarchy home-manager module installs it."
+  echo "Run 'just deploy-mahakala-hm-only' and retry."
+  exit 1
+fi
+
+if [ ! -x "$hyprland" ]; then
+  echo "FATAL: no Hyprland at $hyprland"
+  echo "It arrives via the omarchy package's passthru.runtimeDeps."
+  exit 1
+fi
+
+# Omarchy assumes uwsm started the session and put these in the systemd user
+# environment. There is no user manager here, so set them directly; Quickshell
+# and the portal both read XDG_CURRENT_DESKTOP.
+export XDG_CURRENT_DESKTOP=Hyprland
+export XDG_SESSION_TYPE=wayland
+
+# pam_elogind gives us XDG_RUNTIME_DIR, but Hyprland, Quickshell and the
+# replaced omarchy-launch-shell all write under it unconditionally, so it is
+# defaulted rather than assumed.
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+
+# Everything below is what ~/.profile would have done. GDM sources no shell
+# profile for a Wayland session, and on this machine ~/.profile is what runs
+# Guix Home's setup-environment and on-first-login -- so without this a login
+# that happens BEFORE any GNOME login has no session D-Bus at all. Verified
+# 2026-09-19: /run/user/1000/bus is owned by the Guix Home shepherd (pid 2005),
+# not by GDM, and `dbus` is a shepherd service alongside pipewire and
+# gpg-agent. gdm-wayland-session contains no dbus-run-session.
+#
+# Without a bus the failures are all silent rather than fatal, which is worse:
+# omarchy-theme-set-gnome exits 0 at its own `[ -z "$DBUS_SESSION_BUS_ADDRESS" ]`
+# guard so theming never applies, autostart.lua's
+# dbus-update-activation-environment has nothing to talk to, and notifications
+# and the polkit agent never register.
+#
+# setup-environment is sourced (it only exports) and also supplies XDG_DATA_DIRS
+# and GSETTINGS_SCHEMA_DIR -- without it XDG_DATA_DIRS falls back to
+# /usr/local/share:/usr/share, neither of which exists on Guix, which would
+# leave the app launcher with no .desktop files and gsettings with no schemas.
+# HOME_ENVIRONMENT first, and `set +u` around the source: setup-environment's
+# own header says the caller must export HOME_ENVIRONMENT, and its body reads
+# $GUIX_LOCPATH and $XDG_DATA_DIRS unquoted in `case` guards. Under `set -eu`
+# sourcing it aborts on line 3 with "HOME_ENVIRONMENT: unbound variable"
+# (verified 2026-09-19), which would end the session before Hyprland ran.
+if [ -r "$HOME/.guix-home/setup-environment" ]; then
+  HOME_ENVIRONMENT="$HOME/.guix-home"
+  export HOME_ENVIRONMENT
+  set +u
+  # shellcheck source=/dev/null
+  . "$HOME_ENVIRONMENT/setup-environment"
+  set -u
+  unset HOME_ENVIRONMENT
+fi
+
+# Starts the user shepherd, which is what actually brings up dbus, pipewire and
+# gpg-agent. Self-guarding: it claims $XDG_RUNTIME_DIR/on-first-login-executed
+# with O_EXCL, so a second session -- or a GNOME login that already ran it --
+# makes this a no-op rather than a second shepherd.
+if [ -x "$HOME/.guix-home/on-first-login" ]; then
+  "$HOME/.guix-home/on-first-login" || true
+fi
+
+# setup-environment prepends the Guix profiles to PATH, so re-assert the
+# Omarchy side: its 460 scripts call hyprctl and quickshell by bare name, and
+# Guix's hyprland (0.55.4) must not win over the 0.56 the Lua config is tested
+# against.
+export PATH="$hm_profile/bin:$omarchy_path/bin:$PATH"
+
+# A session bus, if nothing above provided one. dbus-run-session below would be
+# the alternative, but that would nest a second bus under the shepherd's.
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then
+  export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+fi
+
+# hyprland.lua's bootstrap sets package.path to search ~/.config and
+# ~/.local/state before $OMARCHY_PATH, so a user override wins over the store
+# copy. The seeded ~/.config/hypr/monitors.lua et al. are what make this parse;
+# the bare store tree does not.
+exec "$hyprland" --config "$omarchy_path/config/hypr/hyprland.lua"

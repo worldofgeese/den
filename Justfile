@@ -49,8 +49,15 @@ deploy-mahakala-hm:
 # and note the push needs CACHIX_AUTH_TOKEN in mahakala's own secretspec
 # provider -- until it is set there, this warns on every deploy and uploads
 # nothing.
+# accept-flake-config is needed for the Omarchy session: flake.nix declares the
+# nixarchy and Hyprland cachix substituters, and nix ignores substituters coming
+# from a flake unless told to trust them. Measured 2026-09-19 against the omarchy
+# package alone: with the setting, 3 derivations built and 19 MiB fetched;
+# without it, 16 derivations (ttfx compiled from source) and 346 MiB. Both caches
+# are pinned to their public keys in flake.nix, so this accepts those keys rather
+# than whatever substituter a future input might add.
 deploy-mahakala-hm-only:
-    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true')" home-manager switch --flake .#worldofgeese
+    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\naccept-flake-config = true')" home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
     @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 

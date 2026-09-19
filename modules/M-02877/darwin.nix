@@ -489,8 +489,12 @@
                 # stable published-port address if Apple ever forwards non-loopback.
                 container_ip() {
                   for i in $(seq 1 30); do
+                    # status.networks, not configuration.networks: the latter
+                    # records only the network name and hostname, no address. An
+                    # earlier version of this read a bare [0]['networks'] and
+                    # KeyError'd on every start, so the proxy never came up.
                     ip=$($C inspect "$1" 2>/dev/null \
-                      | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null)
+                      | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['status']['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null)
                     [ -n "$ip" ] && { printf '%s' "$ip"; return 0; }
                     sleep 2
                   done

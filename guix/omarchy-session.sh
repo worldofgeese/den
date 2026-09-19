@@ -117,6 +117,23 @@ fi
 # against.
 export PATH="$hm_profile/bin:$omarchy_path/bin:$PATH"
 
+# The Home Manager profile's share/ has to be on XDG_DATA_DIRS too, and nothing
+# above puts it there. setup-environment builds XDG_DATA_DIRS from the Guix
+# profiles, and hm-session-vars.sh -- which is where Home Manager exports its
+# own -- is never sourced, because GDM sources no shell profile and ~/.profile
+# only loads the Guix side. Measured 2026-09-19: the final XDG_DATA_DIRS names
+# ~/.nix-profile/share, which is a DIFFERENT profile from this one
+# (ca5vgrx2... vs xnsx7ifm...), so the Omarchy tree's share/ appeared nowhere.
+#
+# The visible consequence is the app launcher. Quickshell's DesktopEntries
+# reads XDG_DATA_DIRS, and AppLibrary.qml/Menu.qml are built on it (Menu.qml:288
+# records the choice of DesktopEntries over a bash enumeration, for icons), so
+# all 43 .desktop files this profile installs -- foot, emacs, btop, chromium --
+# were absent from the launcher while their binaries were on PATH. Prepended so
+# that a Guix .desktop of the same name still wins, matching how PATH above
+# resolves the same collision.
+export XDG_DATA_DIRS="$hm_profile/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}"
+
 # A session bus, if nothing above provided one. dbus-run-session below would be
 # the alternative, but that would nest a second bus under the shepherd's.
 if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then

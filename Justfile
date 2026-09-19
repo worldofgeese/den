@@ -39,10 +39,20 @@ deploy-mahakala-hm:
 # refresh and the switch as independently-failing steps: a forge outage during
 # `just update` then leaves the already-locked closure deployable.
 
-# Switch Home Manager without touching flake.lock
+# Switch Home Manager without touching flake.lock, then push the result.
+#
+# Wired here rather than in deploy-mahakala or deploy-mahakala-hm because both
+# route through this recipe, so one line covers all three callers. Cache entries
+# are per system and this recipe runs ON mahakala, so default-cachix-attr takes
+# its non-macOS branch and uploads the Home Manager activation package rather
+# than M-02877's darwin closure. Non-fatal for the same reason as deploy-darwin,
+# and note the push needs CACHIX_AUTH_TOKEN in mahakala's own secretspec
+# provider -- until it is set there, this warns on every deploy and uploads
+# nothing.
 deploy-mahakala-hm-only:
     NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true')" home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
+    @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
 # Deploy only Guix Home on mahakala (pulls user channels first)
 deploy-mahakala-guix:

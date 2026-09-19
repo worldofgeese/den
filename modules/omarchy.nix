@@ -172,6 +172,45 @@
                   exit 1
                 fi
                 install -Dm755 ${launchShell} "$target"
+
+                # first-run's systemd step, made non-fatal.
+                #
+                # enable-user-units.sh runs `systemctl --user daemon-reload`
+                # under `set -euo pipefail`. With no systemd user manager that
+                # prints "Failed to connect to user scope bus via local
+                # transport" and exits 1, which aborts the script before its
+                # own unit-filtering loop -- the loop nixarchy added precisely
+                # so that an ABSENT unit is not fatal.
+                #
+                # The cost is the same one nixarchy's own header describes for
+                # the bug it fixed: omarchy-provision-first-run marks itself
+                # done only when every step succeeded, so this single failure
+                # means the marker is never written and first-run repeats at
+                # every login -- a welcome notification on every boot, for the
+                # life of the machine. Measured in first-run.log: four logins,
+                # four "first-run will retry next login", with "enable user
+                # systemd units" the only step still failing.
+                #
+                # Made non-fatal rather than removed, so the script's own
+                # filtering loop stays the single decision point: with no
+                # manager its six `systemctl --user cat` probes all fail, `want`
+                # ends up empty and the script exits 0 on its own. On a machine
+                # that does have a user manager nothing changes at all, and
+                # units that exist still report their own failures.
+                units=$out/share/omarchy/install/user/first-run/enable-user-units.sh
+                if [ ! -e "$units" ]; then
+                  echo "enable-user-units.sh no longer exists in this Omarchy version;" >&2
+                  echo "the Guix systemd guard in modules/omarchy.nix is stale." >&2
+                  exit 1
+                fi
+                if ! grep -q '^systemctl --user daemon-reload$' "$units"; then
+                  echo "enable-user-units.sh no longer opens with a bare daemon-reload;" >&2
+                  echo "the Guix systemd guard in modules/omarchy.nix is stale." >&2
+                  exit 1
+                fi
+                substituteInPlace "$units" \
+                  --replace-fail 'systemctl --user daemon-reload' \
+                    'systemctl --user daemon-reload || true'
               '';
           });
       };

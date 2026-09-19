@@ -360,6 +360,37 @@ mv \"$tmp\" \"$target\""))
                         (ports (list "127.0.0.1:3850:3850"))
                         (volumes (list (cons (string-append (getenv "HOME") "/.agents")
                                              "/data/agents")))
+                        ;; Both of these mirror modules/M-02877/darwin.nix, which
+                        ;; already sets them for the same image. Without them the
+                        ;; container runs but is not usable from the CLI:
+                        ;;
+                        ;;   SIGNET_DAEMON_ENTRYPOINT is deliberately NOT set to 0 here,
+                        ;;     unlike modules/M-02877/darwin.nix. On the Mac a launchd
+                        ;;     script sets it to 0 container-wide and then re-enables it
+                        ;;     with `env SIGNET_DAEMON_ENTRYPOINT=1` on the daemon's own
+                        ;;     exec line, so the daemon still starts. There is no such
+                        ;;     exec line here -- home-oci-service-type just runs the
+                        ;;     image entrypoint -- and that entrypoint BRANCHES on this
+                        ;;     variable: with 0 it prints CLI help and exits, so the
+                        ;;     container restart-looped ("Up Less than a second",
+                        ;;     "Workspace found. Run `signet daemon start`"). Tested
+                        ;;     2026-09-15 and reverted. For one-off CLI calls pass it
+                        ;;     per-invocation instead, which does not affect the daemon:
+                        ;;       podman exec -e SIGNET_DAEMON_ENTRYPOINT=0 signet \
+                        ;;         /app/bin/signet secret list
+                        ;;
+                        ;;   HOME -- signet derives a stable secrets machine identity
+                        ;;     from HOME, falling back to USER/USERNAME. The image sets
+                        ;;     none of the three, so `signet secret put` failed with
+                        ;;     "Unable to derive stable secrets machine identity: USER
+                        ;;     and USERNAME are unset". Pointing HOME inside the mounted
+                        ;;     workspace keeps the identity stable across container
+                        ;;     recreation, which matters because secrets.enc is
+                        ;;     encrypted against it -- a changing identity makes stored
+                        ;;     secrets unreadable.
+                        (environment
+                         (list
+                          "HOME=/data/agents/.container-home"))
                         (respawn? #t)
                         (auto-start? #t)
                         (log-file

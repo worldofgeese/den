@@ -157,6 +157,43 @@
         [[ -r "$_hm_bash_preexec" ]] && source "$_hm_bash_preexec"
         unset _hm_bash_preexec
 
+        # brush (reubeno/brush) compatibility shim -- MUST precede atuin init.
+        #
+        # atuin's bash init defines atuin-bind(), which infers the readline
+        # keymap when -m is not passed:
+        #
+        #   [[ $keymap ]] || keymap=$(bind -v | awk '$2 == "keymap" { print $3 }')
+        #   case $keymap in emacs*) ... ;; vi*) ... ;;
+        #     *) error "unknown keymap $keymap" ;;
+        #
+        # brush 0.4.0 implements `bind` but its `bind -v` prints NOTHING (verified:
+        # `bind -v | grep -c keymap` -> 0, where bash emits "set keymap emacs").
+        # So $keymap is empty, the case falls through to *), and every interactive
+        # brush start prints:
+        #     atuin-bind: unknown keymap <empty>
+        # and atuin's keybindings (Ctrl-R, Up) are never installed -- the visible
+        # symptom being "atuin isn't wired in".
+        #
+        # brush documents `bind` as supported with "advanced bind features -- in
+        # progress", so this is an upstream gap, not a misconfiguration. Reporting
+        # emacs is correct here: brush's line editor (reedline) is emacs-style by
+        # default, and nothing in this config sets `set -o vi`.
+        #
+        # Guarded so bash is completely unaffected: BRUSH_VERSION is set by brush
+        # only. Under bash the shim never defines the function, so real readline
+        # keymap detection is preserved.
+        if [[ -n "$BRUSH_VERSION" ]]; then
+          bind() {
+            if [[ $1 == -v ]]; then
+              printf 'set keymap emacs\n'
+              return 0
+            fi
+            # Swallow failures for bind forms brush has not implemented yet, so a
+            # single unsupported keyseq cannot abort the rest of shell init.
+            builtin bind "$@" 2>/dev/null || return 0
+          }
+        fi
+
         if command -v atuin >/dev/null 2>&1; then
           eval "$(atuin init bash)"
         fi

@@ -7,7 +7,21 @@
              (gnu system accounts)
              (nongnu packages linux)
              (nongnu packages firmware)
-             (gnu packages networking)
+             ;; #:select avoids the ambiguity warning emitted on every reconfigure:
+             ;;   WARNING: (gnu packages linux): `libcamera-minimal' imported from
+             ;;   both (gnu packages networking) and (gnu packages photo)
+             ;; Both modules export libcamera-minimal, so an unqualified import
+             ;; leaves Guile to pick one arbitrarily. Only these two bindings are
+             ;; actually referenced from this module, so selecting them keeps the
+             ;; namespace unambiguous and makes the dependency explicit.
+             ;; blueman is the ONLY binding this module needs from here. `tailscale`
+             ;; looks like it belongs in this list but does NOT: that package comes
+             ;; from the rosenthal channel (rosenthal/packages/networking.scm), while
+             ;; (rosenthal services networking) below provides the service. Selecting
+             ;; it here fails at load time with
+             ;;   unbound-variable: no binding `tailscale' in module
+             ;;   (gnu packages networking)
+             ((gnu packages networking) #:select (blueman))
              (nongnu system linux-initrd)
              (rosenthal services networking)
              (gnu packages gnome)
@@ -93,6 +107,18 @@
                       (gdm-configuration
                        (inherit config)
                        (wayland? #t)))
+    ;; Tailscale owns /etc/resolv.conf on this host (nameserver 100.100.100.100,
+    ;; MagicDNS verified resolving), and `resolvconf` is not installed. Without
+    ;; dns="none" NetworkManager retries the commit forever and logs
+    ;;   dns-mgr: resolvconf failed with status 256
+    ;;   dns-mgr: could not commit DNS changes
+    ;; ~172 times per 500 lines of /var/log/messages, which buries real warnings.
+    ;; DNS itself is healthy -- this only stops NM fighting over a file another
+    ;; service legitimately manages.
+    (network-manager-service-type
+     config => (network-manager-configuration
+                 (inherit config)
+                 (dns "none")))
 ))
 
 (define ewm-desktop-session

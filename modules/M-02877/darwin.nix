@@ -214,7 +214,45 @@
         experimental-features = ["nix-command" "flakes" "auto-allocate-uids"];
         extra-platforms = [];
         warn-dirty = false;
-        auto-optimise-store = true;
+        # Measured 2026-09-18: OFF, deliberately. With this true, a
+        # `darwin-rebuild build` sat for 40 minutes of wall clock against 2m32s
+        # of CPU, with zero TCP connections and no builders running -- pure
+        # filesystem wait. Every store write hashes the path and hard-links it
+        # into /nix/store/.links, and that directory has grown past the point of
+        # usability: `ls -f /nix/store/.links | wc -l` times out at 30 seconds
+        # and `du` on it never returns. APFS handles millions of small directory
+        # entries badly, so the dedup saving is paid for in every deploy.
+        #
+        # Reclaim the space in a batch instead, when nobody is waiting:
+        # `nix store optimise`. Set this back to true only with a measurement
+        # showing .links can be enumerated in reasonable time.
+        auto-optimise-store = false;
+
+        # Measured 2026-09-18: a `just deploy-darwin` spent 29 minutes emitting
+        # only retries, then failed on a package unrelated to the change being
+        # deployed. cache.numtide.com -- added by this flake's own nixConfig, not
+        # by an input -- resets HTTP/2 streams mid-NAR (curl error 92,
+        # PROTOCOL_ERROR, on both 200 and 206 responses). Every download setting
+        # was at its default, so a single bad NAR could burn download-attempts
+        # (5) x stalled-download-timeout (300s) before giving up, and take the
+        # whole deploy with it.
+        #
+        # Turning HTTP/2 off is the same remedy this repo already applies to
+        # headroom for the same failure class (HEADROOM_HTTP2=off in
+        # gateway.json): the multiplexing buys nothing for a few large
+        # sequential downloads and supplies the entire blast radius.
+        http2 = false;
+        # Fail over to the next substituter quickly instead of hanging. The
+        # stall timeout counts silence, not total transfer time, so 20s does not
+        # penalise a legitimately slow download -- raise it if a genuinely slow
+        # link starts aborting mid-NAR.
+        connect-timeout = 5;
+        stalled-download-timeout = 20;
+        download-attempts = 2;
+        # An unusable substitute should cost a local build, not a failed deploy.
+        # The justfile passes --fallback at the call sites too, because those
+        # also drive mahakala and pixel-fold, which never read this file.
+        fallback = true;
         extra-deprecated-features = ["or-as-identifier"];
         trusted-users = ["root" "dktaohan"];
         # Fetch whatever this host has already pushed with `just cachix-push`
@@ -422,9 +460,21 @@
               # Apple's container tool provides no inter-container DNS, and container
               # IPs are reassigned on every restart -- headroom coming back on a new
               # IP left a stale MPS_BASE_URL here, 502ing every request while launchd
-              # still reported both services healthy. The network gateway is stable
-              # (it outlives individual containers), so reach headroom and phoenix
-              # through their published host ports rather than their own IPs.
+              # still reported both services healthy.
+              #
+              # Reaching headroom and phoenix through their published host ports on
+              # the network gateway used to solve that, because the gateway outlives
+              # individual containers. It stopped working: measured 2026-09-18, the
+              # forwarder accepts a TCP connection on *:18787 (so `nc -z` passes) but
+              # only *answers* requests that arrive via loopback. Everything else --
+              # the host reaching its own vmnet address, and any sibling container --
+              # gets the connection closed with no reply (curl exit 52 /
+              # RemoteDisconnected). That wedged this job for 1046 KeepAlive restarts:
+              # the gate below could never pass, so nothing ever listened on 18788.
+              #
+              # Container IPs answer from both the host and a sibling container, so
+              # resolve them at every start. This reinstates the stale-IP exposure the
+              # first paragraph describes -- see the ceiling note on container_ip.
               ''
                 C=/opt/homebrew/bin/container
                 $C system start >/dev/null 2>&1 || true
@@ -433,24 +483,39 @@
                 $C stop local-model-proxy 2>/dev/null
                 $C rm local-model-proxy 2>/dev/null
 
-                GATEWAY_IP=""
-                for i in $(seq 1 30); do
-                  GATEWAY_IP=$($C network inspect proxy-chain 2>/dev/null \
-                    | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['status']['ipv4Gateway'])" 2>/dev/null)
-                  [ -n "$GATEWAY_IP" ] && break
-                  sleep 2
-                done
-                if [ -z "$GATEWAY_IP" ]; then
-                  echo "FATAL: could not resolve proxy-chain gateway; exiting for KeepAlive relaunch" >&2
+                # ponytail: resolved at start only. A headroom restart alone hands it a
+                # new IP and this job keeps the old one until KeepAlive cycles it, so
+                # the watchdog's recovery must kick local-model-proxy too. Revert to a
+                # stable published-port address if Apple ever forwards non-loopback.
+                container_ip() {
+                  for i in $(seq 1 30); do
+                    ip=$($C inspect "$1" 2>/dev/null \
+                      | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null)
+                    [ -n "$ip" ] && { printf '%s' "$ip"; return 0; }
+                    sleep 2
+                  done
+                  return 1
+                }
+
+                HEADROOM_IP=$(container_ip headroom) || {
+                  echo "FATAL: could not resolve headroom container IP; exiting for KeepAlive relaunch" >&2
                   exit 1
-                fi
+                }
+
+                # Telemetry is not worth failing a start over: an unreachable exporter
+                # drops spans quietly, which is what happened for the whole time the
+                # gateway-IP address was broken anyway.
+                PHOENIX_IP=$(container_ip phoenix) || {
+                  echo "WARN: could not resolve phoenix container IP; traces will drop" >&2
+                  PHOENIX_IP=127.0.0.1
+                }
 
                 # Gate on /livez, not /health: /health also probes upstream and hangs
                 # when headroom's connection pool wedges, which would block startup
                 # even while headroom is otherwise serving.
                 HEADROOM_READY=false
                 for i in $(seq 1 30); do
-                  if /usr/bin/curl -sf -m 2 http://''${GATEWAY_IP}:${toString (gateway.headroom.port entity)}/livez >/dev/null 2>&1; then
+                  if /usr/bin/curl -sf -m 2 http://''${HEADROOM_IP}:${toString gateway.headroom.containerPort}/livez >/dev/null 2>&1; then
                     HEADROOM_READY=true
                     break
                   fi
@@ -464,11 +529,11 @@
                 $C image pull ${gateway.proxy.image}
                 exec $C run --rm --name local-model-proxy --network proxy-chain -p ${gateway.proxy.publishSpec entity} \
                   -e PROXY_HOST=0.0.0.0 -e PROXY_PORT=${toString gateway.proxy.containerPort} \
-                  -e MPS_BASE_URL="http://''${GATEWAY_IP}:${toString (gateway.headroom.port entity)}" \
+                  -e MPS_BASE_URL="http://''${HEADROOM_IP}:${toString gateway.headroom.containerPort}" \
                   -e LOG_LEVEL=INFO -e PRICING_PLAN=lego \
                   -e OTEL_PROJECT_NAME=local-model-proxy \
                   -e OTEL_SERVICE_NAME=local-model-proxy \
-                  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://''${GATEWAY_IP}:${toString (gateway.phoenix.port entity)}" \
+                  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://''${PHOENIX_IP}:${toString gateway.phoenix.containerPort}" \
                   ${gateway.proxy.image}
               ''
             ];

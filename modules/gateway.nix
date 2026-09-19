@@ -45,10 +45,14 @@
       port = entity: (on entity).port;
       # How something already running on the host reaches this service.
       # Container-to-container addressing is deliberately not modelled: on
-      # darwin it goes through the proxy-chain network gateway IP, resolved
-      # at runtime because container IPs are reassigned on restart
-      # (modules/M-02877/darwin.nix). Those callers take `port` and build
-      # their own URL.
+      # darwin it resolves the peer's container IP at runtime, because Apple
+      # container has no inter-container DNS and its port forwarder answers
+      # only loopback-originated requests, so neither a hostname nor the
+      # published host port works from a sibling container
+      # (modules/M-02877/darwin.nix carries the measurement). Container IPs
+      # are reassigned on restart, which is why this is resolved per start
+      # rather than modelled here. Those callers take `containerPort` and
+      # build their own URL.
       loopbackUrl = entity: "http://127.0.0.1:${toString (on entity).port}";
     };
 in {

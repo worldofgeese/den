@@ -41,7 +41,7 @@ deploy-mahakala-hm:
 
 # Switch Home Manager without touching flake.lock
 deploy-mahakala-hm-only:
-    NIX_CONFIG='warn-dirty = false' home-manager switch --flake .#worldofgeese
+    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true')" home-manager switch --flake .#worldofgeese
     update-desktop-database ~/.local/share/applications
 
 # Deploy only Guix Home on mahakala (pulls user channels first)
@@ -173,12 +173,12 @@ deploy-oracle host="" build-host="":
 # modules/M-02877/darwin.nix whitelists `darwin-rebuild switch *`, and wrapping
 # it in env makes /usr/bin/env the command sudo matches, which is denied.
 deploy-darwin:
-    sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --flake .#M-02877
+    sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:
     just update
-    NIX_CONFIG='warn-dirty = false' nix-on-droid switch --flake .#pixel-fold
+    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true')" nix-on-droid switch --flake .#pixel-fold
 
 # Force every registry-derived entity's check, without known-noise custom-output
 # warnings. Coverage is defined in modules/checks.nix, so adding a host or home

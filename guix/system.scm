@@ -223,7 +223,11 @@ Manager profile at run time.")
   (kernel linux-cachyos-bore)
   (initrd microcode-initrd)
   ;; PSR disabled — causes GNOME Shell compositor to spin at 15% CPU on this panel.
-  ;; ASPM left enabled (managed by TLP, no observed WiFi issues).
+  ;; ASPM left enabled (managed by TLP). The QCA6174 WiFi dropouts seen in
+  ;; September 2026 were NOT ASPM: they are a D3cold wake failure at PCI probe
+  ;; time, addressed by the runtime-pm-driver-blacklist in the TLP
+  ;; configuration below. TLP starts after the probe, so nothing TLP sets --
+  ;; ASPM included -- can affect it.
   (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce" %default-kernel-arguments))
   (firmware (list linux-firmware))
   (locale "en_US.utf8")
@@ -301,6 +305,38 @@ root ALL=(ALL) ALL
               (avoid-regexp "sshd|shepherd|earlyoom")
               (run-with-higher-priority? #t)))
     (udev-rules-service 'fido2 libfido2 #:groups '("plugdev"))
+    ;; Keep the QCA6174 WiFi card out of PCI runtime power management.
+    ;;
+    ;; The card is intermittently missing at boot. Diagnosed over the 9 boots
+    ;; retained in /var/log/messages, with total separation between the two
+    ;; groups: all 4 failing boots open with
+    ;;   ath10k_pci 0000:02:00.0: Unable to change power state from D3cold to
+    ;;   D0, device inaccessible
+    ;; then ~20 "failed to wake target ... -110", a fallback from MSI to legacy
+    ;; IRQ, "failed to reset chip: -5", and "probe with driver ath10k_pci failed
+    ;; with error -5". All 5 working boots open with "enabling device
+    ;; (0000 -> 0002)" and never mention D3cold. lspci reports the card
+    ;; PME(D3cold+) NoSoftRst-: it accepts D3cold and needs a full re-init to
+    ;; come back, and that re-init is what fails.
+    ;;
+    ;; A udev rule and not only TLP's RUNTIME_PM_DRIVER_DENYLIST, because the
+    ;; denylist was tried first and is not sufficient: with ath10k_pci denied,
+    ;; tlp-stat confirms "Driver denylist = radeon nouveau ath10k_pci" and yet
+    ;; power/control stays "auto", since the denylist only stops TLP from
+    ;; touching the setting and "auto" -- which still permits D3cold -- is the
+    ;; kernel's own default. Forcing "on" is what actually keeps the card out of
+    ;; D3. Verified live before being written here: echoing "on" left the
+    ;; interface up and the network reachable.
+    ;;
+    ;; Matched on driver rather than PCI address so it survives re-enumeration,
+    ;; and ACTION=="add" so it applies at probe, which is when the state matters.
+    (simple-service 'ath10k-no-runtime-pm udev-service-type
+                    (list (udev-rule
+                           "80-ath10k-no-runtime-pm.rules"
+                           (string-append
+                            "ACTION==\"add\", SUBSYSTEM==\"pci\", "
+                            "DRIVERS==\"ath10k_pci\", "
+                            "ATTR{power/control}=\"on\"\n"))))
     (service gnome-desktop-service-type
               (gnome-desktop-configuration
                (utilities
@@ -375,6 +411,36 @@ root ALL=(ALL) ALL
               (nmi-watchdog? #f)
               (runtime-pm-on-ac "auto")
               (runtime-pm-on-bat "auto")
+              ;; Keep the WiFi card out of runtime PM.
+              ;;
+              ;; The QCA6174 is intermittently not detected at boot. Diagnosed
+              ;; across the 9 boots retained in /var/log/messages, and the
+              ;; separation is total: the 4 failing boots all open with
+              ;;   ath10k_pci: Unable to change power state from D3cold to D0,
+              ;;   device inaccessible
+              ;; followed by ~20 "failed to wake target ... -110", a fallback
+              ;; from MSI to legacy IRQ, "failed to reset chip: -5" and finally
+              ;; "probe with driver ath10k_pci failed with error -5". The 5
+              ;; working boots all open with "enabling device (0000 -> 0002)"
+              ;; and never mention D3cold. lspci reports the card as
+              ;; PME(D3cold+) NoSoftRst-, i.e. it both accepts D3cold and needs
+              ;; a full re-init to leave it, which is the path that fails.
+              ;;
+              ;; This is the driver blacklist rather than the address blacklist
+              ;; so it keeps working if the card ever enumerates elsewhere.
+              ;;
+              ;; Note what this does NOT claim to fix: TLP starts well after
+              ;; the PCI probe -- measured on the 2026-09-03 failure, the probe
+              ;; failed at 23:16:54 and TLP applied its settings at 23:16:56 --
+              ;; so TLP cannot have caused the boot-time D3cold state, and an
+              ;; earlier theory of mine that blamed pcie-aspm was wrong for
+              ;; exactly that reason. What this prevents is the card being put
+              ;; into D3cold while the system is RUNNING, which is the state a
+              ;; subsequent warm reboot then inherits. If failures continue
+              ;; after a cold power-off, the remaining suspect is firmware
+              ;; leaving it powered down, and the next lever is
+              ;; ath10k_pci.reset_mode=1 in kernel-arguments.
+              (runtime-pm-driver-blacklist '("radeon" "nouveau" "ath10k_pci"))
               (sata-linkpwr-on-ac "med_power_with_dipm")
               (sata-linkpwr-on-bat "med_power_with_dipm")))
     (simple-service 'tlp-platform-profile etc-service-type
@@ -452,6 +518,45 @@ COMMIT
                                   "[ -d \"$target\" ] && "
                                   #$(file-append (specification->package "coreutils") "/bin/ln")
                                   " -sfT \"$target\" /run/opengl-driver"))))))
+    ;; /run/wrappers/bin, for Nix programs that authenticate through polkit.
+    ;;
+    ;; Quickshell -- the Omarchy bar, and so the polkit agent for the whole
+    ;; session -- links Nix's libpolkit-agent-1, and that library hardcodes the
+    ;; NIXOS setuid-wrapper path /run/wrappers/bin/polkit-agent-helper-1. Guix
+    ;; puts its setuid helper in /run/privileged/bin instead, so the exec failed
+    ;; and the agent could show a password dialog, take a correct password, and
+    ;; reject it with nothing logged -- an authentication prompt that could not
+    ;; be satisfied and had to be escaped with a power cycle.
+    ;;
+    ;; The symlink points at GUIX's helper, not the Nix polkit-127 one that
+    ;; library was built against. The helper authenticates the user and reports
+    ;; to polkitd over a private protocol, and the polkitd running here is
+    ;; Guix's polkit-121, so the helper has to be its counterpart. It is also
+    ;; the only one of the two that is setuid root, which is the entire reason a
+    ;; helper exists: /run/privileged/bin/polkit-agent-helper-1 is -r-sr-xr-x,
+    ;; while the Nix copy in the store is -r-xr-xr-x and could not check a
+    ;; password even if it were found.
+    ;;
+    ;; A directory holding one symlink, rather than making /run/wrappers/bin a
+    ;; link to /run/privileged/bin: that directory holds every setuid program on
+    ;; the system (sudo, su, passwd, fusermount), and republishing all of them
+    ;; under the path NixOS binaries probe invites a Nix program to pick up a
+    ;; Guix setuid binary by accident. Only the helper is exposed.
+    (simple-service 'nix-polkit-wrapper shepherd-root-service-type
+                    (list
+                     (shepherd-service
+                      (provision '(nix-polkit-wrapper))
+                      (requirement '(file-systems))
+                      (documentation "Expose polkit-agent-helper-1 at the NixOS wrapper path for Nix polkit clients (Quickshell).")
+                      (one-shot? #t)
+                      (start #~(make-system-constructor
+                                (string-append
+                                 #$(file-append (specification->package "coreutils") "/bin/mkdir")
+                                 " -p /run/wrappers/bin && "
+                                 #$(file-append (specification->package "coreutils") "/bin/ln")
+                                 " -sfT /run/privileged/bin/polkit-agent-helper-1"
+                                 " /run/wrappers/bin/polkit-agent-helper-1")))
+                      (stop #~(const #f)))))
     (simple-service 'cpu-undervolt shepherd-root-service-type
                     (list
                      (shepherd-service

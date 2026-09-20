@@ -61,6 +61,23 @@
         settings = {
           kubernetes = {disabled = true;};
           nodejs = {disabled = true;};
+
+          # The first terminal of a session was printing
+          #   [WARN] (starship::context): Scanning current directory timed out
+          # and then rendering a prompt with no language/VCS segments.
+          #
+          # It is a cold-cache effect, not a slow machine, which is why only the
+          # FIRST terminal showed it: omarchy-cmd-terminal-cwd has no previous
+          # terminal to inherit a directory from, so it falls back to $HOME --
+          # 153 entries here, five of them store symlinks -- and starship's
+          # default scan_timeout is 30ms. Measured warm, the same scan takes
+          # 17ms, so the default sits just under a cold stat of that directory
+          # and just over a warm one.
+          #
+          # 100ms rather than something larger: it has to exceed a cold scan of
+          # a home directory, not mask a genuinely pathological one. A prompt
+          # that blocks for longer than this is worth being told about.
+          scan_timeout = 100;
         };
       };
 

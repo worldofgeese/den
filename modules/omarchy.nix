@@ -137,6 +137,25 @@
           sleep 1
         done
       '';
+      # Stands in for uwsm-app, which cannot work without a systemd user
+      # manager. See the override in postInstall below for why this exists and
+      # what it costs.
+      #
+      # `exec "$@"` and nothing else: uwsm-app's job here is only to run the
+      # command, and the callers already supply setsid where they want the
+      # process detached. Keeping it this thin means a caller's exit status and
+      # stdio behave exactly as they would without the wrapper.
+      uwsmAppShim = pkgs.writeShellScript "uwsm-app" ''
+        # omarchy:hidden=true
+
+        # Callers all use `uwsm-app -- CMD ARGS...`; drop the separator so the
+        # command is argv[0]. A bare `--` with nothing after it is a no-op
+        # rather than an error, matching how uwsm-app treats an empty app.
+        [ "''${1-}" = "--" ] && shift
+        [ $# -eq 0 ] && exit 0
+
+        exec "$@"
+      '';
     in {
       imports = [inputs.nixarchy.homeManagerModules.nixarchy];
 
@@ -211,6 +230,171 @@
                 substituteInPlace "$units" \
                   --replace-fail 'systemctl --user daemon-reload' \
                     'systemctl --user daemon-reload || true'
+
+                # uwsm-app, replaced by a shim that just runs the command.
+                #
+                # THE MOST IMPORTANT OVERRIDE HERE. Measured on this machine:
+                # `uwsm-app -- touch /tmp/probe` prints "Failed to connect to
+                # user scope bus via local transport", creates no file, and
+                # EXITS 0. Every app launch in Omarchy goes through it -- 38
+                # call sites, including omarchy-launch-terminal, -browser,
+                # -editor, the menu and the bar's app library -- so without this
+                # SUPER+Return and every other launch keybind silently does
+                # nothing, and the exit 0 means nothing anywhere reports it.
+                #
+                # Shimmed at uwsm-app rather than at the 29 scripts that call
+                # it: every real invocation in the tree is the single form
+                # `uwsm-app -- CMD ARGS...` (verified by enumerating all of
+                # them; no -s/-a slice flags, and the only non-`--` hits are a
+                # doc comment and a QML execDetached argv that is also `--`), so
+                # one replacement covers all of them and there is one place to
+                # delete when a user manager ever exists.
+                #
+                # Not a PATH shim, for the reason the rest of this block is not
+                # either: the bar and the menu resolve it too, and a store
+                # replacement covers callers that never saw the session PATH.
+                #
+                # What is genuinely lost is uwsm's per-app app.slice scope --
+                # each app in its own cgroup, so an OOM kills one app instead of
+                # the session. Shepherd has no equivalent, and `setsid` at least
+                # keeps the caller's exit from taking the app with it (the
+                # launch scripts already prepend it).
+                # Installed under a DIFFERENT name and substituted into the
+                # callers, rather than shipped as bin/uwsm-app.
+                #
+                # The obvious version of this -- drop a uwsm-app into
+                # $out/bin -- fails the profile build, and that failure is worth
+                # recording because it was the plan until the builder rejected
+                # it: uwsm is itself in passthru.runtimeDeps, so the real
+                # /nix/store/...-uwsm-0.26.7/bin/uwsm-app and ours are two
+                # buildEnv paths claiming bin/uwsm-app and home-manager-path
+                # exits 25 with "two given paths contain a conflicting subpath".
+                #
+                # Even had it linked, it would not have WORKED: the session
+                # launcher puts $hm_profile/bin ahead of $omarchy_path/bin, so
+                # the real uwsm-app -- the broken one -- wins the PATH lookup
+                # and the shim is never reached. Verified: the profile's
+                # bin/uwsm-app resolves into the uwsm package.
+                #
+                # So the callers are rewritten to name omarchy-guix-app, which
+                # collides with nothing and cannot be shadowed. Every real
+                # invocation is the same `uwsm-app -- ` prefix, so this is a
+                # single textual substitution across the tree.
+                install -Dm755 ${uwsmAppShim} $out/share/omarchy/bin/omarchy-guix-app
+                ln -s ../share/omarchy/bin/omarchy-guix-app $out/bin/omarchy-guix-app
+
+                # Rewrite every caller. grep -l rather than a fixed file list so
+                # a new launch script in a future Omarchy is covered too, and a
+                # count assertion so that "it silently matched nothing" -- the
+                # failure mode this whole file is built to avoid -- is a build
+                # error instead.
+                mapfile -t uwsm_callers < <(grep -rl 'uwsm-app -- ' \
+                  $out/share/omarchy/bin $out/share/omarchy/shell \
+                  $out/share/omarchy/default 2>/dev/null || true)
+                if [ ''${#uwsm_callers[@]} -lt 25 ]; then
+                  echo "only ''${#uwsm_callers[@]} uwsm-app callers found; expected ~33." >&2
+                  echo "the Guix uwsm shim in modules/omarchy.nix is stale." >&2
+                  exit 1
+                fi
+                for caller in "''${uwsm_callers[@]}"; do
+                  substituteInPlace "$caller" \
+                    --replace-fail 'uwsm-app -- ' 'omarchy-guix-app -- '
+                done
+
+                # The QML argv form, which is a list and so has no ' -- ' to
+                # match: ["uwsm-app", "--", "nautilus", ...].
+                dropbox=$out/share/omarchy/shell/plugins/panels/dropbox/Service.qml
+                if grep -q '"uwsm-app"' "$dropbox"; then
+                  substituteInPlace "$dropbox" \
+                    --replace-fail '"uwsm-app"' '"omarchy-guix-app"'
+                fi
+
+                # Audio restart, via herd instead of systemctl --user.
+                #
+                # The script's restart function is the only systemd-bound part;
+                # its USB-recovery and wpctl health logic below that is
+                # service-manager agnostic and worth keeping, so this replaces
+                # four commands rather than the file.
+                #
+                # The three units map one-to-one onto shepherd services of the
+                # same name minus `.service` (verified with `herd status`:
+                # pipewire, pipewire-pulse, wireplumber are all present), which
+                # is why ''${services[@]/.service/} works as the translation.
+                #
+                # herd has no `cancel`, `kill --kill-whom` or `reset-failed`, so
+                # the forced-down path becomes stop-then-start. That is weaker
+                # than SIGKILL for a genuinely wedged process, and it is the one
+                # behaviour difference: a wireplumber stuck in D-state will not
+                # be forced down by this. The USB reset logic further down the
+                # script -- which is the actual remedy for stuck USB audio, and
+                # the reason the script exists -- still runs.
+                audio=$out/share/omarchy/bin/omarchy-restart-audio
+                if [ ! -e "$audio" ]; then
+                  echo "omarchy-restart-audio no longer exists; the Guix herd" >&2
+                  echo "override in modules/omarchy.nix is stale." >&2
+                  exit 1
+                fi
+                substituteInPlace "$audio" \
+                  --replace-fail \
+                    'if timeout 25s systemctl --user restart "''${services[@]}"; then' \
+                    'if timeout 25s herd restart "''${services[@]/.service/}"; then' \
+                  --replace-fail \
+                    'systemctl --user cancel >/dev/null 2>&1 || true' \
+                    ': # no herd equivalent for `systemctl --user cancel`' \
+                  --replace-fail \
+                    'systemctl --user kill --kill-whom=all --signal=KILL "''${services[@]}" >/dev/null 2>&1 || true' \
+                    'for s in "''${services[@]/.service/}"; do herd stop "$s" >/dev/null 2>&1 || true; done' \
+                  --replace-fail \
+                    'systemctl --user reset-failed "''${services[@]}" >/dev/null 2>&1 || true' \
+                    ': # herd has no failed-state to reset' \
+                  --replace-fail \
+                    'timeout 25s systemctl --user start pipewire.service pipewire-pulse.service wireplumber.service' \
+                    'timeout 25s herd start pipewire && timeout 25s herd start pipewire-pulse && timeout 25s herd start wireplumber'
+
+                # Nothing may still name uwsm-app in executable code.
+                if grep -rn 'uwsm-app' $out/share/omarchy/bin $out/share/omarchy/shell \
+                     | grep -vE '^\S+:[0-9]+:\s*#' | grep -q .; then
+                  echo "uwsm-app still referenced in executable code after rewrite:" >&2
+                  grep -rn 'uwsm-app' $out/share/omarchy/bin $out/share/omarchy/shell \
+                    | grep -vE '^\S+:[0-9]+:\s*#' >&2
+                  exit 1
+                fi
+
+                # Reboot and shutdown, via loginctl instead of systemd-run.
+                #
+                # Both scripts open with
+                #   systemd-run --user ... systemctl reboot --no-wall || exit 1
+                # to schedule the action in the user manager so that closing the
+                # calling terminal's scope cannot kill it. systemd-run --user
+                # exits 1 here (measured: same user-scope-bus failure), and the
+                # `|| exit 1` means the script stops THERE -- before the OSD,
+                # before `omarchy-state clear`, before it closes windows. So the
+                # power menu appears to do nothing at all.
+                #
+                # loginctl is the right substitute and it is present: elogind
+                # 257 answers, and pkaction reports
+                # org.freedesktop.login1.power-off as `implicit active: yes`, so
+                # an active session needs no password.
+                #
+                # The 2-second defer is kept with setsid+sleep rather than
+                # dropped: the window-closing below it is the whole point of
+                # these two scripts over a bare `loginctl reboot`, and it needs
+                # the action to fire after it, not before. setsid detaches so
+                # the terminal that ran it can exit -- which is the property
+                # systemd-run was there to provide.
+                for action in reboot:reboot shutdown:poweroff; do
+                  script=$out/share/omarchy/bin/omarchy-system-''${action%%:*}
+                  verb=''${action##*:}
+                  if [ ! -e "$script" ]; then
+                    echo "omarchy-system-''${action%%:*} no longer exists;" >&2
+                    echo "the Guix loginctl override in modules/omarchy.nix is stale." >&2
+                    exit 1
+                  fi
+                  substituteInPlace "$script" \
+                    --replace-fail \
+                      "systemd-run --user --collect --quiet --on-active=\"2s\" --timer-property=AccuracySec=100ms systemctl $verb --no-wall || exit 1" \
+                      "setsid sh -c 'sleep 2; exec loginctl $verb' >/dev/null 2>&1 &"
+                done
               '';
           });
       };
@@ -310,6 +494,43 @@
       # step or package behind. Off is therefore the minimal correct state --
       # a broken card that logs four errors a start is worse than no card.
       services.nixi.enable = false;
+
+      # Which portal backend answers which interface, for this session.
+      #
+      # Needed because UseIn= does not line up. The backends are installed
+      # Guix-side (see guix/system.scm), and there:
+      #   hyprland.portal  UseIn=wlroots;Hyprland;sway;...  Screenshot,
+      #                    ScreenCast, GlobalShortcuts
+      #   gtk.portal       UseIn=gnome                      FileChooser + 11 more
+      #
+      # The session exports XDG_CURRENT_DESKTOP=Hyprland, so gtk.portal is not
+      # selected at all and FileChooser has no implementation -- every GTK
+      # open/save dialog and omarchy-file-select would fail. Guix's gtk.portal
+      # says gnome because that is the desktop Guix ships it for; it is not a
+      # GNOME-specific implementation.
+      #
+      # portals.conf is the supported instrument for exactly this and it
+      # overrides UseIn. Confirmed against the running frontend rather than
+      # assumed: xdg-desktop-portal 1.22.1 (>= the 1.17 that introduced it), and
+      # its binary contains both the "%s-portals.conf" pattern and the notice
+      # that this is "the preferred method to match portal implementations to
+      # desktop environments".
+      #
+      # A user config file rather than a Guix-side one, unlike the backends
+      # themselves: the frontend reads ~/.config/xdg-desktop-portal directly, so
+      # the profile-visibility problem that forces the packages Guix-side does
+      # not apply here.
+      #
+      # org.freedesktop.impl.portal.Settings is deliberately left to gtk too: it
+      # is what carries the light/dark preference to GTK4 and Chromium, and the
+      # hyprland backend does not implement it.
+      xdg.configFile."xdg-desktop-portal/hyprland-portals.conf".text = ''
+        [preferred]
+        default=gtk
+        org.freedesktop.impl.portal.Screenshot=hyprland
+        org.freedesktop.impl.portal.ScreenCast=hyprland
+        org.freedesktop.impl.portal.GlobalShortcuts=hyprland
+      '';
 
       # The schemas omarchy-theme-set-gnome writes into. Without them every
       # `gsettings set org.gnome.desktop.interface ...` is a silent no-op --

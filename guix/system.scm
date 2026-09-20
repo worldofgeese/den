@@ -240,7 +240,49 @@ Manager profile at run time.")
 root ALL=(ALL) ALL
 %wheel ALL=NOPASSWD: ALL\n"))
   (packages (append (specifications->packages
-                     (list "emacs-pgtk" "xdg-dbus-proxy"))
+                     (list "emacs-pgtk" "xdg-dbus-proxy"
+                           ;; Portal backends for the Omarchy session.
+                           ;;
+                           ;; Guix side, not home.packages, and that is not a
+                           ;; preference: a portal is ACTIVATED by D-Bus, which
+                           ;; scans the share/dbus-1/services of the
+                           ;; XDG_DATA_DIRS the bus itself was started with.
+                           ;; Measured on the running bus (pid 2011): it sees
+                           ;; ~/.guix-home/profile/share, ~/.guix-profile/share,
+                           ;; /run/current-system/profile/share and
+                           ;; ~/.nix-profile/share -- but NOT
+                           ;; ~/.local/state/nix/profiles/home-manager/home-path/share,
+                           ;; which is a different profile from ~/.nix-profile
+                           ;; (verified: km6z5c7b... vs j2ba8rr2...). A portal
+                           ;; installed by Home Manager would therefore sit in a
+                           ;; directory D-Bus never reads, and every screenshare
+                           ;; would fail with no error pointing at the cause.
+                           ;;
+                           ;; Both backends are needed and they are not
+                           ;; alternatives: -hyprland answers Screenshot,
+                           ;; ScreenCast and GlobalShortcuts (its .portal
+                           ;; declares UseIn=...Hyprland, matching the
+                           ;; XDG_CURRENT_DESKTOP the session launcher exports),
+                           ;; while -gtk answers FileChooser, which is what
+                           ;; omarchy-file-select and every GTK open/save dialog
+                           ;; uses. nixarchy installs exactly this pair via
+                           ;; xdg.portal.extraPortals plus programs.hyprland's
+                           ;; portalPackage.
+                           ;;
+                           ;; The frontend itself is already here and already
+                           ;; running: xdg-desktop-portal 1.22.1, plus the
+                           ;; permission and document portals, came in with
+                           ;; gnome-desktop-service-type.
+                           ;;
+                           ;; Guix's -hyprland is 1.3.12 against the session's
+                           ;; Hyprland 0.56. The portal talks to the compositor
+                           ;; over hyprland-global-shortcuts-v1 and
+                           ;; wlr-screencopy, both long stable, so the version
+                           ;; gap is a real but small risk -- and the failure is
+                           ;; a screenshare that does not start, not a session
+                           ;; that does not boot.
+                           "xdg-desktop-portal-hyprland"
+                           "xdg-desktop-portal-gtk"))
                     (list ewm-desktop-session omarchy-desktop-session)
                     %base-packages))
   (services

@@ -17,6 +17,67 @@
       nixpkgs.overlays = [
         (final: prev: {
           ewm = inputs.ewm.packages.${pkgs.stdenv.hostPlatform.system}.default;
+          # Upstream's package.nix only forces $out/opt into the launcher
+          # script; it never sets QT_QPA_PLATFORM. On Wayland sessions Qt
+          # then probes for its "wayland" platform plugin first, but the
+          # binary ships only the xcb plugin, so any launch path that
+          # doesn't happen to export QT_QPA_PLATFORM=xcb itself (desktop
+          # launchers, the packaged share/applications entry, systemd
+          # xdg-autostart units) fails silently before a window or tray
+          # icon ever appears. Baking the override into the wrapped
+          # `synology-drive` binary -- instead of duplicating it in every
+          # .desktop Exec= line -- makes every entry point behave the same.
+          # QTCOMPOSE silences the unrelated "Could not find a location of
+          # the system's Compose files" warning by pointing Qt at the X11
+          # Compose tables libX11 already ships (dead-key/compose input
+          # only; unrelated to launching).
+          synology-drive-client = let
+            qtWrapped = prev.synology-drive-client.overrideAttrs (old: {
+              nativeBuildInputs = (old.nativeBuildInputs or []) ++ [prev.makeWrapper];
+              postFixup = ''
+                ${old.postFixup or ""}
+                wrapProgram $out/bin/synology-drive \
+                  --set QT_QPA_PLATFORM xcb \
+                  --set QTCOMPOSE "${prev.libx11}/share/X11/locale"
+              '';
+            });
+            # cloud-drive-ui shells out to /bin/cat, /usr/bin/awk,
+            # /sbin/udevadm and /sbin/ifconfig by hardcoded absolute path
+            # (verified: those strings live in the compiled binary, not a
+            # patchable script) for device/network identification. None of
+            # those paths exist on Guix System, so every call failed with
+            # "No such file or directory" and those code paths silently
+            # no-op'd. buildFHSEnv, not a system-wide /bin,/sbin shim,
+            # because it only affects this one derivation's own bwrap
+            # sandbox: /usr/bin, /bin (-> /usr/bin) and /sbin (-> /usr/sbin)
+            # get a synthetic tree built from the four targetPkgs below,
+            # while $HOME, /run (so $XDG_RUNTIME_DIR and the D-Bus session
+            # socket), /tmp and /dev keep passing through from the real
+            # host -- confirmed by hand: daemon/UI/tray and the sync data
+            # dir under ~/.SynologyDrive all still worked identically after
+            # wrapping, and bwrap itself was verified working on this
+            # kernel first, standalone, before wiring it in here.
+            fhsWrapped = prev.buildFHSEnv {
+              name = "synology-drive";
+              targetPkgs = pkgs: [pkgs.coreutils pkgs.gawk pkgs.nettools pkgs.systemd];
+              runScript = "${qtWrapped}/bin/synology-drive";
+            };
+          in
+            prev.runCommand qtWrapped.name {
+              pname = qtWrapped.pname;
+              version = qtWrapped.version;
+              meta = qtWrapped.meta;
+            } ''
+              mkdir -p $out
+              cp -rs ${qtWrapped}/* $out/
+              # cp -rs preserves the read-only store source's directory
+              # mode on $out/bin; without this, `rm` below fails with
+              # "Permission denied" (verified: removing this line broke
+              # the build).
+              chmod u+w $out/bin
+              rm -f $out/bin/synology-drive
+              ln -s ${fhsWrapped}/bin/synology-drive $out/bin/synology-drive
+            '';
         })
       ];
       # Linux workstation-specific packages (shared tools come from shared-devtools)
@@ -224,11 +285,7 @@
         [Desktop Entry]
         Name=Synology Drive Client
         Comment=Synology Drive Client
-        # Force xcb platform: synology-drive-client ships only the Qt xcb
-        # plugin, but GNOME's Wayland session causes Qt to look for the
-        # wayland plugin first and fail with "Could not find the Qt platform
-        # plugin 'wayland'". Forcing xcb makes it run via XWayland.
-        Exec=env QT_QPA_PLATFORM=xcb synology-drive start
+        Exec=synology-drive start
         Icon=synology-drive
         Terminal=false
         Type=Application
@@ -264,6 +321,69 @@
           $DRY_RUN_CMD ln -sfn "$src" "$dst_dir/$ext_id"
         fi
       '';
+
+      # The xdg.configFile "autostart/*.desktop" entries above are inert on
+      # this host: XDG autostart processing is normally done by a systemd
+      # --user xdg-desktop-autostart generator (or a full desktop session
+      # manager like gnome-session), and this session runs neither -- it's
+      # GNU Shepherd + elogind under Hyprland/omarchy, confirmed by
+      # `systemctl --user` failing with "Failed to connect to user scope
+      # bus". Omarchy's own autostart mechanism is the hardcoded
+      # `hl.exec_cmd` list Hyprland runs from ~/.config/hypr/autostart.lua
+      # on the "hyprland.start" event; nothing else reads ~/.config/autostart.
+      # That file is omarchy's mutable per-user config (copied out on first
+      # run, not a home-manager symlink), so wire both apps into it the same
+      # way omarchy-install-service-sunshine does, inside a marker-delimited
+      # block so re-running this activation regenerates the block instead of
+      # accumulating duplicate/blank lines, and dropping an entry from the
+      # list below actually removes its line. Guarded on the file already
+      # existing, so hosts without omarchy/Hyprland (e.g. the GNOME/darwin
+      # machines this aspect is also shared with) are left untouched and
+      # fall back to the XDG autostart entries above.
+      home.activation.autostartHyprland = let
+        # synology-drive: `autostart` (not `start`) sleeps 10s before
+        # launching -- the vendor script's own accommodation for exactly
+        # this race: at session start the app's only UI is a tray icon
+        # registered via org.kde.StatusNotifierItem, and racing
+        # Quickshell's StatusNotifierWatcher registration loses the icon
+        # with no other sign the app is running. The XDG autostart
+        # .desktop entry above keeps `start` since it targets session
+        # managers with their own startup ordering.
+        commands = [
+          "synology-drive autostart"
+          "wl-clip-persist --clipboard both"
+        ];
+        launchLines =
+          lib.concatMapStringsSep "\n        " (cmd: "echo 'o.launch_on_start(\"${cmd}\")'") commands;
+      in
+        lib.hm.dag.entryAfter ["writeBoundary"] ''
+          autostart_file="$HOME/.config/hypr/autostart.lua"
+          begin_marker="-- BEGIN home-manager autostart"
+          end_marker="-- END home-manager autostart"
+          if [[ -v DRY_RUN ]]; then
+            echo "Would ensure home-manager-managed autostart block in $autostart_file"
+          elif [ -f "$autostart_file" ]; then
+            tmp="$(mktemp)"
+            ${pkgs.gawk}/bin/awk -v begin="$begin_marker" -v end="$end_marker" '
+              # One-time migration: earlier revisions appended these two
+              # bare, unmarked lines directly instead of a managed block.
+              $0 == "o.launch_on_start(\"synology-drive start\")" { next }
+              $0 == "o.launch_on_start(\"synology-drive autostart\")" { next }
+              $0 == begin { skip = 1; next }
+              $0 == end   { skip = 0; next }
+              skip { next }
+              { a[++n] = $0 }
+              END { while (n > 0 && a[n] == "") n--; for (i = 1; i <= n; i++) print a[i] }
+            ' "$autostart_file" > "$tmp"
+            {
+              echo ""
+              echo "$begin_marker"
+              ${launchLines}
+              echo "$end_marker"
+            } >> "$tmp"
+            mv "$tmp" "$autostart_file"
+          fi
+        '';
 
       programs.gh = {
         enable = true;

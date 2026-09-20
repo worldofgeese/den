@@ -331,6 +331,44 @@ mv \"$tmp\" \"$target\""))
                          (string-append (getenv "HOME")
                                         "/.local/state/headroom.log")))))))
 
+    ;; Clear signet's single-instance lock before the daemon starts.
+    ;;
+    ;; The daemon is container PID 1 and writes that PID into
+    ;; ~/.agents/.daemon/daemon.lock, which persists on the host through the
+    ;; volume mount below. Upstream's staleness check calls kill(pid, 0) and
+    ;; returns early on success, never consulting the timestamp it also wrote,
+    ;; so a recorded PID of 1 is always "alive" -- every fresh container reads
+    ;; the lock, concludes another daemon holds it, and exits 0. With
+    ;; respawn? #t that is a silent ~2s restart loop that never trips the
+    ;; respawn limit: the only symptoms are Claude Code hook errors ("no
+    ;; container with name or ID signet found") and a hot fan. It ran that way
+    ;; from 2026-09-15 to 2026-09-20, ~200k container starts, because the
+    ;; SIGNET_DAEMON_ENTRYPOINT=0 test noted below left a lock behind; the
+    ;; revert fixed the entrypoint but the loop continued for a new reason
+    ;; that looks identical from outside. Reported upstream.
+    ;;
+    ;; Deleting the lock unconditionally is safe only because this container is
+    ;; the sole signet daemon on this host (~/.local/bin/signet just podman
+    ;; execs into it). If a host-side daemon or the desktop app is ever added,
+    ;; make this conditional on the recorded PID being 1.
+    (simple-service
+     'signet-lock-clean
+     home-shepherd-service-type
+     (list
+      (shepherd-service
+       (provision '(signet-lock-clean))
+       (documentation "Remove signet's stale single-instance lock")
+       (one-shot? #t)
+       (start #~(make-system-constructor
+                 (string-append
+                  #$(file-append (specification->package "coreutils") "/bin/rm")
+                  " -f"
+                  " " (getenv "HOME") "/.agents/.daemon/daemon.lock"
+                  " " (getenv "HOME") "/.agents/.daemon/pid"
+                  " " (getenv "HOME") "/.agents/.daemon/lifecycle.json")))
+       (stop #~(const #f))
+       (auto-start? #t))))
+
     ;; Signet memory daemon.
     ;;
     ;; Upstream moved the daemon out of the npm package and into a published
@@ -391,6 +429,10 @@ mv \"$tmp\" \"$target\""))
                         (environment
                          (list
                           "HOME=/data/agents/.container-home"))
+                        ;; Appended to the requirements home-oci-service-type
+                        ;; adds itself (home-podman-volumes et al), not a
+                        ;; replacement for them.
+                        (requirement '(signet-lock-clean))
                         (respawn? #t)
                         (auto-start? #t)
                         (log-file

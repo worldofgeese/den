@@ -51,8 +51,30 @@ flowchart LR
 ## Secrets Management
 | Secret | Source | Rotation | Consumer |
 |---|---|---|---|
+| `LEGO_GATEWAY_API_KEY` | `secretspec` provider, named (not stored) in `gateway.json` | provider-managed | every CLI coding agent, Emacs agent-shell, headroom |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
+
+### Credential Handling Invariant
+No secret value may enter a tracked file or the Nix store. Only the *name* of a
+secret and a *command* that prints it may be declared; the value exists solely
+in the environment of a process about to spend it.
+
+This forces a documented departure from vendor setup instructions. The gateway's
+own docs configure Claude Code with `ANTHROPIC_AUTH_TOKEN=<credential>`, which
+suits a human exporting into their own shell but would place the value in a
+world-readable store path under `home.sessionVariables` or a shell profile. The
+wrapper in `modules/agent-providers.nix` therefore runs the lookup at process
+start instead. Shell init is not sufficient on mahakala: Home Manager does not
+own the shell there (Guix Home does, and its `bashrc` returns early for
+non-interactive shells), so an export would miss agents spawned by Emacs or a
+timer.
+
+Proof obligation: after any change to credential plumbing, grep the live secret
+value against the built closure and confirm zero matches. Done for `b9d6b00`.
+A prior violation of this invariant -- a `vk_...` key pasted into an untracked
+`~/.cave/agent/models.json` -- is recorded as `home-manager-l23`; note that it
+persisted precisely because the file was unmanaged, so no deploy could correct it.
 
 ## Security Testing
 | Test Type | Cadence | Tooling |

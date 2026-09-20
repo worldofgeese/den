@@ -34,9 +34,52 @@ Generated interface specs should include:
 - Repository-detected surfaces: shell
 
 ## Data Ownership
-- Source-of-truth tables/collections:
-- Cross-boundary read models:
-- Consistency expectations:
+- Source-of-truth tables/collections: `gateway.json` is the single owner of how
+  an agent reaches a model -- addresses, published ports, the secret's *name*,
+  and (since the agent-provider work) the model catalogue: slot -> id plus the
+  `contextWindow` and `maxTokens` ceilings the gateway enforces.
+- Cross-boundary read models: two readers, one per substrate, because
+  `guix/home-configuration.scm` is Scheme and cannot import Nix (ADR 0001).
+  Nix reads it in `modules/gateway.nix` and republishes derived values as the
+  `gateway` module argument; Guile reads the same file via guile-json.
+- Consistency expectations: consumers are thin adapters and MUST NOT restate a
+  fact `gateway.json` already owns. The catalogue moved there precisely because
+  it had been duplicated in pi's and Caveman Code's configs and the two copies
+  disagreed on both ceilings (`home-manager-8vh`).
+
+## Agent Provider Interface
+`modules/agent-providers.nix` adapts one gateway to four CLI harnesses. Shapes
+are taken from the gateway's own setup docs, published as React pages in
+`LEGO/ai-model-gateway-client` (`src/features/docs/pages/`), not inferred.
+
+| Harness | Config it reads | Provider key | How the credential arrives |
+|---|---|---|---|
+| omp | `~/.omp/agent/models.yml` (migrates `models.json` on first run) | `lego-claude` | `apiKey: "!<cmd>"` |
+| pi | `~/.pi/agent/models.json` | `lego-claude` | `apiKey: "!<cmd>"` |
+| Caveman Code | `~/.cave/agent/models.json` | `lego-claude` | `apiKey: "!<cmd>"` |
+| Claude Code | none; wrapper-supplied environment | n/a | `ANTHROPIC_AUTH_TOKEN` exported at process start |
+
+The credential is never a value in this repository. It crosses as a *command*
+that prints it when an agent process starts, so it reaches neither the store nor
+the work tree. The three pi-family harnesses resolve `!command` themselves.
+Claude Code has no equivalent marker, so its wrapper runs the lookup and exports
+the documented variable -- the same technique `modules/M-02877/dktaohan.nix`
+already used for `CHORUS_API_KEY`.
+
+Ownership of these files is deliberately partial. Each harness writes its own
+picked default back (`/model`), so a store symlink would make that write fail.
+Home Manager seeds a file only when absent and never reverts it, which makes
+later drift a deliberate local edit rather than something a switch silently
+undoes. The cost is that a stale hand-edited file is *not* corrected by
+deploying; `home-manager-l23` was exactly that case and had to be replaced by
+hand.
+
+Two asymmetries are load-bearing and easy to reintroduce:
+- omp validates its schema strictly and disables *every* custom provider on an
+  unknown key, so pi's `forceAdaptiveThinking` / `thinkingLevelMap` must not
+  appear in its file. omp's equivalent is `thinking.mode: anthropic-adaptive`.
+- Haiku 4.5 must keep `reasoning: false`; a configured thinking level trips
+  "adaptive thinking is not supported on this model".
 
 ## Error Taxonomy Example (service_or_library)
 ```ts
@@ -69,10 +112,10 @@ export enum ApiErrorCode {
 ## CLI and Machine-Readable Contract
 | Surface | Invocation/Shape | Reads | Writes | Output Stability | Proof |
 |---|---|---|---|---|---|
-| Human CLI | | | | | |
-| JSON/automation | | | | | |
-| RPC/plugin | | | | | |
-| Event/file boundary | | | | | |
+| Human CLI | `claude` (wrapped) | `gateway.json` via wrapper env | nothing in this repo | vendor-defined | `claude -p` answered through the gateway post-deploy |
+| Human CLI | `omp`, `pi`, `caveman` | `~/.<tool>/agent/models.{json,yml}` | same file, on `/model` | vendor-defined | each listed all three models and completed an Opus tool call |
+| JSON/automation | `gateway.json` | hand-written facts | never written by Nix | additive; keys prefixed `_` are prose | consumed by `modules/gateway.nix` and `guix/home-configuration.scm` |
+| Event/file boundary | secret lookup command | `secretspec.toml` | nothing | exit status + stdout | key confirmed absent from the built closure |
 
 ## Compatibility Matrix
 | Contract | Current Version | Consumers | Additive Changes | Breaking Changes | Migration Trigger |

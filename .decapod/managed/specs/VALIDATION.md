@@ -89,9 +89,13 @@ flowchart LR
 
 ## Proof Surfaces
 - `decapod validate`
-- Required test commands:
-- Add repository-specific test command(s) here.
-- Required integration/e2e commands:
+- Required test commands: `just check-fmt`, `git diff --check`, and
+  `./scripts/check-drvpaths.sh` when the required remote builders are
+  available.
+- Required integration/e2e commands: `home-manager build --flake
+  .#worldofgeese` and `sh -lc 'for event in PostCompact PreCompact
+  SessionStart UserPromptSubmit; do bd codex-hook "$event" >/dev/null ||
+  exit; done'`.
 
 ## Promotion Gates
 
@@ -139,7 +143,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
-- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Repository signal fingerprint: `199dfd5b776c22e7446b4aeb365195a491af7505d2a4493bb7e9d85d636169aa`
+- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

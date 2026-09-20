@@ -6,7 +6,7 @@ How-to for memoryless agents debugging/remediating **mother** (Synology Docker s
 
 1. Read this file end-to-end.
 2. On **loving-kypris**: `ssh loving-kypris` then read `~/openclaw-config/AGENTS.md` — quadlet deploy, secrets, volume safety.
-3. Claim a Beads issue (`br update <id> --status in_progress`) before edits.
+3. Claim a Beads issue (`bd update <id> --claim`) before edits.
 4. **Backup SQLite before any Tdarr DB mutation.**
 5. Do not stop active transcodes unless stuck/deadlocked.
 6. Do not fix transient provider/subscription failures (see [Out of scope](#out-of-scope)).

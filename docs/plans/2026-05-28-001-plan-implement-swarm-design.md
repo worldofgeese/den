@@ -42,18 +42,18 @@ Decapod and Beads now make the parallel mode feasible if their boundaries are ex
 2. **Beads is canonical task board** — Beads epic + child issue DAG is source of truth for work partitioning, dependencies, and lane ownership.
 3. **Decapod Shadow Custody wraps Beads work** — Each lane exports `BEADS_TASK_ID`/`BD_TASK_ID` and runs Decapod workspace/container/proof flows. Decapod yields branch naming to Beads while maintaining safety.
 4. **Agent Mail required** — All workers, reviewers, and orchestrator use Agent Mail. Thread ID = Bead ID. File reservations start in warn mode.
-5. **Git creates worktrees; Beads Rust tracks work** — Create git worktrees/branches that include the Bead ID. Decapod validates/containers the existing worktree. `br` remains canonical for Beads task state.
+5. **Git creates worktrees; bd tracks work** — Create git worktrees/branches that include the Bead ID. Decapod validates/containers the existing worktree. `bd` remains canonical for Beads task state.
 6. **One Bead per worker run** — Workers are fresh subagent sessions. Beads/Decapod/Agent Mail carry state between sessions.
 7. **Path scope required** — Every child Bead must declare file/path globs before fanout. Overlapping write scopes block parallelism and become dependencies or same-Bead work.
 8. **Pre-worker refinement cap** — Up to 5 plan refinement rounds and up to 5 Beads-DAG polish rounds. Stop early when no material improvement remains.
 9. **Oracle before DAG finalization** — Run oracle after draft DAG/refinement and before spawning workers; run final oracle only if architecture/scope changed materially.
 10. **Concurrency heuristic** — Use GPU count if NVIDIA/ROCm GPUs are detected; otherwise `max(1, floor(logical_cpu_count / 4))`. Cap by ready non-overlapping Beads.
 11. **Two-tier review** — Per-lane review before publish, then integrated review after serial fan-in.
-12. **Serialized fan-in required** — The orchestrator merges one lane at a time in dependency order. `br` is non-invasive and does not provide a merge-slot primitive, so new flows do not invoke legacy `bd merge-slot`.
+12. **Serialized fan-in required** — The orchestrator merges one lane at a time in dependency order. `bd` is non-invasive and does not provide a merge-slot primitive, so new flows do not invoke `bd merge-slot`.
 13. **Bead closure after integrated validation** — Worker marks lane integration-ready with proof; orchestrator closes Bead only after merge and integrated validation.
 14. **Coverage requirement** — Literal whole-repo 100% unit coverage. If coverage tooling is missing, create and complete a prerequisite coverage-infra Bead before feature lanes.
 15. **Final integrated push only** — Lane branches stay local unless fan-in is blocked or audit mode later requires remote branches. Final integrated branch is pushed.
-16. **Agent Mail installed natively by HM** — Package `mcp-agent-mail` from pinned GitHub release in the Home Manager overlay. Home Manager also manages `br`/`bv` and Pi MCP config.
+16. **Agent Mail installed natively by HM** — Package `mcp-agent-mail` from pinned GitHub release in the Home Manager overlay. Home Manager manages `bd` on Linux, while Darwin uses its Homebrew-managed `bd`, alongside Pi MCP config.
 
 ## Runtime Workflow
 
@@ -61,14 +61,14 @@ Decapod and Beads now make the parallel mode feasible if their boundaries are ex
 
 The `plan-implement` skill checks:
 
-- `br` available and repository initialized.
+- `bd` available and repository initialized.
 - Decapod initialized and `.decapod/OVERRIDE.md` read when present.
 - Decapod external tracker support enabled via repo opt-in and per-lane env var plan.
 - Agent Mail installed from Home Manager package `mcp-agent-mail`.
 - Agent Mail worktree mode enabled by wrapper default: `WORKTREES_ENABLED=1`.
 - Agent Mail guard mode set to warn: `AGENT_MAIL_GUARD_MODE=warn`.
 - `pi-mcp-adapter` available and Pi MCP config points to Agent Mail.
-- `br`/`bv` managed by Home Manager if enabled.
+- `bd` managed by Home Manager on Linux or Homebrew on Darwin.
 - Coverage command/threshold exists, or coverage-infra Bead is created first.
 - `decapod validate` and repo-specific gates are discoverable.
 
@@ -129,7 +129,7 @@ For this host today, shell heuristic reports 8 logical CPUs and no NVIDIA/ROCm G
 
 For each lane:
 
-1. Mark Bead in progress with `br update <bead-id> --status in_progress`.
+1. Mark Bead in progress with `bd update <bead-id> --claim`.
 2. Create worktree/branch:
    ```bash
    git worktree add -b <bead-id>-<slug> ../<bead-id>-<slug>
@@ -240,7 +240,7 @@ Changes:
 - Do not run upstream installer in activation.
 - Do not let upstream tooling manage Pi config.
 
-### U3. Add managed br/bv packages or wrappers
+### U3. Add managed bd package or wrapper
 
 Files:
 
@@ -249,9 +249,9 @@ Files:
 
 Changes:
 
-- Package `br` with `rustPlatform.buildRustPackage`, matching the existing Decapod/rtk overlay pattern.
-- Package `bv` with `buildGoModule`.
-- Use `br` as the canonical Beads workflow.
+- Use the pinned Nixpkgs `beads` package, whose main program is `bd`, on Linux.
+- Keep Darwin on the Homebrew-managed `bd` and its Dolt dependency.
+- Use `bd` as the canonical Beads workflow.
 
 ### U4. Add `plan-implement` skill
 
@@ -329,7 +329,7 @@ Oracle concerns intentionally retained:
 
 ## Open Questions Before Implementation
 
-1. Whether `br`/`bv` are available through existing Nix inputs or need custom packages.
+1. Whether the Nixpkgs `beads` package is available through the existing pinned input.
 2. Whether old `pi-extensions/chains/plan-implement.chain.md` should be deleted or retained unregistered for history.
 3. How to test the skill without launching a full swarm against the Home Manager repo.
 
@@ -339,6 +339,6 @@ Oracle concerns intentionally retained:
 - `plan-implement` skill exists and documents the swarm protocol.
 - Pi packages include `npm:pi-mcp-adapter`.
 - Agent Mail is installed as native Home Manager package.
-- Beads remains managed separately; Agent Mail does not replace `br`.
+- Beads remains managed separately; Agent Mail does not replace `bd`.
 - Design decisions above are reflected in skill text.
 - Validation/deploy commands pass or blockers are documented in Bead `home-manager-7hg`.

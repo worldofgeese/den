@@ -117,6 +117,15 @@ export enum ApiErrorCode {
 | JSON/automation | `gateway.json` | hand-written facts | never written by Nix | additive; keys prefixed `_` are prose | consumed by `modules/gateway.nix` and `guix/home-configuration.scm` |
 | Event/file boundary | secret lookup command | `secretspec.toml` | nothing | exit status + stdout | key confirmed absent from the built closure |
 
+## Beads Tooling Boundary
+Beads task state uses the legacy `bd` CLI as the single project workflow
+interface. Linux Home Manager profiles receive the Nixpkgs `beads` and `dolt`
+packages, with `beads` providing the `bd` command; the Darwin profile resolves
+`bd` from Homebrew at `/opt/homebrew/bin` and keeps Dolt under nix-darwin.
+Codex, Cursor, and Git hook integrations all invoke `bd` directly. The Rust
+`br` CLI and `bv` viewer are not part of the supported package or interface
+surface.
+
 ## Compatibility Matrix
 | Contract | Current Version | Consumers | Additive Changes | Breaking Changes | Migration Trigger |
 |---|---|---|---|---|---|
@@ -143,7 +152,7 @@ export enum ApiErrorCode {
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `be0a0a0a240af03eda9eb65faaecf3abce3e08efc4a3da8bac3caa4f1dede8f4`
-- Significant implementation surfaces: `.beads/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
+- Repository signal fingerprint: `199dfd5b776c22e7446b4aeb365195a491af7505d2a4493bb7e9d85d636169aa`
+- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -1,14 +1,13 @@
 {
   "schema_version": "1.0.0",
-  "title": "Land macOS Tailscale and Pi configuration",
-  "intent": "Merge the prepared macOS Tailscale Homebrew cask and llm-agents Pi package change into main, then deploy and verify Tailscale.",
+  "title": "Switch Home Manager Beads tooling from br/bv to bd",
+  "intent": "Use the latest Decapod release everywhere: keep the flake input and Home Manager package aligned with the newest release, regenerate all governed entrypoints from that binary, and use bd as the sole Beads CLI while retaining Darwin's Homebrew bd and Dolt setup.",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m1p8p1swj28vx3",
-    "code_01m1p8qvbhwje4vf"
+    "code_01m2yr6rcyehcwd1"
   ],
   "proof_hooks": [
-    "PR #4 merged; just deploy-darwin exits 0; Tailscale cask installed; Tailscale app launches"
+    "locked flake Decapod package version matches the installed latest release; governed entrypoints carry that release fingerprint; decapod validate passes; just check passes; Nix evaluation shows beads/bd and no beads-rust or beads-viewer packages; active hook commands remain bd-based"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -18,11 +17,10 @@
   "constraints": {
     "forbidden_paths": [
       "Justfile",
-      "flake.lock",
       "install.sh"
     ],
-    "file_touch_budget": 20
+    "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1788529812Z"
+  "updated_at": "1789886613Z"
 }

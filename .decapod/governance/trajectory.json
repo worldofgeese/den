@@ -1,67 +1,71 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "tailscale-pi-20260904",
-  "intent_id": "intent:tailscale-pi-20260904",
-  "task_id": "code_01m1p8p1swj28vx3",
-  "original_intent": "Merge Tailscale and Pi macOS configuration into main",
-  "derived_intent": "Publish PR #4 through governed artifacts, merge it, deploy macOS configuration, and verify Tailscale app installation and launch",
-  "current_phase": "Publication",
+  "run_id": "bd-migration-20260920",
+  "intent_id": "intent:bd-migration-20260920",
+  "task_id": "code_01m2yr6rcyehcwd1",
+  "original_intent": "Switch completely from br/bv to bd Beads tooling and stop Codex hook exit 127 failures.",
+  "derived_intent": "Provide Nix-managed bd and Dolt on Linux, preserve Darwin Homebrew bd/Dolt, regenerate latest Decapod surfaces, and verify every active hook.",
+  "current_phase": "validation",
   "next_transitions": [
-    "Refresh governance artifacts, validate, publish, merge",
-    "Validate governed artifacts, update PR #4, then merge"
+    "validation"
   ],
   "blockers": [
-    "Decapod validation still reports pre-existing governance lineage/proof issues"
+    "Commit/publication gates require a commit; legacy Beads store repair would mutate the protected root checkout.",
+    "Decapod validation still requires container workspace proof and publication/lineage artifacts outside this focused change."
   ],
   "active_boundaries": [
-    "Only PR #4 Nix files and required Decapod governance artifacts; leave Justfile, flake.lock, install.sh untouched"
+    "Do not mutate the protected root checkout; work only in the Decapod isolated workspace, except activating the resulting Home Manager profile."
   ],
   "repo_scope": [
-    "modules/M-02877/darwin.nix; modules/shared-devtools.nix; .decapod/governance/*; .decapod/managed/specs/*"
+    "Beads packages, hooks, docs, Home Manager profile, Decapod entrypoints, governed specs."
   ],
   "inspected_files": [
-    "Justfile",
-    "modules/M-02877/darwin.nix",
+    ".beads/config.yaml",
+    ".codex/hooks.json",
+    ".cursor/hooks.json",
     "modules/shared-devtools.nix"
   ],
   "modified_files": [
-    ".decapod/governance/claims.json",
-    ".decapod/governance/plan.json",
-    ".decapod/governance/trajectory.json",
-    ".decapod/managed/specs/.manifest.json",
-    ".decapod/managed/specs/ARCHITECTURE.md",
-    "modules/M-02877/darwin.nix",
+    ".decapod/managed/specs/INTERFACES.md",
+    ".decapod/managed/specs/VALIDATION.md",
     "modules/shared-devtools.nix"
   ],
   "declared_commands": [
-    "decapod validate",
-    "git diff --check",
-    "nix eval --impure --no-warn-dirty"
+    "decapod rpc --op specs.refresh",
+    "home-manager build --flake .#worldofgeese",
+    "home-manager switch --flake .#worldofgeese",
+    "podman run ... decapod validate --format json"
   ],
-  "tool_calls": [
-    "github PR #4"
-  ],
+  "tool_calls": [],
   "checks": [
     {
-      "name": "Darwin config evaluation",
-      "status": "passed"
-    },
-    {
-      "name": "Decapod validation",
+      "name": "container_decaps_validate",
       "status": "failed"
     },
     {
-      "name": "Pi package evaluation",
+      "name": "container_workspace",
       "status": "passed"
     },
     {
-      "name": "git diff check",
+      "name": "decapod_latest",
+      "status": "passed"
+    },
+    {
+      "name": "decapod_validate",
+      "status": "failed"
+    },
+    {
+      "name": "home-manager_build",
+      "status": "passed"
+    },
+    {
+      "name": "hook_matrix",
       "status": "passed"
     }
   ],
   "evidence": [
-    "Nix evaluation found tailscale-app and pi-0.84.4",
-    "PR #4 contains Tailscale cask and Pi package changes"
+    "Container validation ran successfully; remaining failures are commit/publication/lineage gates and inherited proof tasks.",
+    "bd and dolt resolve from /home/worldofgeese/.nix-profile/bin; all four sh -lc hook invocations exit 0; decapod 0.102.2 reports is_latest=true."
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -72,21 +76,21 @@
     "shortcut_risk": "supported",
     "completion_proof": "unsupported"
   },
-  "artifact_hash": "sha256:e7bb534e652a6dc9ad67bdcc5b68f8fad3106eebcff1b5bd486133c35305c613",
+  "artifact_hash": "sha256:1757995f6c4be41cb2d38fc7ceffb7a750ffa11aa81f1d01dae0a0618ebb4385",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:tailscale-pi-20260904": {
-        "id": "intent:tailscale-pi-20260904",
-        "raw_intent": "Merge Tailscale and Pi macOS configuration into main",
-        "refined_intent": "Publish PR #4 through governed artifacts, merge it, deploy macOS configuration, and verify Tailscale app installation and launch",
+      "intent:bd-migration-20260920": {
+        "id": "intent:bd-migration-20260920",
+        "raw_intent": "Switch completely from br/bv to bd Beads tooling and stop Codex hook exit 127 failures.",
+        "refined_intent": "Provide Nix-managed bd and Dolt on Linux, preserve Darwin Homebrew bd/Dolt, regenerate latest Decapod surfaces, and verify every active hook.",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/M-02877/darwin.nix; modules/shared-devtools.nix; .decapod/governance/*; .decapod/managed/specs/*"
+          "Beads packages, hooks, docs, Home Manager profile, Decapod entrypoints, governed specs."
         ],
         "assumptions": [],
         "boundaries": [
-          "Only PR #4 Nix files and required Decapod governance artifacts; leave Justfile, flake.lock, install.sh untouched"
+          "Do not mutate the protected root checkout; work only in the Decapod isolated workspace, except activating the resulting Home Manager profile."
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -99,65 +103,84 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:tailscale-pi-20260904",
+        "intent_id": "intent:bd-migration-20260920",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:tailscale-pi-20260904",
+        "intent_id": "intent:bd-migration-20260920",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:tailscale-pi-20260904",
+        "intent_id": "intent:bd-migration-20260920",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:tailscale-pi-20260904"
+        "detail": "trajectory:bd-migration-20260920"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:bd-migration-20260920",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:bd-migration-20260920"
       }
     ],
     "trajectories": {
-      "tailscale-pi-20260904": {
-        "id": "tailscale-pi-20260904",
-        "intent_id": "intent:tailscale-pi-20260904",
+      "bd-migration-20260920": {
+        "id": "bd-migration-20260920",
+        "intent_id": "intent:bd-migration-20260920",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
-            "action": "Publication",
-            "tool": "github PR #4",
-            "command": "nix eval --impure --no-warn-dirty",
+            "action": "validation",
+            "command": "home-manager build --flake .#worldofgeese",
             "scope": [
-              "modules/M-02877/darwin.nix; modules/shared-devtools.nix; .decapod/governance/*; .decapod/managed/specs/*"
+              "Beads packages, hooks, docs, Home Manager profile, Decapod entrypoints, governed specs."
             ],
             "observations": [
-              "modules/M-02877/darwin.nix",
               "modules/shared-devtools.nix",
-              "Justfile",
-              "modules/M-02877/darwin.nix",
+              ".codex/hooks.json",
+              ".cursor/hooks.json",
+              ".beads/config.yaml",
               "modules/shared-devtools.nix",
-              ".decapod/governance/claims.json",
-              ".decapod/governance/plan.json",
-              ".decapod/governance/trajectory.json",
-              ".decapod/managed/specs/ARCHITECTURE.md",
-              ".decapod/managed/specs/.manifest.json",
-              "PR #4 contains Tailscale cask and Pi package changes",
-              "Nix evaluation found tailscale-app and pi-0.84.4"
+              ".decapod/managed/specs/INTERFACES.md",
+              ".decapod/managed/specs/VALIDATION.md",
+              "bd and dolt resolve from /home/worldofgeese/.nix-profile/bin; all four sh -lc hook invocations exit 0; decapod 0.102.2 reports is_latest=true."
             ],
             "proof_refs": [
-              "Darwin config evaluation",
-              "Pi package evaluation",
-              "git diff check",
-              "Decapod validation"
+              "home-manager_build",
+              "hook_matrix",
+              "decapod_latest",
+              "decapod_validate"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "podman run ... decapod validate --format json",
+            "scope": [
+              "Beads packages, hooks, docs, Home Manager profile, Decapod entrypoints, governed specs."
+            ],
+            "observations": [
+              "Container validation ran successfully; remaining failures are commit/publication/lineage gates and inherited proof tasks."
+            ],
+            "proof_refs": [
+              "container_workspace",
+              "container_decaps_validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

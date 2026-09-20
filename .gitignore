@@ -73,7 +73,6 @@ result/
 # Cave agent worktrees and session scratch.
 .cave/
 .decapod/governance/workunits/
-!.decapod/data/knowledge.promotions.jsonl
 
 # Graphiq knowledge-graph index (1.3M SQLite, regenerated on demand).
 .graphiq/
@@ -81,5 +80,5 @@ result/
 # Beads / Dolt files (added by bd init)
 .beads/proxieddb/
 *.gate.lock*
-# br doctor per-run artifacts
+# bd doctor per-run artifacts
 .doctor/

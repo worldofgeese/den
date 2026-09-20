@@ -15,15 +15,6 @@ last-touched
 # Local backup destination registration (machine-specific path)
 dolt-backup.json
 
-# Local history backups
-.br_history/
-
-# DB-family recovery artifacts (truncated WAL/SHM, quarantined sidecars)
-# — same lifecycle as .br_history/, written by recovery paths and
-# `br doctor --repair`. Filename suffix `.truncated-wal` slips past the
-# generic `*.db-wal` glob above, so it needs an explicit entry (#271).
-.br_recovery/
-
 # Sync state (local-only, per-machine)
 .sync.lock
 sync_base.jsonl
@@ -53,13 +44,10 @@ backup/
 # Worktree redirect file
 redirect
 
-# bv (beads viewer) lock file
-.bv.lock
-
 # Local interaction log (per-machine). Records who changed which field and why,
-# so it carries operator names and free-text reasons. `br sync --flush-only`
-# does not touch it, and no tracked beads file references it — it is local
-# telemetry, not shared state.
+# so it carries operator names and free-text reasons. The `bd` CLI does not
+# touch it, and no tracked beads file references it — it is local telemetry,
+# not shared state.
 interactions.jsonl
 
 # Added by bd (missing required patterns)

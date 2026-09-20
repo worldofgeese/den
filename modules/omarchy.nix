@@ -376,6 +376,23 @@
                 # org.freedesktop.login1.power-off as `implicit active: yes`, so
                 # an active session needs no password.
                 #
+                # By ABSOLUTE PATH, which the first version of this got wrong.
+                # `loginctl` on the session PATH resolves to the SYSTEMD one out
+                # of the Home Manager profile -- systemd is in the omarchy
+                # package's runtimeDeps, and $hm_profile/bin precedes the Guix
+                # profile -- and that binary refuses to do anything here:
+                # "System has not been booted with systemd as init system (PID
+                # 1). Can't operate." So the bare name made this fix no fix at
+                # all.
+                #
+                # /run/current-system/profile/bin/loginctl is Guix's elogind and
+                # it answers (verified: it lists both live sessions). A literal
+                # path rather than a Nix store reference on purpose -- this must
+                # be the elogind of the RUNNING system, the one whose daemon owns
+                # the session, and nixpkgs' own elogind would be a second
+                # implementation talking to Guix's daemon across a version gap.
+                # It is also reconfigure-proof, being the current-system symlink.
+                #
                 # The 2-second defer is kept with setsid+sleep rather than
                 # dropped: the window-closing below it is the whole point of
                 # these two scripts over a bare `loginctl reboot`, and it needs
@@ -393,8 +410,39 @@
                   substituteInPlace "$script" \
                     --replace-fail \
                       "systemd-run --user --collect --quiet --on-active=\"2s\" --timer-property=AccuracySec=100ms systemctl $verb --no-wall || exit 1" \
-                      "setsid sh -c 'sleep 2; exec loginctl $verb' >/dev/null 2>&1 &"
+                      "setsid sh -c 'sleep 2; exec /run/current-system/profile/bin/loginctl $verb' >/dev/null 2>&1 &"
                 done
+
+                # Logout, via the compositor instead of `uwsm stop`.
+                #
+                # omarchy-system-logout ends the session with
+                #   nohup bash -c "sleep 2 && uwsm stop"
+                # which needs the systemd user manager uwsm drives, so logging
+                # out from the menu did nothing at all: the OSD appeared, the
+                # windows closed, and the session stayed up. Missed by the
+                # earlier uwsm audit because that searched for `uwsm-app` and
+                # this is bare `uwsm` -- the other bare-uwsm hits are two
+                # .desktop files this setup does not use, since the session entry
+                # is our own in guix/system.scm.
+                #
+                # `hyprctl dispatch exit` is the compositor's own clean shutdown
+                # and is what ends this session: omarchy-session execs Hyprland
+                # (through start-hyprland), so Hyprland exiting returns the seat
+                # to the greeter. It also runs Hyprland's normal teardown rather
+                # than killing the process.
+                #
+                # The 2-second nohup defer is kept for the reason it was there:
+                # the script closes windows after this line, and the exit has to
+                # land after that, not during it.
+                logout=$out/share/omarchy/bin/omarchy-system-logout
+                if [ ! -e "$logout" ]; then
+                  echo "omarchy-system-logout no longer exists; the Guix logout" >&2
+                  echo "override in modules/omarchy.nix is stale." >&2
+                  exit 1
+                fi
+                substituteInPlace "$logout" \
+                  --replace-fail 'sleep 2 && uwsm stop' \
+                    'sleep 2 && hyprctl dispatch exit'
               '';
           });
       };

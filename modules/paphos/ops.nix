@@ -105,7 +105,7 @@ in {
       else
         ping_ok=false
         for attempt in 1 2 3; do
-          if ${tailscaleBin} ping --c 1 --timeout 8s "$oracle_tailscale_ip" >/dev/null 2>&1; then
+          if ${tailscaleBin} ping --c 1 --timeout 8s --until-direct=false "$oracle_tailscale_ip" >/dev/null 2>&1; then
             ping_ok=true
             break
           fi

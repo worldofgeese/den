@@ -9,7 +9,10 @@
   # den.aspects.workstation, dktaohan names it directly. Host-specific additions
   # go in workstation.nix or M-02877/dktaohan.nix.
   den.aspects.sharedDevtools = {
-    includes = [den.aspects.devtools];
+    # agentProviders points the CLI agents installed below at the model
+    # gateway. Included here rather than named per entity because every host
+    # that gets the agents needs them wired.
+    includes = [den.aspects.devtools den.aspects.agentProviders];
     homeManager = {
       pkgs,
       lib,
@@ -29,7 +32,9 @@
           bash-preexec
           agents.omp
           agents.pi
-          agents.claude-code
+          # claude-code comes from den.aspects.agentProviders instead: it ships
+          # a --settings-wrapped bin/claude, and two derivations providing that
+          # path collide in one profile.
           agents.claude-agent-acp
           agents.copilot-cli
           agents.codex

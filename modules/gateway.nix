@@ -62,6 +62,24 @@ in {
     # headroom rewrites prior turns and forwards to gateway's Claude endpoint.
     claudeUrl = facts.baseUrl + facts.paths.claude;
 
+    # Pi appends /v1/messages itself, so an anthropic-messages provider must
+    # stop at /anthropic rather than carry a version suffix. Named here so a
+    # consumer does not re-derive the asymmetry the vendor docs warn about
+    # (LEGO/ai-model-gateway-client, src/features/docs/pages/PiPage.tsx).
+    anthropicUrl = facts.baseUrl + facts.paths.anthropic;
+
+    # Model ids and their ceilings, one owner for every harness. The leading
+    # `_`-prefixed keys in gateway.json are prose for humans; strip them so a
+    # consumer can serialise a slot straight into a config file.
+    models =
+      builtins.mapAttrs
+      (_: model: lib.filterAttrs (name: _: !lib.hasPrefix "_" name) model)
+      facts.models;
+
+    # Just the ids, for consumers that only name a slot (Claude Code's
+    # ANTHROPIC_DEFAULT_*_MODEL, agent-shell's elisp substitutions).
+    modelIds = builtins.mapAttrs (_: model: model.id) facts.models;
+
     headroom = service "headroom";
     proxy = service "proxy";
     phoenix = service "phoenix";

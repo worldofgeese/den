@@ -12,6 +12,32 @@
     "profile": "secretspec.toml"
   },
 
+  "_models": "Addressing's other half: which ids exist, and the ceilings a harness must respect to hold them. Was duplicated across pi's models.json on M-02877 and Caveman Code's on mahakala, and the two disagreed (home-manager-8vh). Slot names are roles a harness asks for; ids are what the gateway publishes. contextWindow and maxTokens are the gateway's own enforced ceilings, measured 2026-09-19: it names its limit in the 400 body, both for max_tokens ('N > M, which is the maximum allowed number of output tokens') and for an oversized prompt ('prompt is too long: N tokens > M maximum'). GET /v1/models is not served (404), so a probe is the only first-hand source; re-measure rather than edit from memory.",
+  "models": {
+    "opus": {
+      "id": "eu.anthropic.claude-opus-5",
+      "name": "Opus 5 (LEGO)",
+      "reasoning": true,
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    "sonnet": {
+      "id": "eu.anthropic.claude-sonnet-5",
+      "name": "Sonnet 5 (LEGO)",
+      "reasoning": true,
+      "contextWindow": 1000000,
+      "maxTokens": 128000
+    },
+    "haiku": {
+      "_reasoning": "Stays false: a configured thinking level on Haiku 4.5 trips 'adaptive thinking is not supported on this model' (LEGO/ai-model-gateway-client, src/features/docs/pages/PiPage.tsx).",
+      "id": "eu.anthropic.claude-haiku-4-5-20251001-v1:0",
+      "name": "Haiku 4.5 (LEGO)",
+      "reasoning": false,
+      "contextWindow": 200000,
+      "maxTokens": 64000
+    }
+  },
+
   "headroom": {
     "image": "ghcr.io/headroomlabs-ai/headroom:latest",
     "containerPort": 8787,

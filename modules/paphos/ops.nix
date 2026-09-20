@@ -123,6 +123,17 @@ in {
             ' >/dev/null 2>&1; then
           record_failure oracle-tailscale-status
         fi
+
+        # Reachability above does not prove oracle still serves as a peer relay.
+        # `debug` is not stable CLI surface, so a probe that stops parsing is
+        # reported separately from a relay that is genuinely gone.
+        relay_servers="$(${tailscaleBin} debug peer-relay-servers 2>/dev/null || true)"
+        if ! ${jq}/bin/jq -e 'type == "array"' <<<"$relay_servers" >/dev/null 2>&1; then
+          record_failure oracle-peer-relay-probe-unavailable
+        elif ! ${jq}/bin/jq -e --arg ip "$oracle_tailscale_ip" 'any(.[]?; . == $ip)' \
+          <<<"$relay_servers" >/dev/null 2>&1; then
+          record_failure "oracle-peer-relay-not-advertised-$oracle_tailscale_ip"
+        fi
       fi
 
       if ! ${coreutils}/bin/timeout 5 bash -c "exec 3<>/dev/tcp/$oracle_host/22" 2>/dev/null; then

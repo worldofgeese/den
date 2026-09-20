@@ -4,11 +4,15 @@
 # default_type: task
 
 dolt:
-    mode: server
-    host: 127.0.0.1
-    port: 3307
-    database: beads
+  mode: server
+  host: 127.0.0.1
+  port: 3307
+  database: beads
 sync:
-    remote: "git+https://github.com/worldofgeese/den"
+  remote: "git+https://github.com/worldofgeese/den"
 agent:
-    profile: team-maintainer
+  profile: team-maintainer
+repos:
+  primary: "."
+  additional:
+    - "/home/worldofgeese/.beads-planning"

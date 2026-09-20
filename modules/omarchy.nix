@@ -129,11 +129,58 @@
         }
 
         shell_pid=""
-        trap 'if [ -n "$shell_pid" ]; then kill "$shell_pid" 2>/dev/null; fi; exit 0' TERM INT
+        terminating=0
 
+        stop() {
+          terminating=1
+          [ -n "$shell_pid" ] && kill -TERM "$shell_pid" 2>/dev/null
+          return 0
+        }
+        trap stop HUP INT TERM
+
+        attempts=0
+        window_started=$SECONDS
+
+        # Upstream's supervision logic, kept rather than simplified. The first
+        # version of this file dropped everything except compositor_alive and
+        # spun: Quickshell exits 0 when another instance already holds the
+        # configuration lock, printing "An instance of this configuration is
+        # already running", so a loop that only stops when the compositor dies
+        # relaunches it once a second forever. Measured before the fix: 2887
+        # respawns, a 471K log and three competing omarchy-launch-shell
+        # processes.
+        #
+        # So all three of upstream's exits are here:
+        #   - status 0 means the shell decided to stop, including the
+        #     already-running case. Not an error, and not something to retry.
+        #   - the attempt budget turns a crash loop into one bounded burst and
+        #     then a clear message, instead of an invisible spin.
+        #   - terminating is checked on both sides of the backoff, because a
+        #     signal during `sleep` is only delivered once the sleep returns.
         while true; do
+          [ "$terminating" = 1 ] && exit 0
+
           run_shell
+          status=$?
+
+          [ "$terminating" = 1 ] && exit 0
+          [ "$status" = 0 ] && exit 0
+
+          # Relaunching into a session already tearing down burns the budget.
           compositor_alive || exit 0
+
+          if [ $((SECONDS - window_started)) -gt 60 ]; then
+            attempts=0
+            window_started=$SECONDS
+          fi
+
+          attempts=$((attempts + 1))
+          if [ "$attempts" -gt 5 ]; then
+            echo "Giving up on the Omarchy shell after $attempts relaunches in under a minute." >>"$log_file"
+            exit 1
+          fi
+
+          echo "Omarchy shell exited with status $status; relaunching." >>"$log_file"
           sleep 1
         done
       '';

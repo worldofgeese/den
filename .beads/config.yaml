@@ -12,7 +12,3 @@ sync:
   remote: "git+https://github.com/worldofgeese/den"
 agent:
   profile: team-maintainer
-repos:
-  primary: "."
-  additional:
-    - "/home/worldofgeese/.beads-planning"

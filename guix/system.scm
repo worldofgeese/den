@@ -461,6 +461,63 @@ COMMIT
     ;; "fingerprint" prompt that silently waits for a typed password.
     (simple-service 'omarchy-lock-pam pam-root-service-type
                     (list (unix-pam-service "omarchy-lock-password")))
+    ;; The file ~/.XCompose includes. Omarchy's first run writes that anchor
+    ;; once and never rewrites it (so it cannot name a store path), and line 4
+    ;; of it is an unconditional `include "/etc/omarchy/xcompose"`. nixarchy
+    ;; supplies the target through environment.etc, which does not exist here.
+    ;;
+    ;; Without it the whole anchor fails to PARSE, not just the emoji half:
+    ;; libxkbcommon reports `failed to open included Compose file` and then
+    ;; `failed to parse file`, and returns no table at all, so every dead key
+    ;; and compose sequence in the session stops working. Measured directly
+    ;; against libxkbcommon 2026-09-20: the shipped ~/.XCompose FAILs and the
+    ;; same file with a resolvable include is OK, and foot in a real session
+    ;; printed "failed to instantiate compose table; dead keys (compose) will
+    ;; not work".
+    ;;
+    ;; plain-file with the content inline rather than a reference to the
+    ;; package's own default/xcompose: that tree lives in the Home Manager
+    ;; profile under /nix/store, which Guix cannot reference -- the same
+    ;; constraint that makes omarchy-desktop-session resolve its paths at run
+    ;; time. The content is a static table upstream changes rarely; it is
+    ;; reproduced verbatim from share/omarchy/default/xcompose (4.0.4),
+    ;; including the leading `include "%L"` that pulls in the locale's own
+    ;; sequences -- dropping that line would trade the missing-file failure for
+    ;; a silently smaller keymap.
+    (simple-service
+     'omarchy-xcompose etc-service-type
+     (list `("omarchy/xcompose"
+             ,(plain-file "omarchy-xcompose"
+                          "include \"%L\"
+
+# Emoji
+<Multi_key> <m> <s> : \"😄\" # smile
+<Multi_key> <m> <c> : \"😂\" # cry
+<Multi_key> <m> <l> : \"😍\" # love
+<Multi_key> <m> <v> : \"✌️\"  # victory
+<Multi_key> <m> <h> : \"❤️\"  # heart
+<Multi_key> <m> <y> : \"👍\" # yes
+<Multi_key> <m> <n> : \"👎\" # no
+<Multi_key> <m> <f> : \"🖕\" # fuck
+<Multi_key> <m> <w> : \"🤞\" # wish
+<Multi_key> <m> <r> : \"🤘\" # rock
+<Multi_key> <m> <k> : \"😘\" # kiss
+<Multi_key> <m> <e> : \"🙄\" # eyeroll
+<Multi_key> <m> <d> : \"🤤\" # droll
+<Multi_key> <m> <m> : \"💰\" # money
+<Multi_key> <m> <x> : \"🎉\" # xellebrate
+<Multi_key> <m> <1> : \"💯\" # 100%
+<Multi_key> <m> <t> : \"🥂\" # toast
+<Multi_key> <m> <p> : \"🙏\" # pray
+<Multi_key> <m> <i> : \"😉\" # wink
+<Multi_key> <m> <o> : \"👌\" # OK
+<Multi_key> <m> <g> : \"👋\" # greeting
+<Multi_key> <m> <a> : \"💪\" # arm
+<Multi_key> <m> <b> : \"🤯\" # blowing
+
+# Typography
+<Multi_key> <space> <space> : \"—\"
+"))))
     %my-services))
   (bootloader (bootloader-configuration
                (bootloader grub-efi-bootloader)

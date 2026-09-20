@@ -134,6 +134,27 @@ export PATH="$hm_profile/bin:$omarchy_path/bin:$PATH"
 # resolves the same collision.
 export XDG_DATA_DIRS="$hm_profile/share${XDG_DATA_DIRS:+:$XDG_DATA_DIRS}"
 
+# Fontconfig, for the same reason and from the same missing file. There is no
+# /etc/fonts on Guix System at all, so fontconfig has no default config to fall
+# back to: without FONTCONFIG_FILE every process in the session starts with
+# "Fontconfig error: Cannot load default config file: File not found" and then
+# resolves nothing. hm-session-vars.sh is again where this is normally exported
+# (line 46), and again nothing sources it here.
+#
+# Measured in a real seat0 session 2026-09-20: foot opened with
+# "Noto Sans Regular: font does not appear to be monospace" and drew the shell
+# in a PROPORTIONAL face, because `fc-match monospace` could not run the
+# monospace->JetBrains Mono rule that ~/.config/fontconfig/fonts.conf carries.
+# With this set the same lookup answers JetBrains Mono, and sans-serif still
+# answers Noto Sans, so nothing else moves.
+#
+# Guix Home writes that file (it is a store symlink under ~/.config), so this
+# names the path rather than a store path: regenerating the home environment
+# must not leave the session pointing at a collected config.
+if [ -r "$HOME/.config/fontconfig/fonts.conf" ]; then
+  export FONTCONFIG_FILE="$HOME/.config/fontconfig/fonts.conf"
+fi
+
 # A session bus, if nothing above provided one. dbus-run-session below would be
 # the alternative, but that would nest a second bus under the shepherd's.
 if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "$XDG_RUNTIME_DIR/bus" ]; then

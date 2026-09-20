@@ -321,9 +321,38 @@
       # libnotify and xdg-terminal-exec are already there (checked against the
       # 69-entry list, after first getting this wrong) and adding them again
       # would be a buildEnv conflict.
+      # The font every terminal config Omarchy ships names by family.
+      #
+      # foot.ini, kitty.conf, alacritty.toml, ghostty/config and
+      # default/foot/screensaver.ini all say `JetBrainsMono Nerd Font`, and
+      # nothing in passthru.runtimeDeps supplies a font at all (the only
+      # font-ish entry is fontconfig itself, checked). nixarchy's NixOS half
+      # installs it through fonts.packages, which does not exist here.
+      #
+      # Measured in a real seat0 session 2026-09-20: `fc-list` matched 0
+      # "JetBrainsMono Nerd" families, so foot fell back to Noto Sans and
+      # warned "font does not appear to be monospace" -- a proportional
+      # terminal. Guix's own JetBrains Mono is installed and is what the
+      # generic `monospace` alias resolves to, but it is NOT the Nerd Font
+      # patched build, so the glyphs the bar and the terminal prompt draw from
+      # the private use area still render as tofu without this.
+      #
+      # Only this one font, not the rest of nixarchy's fonts.packages list:
+      # Noto (sans, serif, CJK, colour emoji) is already installed on this
+      # machine through Guix Home, and Liberation is referenced solely by
+      # default/fontconfig/conf.avail/50-omarchy.conf, which is upstream's
+      # /etc/fonts/conf.d drop-in and is deliberately not installed here --
+      # ~/.config/fontconfig/fonts.conf already assigns the three generic
+      # families, and FONTCONFIG_FILE in the session launcher is what makes
+      # those assignments take effect.
+      #
+      # Omarchy's own icon font needs nothing: it travels inside the package at
+      # share/fonts/truetype/omarchy.ttf, and fonts.conf already lists the
+      # profile's share/fonts as a <dir>, so `fc-list` finds it (verified).
       home.packages = with pkgs; [
         gsettings-desktop-schemas
         gnome-themes-extra
+        nerd-fonts.jetbrains-mono
       ];
     };
   };

@@ -547,7 +547,7 @@ COMMIT
                      (shepherd-service
                       (provision '(nix-polkit-wrapper))
                       (requirement '(file-systems))
-                      (documentation "Expose polkit-agent-helper-1 at the NixOS wrapper path for Nix polkit clients (Quickshell).")
+                      (documentation "Expose polkit-agent-helper-1 and unix_chkpwd at the NixOS wrapper path for Nix PAM/polkit clients (Quickshell).")
                       (one-shot? #t)
                       (start #~(make-system-constructor
                                 (string-append
@@ -555,7 +555,47 @@ COMMIT
                                  " -p /run/wrappers/bin && "
                                  #$(file-append (specification->package "coreutils") "/bin/ln")
                                  " -sfT /run/privileged/bin/polkit-agent-helper-1"
-                                 " /run/wrappers/bin/polkit-agent-helper-1")))
+                                 " /run/wrappers/bin/polkit-agent-helper-1 && "
+                                 ;; unix_chkpwd, for the LOCK SCREEN.
+                                 ;;
+                                 ;; Same class of bug as the polkit helper and
+                                 ;; found because publishing only that one was
+                                 ;; not enough: the lock screen still rejected a
+                                 ;; correct password. Quickshell links Nix's
+                                 ;; libpam, /etc/pam.d/omarchy-lock-password
+                                 ;; names pam_unix.so, and Nix's pam_unix.so
+                                 ;; hardcodes /run/wrappers/bin/unix_chkpwd --
+                                 ;; the setuid helper it must exec to read
+                                 ;; /etc/shadow as a non-root user. That path
+                                 ;; did not exist, so authentication failed
+                                 ;; before ever reaching the shadow file, which
+                                 ;; PAM reports as PAM_AUTHINFO_UNAVAIL. The
+                                 ;; shell log showed exactly that: "Error while
+                                 ;; authenticating: Authentication service
+                                 ;; cannot retrieve authentication info".
+                                 ;;
+                                 ;; Guix's linux-pam is 1.7.2 and Nix's is
+                                 ;; 1.7.1/1.7.2, and unix_chkpwd's contract --
+                                 ;; user on argv, password on stdin, verdict in
+                                 ;; the exit status -- has been stable across
+                                 ;; those releases, so the Guix helper satisfies
+                                 ;; the Nix module. Guix's is also the only one
+                                 ;; that is setuid root; the Nix copy in the
+                                 ;; store is not, and could not read shadow.
+                                 ;;
+                                 ;; Verified by building a probe against NIX's
+                                 ;; libpam and Nix's glibc: before the symlink it
+                                 ;; returned PAM_AUTHINFO_UNAVAIL, after it
+                                 ;; returns Authentication failure (7) for a
+                                 ;; wrong password -- i.e. pam_unix is now
+                                 ;; actually consulting the shadow file. An
+                                 ;; earlier probe built against GUIX's libpam
+                                 ;; passed all along, which is why this was
+                                 ;; missed: it never used the module quickshell
+                                 ;; uses.
+                                 #$(file-append (specification->package "coreutils") "/bin/ln")
+                                 " -sfT /run/privileged/bin/unix_chkpwd"
+                                 " /run/wrappers/bin/unix_chkpwd")))
                       (stop #~(const #f)))))
     (simple-service 'cpu-undervolt shepherd-root-service-type
                     (list

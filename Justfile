@@ -267,13 +267,26 @@ check-decapod-overrides:
 check-guix:
     #!/usr/bin/env bash
     set -euo pipefail
-    if ! command -v guix >/dev/null 2>&1; then
+    # The PULLED guix, not whichever one PATH happens to offer.
+    #
+    # system.scm uses (nongnu packages linux) and (rosenthal services
+    # networking), which only a guix whose channels include nonguix and
+    # rosenthal can resolve. /run/current-system/profile/bin/guix knows only the
+    # channels the running system was built with, so under a session that puts
+    # the system profile first -- as the Omarchy session did until it was fixed
+    # to prepend ~/.config/guix/current/bin -- this check failed with "no code
+    # for module (nongnu packages linux)" on a config that builds perfectly
+    # well, which reads as a broken repository rather than a shadowed binary.
+    guix_bin=guix
+    if [ -x "$HOME/.config/guix/current/bin/guix" ]; then
+        guix_bin="$HOME/.config/guix/current/bin/guix"
+    elif ! command -v guix >/dev/null 2>&1; then
         echo "check-guix: guix not found, skipping"
         exit 0
     fi
     for scm in guix/system.scm guix/home-configuration.scm guix-packages/linux-cachyos.scm; do
         echo "check-guix: loading $scm"
-        guix repl -L guix-packages "$scm" >/dev/null
+        "$guix_bin" repl -L guix-packages "$scm" >/dev/null
     done
 
 # Everything `just check` covers, plus the checks that need extra tooling or

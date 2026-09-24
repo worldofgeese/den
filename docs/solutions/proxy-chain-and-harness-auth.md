@@ -49,8 +49,9 @@ Phoenix runs alongside on host `16006` → container `6006`.
 
 **pi does not use this chain.** pi talks straight to
 `https://api.genai.thelegogroup.com/anthropic` through the built-in
-`anthropic-messages` API declared in `models.json`
-(`modules/M-02877/dktaohan.nix`). The chain is for Claude Code.
+`anthropic-messages` API declared in `~/.pi/agent/models.json`, which is
+hand-maintained outside this repo (see Reference: model IDs). The chain is for
+Claude Code.
 
 ### mahakala (Guix System + Guix Home) — headroom only
 
@@ -89,7 +90,7 @@ The key is never a value in this repo — always a **command** that prints it:
 |---|---|
 | pi | `apiKey` in `models.json` is `!secretspec get -f …/secretspec.toml LEGO_GATEWAY_API_KEY --reason '...'`; `!` is pi's marker for "run this and use the output". `--reason` is required by secretspec's `require_reason` audit policy |
 | agent-shell | runs the same command at agent-process start, via advice on `agent-shell-anthropic-make-claude-client`; an empty or failing lookup raises a `user-error` naming the command instead of sending a blank header |
-| Claude Code | reads its own `~/.claude/settings.json` `env` block, which is **outside this repo** |
+| Claude Code | `apiKeyHelper` in `~/.claude/settings.json` runs the same `secretspec get` command; Claude Code sends its output as both headers. It is set **per profile** by `harness-profile` (`~/.claude/profiles/{direct,gateway}.json`), not by hand: `apiKeyHelper` outranks OAuth, so `harness-profile use enterprise` removes it. `settings.json` holds no token |
 
 Both `Authorization: Bearer <key>` and `x-api-key: <key>` reach the gateway
 unchanged through the chain.
@@ -99,7 +100,30 @@ unchanged through the chain.
 `modules/M-02877/darwin.nix` deliberately sets no `ANTHROPIC_*` variables on the
 `gascity-supervisor` agent. Claude Code's `~/.claude/settings.json` `env` block
 overrides the inherited environment, so anything set in launchd is silently
-ignored. Gateway URL, token, and model IDs live there.
+ignored. Gateway URL and model IDs live there; the token does not — it comes
+from `apiKeyHelper`.
+
+A failing helper does not fail fast. With a bad or empty key the gateway returns
+`401 {"detail":"Invalid authentication"}` and Claude Code retries up to 11 times
+with backoff, so a broken `secretspec` looks like a hang of about two minutes, not
+an error. Check `harness-profile status`, then run the helper command by hand.
+
+### Other Claude Code secrets
+
+Until 2026-09-23 `settings.json` `env` also inlined `CONFLUENCE_API_TOKEN`,
+`CONTEXT7_API_KEY` and `GITHUB_PAT`, as well as a *second* gateway key distinct from
+`LEGO_GATEWAY_API_KEY`. Every `harness-profile` backup and many agent transcripts
+copied them. All four are treated as exposed. The `env` block cannot run commands,
+so each consumer now resolves its token itself:
+
+| secret | consumer | resolved by |
+|---|---|---|
+| `CONFLUENCE_API_TOKEN` | `mdc` (the `/confluence` command, `edit-confluence-page` skill) | zsh `initContent` in `modules/M-02877/dktaohan.nix` exports it from secretspec |
+| `CONTEXT7_API_KEY` | `context7-mcp` in `~/.claude.json`; `ctx7` CLI | the MCP server's `/bin/sh -c` command runs `secretspec get` before `exec npx`; zsh also exports it for `ctx7` |
+| `GITHUB_PAT` | none found (`gh` uses its own token) | declared in `secretspec.toml` only; `secretspec get GITHUB_PAT` on demand |
+
+Zsh exports only reach processes started from a login shell. Anything launched
+by launchd or a GUI app that needs Confluence must resolve the token itself.
 
 ## Reference: model IDs
 

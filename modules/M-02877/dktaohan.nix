@@ -396,6 +396,20 @@
             export CHORUS_API_KEY="$chorus_key"
           fi
         fi
+
+        # Tokens that used to sit inline in ~/.claude/settings.json `env`, which
+        # leaked them into every settings backup and agent transcript. Claude
+        # Code's env block cannot run commands, so the shell resolves them
+        # instead: mdc (Confluence) and ctx7 read these from the environment.
+        if command -v secretspec &>/dev/null; then
+          for secret_name in CONFLUENCE_API_TOKEN CONTEXT7_API_KEY; do
+            if [ -z "''${(P)secret_name:-}" ]; then
+              secret_value="$(secretspec get -f "$HOME/.config/home-manager/secretspec.toml" "$secret_name" --reason "zsh session env for $secret_name" 2>/dev/null || true)"
+              [ -n "$secret_value" ] && export "$secret_name=$secret_value"
+            fi
+          done
+          unset secret_name secret_value
+        fi
       '';
       programs.zsh.enable = true;
     };

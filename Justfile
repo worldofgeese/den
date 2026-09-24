@@ -323,7 +323,9 @@ check-doom-darwin:
     package_names=$(nix eval --no-warn-dirty --json .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.packages \
       --apply 'ps: map (p: p.pname or p.name) ps')
     [[ "$package_names" == *'"omp"'* ]]
-    [[ "$package_names" == *'"claude-code"'* ]]
+    # agent-providers.nix replaces agents.claude-code with this wrapper (same
+    # bin/claude, gateway env baked in); two packages cannot both ship bin/claude.
+    [[ "$package_names" == *'"claude-code-gateway"'* ]]
     [[ "$package_names" == *'"claude-agent-acp"'* ]]
     [[ "$package_names" == *'"copilot-cli"'* ]]
     echo "Darwin Doom launchers validated: $wrapper"

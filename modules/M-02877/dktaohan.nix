@@ -5,7 +5,25 @@
       lib,
       config,
       ...
-    }: {
+    }: let
+      # Nix signs apps ad hoc, so macOS privacy grants (App Management, Full
+      # Disk Access) are pinned to one build's cdhash and silently reset on the
+      # next rebuild. This re-signs Home Manager's app copies with a local
+      # certificate so grants survive; `hm-app-signing heal` (or
+      # `just heal-app-permissions`) is the one-command repair.
+      hmAppSigning = pkgs.writeShellApplication {
+        name = "hm-app-signing";
+        runtimeInputs = [pkgs.openssl pkgs.secretspec];
+        text = builtins.readFile ../../scripts/hm-app-signing.sh;
+      };
+    in {
+      # After copyApps: it rsyncs the ad-hoc build back over the app on every
+      # activation. --activation turns every failure into a warning, because a
+      # failing step aborts the rest of nix-darwin activation.
+      home.activation.signHomeManagerApps = lib.hm.dag.entryAfter ["copyApps"] ''
+        run ${lib.getExe hmAppSigning} sign --activation
+      '';
+
       programs.home-manager.enable = true;
       xdg.enable = true;
       fonts.fontconfig.enable = true;
@@ -43,6 +61,7 @@
       };
 
       home.packages = with pkgs; [
+        hmAppSigning
         alejandra
         nh
         headsetcontrol

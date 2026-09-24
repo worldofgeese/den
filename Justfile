@@ -412,6 +412,23 @@ cachix-push flake-attr=default-cachix-attr:
       | cachix push worldofgeese'
 
 # Update a single flake input
+# One-command repair when a Nix-built app's macOS privacy toggle (App
+# Management, Full Disk Access) keeps switching itself off. Signs the app with a
+# stable local identity, clears the stale grants and opens System Settings. See
+# scripts/hm-app-signing.sh. Falls back to the repo copy before the first deploy.
+heal-app-permissions:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v hm-app-signing >/dev/null; then exec hm-app-signing heal; fi
+    exec bash ./scripts/hm-app-signing.sh heal
+
+# Report whether app privacy grants will survive the next rebuild.
+app-permissions-status:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if command -v hm-app-signing >/dev/null; then exec hm-app-signing status; fi
+    exec bash ./scripts/hm-app-signing.sh status
+
 update-input input:
     timeout -s KILL 900 nix flake update --no-warn-dirty {{input}}
 

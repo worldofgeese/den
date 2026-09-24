@@ -277,6 +277,11 @@
           "worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs="
           "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
         ];
+        # With numtide declared above, this host needs nothing from flake.nix's
+        # nixConfig. Decline it outright instead of per user: root (which runs
+        # darwin-rebuild) keeps its own trust file, and an unanswered prompt
+        # there would stall an unattended deploy.
+        accept-flake-config = false;
       };
 
       users.users.dktaohan.home = "/Users/dktaohan";

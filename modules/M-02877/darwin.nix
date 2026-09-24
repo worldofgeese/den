@@ -260,9 +260,22 @@
         # decapod bump otherwise costs a local Rust build. Note the cache cannot
         # be populated from mahakala: entries are per system and this host is
         # aarch64-darwin.
-        extra-substituters = ["https://worldofgeese.cachix.org"];
+        #
+        # cache.numtide.com serves llm-agents (pi, claude-code, omp). It is also
+        # in flake.nix's nixConfig, but a flake's substituters only apply after an
+        # interactive per-value trust prompt, and that value now also lists the
+        # Linux-only nixarchy and Hyprland caches. Declared here, this host gets
+        # numtide unconditionally and can decline the flake's list: nothing in
+        # it builds for aarch64-darwin, and each entry is another narinfo
+        # lookup per path. An unanswered prompt also failed the pre-commit
+        # `just check` outright on 2026-09-24.
+        extra-substituters = [
+          "https://worldofgeese.cachix.org"
+          "https://cache.numtide.com"
+        ];
         extra-trusted-public-keys = [
           "worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs="
+          "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
         ];
       };
 

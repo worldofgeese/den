@@ -13,15 +13,19 @@
       # `just heal-app-permissions`) is the one-command repair.
       hmAppSigning = pkgs.writeShellApplication {
         name = "hm-app-signing";
-        runtimeInputs = [pkgs.openssl pkgs.secretspec];
+        # Everything not under /usr: Home Manager activation runs with a minimal
+        # PATH (no awk), which killed the first deploy with exit 127.
+        runtimeInputs = with pkgs; [openssl secretspec coreutils gawk gnused gnugrep];
         text = builtins.readFile ../../scripts/hm-app-signing.sh;
       };
     in {
       # After copyApps: it rsyncs the ad-hoc build back over the app on every
-      # activation. --activation turns every failure into a warning, because a
-      # failing step aborts the rest of nix-darwin activation.
+      # activation. A failing step aborts the rest of nix-darwin activation, so
+      # --activation turns expected failures into warnings and the `||` catches
+      # anything unexpected (a missing tool did exactly that on 2026-09-24).
       home.activation.signHomeManagerApps = lib.hm.dag.entryAfter ["copyApps"] ''
-        run ${lib.getExe hmAppSigning} sign --activation
+        run ${lib.getExe hmAppSigning} sign --activation ||
+          echo "hm-app-signing: warning: signing failed; run 'hm-app-signing heal'" >&2
       '';
 
       programs.home-manager.enable = true;

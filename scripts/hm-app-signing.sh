@@ -26,6 +26,8 @@ readonly SECRETSPEC_FILE="${HM_APP_SIGNING_SECRETSPEC_FILE:-${HOME}/.config/home
 readonly SECURITY=/usr/bin/security
 readonly CODESIGN=/usr/bin/codesign
 readonly TCCUTIL=/usr/bin/tccutil
+readonly OPEN=/usr/bin/open
+readonly PLISTBUDDY=/usr/libexec/PlistBuddy
 # Newline-separated bundle paths; the Nix wrapper sets this.
 readonly APPS="${HM_APP_SIGNING_APPS:-${HOME}/Applications/Home Manager Apps/WezTerm.app}"
 # TCC services whose stale grants `heal` clears. App Management is the one that
@@ -227,14 +229,14 @@ cmd_heal() {
   cmd_sign
   while IFS= read -r app; do
     [ -d "$app" ] || continue
-    bid=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Contents/Info.plist")
+    bid=$("$PLISTBUDDY" -c 'Print :CFBundleIdentifier' "$app/Contents/Info.plist")
     for svc in $HEAL_SERVICES; do
       "$TCCUTIL" reset "$svc" "$bid" >/dev/null 2>&1 || true
     done
     say "cleared stale privacy grants for ${bid}"
-    open -R "$app"
+    "$OPEN" -R "$app"
   done < <(each_app)
-  open "x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles"
+  "$OPEN" "x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles"
   cat >&2 <<EOF
 
 Now, once:

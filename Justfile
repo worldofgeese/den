@@ -386,8 +386,14 @@ check-doom-linux-image:
 
 
 # Update all flake inputs
+# Lix 2.95 can hang forever after the last tarball finishes streaming: the
+# socket stays ESTABLISHED with no bytes, so stalled-download-timeout never
+# fires. On 2026-09-24 this stalled a topgrade run for 45 minutes. SIGKILL,
+# not SIGTERM: on SIGTERM Lix writes whatever it has locked so far, leaving a
+# partial flake.lock; SIGKILL leaves the old lock intact. A healthy update
+# takes one to two minutes, so fifteen is a hang, not a slow network.
 update:
-    nix flake update --no-warn-dirty
+    timeout -s KILL 900 nix flake update --no-warn-dirty
 
 # Push this machine's closure to the worldofgeese Cachix cache so other hosts
 # fetch instead of rebuilding. Reads CACHIX_AUTH_TOKEN from secretspec
@@ -405,7 +411,7 @@ cachix-push flake-attr=default-cachix-attr:
 
 # Update a single flake input
 update-input input:
-    nix flake update --no-warn-dirty {{input}}
+    timeout -s KILL 900 nix flake update --no-warn-dirty {{input}}
 
 # Bump the pinned CachyOS kernel version/hashes in guix-packages/linux-cachyos.scm.
 # Edits the file only -- builds nothing. Follow with `just kernel-build`.

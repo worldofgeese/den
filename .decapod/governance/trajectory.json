@@ -10,6 +10,7 @@
   "next_transitions": [
     "Publish the validated workspace; inspect required checks; merge after checks pass",
     "Publish this validated branch to worldofgeese/den main, wait for required checks, then merge if GitHub permits.",
+    "Retry Decapod publication after validation, with the broken linked-worktree commit hook disabled for this invocation only.",
     "final validation receipt, status review, and task closure",
     "publish",
     "review the isolated workspace changes; publication remains unauthorized",
@@ -64,6 +65,7 @@
     "just check"
   ],
   "tool_calls": [
+    "Decapod workspace publish commit hook failed because container lacks just; host Justfile hook installer cannot target linked-worktree .git/hooks.",
     "Reviewed upstream Doom :ui zen, Writeroom, and evil-escape documentation",
     "User authorized all work required to merge this Doom configuration change to main.",
     "Web search of official Doom module, Evil escape, Olivetti, and Writeroom documentation."
@@ -80,6 +82,10 @@
     {
       "name": "beads_task_closure",
       "status": "passed"
+    },
+    {
+      "name": "commit_hook",
+      "status": "partial"
     },
     {
       "name": "configuration_edit",
@@ -149,6 +155,7 @@
     "GitHub metadata confirms worldofgeese/den is the Home Manager configuration repository; denful/den is a separate repository.",
     "Official Doom :ui zen documentation confirms writeroom-mode, centered text, and +zen/toggle-fullscreen.",
     "Plan state DONE after all implementation proof hooks were satisfied, including the documented worktree-specific just check path",
+    "The Just check body passed with --no-deps; BD_GIT_HOOK=1 bd hooks run pre-commit passed; Decapod validation passed inside the workspace container.",
     "The earlier no-publication boundary applied before the explicit merge instruction and is superseded by that instruction.",
     "Upstream Doom documents :ui zen buffer toggle as SPC t z and fullscreen toggle as SPC t Z; Writeroom width is configurable in characters and defaults to 80",
     "User authorization: Do everything you need to merge to main.",
@@ -168,7 +175,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "caution"
   },
-  "artifact_hash": "sha256:48c670e6744955a1c69779132649baed705c7be555d83620cfc221c9a698359a",
+  "artifact_hash": "sha256:23e8dac2daaf2c529ba88c0d2beea1e8ec6b65ab51d432622ef877eafe9b91b8",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -263,6 +270,13 @@
       {
         "sequence": 12,
         "event_id": "event:12",
+        "intent_id": "intent:run_01m3as33x3vq576p",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run_01m3as33x3vq576p"
+      },
+      {
+        "sequence": 13,
+        "event_id": "event:13",
         "intent_id": "intent:run_01m3as33x3vq576p",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run_01m3as33x3vq576p"
@@ -485,12 +499,30 @@
             "proof_refs": [],
             "validation_findings": [],
             "custody_event_id": "event:12"
+          },
+          {
+            "sequence": 13,
+            "action": "trajectory.record",
+            "tool": "Decapod workspace publish commit hook failed because container lacks just; host Justfile hook installer cannot target linked-worktree .git/hooks.",
+            "scope": [
+              "Doom Emacs jk escape and 80-column focused writing mode",
+              "Doom configuration and living specs only",
+              "modules/doom.d/init.el, modules/doom.d/config.el, .decapod/managed/specs"
+            ],
+            "observations": [
+              "The Just check body passed with --no-deps; BD_GIT_HOOK=1 bd hooks run pre-commit passed; Decapod validation passed inside the workspace container."
+            ],
+            "proof_refs": [
+              "commit_hook"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:13"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 12
+    "next_sequence": 13
   }
 }

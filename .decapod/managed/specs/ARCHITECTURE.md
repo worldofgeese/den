@@ -119,6 +119,20 @@ Home Manager owns user-space tools; Pi is sourced from the flake's
 manual because they are user credentials and network policy, not reproducible
 package state.
 
+### Homebrew Cask Upgrade Guard
+Activation's `brew bundle` upgrades casks, including self-updating ones. The
+self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)
+can leave root-owned files. This user may not run `sudo`, so Homebrew then can't
+move the app aside, and the failed upgrade can delete part of the bundle first.
+`just deploy-darwin` therefore runs `scripts/cask-app-preflight.sh` before
+`darwin-rebuild`. It moves leftover Caskroom backups of failed upgrades to the
+Trash, and stops the deploy if any casked app has files not owned by the user,
+printing one `osascript` admin command that changes ownership only.
+`/etc/homebrew/brew.env` (`modules/M-02877/homebrew-env.nix`) turns off Homebrew's
+env hints and the sudo service-domain warning. It is the only place those
+settings reach activation's `brew bundle`, which runs through
+`sudo --preserve-env=PATH`.
+
 ## Change Propagation Checklist
 - [ ] Component ownership remains singular and explicit.
 - [ ] Inbound/outbound calls and data flow are still represented.

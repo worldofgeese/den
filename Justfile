@@ -195,7 +195,12 @@ deploy-oracle host="" build-host="":
 # derivations, 10m35s -- none of which were cached, because the push was a
 # manual target nobody ran. The push is non-fatal on purpose: a failed upload
 # means a slow next deploy, not a broken this one.
+#
+# cask-app-preflight runs first: activation's `brew bundle` upgrades casks, and
+# an upgrade over an app with root-owned files fails and can leave the app
+# half-deleted. See scripts/cask-app-preflight.sh.
 deploy-darwin:
+    ./scripts/cask-app-preflight.sh
     sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
     @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 

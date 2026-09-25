@@ -78,6 +78,18 @@
       # which has no such prompt. `just secretspec-age-setup` does the one-off
       # migration.
       #
+      # Tool-agnostic user MCP config. pi reads it through pi-mcp-adapter (pi has
+      # no MCP client of its own). directTools lists mcp-nixos's tools next to
+      # read/bash rather than behind the adapter's search proxy, so agents look
+      # up packages and options instead of running slow `nix eval`s.
+      xdg.configFile."mcp/mcp.json".text = builtins.toJSON {
+        mcpServers.nixos = {
+          command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
+          args = [];
+          directTools = true;
+        };
+      };
+
       # force: the file used to be hand-written by `secretspec config init`.
       xdg.configFile."secretspec/config.toml" = {
         force = true;

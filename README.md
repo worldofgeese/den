@@ -280,6 +280,13 @@ git add secretspec.age
 secretspec set HOMEBREW_GITHUB_API_TOKEN   # later writes also go to personal
 ```
 
+The age identity in the Keychain is the only way to decrypt `secretspec.age`. Back it up in a password manager:
+
+```bash
+just secretspec-age-backup                 # copies it to the clipboard, clears after 60s
+pbpaste | just secretspec-age-restore      # on a new Mac, after copying it from the manager
+```
+
 ## Guix
 
 The `guix/` directory contains GNU Guix configurations for the mahakala workstation (system + home). These are managed independently from Nix. Use the Justfile recipes:

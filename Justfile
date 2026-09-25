@@ -454,6 +454,36 @@ secretspec-age-setup:
     secretspec check -f "$spec" --reason "verify secretspec.age after migration" </dev/null
     echo "done: commit secretspec.age (git add secretspec.age)"
 
+# Copy the secretspec.age identity to the clipboard, so it can be pasted into a
+# password manager. Without it secretspec.age cannot be decrypted. It never
+# reaches the terminal, scrollback, or a file. The clipboard is cleared after 60
+# seconds. Reading the item raises one Keychain dialog for `security`.
+# Restore on a new Mac with: pbpaste | just secretspec-age-restore
+#
+# Copy the secretspec age identity to the clipboard for backup
+secretspec-age-backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    security find-generic-password -a "$USER" -s "secretspec/home-manager/_provider/identity" -w \
+      | tr -d '\n' | pbcopy
+    echo "identity copied; paste it into your password manager now (clipboard clears in 60s)"
+    ( sleep 60; printf '' | pbcopy ) >/dev/null 2>&1 &
+
+# Store a backed-up secretspec.age identity (read from stdin) in the Keychain,
+# trusted for the current secretspec build. For a new or rebuilt Mac.
+#
+# Restore the secretspec age identity from stdin into the Keychain
+secretspec-age-restore:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    id="$(tr -d '[:space:]')"
+    [[ "$id" =~ ^AGE-PLUGIN-PQ-1[A-Z0-9]+$ ]] || { echo "stdin is not an age-plugin-pq identity" >&2; exit 1; }
+    real="$(readlink -f "$(dirname "$(readlink -f "$(command -v secretspec)")")/.secretspec-wrapped")"
+    printf 'add-generic-password -U -a %s -s %s -l %s -T %s -w %s\n' \
+      "$USER" "secretspec/home-manager/_provider/identity" "secretspec-age-identity" "$real" "$id" \
+      | security -i
+    secretspec check -f "$PWD/secretspec.toml" --reason "verify restored secretspec.age identity" </dev/null
+
 # Update a single flake input
 # One-command repair when a Nix-built app's macOS privacy toggle (App
 # Management, Full Disk Access) keeps switching itself off. Signs the app with a
@@ -494,9 +524,16 @@ check-fmt:
 
 # Install git hooks (pre-commit runs 'just check'). Also runs as a `just check`
 # prerequisite, so this is idempotent and safe to re-run.
+# --git-common-dir, not .git: in a linked worktree (every Decapod workspace)
+# .git is a file, so `cp ... .git/hooks/` failed and took `just check` and the
+# pre-commit hook down with it.
 install-hooks:
-    cp .githooks/pre-commit .git/hooks/pre-commit
-    chmod +x .git/hooks/pre-commit
+    #!/usr/bin/env bash
+    set -euo pipefail
+    hooks="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+    mkdir -p "$hooks"
+    cp .githooks/pre-commit "$hooks/pre-commit"
+    chmod +x "$hooks/pre-commit"
 
 # Build Oracle Cloud NixOS OCI qcow2 (aarch64-linux; cross-build needs binfmt)
 build-oracle-image:

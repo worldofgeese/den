@@ -7,23 +7,19 @@ guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.
 # GC root for the built CachyOS kernel. Keeps a kernel alive between
 # `just kernel-build` and the `guix system reconfigure` that adopts it.
 kernel-gc-root := "/var/guix/gcroots/cachyos-bore-kernel"
+repo-dir := justfile_directory()
 
 # Closure `just cachix-push` uploads by default. Cache entries are per system,
 # so each host pushes its own: mahakala the Home Manager activation package,
 # M-02877 the nix-darwin system.
-default-cachix-attr := if os() == "macos" {
-  ".#darwinConfigurations.M-02877.system"
-} else {
-  ".#homeConfigurations.worldofgeese.activationPackage"
-}
+default-cachix-attr := if os() == "macos" { ".#darwinConfigurations.M-02877.system" } else { ".#homeConfigurations.worldofgeese.activationPackage" }
 
 default:
     @just --list
 
 # Deploy everything on mahakala (Guix System + Guix Home + Home Manager)
 deploy-mahakala:
-    just guix-pull-system
-    just deploy-mahakala-system
+    just deploy-mahakala-system-full
     just guix-pull-home
     just deploy-mahakala-guix-only
     just update
@@ -57,7 +53,7 @@ deploy-mahakala-hm:
 # are pinned to their public keys in flake.nix, so this accepts those keys rather
 # than whatever substituter a future input might add.
 deploy-mahakala-hm-only:
-    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\naccept-flake-config = true')" home-manager switch --flake .#worldofgeese
+    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\naccept-flake-config = true')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"
     update-desktop-database ~/.local/share/applications
     @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
@@ -71,13 +67,13 @@ deploy-mahakala-guix:
 
 # Pull the user's Guix channels only (no reconfigure)
 guix-pull-home:
-    guix pull --substitute-urls="{{guix-substitute-urls}}" -C guix/channels.scm
+    guix pull --substitute-urls="{{ guix-substitute-urls }}" -C "{{ repo-dir }}/guix/channels.scm"
 
 # Reconfigure Guix Home against the user's CURRENT channels (no pull).
 # Telegram's C++ build exhausts 16 GiB at the daemon's four-core default,
 # so serialize Home builds when no substitute is available.
 deploy-mahakala-guix-only:
-    guix home reconfigure --substitute-urls="{{guix-substitute-urls}}" --cores=1 guix/home-configuration.scm
+    guix home reconfigure --substitute-urls="{{ guix-substitute-urls }}" --cores=1 "{{ repo-dir }}/guix/home-configuration.scm"
 
 # Split out from reconfigure because a pull can bump nonguix's kernel base config
 # (e.g. 7.0-x86_64.conf -> 7.1-x86_64.conf), which changes the
@@ -86,7 +82,7 @@ deploy-mahakala-guix-only:
 
 # Pull root's Guix channels only (no reconfigure)
 guix-pull-system:
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{guix-substitute-urls}}" -C /home/worldofgeese/.config/home-manager/guix/channels.scm'
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{ guix-substitute-urls }}" -C "{{ repo-dir }}/guix/channels.scm"'
 
 # No pull: reconfigures against root's CURRENT channels. If the kernel derivation
 # is not already in the store this builds it inline (~3h on 4 cores). Run
@@ -94,7 +90,7 @@ guix-pull-system:
 
 # Reconfigure Guix System against root's current channels (requires sudo)
 deploy-mahakala-system:
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix system reconfigure --substitute-urls="{{guix-substitute-urls}}" --fallback -L /home/worldofgeese/.config/home-manager/guix-packages /home/worldofgeese/.config/home-manager/guix/system.scm'
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix system reconfigure --substitute-urls="{{ guix-substitute-urls }}" --fallback -L "{{ repo-dir }}/guix-packages" "{{ repo-dir }}/guix/system.scm"'
 
 # The occasional "I accept a multi-hour kernel build" path.
 
@@ -114,7 +110,7 @@ kernel-status:
     # -n as well as -d: a bare `guix build -d` blocks on the build lock whenever a
     # kernel build is already running, and a status probe must never hang.
     # -n prints prose rather than a bare path, so scrape the .drv out of it.
-    drv=$(sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build -n -d -L /home/worldofgeese/.config/home-manager/guix-packages -e "(@ (linux-cachyos) linux-cachyos-bore)"' 2>&1 \
+    drv=$(sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build -n -d -L "{{ repo-dir }}/guix-packages" -e "(@ (linux-cachyos) linux-cachyos-bore)"' 2>&1 \
         | grep -ao '/gnu/store/[a-z0-9]\{32\}-linux-cachyos-bore-[0-9.]*\.drv' | head -1)
     if [[ -z "$drv" || ! -e "$drv" ]]; then
         echo "kernel-status: could not evaluate kernel derivation" >&2
@@ -130,7 +126,7 @@ kernel-status:
     fi
     # -e, not just readlink: readlink -f on a missing path echoes the path back,
     # which would misreport "stale" when no root has ever been created.
-    if [[ -L {{kernel-gc-root}} ]] && root=$(readlink -f {{kernel-gc-root}}) && [[ -e "$root" ]]; then
+    if [[ -L {{ kernel-gc-root }} ]] && root=$(readlink -f {{ kernel-gc-root }}) && [[ -e "$root" ]]; then
         if [[ "$root" == "$out" ]]; then
             echo "gc-root:    pinned (survives guix gc)"
         else
@@ -154,17 +150,17 @@ kernel-build:
     log="/tmp/cachyos-bore-build-$(date +%Y%m%d-%H%M%S).log"
     echo "kernel-build: logging to $log"
     echo "kernel-build: follow with  tail -f $log"
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{guix-substitute-urls}}" --fallback --root={{kernel-gc-root}} -L /home/worldofgeese/.config/home-manager/guix-packages -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
-    echo "kernel-build: done -> $(readlink -f {{kernel-gc-root}})"
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{ guix-substitute-urls }}" --fallback --root={{ kernel-gc-root }} -L "{{ repo-dir }}/guix-packages" -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
+    echo "kernel-build: done -> $(readlink -f {{ kernel-gc-root }})"
 
 # Deploy NixOS on paphos (remote server; build on target by default)
 deploy-paphos host="paphos" build-host="paphos" user="kypris":
     just update
-    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{user}}@{{host}} --build-host {{user}}@{{build-host}} --use-remote-sudo
+    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{ user }}@{{ host }} --build-host {{ user }}@{{ build-host }} --use-remote-sudo
 
 # Deploy Paphos against current flake.lock without refreshing inputs.
 deploy-paphos-locked host="paphos" build-host="paphos" user="kypris":
-    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{user}}@{{host}} --build-host {{user}}@{{build-host}} --use-remote-sudo
+    NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#paphos --target-host {{ user }}@{{ host }} --build-host {{ user }}@{{ build-host }} --use-remote-sudo
 
 # Deploy NixOS on oracle (Oracle Cloud aarch64; build on target by default).
 # The address comes from oracle.json, the same file modules/oracle/facts.nix reads,
@@ -174,8 +170,8 @@ deploy-oracle host="" build-host="":
     #!/usr/bin/env bash
     set -euo pipefail
     default="$(python3 -c 'import json; f = json.load(open("oracle.json")); print(f["deployUser"] + "@" + f["publicIp"])')"
-    target="{{host}}"
-    build="{{build-host}}"
+    target="{{ host }}"
+    build="{{ build-host }}"
     [[ -n "$target" ]] || target="$default"
     [[ -n "$build" ]] || build="$default"
     NIX_CONFIG='warn-dirty = false' nix run nixpkgs#nixos-rebuild -- switch --flake .#oracle --target-host "$target" --build-host "$build" --use-remote-sudo
@@ -341,7 +337,7 @@ check-doom-linux-image:
     #!/usr/bin/env bash
     set -euo pipefail
     podman run --rm --arch amd64 --privileged --security-opt label=disable \
-      -v doom-linux-nix:/nix -v "{{justfile_directory()}}:/work:ro" -w /work \
+      -v doom-linux-nix:/nix -v "{{ justfile_directory() }}:/work:ro" -w /work \
       docker.io/nixos/nix:2.31.2 sh -lc '
         set -euo pipefail
         git config --global --add safe.directory /work
@@ -391,7 +387,6 @@ check-doom-linux-image:
                       (funcall mcp-names))))'\''
       '
 
-
 # Update all flake inputs
 # Lix 2.95 can hang forever after the last tarball finishes streaming: the
 # socket stays ESTABLISHED with no bytes, so stalled-download-timeout never
@@ -413,7 +408,7 @@ update:
 # Push the current closure to Cachix
 cachix-push flake-attr=default-cachix-attr:
     secretspec run --reason "push closure to worldofgeese Cachix cache" -- sh -c '\
-      nix build --no-link --print-out-paths --no-warn-dirty {{flake-attr}} \
+      nix build --no-link --print-out-paths --no-warn-dirty {{ flake-attr }} \
       | cachix push worldofgeese'
 
 # M-02877: make secretspec.age readable with no dialog at all. Creates this
@@ -507,7 +502,7 @@ app-permissions-status:
     exec bash ./scripts/hm-app-signing.sh status
 
 update-input input:
-    timeout -s KILL 900 nix flake update --no-warn-dirty {{input}}
+    timeout -s KILL 900 nix flake update --no-warn-dirty {{ input }}
 
 # Bump the pinned CachyOS kernel version/hashes in guix-packages/linux-cachyos.scm.
 # Edits the file only -- builds nothing. Follow with `just kernel-build`.
@@ -572,10 +567,10 @@ oracle-tofu-plan:
     cd terraform/oracle && nix run nixpkgs#opentofu -- plan
 
 oracle-tofu-apply:
-	cd terraform/oracle && nix run nixpkgs#opentofu -- apply -auto-approve
+    cd terraform/oracle && nix run nixpkgs#opentofu -- apply -auto-approve
 
 oracle-tofu-output output:
-    cd terraform/oracle && nix run nixpkgs#opentofu -- output -raw {{output}}
+    cd terraform/oracle && nix run nixpkgs#opentofu -- output -raw {{ output }}
 
 # Back up local OpenTofu state to gopass (never commit state to git)
 oracle-tofu-backup-state:

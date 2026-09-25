@@ -1,27 +1,28 @@
 {
   "schema_version": "1.0.0",
-  "title": "cask preflight: recorded appdir only",
-  "intent": "Make scripts/cask-app-preflight.sh check only the appdir Homebrew recorded for each cask, so MDM-managed, SIP-protected copies elsewhere (Jamf's /Applications/Claude.app) no longer block just deploy-darwin.",
+  "title": "Mahakala upgrades and ath10k recovery",
+  "intent": "Refresh shared flake inputs and Guix channels, verify the QCA6174 identity, update only Mahakala deployment paths and boot configuration, build and deploy Mahakala profiles, and verify active generations. Preserve the root checkout and do not force an immediate reboot.",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m3cc5fa7ygx76g"
+    "code_01m3astjeenawnc2"
   ],
   "proof_hooks": [
-    "live run on M-02877: exit 0 after the chown of the four brew-managed /Applications apps; Claude's recorded appdir is ~/Applications",
-    "shellcheck, bash 3.2 syntax, just check, container decapod validate pass"
+    "lspci confirms 02:00.0 is QCA6174 168c:003e bound to ath10k_pci; the built module exposes reset_mode=0 auto and reset_mode=1 warm only.",
+    "Mahakala Justfile system, channel, and kernel recipes resolve paths from the active Justfile directory so isolated-worktree deployments use the checked source.",
+    "Refreshed flake and Guix inputs pass targeted Nix, Guix, and Home Manager checks; just deploy-mahakala succeeds without changing other hosts.",
+    "Do not force a reboot; report activated generations and reserve runtime ath10k probe verification for the next controlled boot."
   ],
   "unknowns": [],
   "human_questions": [],
-  "stop_conditions": [],
+  "stop_conditions": [
+    "If live PCI identity or driver differs from QCA6174 and ath10k_pci, do not add the ath10k-specific reset argument."
+  ],
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
-    "forbidden_paths": [
-      "Justfile",
-      "install.sh"
-    ],
-    "file_touch_budget": null
+    "forbidden_paths": [],
+    "file_touch_budget": 16
   },
   "phases": [],
-  "updated_at": "1790343092Z"
+  "updated_at": "1790365007Z"
 }

@@ -170,6 +170,16 @@ configure Olivetti separately for this workflow.
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
 | `~/.config/mcp/mcp.json` | Declares the `nixos` MCP server (mcp-nixos) for pi-mcp-adapter, with direct tools | `modules/shared-devtools.nix` |
 
+## Mahakala Maintenance Interface
+| Command or setting | Reads | Writes | Scope | Proof |
+|---|---|---|---|---|
+| `just deploy-mahakala` | Guix channel files, `flake.lock`, and Mahakala configuration | Mahakala Guix System, Guix Home, and Home Manager profiles | Mahakala only | Each profile reports a new active generation |
+| `just guix-pull-system` | `guix/channels.scm` below `justfile_directory()` | Root Guix profile | Mahakala system source | `guix describe` reports the pulled revisions |
+| `just deploy-mahakala-system` | `guix/system.scm` and `guix-packages/` below `justfile_directory()` | Guix System generation | Mahakala only | `guix system describe` reports the new generation |
+| `ath10k_pci.reset_mode=1` | `guix/system.scm` kernel arguments | Linux boot command line | QCA6174 on Mahakala | Built `ath10k_pci` module reports `1` as warm-only reset; runtime proof waits for the next planned boot |
+
+These commands do not force an immediate reboot. The next planned boot verifies the Wi-Fi recovery trial.
+
 ## Darwin Deploy Preflight
 | Command or file | Effect | Exit |
 |---|---|---|

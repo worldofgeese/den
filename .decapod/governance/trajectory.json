@@ -1,65 +1,140 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "validation_01M3CCCS4EQ6858C3M1Z5F832P",
-  "intent_id": "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P",
-  "task_id": "todo_01m3ca",
-  "original_intent": "Produce proof artifacts for a repository validation completion.",
-  "derived_intent": "Run the bounded validation gates and bind the successful receipt to a trajectory.",
-  "destination": "validation completion",
-  "current_phase": "validation",
-  "next_transitions": [
-    "publish"
-  ],
+  "run_id": "run-20260925-mahakala-code_01m3astjeenawnc2",
+  "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+  "task_id": "code_01m3astjeenawnc2",
+  "original_intent": "Update everything on Mahakala, including operating system, Guix Home, Home Manager, and the Wi-Fi boot failure.",
+  "derived_intent": "Refresh shared flake inputs and Guix channels, verify the adapter identity, apply only Mahakala-scoped configuration changes, build and deploy Mahakala profiles, and prove the Wi-Fi driver behavior without modifying the root checkout or other hosts.",
   "active_boundaries": [
-    "Repository validation and tracked proof artifacts"
+    "Do not alter root main or its pre-existing .beads/dolt-server-config.yaml edit. Do not change or deploy other hosts. Do not cherry-pick or duplicate the completed Doom PR."
   ],
   "repo_scope": [
-    ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json"
+    "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
   ],
-  "inspected_files": [],
+  "inspected_files": [
+    ".decapod/OVERRIDE.md",
+    ".decapod/config.toml",
+    ".decapod/managed/specs/ARCHITECTURE.md",
+    ".decapod/managed/specs/INTENT.md",
+    ".decapod/managed/specs/INTERFACES.md",
+    "Justfile",
+    "guix/channels.scm",
+    "guix/home-configuration.scm",
+    "guix/system.scm"
+  ],
   "modified_files": [
+    ".decapod/governance/plan.json",
     ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json"
+    ".decapod/managed/Dockerfile.decapod",
+    ".decapod/managed/specs/.manifest.json",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CODEX.md",
+    "GEMINI.md",
+    "Justfile"
   ],
   "declared_commands": [
-    "decapod validate"
+    "./scripts/check-drvpaths.sh",
+    "just --fmt --check",
+    "just check-decapod-overrides",
+    "just check-fmt",
+    "just check-guix"
   ],
-  "tool_calls": [],
+  "tool_calls": [
+    "lspci -nnk confirmed QCA6174 168c:003e and ath10k_pci"
+  ],
+  "loops": [
+    {
+      "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+      "trajectory_id": "run-20260925-mahakala-code_01m3astjeenawnc2",
+      "loop_id": "loop:justfile-format",
+      "loop_type": "verification",
+      "attempt": 1,
+      "trigger": "agent",
+      "grader_result": "fail",
+      "feedback": "The baseline Justfile format check failed; run the repository formatter and retry.",
+      "proof_refs": [
+        "command:just --fmt --check exit 1"
+      ],
+      "mutation_proposal": "tool",
+      "status": "failed",
+      "custody_event_id": "event:4"
+    },
+    {
+      "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+      "trajectory_id": "run-20260925-mahakala-code_01m3astjeenawnc2",
+      "loop_id": "loop:justfile-format",
+      "loop_type": "verification",
+      "attempt": 2,
+      "trigger": "agent",
+      "grader_result": "pass",
+      "feedback": "The Justfile was formatted and just --fmt --check passed.",
+      "proof_refs": [
+        "command:just --fmt --check exit 0",
+        "sha256:Justfile:f68c803402e6ceaf7a9aff081f5aabe77f2573d26cf462d6ac1c46e74bc90025"
+      ],
+      "mutation_proposal": "none",
+      "status": "passed",
+      "custody_event_id": "event:5"
+    }
+  ],
   "checks": [
     {
-      "name": "decapod validate",
+      "name": "baseline-drvpaths",
+      "status": "partial"
+    },
+    {
+      "name": "baseline-guix",
+      "status": "passed"
+    },
+    {
+      "name": "baseline-just-format",
+      "status": "failed"
+    },
+    {
+      "name": "baseline-nix-format",
+      "status": "passed"
+    },
+    {
+      "name": "baseline-overrides",
+      "status": "passed"
+    },
+    {
+      "name": "plan-readiness",
+      "status": "passed"
+    },
+    {
+      "name": "remedial-just-format",
       "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_df7c027dea22a334 completed with zero failures"
+    "The drvpath script skipped only aarch64-darwin.M-02877 because no remote builder exists; the Mahakala Guix module checks passed."
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
-  "proof_status": "passed",
+  "proof_status": "failed",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "supported"
+    "completion_proof": "unsupported"
   },
-  "artifact_hash": "sha256:ee286025eeba343f03c348bee64bc8d152857cb73ca45b245239315041ec4679",
+  "artifact_hash": "sha256:38b24f46490411f5ec3d112d71a48f2935e124b9713d65b99177edd891f17416",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P": {
-        "id": "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P",
-        "raw_intent": "Produce proof artifacts for a repository validation completion.",
-        "refined_intent": "Run the bounded validation gates and bind the successful receipt to a trajectory.",
+      "intent:run-20260925-mahakala-code_01m3astjeenawnc2": {
+        "id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+        "raw_intent": "Update everything on Mahakala, including operating system, Guix Home, Home Manager, and the Wi-Fi boot failure.",
+        "refined_intent": "Refresh shared flake inputs and Guix channels, verify the adapter identity, apply only Mahakala-scoped configuration changes, build and deploy Mahakala profiles, and prove the Wi-Fi driver behavior without modifying the root checkout or other hosts.",
         "acceptance_criteria": [],
         "constraints": [
-          ".decapod/governance/trajectory.json",
-          ".decapod/governance/validation.json"
+          "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
         ],
         "assumptions": [],
         "boundaries": [
-          "Repository validation and tracked proof artifacts"
+          "Do not alter root main or its pre-existing .beads/dolt-server-config.yaml edit. Do not change or deploy other hosts. Do not cherry-pick or duplicate the completed Doom PR."
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -72,53 +147,72 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P",
+        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P",
+        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P",
+        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:validation_01M3CCCS4EQ6858C3M1Z5F832P"
+        "detail": "trajectory:run-20260925-mahakala-code_01m3astjeenawnc2"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-20260925-mahakala-code_01m3astjeenawnc2"
       }
     ],
     "trajectories": {
-      "validation_01M3CCCS4EQ6858C3M1Z5F832P": {
-        "id": "validation_01M3CCCS4EQ6858C3M1Z5F832P",
-        "intent_id": "intent:validation_01M3CCCS4EQ6858C3M1Z5F832P",
+      "run-20260925-mahakala-code_01m3astjeenawnc2": {
+        "id": "run-20260925-mahakala-code_01m3astjeenawnc2",
+        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
-            "action": "validation",
-            "command": "decapod validate",
+            "action": "loop:loop:justfile-format:1",
             "scope": [
-              ".decapod/governance/trajectory.json",
-              ".decapod/governance/validation.json"
+              "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
             ],
-            "observations": [
-              ".decapod/governance/trajectory.json",
-              ".decapod/governance/validation.json",
-              "validation epoch ve_df7c027dea22a334 completed with zero failures"
-            ],
+            "observations": [],
             "proof_refs": [
-              "decapod validate"
+              "command:just --fmt --check exit 1"
             ],
-            "validation_findings": [],
+            "validation_findings": [
+              "The baseline Justfile format check failed; run the repository formatter and retry."
+            ],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "loop:loop:justfile-format:2",
+            "scope": [
+              "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
+            ],
+            "observations": [],
+            "proof_refs": [
+              "command:just --fmt --check exit 0",
+              "sha256:Justfile:f68c803402e6ceaf7a9aff081f5aabe77f2573d26cf462d6ac1c46e74bc90025"
+            ],
+            "validation_findings": [
+              "The Justfile was formatted and just --fmt --check passed."
+            ],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

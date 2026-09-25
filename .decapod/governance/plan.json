@@ -1,21 +1,23 @@
 {
   "schema_version": "1.0.0",
-  "title": "Configure Doom Emacs escape and focused writing mode",
-  "intent": "Configure the Home Manager managed Doom Emacs setup so jk exits Evil state and Doom's :ui zen module provides centered narrow-column writing mode, including fullscreen. Keep the change within Doom configuration and authored specs; the separate Beads migration task remains open and out of scope.",
-  "state": "DONE",
+  "title": "secretspec: one Keychain prompt on M-02877; pi MCP; worktree-safe hooks",
+  "intent": "Stop secretspec raising one macOS Keychain dialog per secret on M-02877: route secretspec.toml through a per-host personal alias, which on M-02877 is a committed post-quantum age file whose identity is the only Keychain item; Linux hosts keep the keyring. Add identity backup/restore recipes, declare mcp-nixos for pi-mcp-adapter, make install-hooks work in linked worktrees, and carry main's pending flake.lock (secretspec 0.21.0).",
+  "state": "APPROVED",
   "todo_ids": [
-    "code_01m3as33x3vq576p"
+    "test_01m3c3zvtysh97xb"
   ],
   "proof_hooks": [
-    "modules/doom.d/init.el enables :ui zen; modules/doom.d/config.el sets Evil escape to jk and Writeroom width to 80",
-    "INTENT.md, ARCHITECTURE.md, and INTERFACES.md materially describe the focused writing workflow and user controls",
-    "decapod validate and just --no-deps check pass; the ordinary install-hooks prerequisite cannot target .git/hooks in this linked worktree, and the configured active hook already exists at .beads/hooks/pre-commit"
+    "darwinConfigurations.M-02877.system builds; generated ~/.config/secretspec/config.toml defines personal as age://secretspec.age with a keyring identity credential; wrapper execs the unchanged secretspec 0.21.0 binary",
+    "throwaway-project test: pre-migration reads fall back to keyring; import keyring moves values into the age file; reads/writes via personal succeed with the identity at secretspec/<project>/_provider/identity",
+    "just check (including install-hooks in a linked worktree) and decapod validate pass"
   ],
   "unknowns": [],
   "human_questions": [],
   "stop_conditions": [],
   "unresolved_contradictions": [],
-  "deferred_questions": [],
+  "deferred_questions": [
+    "Live check after deploy: does just secretspec-age-setup succeed and does a later secretspec rebuild raise exactly one Keychain dialog?"
+  ],
   "constraints": {
     "forbidden_paths": [
       "Justfile",
@@ -24,5 +26,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790315808Z"
+  "updated_at": "1790336229Z"
 }

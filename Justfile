@@ -411,6 +411,79 @@ cachix-push flake-attr=default-cachix-attr:
       nix build --no-link --print-out-paths --no-warn-dirty {{flake-attr}} \
       | cachix push worldofgeese'
 
+# One-off, M-02877 only, after a deploy: move secretspec's secrets from one
+# Keychain item each into secretspec.age, so a secretspec rebuild raises one
+# Keychain dialog, not one per secret. Creates the post-quantum age identity (the
+# only Keychain item left), then imports every declared secret from the keyring.
+# The import reads each old item once, so expect a dialog per secret this one
+# last time; choose Always Allow. The old items stay as a fallback. The identity
+# goes to `security -i` on stdin, so it never appears in argv. Commit
+# secretspec.age afterwards. See modules/shared-devtools.nix.
+#
+# Move secretspec secrets into secretspec.age (M-02877)
+secretspec-age-setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    die() { printf 'secretspec-age-setup: %s\n' "$*" >&2; exit 1; }
+    [ "$(uname -s)" = Darwin ] || die "Darwin only; Linux hosts keep the keyring"
+    grep -q 'age://' "$HOME/.config/secretspec/config.toml" 2>/dev/null \
+      || die "~/.config/secretspec/config.toml has no age alias; run just deploy-darwin first"
+    spec="$PWD/secretspec.toml"
+    svc="secretspec/home-manager/_provider/identity"
+    wrapper="$(readlink -f "$(command -v secretspec)")"
+    real="$(readlink -f "$(dirname "$wrapper")/.secretspec-wrapped")"
+    [ -x "$real" ] || die "secretspec is not the age-wrapped build from modules/overlays.nix"
+    if security find-generic-password -a "$USER" -s "$svc" >/dev/null 2>&1; then
+      echo "age identity already in Keychain ($svc); reusing it"
+    else
+      tmp="$(mktemp -d)"
+      trap 'rm -rf "$tmp"' EXIT
+      age-keygen -pq -o "$tmp/key" >/dev/null
+      age-plugin-pq -identity -o "$tmp/id" "$tmp/key"
+      # -T trusts the real secretspec binary up front, so reads by this build
+      # stay silent. Plugin identities are plain [A-Z0-9-] text, safe to
+      # embed unquoted.
+      printf 'add-generic-password -a %s -s %s -l %s -T %s -w %s\n' \
+        "$USER" "$svc" "secretspec-age-identity" "$real" "$(cat "$tmp/id")" \
+        | security -i
+      security find-generic-password -a "$USER" -s "$svc" >/dev/null \
+        || die "could not store the age identity in Keychain"
+      echo "stored a new post-quantum age identity in Keychain ($svc)"
+    fi
+    secretspec import keyring -f "$spec" --reason "migrate secretspec keyring items into secretspec.age"
+    secretspec check -f "$spec" --reason "verify secretspec.age after migration" </dev/null
+    echo "done: commit secretspec.age (git add secretspec.age)"
+
+# Copy the secretspec.age identity to the clipboard, so it can be pasted into a
+# password manager. Without it secretspec.age cannot be decrypted. It never
+# reaches the terminal, scrollback, or a file. The clipboard is cleared after 60
+# seconds. Reading the item raises one Keychain dialog for `security`.
+# Restore on a new Mac with: pbpaste | just secretspec-age-restore
+#
+# Copy the secretspec age identity to the clipboard for backup
+secretspec-age-backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    security find-generic-password -a "$USER" -s "secretspec/home-manager/_provider/identity" -w \
+      | tr -d '\n' | pbcopy
+    echo "identity copied; paste it into your password manager now (clipboard clears in 60s)"
+    ( sleep 60; printf '' | pbcopy ) >/dev/null 2>&1 &
+
+# Store a backed-up secretspec.age identity (read from stdin) in the Keychain,
+# trusted for the current secretspec build. For a new or rebuilt Mac.
+#
+# Restore the secretspec age identity from stdin into the Keychain
+secretspec-age-restore:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    id="$(tr -d '[:space:]')"
+    [[ "$id" =~ ^AGE-PLUGIN-PQ-1[A-Z0-9]+$ ]] || { echo "stdin is not an age-plugin-pq identity" >&2; exit 1; }
+    real="$(readlink -f "$(dirname "$(readlink -f "$(command -v secretspec)")")/.secretspec-wrapped")"
+    printf 'add-generic-password -U -a %s -s %s -l %s -T %s -w %s\n' \
+      "$USER" "secretspec/home-manager/_provider/identity" "secretspec-age-identity" "$real" "$id" \
+      | security -i
+    secretspec check -f "$PWD/secretspec.toml" --reason "verify restored secretspec.age identity" </dev/null
+
 # Update a single flake input
 # One-command repair when a Nix-built app's macOS privacy toggle (App
 # Management, Full Disk Access) keeps switching itself off. Signs the app with a
@@ -451,9 +524,16 @@ check-fmt:
 
 # Install git hooks (pre-commit runs 'just check'). Also runs as a `just check`
 # prerequisite, so this is idempotent and safe to re-run.
+# --git-common-dir, not .git: in a linked worktree (every Decapod workspace)
+# .git is a file, so `cp ... .git/hooks/` failed and took `just check` and the
+# pre-commit hook down with it.
 install-hooks:
-    cp .githooks/pre-commit .git/hooks/pre-commit
-    chmod +x .git/hooks/pre-commit
+    #!/usr/bin/env bash
+    set -euo pipefail
+    hooks="$(git rev-parse --path-format=absolute --git-common-dir)/hooks"
+    mkdir -p "$hooks"
+    cp .githooks/pre-commit "$hooks/pre-commit"
+    chmod +x "$hooks/pre-commit"
 
 # Build Oracle Cloud NixOS OCI qcow2 (aarch64-linux; cross-build needs binfmt)
 build-oracle-image:

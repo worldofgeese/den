@@ -81,7 +81,8 @@ mahakala ran headroom **uncapped** until `"memory": "4g"` was added to
 
 One secret for every consumer: **`LEGO_GATEWAY_API_KEY`**, a gateway virtual key
 (`vk_…`), declared in `secretspec.toml` and stored per host by
-`secretspec set`. Per-harness keys were considered and rejected
+`secretspec set`. It is stored through the `personal` alias: `secretspec.age` on M-02877 and the
+keyring elsewhere. See the secretspec section of `README.md`. Per-harness keys were considered and rejected
 (`home-manager-0pr.2`); see `CONTEXT.md`.
 
 The key is never a value in this repo — always a **command** that prints it:

@@ -267,12 +267,24 @@ nix run github:ryantm/agenix -- -e secrets/forgejo-runner-token.age
 
 Keys authorized to decrypt are declared in `secrets/secrets.nix`.
 
-macOS uses [secretspec](https://secretspec.dev) for Keychain-stored secrets (e.g. `HOMEBREW_GITHUB_API_TOKEN`). After first apply:
+[secretspec](https://secretspec.dev) holds per-user API secrets, which are declared in `secretspec.toml`. Every secret goes through the `personal` provider alias. Home Manager (`modules/shared-devtools.nix`) generates `~/.config/secretspec/config.toml` on each host to define it:
+
+- **M-02877:** `personal` is `secretspec.age`, an age-encrypted file committed next to `secretspec.toml` and encrypted to a post-quantum key. That key is the only Keychain item, so a secretspec rebuild raises one Keychain dialog, not one per secret.
+- **Linux hosts:** `personal` is the system keyring.
+
+On a new Mac, deploy once, then move existing Keychain secrets into the file:
 
 ```bash
-secretspec config init       # pick "keyring" backend
-secretspec check             # shows missing secrets
-secretspec set HOMEBREW_GITHUB_API_TOKEN
+just secretspec-age-setup    # creates the age identity, imports, checks
+git add secretspec.age
+secretspec set HOMEBREW_GITHUB_API_TOKEN   # later writes also go to personal
+```
+
+The age identity in the Keychain is the only way to decrypt `secretspec.age`. Back it up in a password manager:
+
+```bash
+just secretspec-age-backup                 # copies it to the clipboard, clears after 60s
+pbpaste | just secretspec-age-restore      # on a new Mac, after copying it from the manager
 ```
 
 ## Guix

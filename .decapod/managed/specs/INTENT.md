@@ -104,6 +104,12 @@ The decryption key must not be exportable from the machine. The user accepts
 that any process running as them on that Mac can decrypt without a dialog.
 A backup key held only in a password manager is the recovery path.
 
+## Deploys Must Not Damage Apps
+A failed Homebrew cask upgrade during `just deploy-darwin` must stop before it
+can touch the app. It must not leave an app half-deleted, as happened to
+ChatGPT.app. Fixes that need admin rights are one command the user runs, and
+they change ownership only.
+
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
 - [ ] Define required data/contracts for that workflow.

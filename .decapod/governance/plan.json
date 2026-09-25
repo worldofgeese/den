@@ -1,15 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "title": "secretspec: zero prompts via post-quantum Secure Enclave age key",
-  "intent": "Remove every secretspec Keychain dialog on M-02877: decrypt secretspec.age with a post-quantum age-plugin-se Secure Enclave key (access control none) instead of a Keychain-held identity, keep a password-manager backup recipient, and provide a re-key recipe for this and new Macs.",
+  "title": "darwin: brew.env hints off; cask upgrade preflight",
+  "intent": "Stop brew bundle cask upgrades from failing on (and half-deleting) apps with root-owned files: preflight in just deploy-darwin that trashes stale Caskroom backups and stops with a one-command ownership fix; silence Homebrew env hints and the sudo domain warning via /etc/homebrew/brew.env.",
   "state": "APPROVED",
   "todo_ids": [
-    "test_01m3c93rcc0kd87t"
+    "code_01m3catjsvhzyz41"
   ],
   "proof_hooks": [
-    "Homebrew age-plugin-se (0.2.1, Xcode build) generates mlkem768p256tag keys; nixpkgs build reports 'Post-quantum not supported in this build'",
-    "scratch tests: secretspec set/get via the built wrapper with PATH=/usr/bin:/bin; file encrypted to mlkem768p256tag + mlkem768x25519; each identity decrypts alone; just secretspec-se-setup end-to-end and idempotent",
-    "darwinConfigurations.M-02877.system builds; just check and decapod validate pass"
+    "preflight run on M-02877: trashed the stale visual-studio-code Caskroom backup; flagged Claude, Fork, GitHub Copilot, JetBrains Toolbox, VS Code in /Applications; printed fix parses as AppleScript",
+    "darwinConfigurations.M-02877.system builds with etc/homebrew/brew.env; just check passes; shellcheck and bash 3.2 syntax pass"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -24,5 +23,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790340141Z"
+  "updated_at": "1790341891Z"
 }

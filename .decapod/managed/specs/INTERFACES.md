@@ -170,6 +170,12 @@ configure Olivetti separately for this workflow.
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
 | `~/.config/mcp/mcp.json` | Declares the `nixos` MCP server (mcp-nixos) for pi-mcp-adapter, with direct tools | `modules/shared-devtools.nix` |
 
+## Darwin Deploy Preflight
+| Command or file | Effect | Exit |
+|---|---|---|
+| `scripts/cask-app-preflight.sh` (first step of `just deploy-darwin`) | Moves a Caskroom backup left by a failed upgrade to `~/.Trash` when the live app exists; lists casked apps with non-user-owned files | 0 = proceed; 1 = prints the `osascript ... chown -R` fix and stops the deploy |
+| `/etc/homebrew/brew.env` | `HOMEBREW_NO_ENV_HINTS=1`, `HOMEBREW_SERVICES_NO_DOMAIN_WARNING=1` for every brew invocation | n/a |
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

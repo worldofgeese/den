@@ -147,6 +147,12 @@ kernel-status:
 kernel-build:
     #!/usr/bin/env bash
     set -euo pipefail
+    status="$(just kernel-status)"
+    if grep -Fq 'status:     BUILT (reconfigure will reuse it)' <<<"$status" \
+        && grep -Fq 'gc-root:    pinned (survives guix gc)' <<<"$status"; then
+        echo "kernel-build: current kernel is already built and pinned; skipping"
+        exit 0
+    fi
     log="/tmp/cachyos-bore-build-$(date +%Y%m%d-%H%M%S).log"
     echo "kernel-build: logging to $log"
     echo "kernel-build: follow with  tail -f $log"

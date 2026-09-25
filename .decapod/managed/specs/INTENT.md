@@ -11,6 +11,7 @@
 
 ## Product Outcome
 - To quickly bring up my Home Manager config first install Nix then
+- In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
 
 ## What This Project Is
 home-manager is a service_or_library project built using shell.
@@ -56,6 +57,8 @@ flowchart LR
 
 ## Acceptance Criteria (must be objectively testable)
 - [ ] Decapod validate passes, required tests pass, and promotion-relevant artifacts are present.
+- [ ] The Home Manager managed Doom config enables `:ui zen`, sets its writing width to 80 columns, and configures Evil escape as `jk`.
+- [ ] Doom's buffer and full-screen Zen toggles keep writing text centered at the configured width and can be toggled off.
 - [ ] Non-functional targets are met (latency, reliability, cost, etc.).
 - [ ] Validation gates pass and artifacts are attached.
 - [ ] Repository test/lint/typecheck commands are defined and wired into CI.

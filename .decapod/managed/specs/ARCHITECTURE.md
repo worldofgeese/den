@@ -155,23 +155,24 @@ so this workflow does not add a separately managed Olivetti package.
 ## Secret Resolution Flow
 `secretspec.toml` names every secret and routes all of them through the
 `personal` provider alias, then the keyring. Home Manager
-(`modules/shared-devtools.nix`) writes `~/.config/secretspec/config.toml`, which
-defines `personal` for each host. On M-02877 it is `age://secretspec.age`, an
-age file committed next to the manifest and encrypted to a post-quantum
-recipient. Its identity is read from the login Keychain at
-`secretspec/home-manager/_provider/identity`. On Linux hosts it is the keyring.
-A read tries `personal` first. The keyring fallback returns values that the
-migration has not moved yet. Writes go to `personal`. The
-`modules/overlays.nix` wrapper puts `age-plugin-pq` on secretspec's PATH but
-calls the unchanged binary, so Keychain trust given to that build still
-applies. A Keychain dialog appears once per secretspec build, for the one
-identity item, not once per secret.
+(`modules/shared-devtools.nix`) writes `~/.config/secretspec/config.toml` to
+define `personal` for each host. On M-02877 it is `age://secretspec.age`,
+committed next to the manifest and encrypted to the two post-quantum recipients
+in `secretspec.age.recipients`: the Mac's Secure Enclave key and a backup key.
+secretspec decrypts with the Secure Enclave identity at
+`~/.config/secretspec/se-identity.txt` through `age-plugin-se`. That path
+involves no Keychain item, so the per-build cdhash trust that caused a dialog
+on every secretspec rebuild (cachix/secretspec#438) no longer applies. On
+Linux hosts `personal` is the keyring. Writes re-encrypt to both recipients.
+The `modules/overlays.nix` wrapper adds `age-plugin-pq` (nixpkgs) and
+Homebrew's `age-plugin-se` to secretspec's PATH. Homebrew provides the plugin
+because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `6ecd29de0e2d1de4bfce7e87503327cf53fece351511a2f1e23d1e876f18f057`
+- Repository signal fingerprint: `ffee50b413844cc1e3e37983172e16ba68d172c404fcc7495b65983cf5027faf`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

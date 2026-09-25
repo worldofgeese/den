@@ -164,9 +164,9 @@ configure Olivetti separately for this workflow.
 ## Secret Store and MCP Operator Interface
 | Command or file | Effect | Owner |
 |---|---|---|
-| `just secretspec-age-setup` | One-off on M-02877: creates the post-quantum age identity in the Keychain, imports every declared secret from the keyring into `secretspec.age`, then runs `secretspec check` | `Justfile` |
-| `just secretspec-age-backup` | Copies the age identity to the clipboard for a password manager; the clipboard is cleared after 60 s | `Justfile` |
-| `pbpaste \| just secretspec-age-restore` | Stores a backed-up identity in the Keychain, trusted for the current secretspec build | `Justfile` |
+| `just secretspec-se-setup` | Creates this Mac's post-quantum Secure Enclave key if missing, writes `secretspec.age.recipients` (Secure Enclave key + backup key), and re-encrypts `secretspec.age`; backup key from stdin or the old Keychain item | `Justfile` |
+| `pbpaste \| just secretspec-se-setup` | New-Mac recovery from the password-manager backup key | `Justfile` |
+| `just secretspec-age-backup` | Copies the backup key from the old Keychain item to the clipboard; cleared after 60 s | `Justfile` |
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
 | `~/.config/mcp/mcp.json` | Declares the `nixos` MCP server (mcp-nixos) for pi-mcp-adapter, with direct tools | `modules/shared-devtools.nix` |
 
@@ -174,7 +174,7 @@ configure Olivetti separately for this workflow.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `6ecd29de0e2d1de4bfce7e87503327cf53fece351511a2f1e23d1e876f18f057`
+- Repository signal fingerprint: `ffee50b413844cc1e3e37983172e16ba68d172c404fcc7495b65983cf5027faf`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

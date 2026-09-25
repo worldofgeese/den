@@ -411,78 +411,77 @@ cachix-push flake-attr=default-cachix-attr:
       nix build --no-link --print-out-paths --no-warn-dirty {{flake-attr}} \
       | cachix push worldofgeese'
 
-# One-off, M-02877 only, after a deploy: move secretspec's secrets from one
-# Keychain item each into secretspec.age, so a secretspec rebuild raises one
-# Keychain dialog, not one per secret. Creates the post-quantum age identity (the
-# only Keychain item left), then imports every declared secret from the keyring.
-# The import reads each old item once, so expect a dialog per secret this one
-# last time; choose Always Allow. The old items stay as a fallback. The identity
-# goes to `security -i` on stdin, so it never appears in argv. Commit
-# secretspec.age afterwards. See modules/shared-devtools.nix.
+# M-02877: make secretspec.age readable with no dialog at all. Creates this
+# Mac's post-quantum Secure Enclave age key (access control `none`) in
+# ~/.config/secretspec/se-identity.txt if it is missing. Writes
+# secretspec.age.recipients with that key plus the backup key, then
+# re-encrypts secretspec.age to both. The backup key (AGE-PLUGIN-PQ-1...) comes
+# from stdin when piped, which is the new-Mac path:
+#   pbpaste | just secretspec-se-setup
+# Otherwise it comes from the Keychain item made by the earlier migration, which
+# is one last dialog. Plaintext only ever passes through pipes. Commit
+# secretspec.age and secretspec.age.recipients afterwards, then deploy.
+# Don't run `secretspec set` between this recipe and the deploy: until then, a
+# write re-encrypts to the backup key only.
 #
-# Move secretspec secrets into secretspec.age (M-02877)
-secretspec-age-setup:
+# Re-key secretspec.age to this Mac's Secure Enclave (no prompts)
+secretspec-se-setup:
     #!/usr/bin/env bash
     set -euo pipefail
-    die() { printf 'secretspec-age-setup: %s\n' "$*" >&2; exit 1; }
+    die() { printf 'secretspec-se-setup: %s\n' "$*" >&2; exit 1; }
     [ "$(uname -s)" = Darwin ] || die "Darwin only; Linux hosts keep the keyring"
-    grep -q 'age://' "$HOME/.config/secretspec/config.toml" 2>/dev/null \
-      || die "~/.config/secretspec/config.toml has no age alias; run just deploy-darwin first"
-    spec="$PWD/secretspec.toml"
+    se_bin=/opt/homebrew/opt/age-plugin-se/bin
+    [ -x "$se_bin/age-plugin-se" ] || brew install age-plugin-se
+    export PATH="$se_bin:$PATH"
+    for t in age age-keygen age-plugin-pq; do command -v "$t" >/dev/null || die "$t missing; deploy first"; done
+    ident="${XDG_CONFIG_HOME:-$HOME/.config}/secretspec/se-identity.txt"
     svc="secretspec/home-manager/_provider/identity"
-    wrapper="$(readlink -f "$(command -v secretspec)")"
-    real="$(readlink -f "$(dirname "$wrapper")/.secretspec-wrapped")"
-    [ -x "$real" ] || die "secretspec is not the age-wrapped build from modules/overlays.nix"
-    if security find-generic-password -a "$USER" -s "$svc" >/dev/null 2>&1; then
-      echo "age identity already in Keychain ($svc); reusing it"
+    if [ ! -t 0 ]; then
+      backup="$(tr -d '[:space:]')"
     else
-      tmp="$(mktemp -d)"
-      trap 'rm -rf "$tmp"' EXIT
-      age-keygen -pq -o "$tmp/key" >/dev/null
-      age-plugin-pq -identity -o "$tmp/id" "$tmp/key"
-      # -T trusts the real secretspec binary up front, so reads by this build
-      # stay silent. Plugin identities are plain [A-Z0-9-] text, safe to
-      # embed unquoted.
-      printf 'add-generic-password -a %s -s %s -l %s -T %s -w %s\n' \
-        "$USER" "$svc" "secretspec-age-identity" "$real" "$(cat "$tmp/id")" \
-        | security -i
-      security find-generic-password -a "$USER" -s "$svc" >/dev/null \
-        || die "could not store the age identity in Keychain"
-      echo "stored a new post-quantum age identity in Keychain ($svc)"
+      echo "reading the backup key from the Keychain; approve the dialog once"
+      backup="$(security find-generic-password -a "$USER" -s "$svc" -w)"
     fi
-    secretspec import keyring -f "$spec" --reason "migrate secretspec keyring items into secretspec.age"
-    secretspec check -f "$spec" --reason "verify secretspec.age after migration" </dev/null
-    echo "done: commit secretspec.age (git add secretspec.age)"
+    [[ "$backup" =~ ^AGE-PLUGIN-PQ-1[A-Z0-9]+$ ]] || die "backup key is not an AGE-PLUGIN-PQ-1 identity"
+    backup_recipient="$(printf '%s' "$backup" | ./scripts/age-pq-plugin-to-native.py | age-keygen -y)"
+    [[ "$backup_recipient" == age1pq1* ]] || die "could not derive the backup recipient"
+    if [ -f "$ident" ]; then
+      echo "reusing Secure Enclave key $ident"
+    else
+      mkdir -p "$(dirname "$ident")"
+      ( umask 077; age-plugin-se keygen --pq --access-control none -o "$ident" >/dev/null )
+      echo "created Secure Enclave key $ident"
+    fi
+    se_recipient="$(sed -n 's/^# public key (post-quantum): //p' "$ident")"
+    [[ "$se_recipient" == age1tagpq1* ]] || die "$ident has no post-quantum public key (need Homebrew's age-plugin-se)"
+    {
+      echo "# secretspec.age recipients, all post-quantum. Public keys only."
+      echo "# M-02877 Secure Enclave (age-plugin-se, mlkem768p256tag); bound to this Mac"
+      echo "$se_recipient"
+      echo "# backup key (mlkem768x25519); the identity lives only in a password manager"
+      echo "$backup_recipient"
+    } > secretspec.age.recipients
+    tmp="$(mktemp secretspec.age.XXXXXX)"
+    trap 'rm -f "$tmp"' EXIT
+    age -d -i <(printf '%s\n' "$backup") secretspec.age | age -R secretspec.age.recipients -a -o "$tmp"
+    mv "$tmp" secretspec.age
+    age -d -i "$ident" secretspec.age >/dev/null || die "Secure Enclave key cannot decrypt the new secretspec.age"
+    echo "done: git add secretspec.age secretspec.age.recipients && git commit, then just deploy-darwin"
 
-# Copy the secretspec.age identity to the clipboard, so it can be pasted into a
-# password manager. Without it secretspec.age cannot be decrypted. It never
-# reaches the terminal, scrollback, or a file. The clipboard is cleared after 60
-# seconds. Reading the item raises one Keychain dialog for `security`.
-# Restore on a new Mac with: pbpaste | just secretspec-age-restore
+# Copy the secretspec.age backup key to the clipboard, so it can be pasted into
+# a password manager. It never reaches the terminal, scrollback, or a file. The
+# clipboard is cleared after 60 seconds. This works only while the Keychain
+# item from the first migration still exists. Restore on a new Mac with:
+# pbpaste | just secretspec-se-setup
 #
-# Copy the secretspec age identity to the clipboard for backup
+# Copy the secretspec backup key to the clipboard
 secretspec-age-backup:
     #!/usr/bin/env bash
     set -euo pipefail
     security find-generic-password -a "$USER" -s "secretspec/home-manager/_provider/identity" -w \
       | tr -d '\n' | pbcopy
-    echo "identity copied; paste it into your password manager now (clipboard clears in 60s)"
+    echo "backup key copied; paste it into your password manager now (clipboard clears in 60s)"
     ( sleep 60; printf '' | pbcopy ) >/dev/null 2>&1 &
-
-# Store a backed-up secretspec.age identity (read from stdin) in the Keychain,
-# trusted for the current secretspec build. For a new or rebuilt Mac.
-#
-# Restore the secretspec age identity from stdin into the Keychain
-secretspec-age-restore:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    id="$(tr -d '[:space:]')"
-    [[ "$id" =~ ^AGE-PLUGIN-PQ-1[A-Z0-9]+$ ]] || { echo "stdin is not an age-plugin-pq identity" >&2; exit 1; }
-    real="$(readlink -f "$(dirname "$(readlink -f "$(command -v secretspec)")")/.secretspec-wrapped")"
-    printf 'add-generic-password -U -a %s -s %s -l %s -T %s -w %s\n' \
-      "$USER" "secretspec/home-manager/_provider/identity" "secretspec-age-identity" "$real" "$id" \
-      | security -i
-    secretspec check -f "$PWD/secretspec.toml" --reason "verify restored secretspec.age identity" </dev/null
 
 # Update a single flake input
 # One-command repair when a Nix-built app's macOS privacy toggle (App

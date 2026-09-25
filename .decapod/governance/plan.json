@@ -1,23 +1,21 @@
 {
   "schema_version": "1.0.0",
-  "title": "secretspec: one Keychain prompt on M-02877; pi MCP; worktree-safe hooks",
-  "intent": "Stop secretspec raising one macOS Keychain dialog per secret on M-02877: route secretspec.toml through a per-host personal alias, which on M-02877 is a committed post-quantum age file whose identity is the only Keychain item; Linux hosts keep the keyring. Add identity backup/restore recipes, declare mcp-nixos for pi-mcp-adapter, make install-hooks work in linked worktrees, and carry main's pending flake.lock (secretspec 0.21.0).",
+  "title": "secretspec: zero prompts via post-quantum Secure Enclave age key",
+  "intent": "Remove every secretspec Keychain dialog on M-02877: decrypt secretspec.age with a post-quantum age-plugin-se Secure Enclave key (access control none) instead of a Keychain-held identity, keep a password-manager backup recipient, and provide a re-key recipe for this and new Macs.",
   "state": "APPROVED",
   "todo_ids": [
-    "test_01m3c3zvtysh97xb"
+    "test_01m3c93rcc0kd87t"
   ],
   "proof_hooks": [
-    "darwinConfigurations.M-02877.system builds; generated ~/.config/secretspec/config.toml defines personal as age://secretspec.age with a keyring identity credential; wrapper execs the unchanged secretspec 0.21.0 binary",
-    "throwaway-project test: pre-migration reads fall back to keyring; import keyring moves values into the age file; reads/writes via personal succeed with the identity at secretspec/<project>/_provider/identity",
-    "just check (including install-hooks in a linked worktree) and decapod validate pass"
+    "Homebrew age-plugin-se (0.2.1, Xcode build) generates mlkem768p256tag keys; nixpkgs build reports 'Post-quantum not supported in this build'",
+    "scratch tests: secretspec set/get via the built wrapper with PATH=/usr/bin:/bin; file encrypted to mlkem768p256tag + mlkem768x25519; each identity decrypts alone; just secretspec-se-setup end-to-end and idempotent",
+    "darwinConfigurations.M-02877.system builds; just check and decapod validate pass"
   ],
   "unknowns": [],
   "human_questions": [],
   "stop_conditions": [],
   "unresolved_contradictions": [],
-  "deferred_questions": [
-    "Live check after deploy: does just secretspec-age-setup succeed and does a later secretspec rebuild raise exactly one Keychain dialog?"
-  ],
+  "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [
       "Justfile",
@@ -26,5 +24,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790336229Z"
+  "updated_at": "1790340141Z"
 }

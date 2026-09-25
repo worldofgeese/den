@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "kind": "validation_receipt",
   "decapod_release": "0.104.2",
-  "git_revision": "UNRESOLVED",
+  "git_revision": "b046cbfd06da130a904ab0324dd5c80de4c54f49",
   "repo_signal_fingerprint": "199dfd5b776c22e7446b4aeb365195a491af7505d2a4493bb7e9d85d636169aa",
   "trajectory_run_id": "run_01m3as33x3vq576p2",
-  "trajectory_artifact_hash": "sha256:ea936b2f769dd395f7312edb48ca5792055de5b704ca195ecb0f803bc670a52d",
+  "trajectory_artifact_hash": "sha256:94e3348d9a2592b5a3414bcfcb715e0a1327bc9c8192afaeac9870a94c87d523",
   "validation_epoch": {
     "schema_version": "1.0.0",
     "epoch_id": "ve_17f056bb1349739f",
@@ -44,71 +44,87 @@
     }
   },
   "status": "ok",
-  "pass_count": 173,
+  "pass_count": 185,
   "fail_count": 0,
   "warn_count": 5,
-  "elapsed_ms": 2751,
+  "elapsed_ms": 3409,
   "drift_findings": [],
   "temporary_artifacts_cleaned": 0,
   "failures": [],
   "warnings": [
     "Audit log contains 1 potential crash divergence(s); historical pending entries detected. Run `decapod data broker verify` for details.",
-    "Failed to prune stale workspaces: Validation error: Failed to list git worktrees: git: symbol lookup error: <external-path>: undefined symbol: __tunable_is_initialized, version GLIBC_PRIVATE\n",
     "Risk map missing (run `decapod riskmap init`)",
-    "Unable to evaluate tracked generated artifacts via git ls-files; skipping tracked whitelist check",
-    "Watcher audit trail missing (run `decapod govern watcher run`)"
+    "Stale workspaces preserved for explicit review: <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files)",
+    "Watcher audit trail missing (run `decapod govern watcher run`)",
+    "Workspace branch 'agent/code_01m3as33x3vq576p/doom-writing' has unpushed commits or does not exist on origin. Run `git push origin agent/code_01m3as33x3vq576p/doom-writing`."
   ],
   "gate_timings": [
     {
       "name": "validate_markdown_primitives_roundtrip_gate",
-      "elapsed_ms": 1097
+      "elapsed_ms": 1078
     },
     {
       "name": "validate_federation_gates",
-      "elapsed_ms": 553
+      "elapsed_ms": 625
     },
     {
       "name": "validate_obligations",
-      "elapsed_ms": 423
-    },
-    {
-      "name": "validate_legacy_jsonl_retired",
-      "elapsed_ms": 194
-    },
-    {
-      "name": "validate_archive_integrity",
-      "elapsed_ms": 108
-    },
-    {
-      "name": "validate_schema_determinism",
-      "elapsed_ms": 39
-    },
-    {
-      "name": "validate_control_plane_contract",
-      "elapsed_ms": 37
-    },
-    {
-      "name": "validate_lineage_hard_gate",
-      "elapsed_ms": 13
-    },
-    {
-      "name": "validate_project_specs_docs",
-      "elapsed_ms": 11
-    },
-    {
-      "name": "validate_lcm_rebuild_gate",
-      "elapsed_ms": 10
+      "elapsed_ms": 398
     },
     {
       "name": "validate_machine_contract",
-      "elapsed_ms": 10
+      "elapsed_ms": 211
     },
     {
-      "name": "validate_lcm_immutability",
-      "elapsed_ms": 10
+      "name": "validate_project_specs_docs",
+      "elapsed_ms": 209
+    },
+    {
+      "name": "validate_legacy_jsonl_retired",
+      "elapsed_ms": 182
+    },
+    {
+      "name": "validate_stale_workspaces",
+      "elapsed_ms": 148
+    },
+    {
+      "name": "validate_archive_integrity",
+      "elapsed_ms": 109
+    },
+    {
+      "name": "validate_control_plane_contract",
+      "elapsed_ms": 42
+    },
+    {
+      "name": "validate_schema_determinism",
+      "elapsed_ms": 41
+    },
+    {
+      "name": "validate_git_workspace_context",
+      "elapsed_ms": 40
+    },
+    {
+      "name": "validate_lineage_hard_gate",
+      "elapsed_ms": 14
+    },
+    {
+      "name": "validate_git_protected_branch",
+      "elapsed_ms": 12
     },
     {
       "name": "validate_watcher_audit",
+      "elapsed_ms": 9
+    },
+    {
+      "name": "validate_git_push_pr_gate",
+      "elapsed_ms": 8
+    },
+    {
+      "name": "validate_repomap_determinism",
+      "elapsed_ms": 8
+    },
+    {
+      "name": "validate_lcm_immutability",
       "elapsed_ms": 8
     },
     {
@@ -116,11 +132,15 @@
       "elapsed_ms": 8
     },
     {
-      "name": "validate_health_purity",
-      "elapsed_ms": 7
+      "name": "validate_lcm_rebuild_gate",
+      "elapsed_ms": 8
     },
     {
-      "name": "validate_repomap_determinism",
+      "name": "validate_health_purity",
+      "elapsed_ms": 8
+    },
+    {
+      "name": "validate_override_authority",
       "elapsed_ms": 6
     },
     {
@@ -128,19 +148,7 @@
       "elapsed_ms": 4
     },
     {
-      "name": "validate_stale_workspaces",
-      "elapsed_ms": 4
-    },
-    {
-      "name": "validate_git_protected_branch",
-      "elapsed_ms": 4
-    },
-    {
-      "name": "validate_git_push_pr_gate",
-      "elapsed_ms": 4
-    },
-    {
-      "name": "validate_plan_governed_execution_gate",
+      "name": "validate_gatekeeper_gate",
       "elapsed_ms": 3
     },
     {
@@ -148,15 +156,15 @@
       "elapsed_ms": 3
     },
     {
-      "name": "validate_git_workspace_context",
-      "elapsed_ms": 3
-    },
-    {
-      "name": "validate_override_authority",
-      "elapsed_ms": 3
-    },
-    {
       "name": "validate_database_schema_versions",
+      "elapsed_ms": 2
+    },
+    {
+      "name": "validate_plan_governed_execution_gate",
+      "elapsed_ms": 2
+    },
+    {
+      "name": "validate_generated_artifact_whitelist",
       "elapsed_ms": 2
     },
     {
@@ -166,14 +174,6 @@
     {
       "name": "validate_policy_integrity",
       "elapsed_ms": 2
-    },
-    {
-      "name": "validate_gatekeeper_gate",
-      "elapsed_ms": 1
-    },
-    {
-      "name": "validate_generated_artifact_whitelist",
-      "elapsed_ms": 1
     },
     {
       "name": "validate_canon_mutation",
@@ -196,11 +196,15 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_research_claims_if_present",
+      "name": "validate_repo_map",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_project_scoped_state",
+      "name": "validate_trajectory_artifacts_if_present",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_research_claims_if_present",
       "elapsed_ms": 0
     },
     {
@@ -212,23 +216,7 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_trajectory_artifacts_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_repo_map",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_tooling_gate",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_root_dockerfile_seed_detection",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_state_commit_gate",
+      "name": "validate_project_scoped_state",
       "elapsed_ms": 0
     },
     {
@@ -236,19 +224,7 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_docs_templates_bucket",
-      "elapsed_ms": 0
-    },
-    {
       "name": "validate_embedded_self_contained",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_jev_history_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_recursive_improvement_passes_if_present",
       "elapsed_ms": 0
     },
     {
@@ -256,15 +232,15 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_risk_map",
+      "name": "validate_tooling_gate",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_coplayer_policy_tightening",
+      "name": "validate_recursive_improvement_passes_if_present",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_context_capsules_if_present",
+      "name": "validate_jev_history_if_present",
       "elapsed_ms": 0
     },
     {
@@ -276,11 +252,35 @@
       "elapsed_ms": 0
     },
     {
+      "name": "validate_risk_map",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_coplayer_policy_tightening",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_docs_templates_bucket",
+      "elapsed_ms": 0
+    },
+    {
       "name": "validate_interface_contract_bootstrap",
       "elapsed_ms": 0
     },
     {
+      "name": "validate_context_capsules_if_present",
+      "elapsed_ms": 0
+    },
+    {
       "name": "validate_context_capsule_policy_contract",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_root_dockerfile_seed_detection",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_state_commit_gate",
       "elapsed_ms": 0
     }
   ],
@@ -290,15 +290,15 @@
     "confidence": "medium",
     "reasons": [
       "Audit log contains 1 potential crash divergence(s); historical pending entries detected. Run `decapod data broker verify` for details.",
-      "Failed to prune stale workspaces: Validation error: Failed to list git worktrees: git: symbol lookup error: <external-path>: undefined symbol: __tunable_is_initialized, version GLIBC_PRIVATE\n",
       "Risk map missing (run `decapod riskmap init`)",
-      "Unable to evaluate tracked generated artifacts via git ls-files; skipping tracked whitelist check",
-      "Watcher audit trail missing (run `decapod govern watcher run`)"
+      "Stale workspaces preserved for explicit review: <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files)",
+      "Watcher audit trail missing (run `decapod govern watcher run`)",
+      "Workspace branch 'agent/code_01m3as33x3vq576p/doom-writing' has unpushed commits or does not exist on origin. Run `git push origin agent/code_01m3as33x3vq576p/doom-writing`."
     ],
     "recommendations": [
       "Review the reported validation warnings before relying on the CI result.",
       "Use `decapod validate -v --format json` to inspect the affected gate output."
     ]
   },
-  "receipt_hash": "sha256:c5a71a9bea59fb6846cca7736a690375e8795b6c369028a9438f4c79ef993533"
+  "receipt_hash": "sha256:298ce68d48ac9949118440d91417ef4666602a44a83a045cfccff1e1db58b42a"
 }

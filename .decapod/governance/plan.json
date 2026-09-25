@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "title": "darwin: brew.env hints off; cask upgrade preflight",
-  "intent": "Stop brew bundle cask upgrades from failing on (and half-deleting) apps with root-owned files: preflight in just deploy-darwin that trashes stale Caskroom backups and stops with a one-command ownership fix; silence Homebrew env hints and the sudo domain warning via /etc/homebrew/brew.env.",
+  "title": "cask preflight: recorded appdir only",
+  "intent": "Make scripts/cask-app-preflight.sh check only the appdir Homebrew recorded for each cask, so MDM-managed, SIP-protected copies elsewhere (Jamf's /Applications/Claude.app) no longer block just deploy-darwin.",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m3catjsvhzyz41"
+    "code_01m3cc5fa7ygx76g"
   ],
   "proof_hooks": [
-    "preflight run on M-02877: trashed the stale visual-studio-code Caskroom backup; flagged Claude, Fork, GitHub Copilot, JetBrains Toolbox, VS Code in /Applications; printed fix parses as AppleScript",
-    "darwinConfigurations.M-02877.system builds with etc/homebrew/brew.env; just check passes; shellcheck and bash 3.2 syntax pass"
+    "live run on M-02877: exit 0 after the chown of the four brew-managed /Applications apps; Claude's recorded appdir is ~/Applications",
+    "shellcheck, bash 3.2 syntax, just check, container decapod validate pass"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -23,5 +23,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790341891Z"
+  "updated_at": "1790343092Z"
 }

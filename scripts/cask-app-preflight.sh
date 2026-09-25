@@ -9,7 +9,7 @@
 #    sudo. Worse, the failed upgrade can delete part of the app first: that is
 #    how ChatGPT.app lost its binary. This script stops the deploy and prints
 #    the single admin command that fixes it (ownership only; nothing is
-#    deleted).
+#    deleted). Only the app in the cask's recorded appdir is checked.
 # 2. A leftover backup copy in the Caskroom from an earlier failed upgrade
 #    ("It seems there is already an App at .../Caskroom/..."). When the live app
 #    is present it is moved to the Trash, which can be undone.
@@ -28,16 +28,17 @@ rows="$(brew info --cask --installed --json=v2 2>/dev/null | jq -r '
 root_owned=()
 while IFS=$'\t' read -r token version app; do
   [ -n "$token" ] || continue
-  live=""
-  for dir in "$HOME/Applications" /Applications; do
-    [ -e "$dir/$app" ] || continue
-    live="$dir/$app"
-    # Check every copy: a cask moved to ~/Applications can leave a root-owned
-    # duplicate in /Applications that a later upgrade trips over.
-    if [ -n "$(find "$live" ! -user "$USER" -print -quit 2>/dev/null)" ]; then
-      root_owned+=("$live")
-    fi
-  done
+  # Only the directory the cask was installed into matters: Homebrew records it
+  # per cask and never touches copies elsewhere. On M-02877 the device
+  # management (Jamf) installs its own, SIP-protected copies of some apps in
+  # /Applications, and even root cannot chown those.
+  appdir="$(jq -r '(.explicit.appdir // .default.appdir) // empty' \
+    "$caskroom/$token/.metadata/config.json" 2>/dev/null || true)"
+  live="${appdir:-/Applications}/$app"
+  [ -e "$live" ] || live=""
+  if [ -n "$live" ] && [ -n "$(find "$live" ! -user "$USER" -print -quit 2>/dev/null)" ]; then
+    root_owned+=("$live")
+  fi
   backup="$caskroom/$token/$version/$app"
   if [ -n "$live" ] && [ -d "$backup" ] && [ ! -L "$backup" ]; then
     dest="$HOME/.Trash/$token-caskroom-backup-$(date +%Y%m%d%H%M%S).app"

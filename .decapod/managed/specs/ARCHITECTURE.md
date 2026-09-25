@@ -142,6 +142,16 @@ package state.
 | Contract drift across components | Medium | High | Spec + schema checks in CI |
 | Runtime saturation under peak load | Medium | High | Capacity model + load tests |
 
+## Doom Emacs Configuration Flow
+`modules/doom.d/init.el` declares Doom's enabled modules, including `:ui zen`.
+Home Manager's `modules/doom-emacs.nix` copies that directory into the managed
+Doom profile, so the checked-in Doom files remain the user-editable source of
+truth. `modules/doom.d/config.el` sets `evil-escape` to use `jk` and fixes
+Writeroom's centered text area at 80 columns. At runtime, Doom's `SPC t z`
+command toggles the focused layout for the current buffer; `SPC t Z` also
+full-screens the Emacs frame. Doom supplies Writeroom through its Zen module,
+so this workflow does not add a separately managed Olivetti package.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

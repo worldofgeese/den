@@ -6,6 +6,13 @@
 (setq display-line-numbers-type t)
 (setq org-directory "~/org/")
 
+;;; Evil escape and focused writing
+(after! evil-escape
+  (setq-default evil-escape-key-sequence "jk"))
+
+(after! writeroom-mode
+  (setq writeroom-width 80))
+
 ;;; --------------------------------------------------------------------------
 ;;; howm — personal wiki / LLM-wiki substrate
 ;;; --------------------------------------------------------------------------
@@ -273,4 +280,3 @@ Prompts for source type: book (page table) or conversation (bullet list)."
             (when (and buffer-file-name
                        (string-match-p "/journal/" buffer-file-name))
               (add-hook 'before-save-hook #'+journal-auto-crypt-tag nil t))))
-

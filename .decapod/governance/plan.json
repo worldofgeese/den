@@ -1,13 +1,15 @@
 {
   "schema_version": "1.0.0",
-  "title": "Switch Home Manager Beads tooling from br/bv to bd",
-  "intent": "Use the latest Decapod release everywhere: keep the flake input and Home Manager package aligned with the newest release, regenerate all governed entrypoints from that binary, and use bd as the sole Beads CLI while retaining Darwin's Homebrew bd and Dolt setup.",
-  "state": "APPROVED",
+  "title": "Configure Doom Emacs escape and focused writing mode",
+  "intent": "Configure the Home Manager managed Doom Emacs setup so jk exits Evil state and Doom's :ui zen module provides centered narrow-column writing mode, including fullscreen. Keep the change within Doom configuration and authored specs; the separate Beads migration task remains open and out of scope.",
+  "state": "DONE",
   "todo_ids": [
-    "code_01m2yr6rcyehcwd1"
+    "code_01m3as33x3vq576p"
   ],
   "proof_hooks": [
-    "locked flake Decapod package version matches the installed latest release; governed entrypoints carry that release fingerprint; decapod validate passes; just check passes; Nix evaluation shows beads/bd and no beads-rust or beads-viewer packages; active hook commands remain bd-based"
+    "modules/doom.d/init.el enables :ui zen; modules/doom.d/config.el sets Evil escape to jk and Writeroom width to 80",
+    "INTENT.md, ARCHITECTURE.md, and INTERFACES.md materially describe the focused writing workflow and user controls",
+    "decapod validate and just --no-deps check pass; the ordinary install-hooks prerequisite cannot target .git/hooks in this linked worktree, and the configured active hook already exists at .beads/hooks/pre-commit"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -22,5 +24,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1789886613Z"
+  "updated_at": "1790315808Z"
 }

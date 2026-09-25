@@ -148,6 +148,19 @@ surface.
   dependency, and internal failures.
 - [ ] Backward compatibility or migration instructions are published.
 
+## Doom Emacs Interactive Writing Controls
+These Home Manager managed Doom controls are the user-facing interface for
+editing and focused writing:
+
+| Control | Default | Behavior | Configuration owner |
+|---|---|---|---|
+| Evil escape | `jk` | Return from Evil insert state to normal state | `modules/doom.d/config.el` |
+| Zen buffer toggle | `SPC t z` | Center the current buffer in an 80-column writing area; toggle again to restore the regular view | Doom `:ui zen` |
+| Zen full-screen toggle | `SPC t Z` | Apply the focused layout and full-screen the Emacs frame; toggle again to restore it | Doom `:ui zen` |
+
+The `:ui zen` module bundles Writeroom behavior; users do not install or
+configure Olivetti separately for this workflow.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

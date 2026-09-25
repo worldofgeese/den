@@ -1,62 +1,67 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-secretspec-age-publish-01m3c3",
-  "intent_id": "intent:run-secretspec-age-publish-01m3c3",
-  "task_id": "todo_01m3c3",
-  "original_intent": "Publish secretspec age store change",
-  "derived_intent": "Record fresh validation and publish PR",
-  "current_phase": "validation",
-  "next_transitions": [
-    "publish"
-  ],
+  "run_id": "run-secretspec-se-01m3c9",
+  "intent_id": "intent:run-secretspec-se-01m3c9",
+  "task_id": "todo_01m3c9",
+  "original_intent": "Is there any way to do away with the secretspec prompts entirely? -> Option B",
+  "derived_intent": "Secure Enclave post-quantum age identity with password-manager backup recipient",
   "active_boundaries": [
-    "No root-checkout mutation"
+    "No root-checkout mutation; live re-key left to the user"
   ],
   "repo_scope": [
-    "governance artifacts"
+    "Justfile modules/overlays.nix modules/shared-devtools.nix modules/M-02877/darwin.nix scripts/age-pq-plugin-to-native.py secretspec.toml README.md specs"
   ],
-  "inspected_files": [],
-  "modified_files": [
-    ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json"
+  "inspected_files": [
+    "Justfile",
+    "modules/overlays.nix",
+    "modules/shared-devtools.nix"
   ],
-  "declared_commands": [
-    "decapod validate"
-  ],
+  "modified_files": [],
+  "declared_commands": [],
   "tool_calls": [],
   "checks": [
     {
-      "name": "decapod validate",
+      "name": "darwin-system-build",
+      "status": "passed"
+    },
+    {
+      "name": "live-rekey",
+      "status": "unavailable"
+    },
+    {
+      "name": "minimal-path-wrapper",
+      "status": "passed"
+    },
+    {
+      "name": "se-recipe-scratch",
       "status": "passed"
     }
   ],
-  "evidence": [
-    "validation epoch ve_8c8e975302fbb355 completed with zero failures"
-  ],
+  "evidence": [],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
-  "proof_status": "passed",
+  "proof_status": "partial",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "supported"
+    "completion_proof": "caution"
   },
-  "artifact_hash": "sha256:8bd4f488c8df53d7c97eb00b1146f5d34de196153ee2e2e8616d162f4135b3c5",
+  "artifact_hash": "sha256:9273aa7fc85b3d5f5df4463a0eadd6835782c88c49b8575a8a67b9e769fff2d5",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-secretspec-age-publish-01m3c3": {
-        "id": "intent:run-secretspec-age-publish-01m3c3",
-        "raw_intent": "Publish secretspec age store change",
-        "refined_intent": "Record fresh validation and publish PR",
+      "intent:run-secretspec-se-01m3c9": {
+        "id": "intent:run-secretspec-se-01m3c9",
+        "raw_intent": "Is there any way to do away with the secretspec prompts entirely? -> Option B",
+        "refined_intent": "Secure Enclave post-quantum age identity with password-manager backup recipient",
         "acceptance_criteria": [],
         "constraints": [
-          "governance artifacts"
+          "Justfile modules/overlays.nix modules/shared-devtools.nix modules/M-02877/darwin.nix scripts/age-pq-plugin-to-native.py secretspec.toml README.md specs"
         ],
         "assumptions": [],
         "boundaries": [
-          "No root-checkout mutation"
+          "No root-checkout mutation; live re-key left to the user"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -69,43 +74,45 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-secretspec-age-publish-01m3c3",
+        "intent_id": "intent:run-secretspec-se-01m3c9",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-secretspec-age-publish-01m3c3",
+        "intent_id": "intent:run-secretspec-se-01m3c9",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-secretspec-age-publish-01m3c3",
+        "intent_id": "intent:run-secretspec-se-01m3c9",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-secretspec-age-publish-01m3c3"
+        "detail": "trajectory:run-secretspec-se-01m3c9"
       }
     ],
     "trajectories": {
-      "run-secretspec-age-publish-01m3c3": {
-        "id": "run-secretspec-age-publish-01m3c3",
-        "intent_id": "intent:run-secretspec-age-publish-01m3c3",
+      "run-secretspec-se-01m3c9": {
+        "id": "run-secretspec-se-01m3c9",
+        "intent_id": "intent:run-secretspec-se-01m3c9",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
-            "action": "validation",
-            "command": "decapod validate",
+            "action": "trajectory.record",
             "scope": [
-              "governance artifacts"
+              "Justfile modules/overlays.nix modules/shared-devtools.nix modules/M-02877/darwin.nix scripts/age-pq-plugin-to-native.py secretspec.toml README.md specs"
             ],
             "observations": [
-              ".decapod/governance/trajectory.json",
-              ".decapod/governance/validation.json",
-              "validation epoch ve_8c8e975302fbb355 completed with zero failures"
+              "modules/shared-devtools.nix",
+              "modules/overlays.nix",
+              "Justfile"
             ],
             "proof_refs": [
-              "decapod validate"
+              "darwin-system-build",
+              "se-recipe-scratch",
+              "minimal-path-wrapper",
+              "live-rekey"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"

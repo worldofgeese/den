@@ -16,6 +16,7 @@
     homeManager = {
       pkgs,
       lib,
+      config,
       ...
     }: let
       agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
@@ -42,7 +43,7 @@
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.
           secretspec
-          # age-keygen and age-plugin-pq, for `just secretspec-age-setup` and for
+          # age-keygen and age-plugin-pq, for `just secretspec-se-setup` and for
           # inspecting secretspec.age by hand.
           age
           # Pushes to the worldofgeese binary cache via `just cachix-push`.
@@ -63,21 +64,6 @@
           rtk
         ];
 
-      # secretspec.toml routes every secret through the `personal` alias. Each
-      # host defines that alias here, in its user-global secretspec config.
-      #
-      # macOS ties each Keychain item to the exact build that wrote it, and a
-      # Nix build is new on every secretspec bump. With one Keychain item per
-      # secret, that meant one password dialog per secret. On Darwin the secrets
-      # therefore live in one age file committed next to secretspec.toml
-      # (secretspec.age). Its post-quantum identity is the only Keychain item
-      # (secretspec/home-manager/_provider/identity), so a rebuild costs one
-      # dialog. The repo is public, so the key is post-quantum: a copy of the file
-      # harvested now stays sealed. The wrapped secretspec (modules/overlays.nix)
-      # puts age-plugin-pq on PATH. Linux hosts keep the per-secret keyring,
-      # which has no such prompt. `just secretspec-age-setup` does the one-off
-      # migration.
-      #
       # Tool-agnostic user MCP config. pi reads it through pi-mcp-adapter (pi has
       # no MCP client of its own). directTools lists mcp-nixos's tools next to
       # read/bash rather than behind the adapter's search proxy, so agents look
@@ -90,6 +76,27 @@
         };
       };
 
+      # secretspec.toml routes every secret through the `personal` alias. Each
+      # host defines that alias here, in its user-global secretspec config.
+      #
+      # On Darwin the secrets live in one age file committed next to
+      # secretspec.toml (secretspec.age). It is encrypted to the recipients in
+      # secretspec.age.recipients, and both of them are post-quantum because the
+      # repo is public:
+      #   - this Mac's Secure Enclave key (mlkem768p256tag, age-plugin-se). Its
+      #     identity file holds only a handle that is useless on any other
+      #     machine, and it is generated with access control `none`. Decryption
+      #     therefore raises no dialog at all and never touches the Keychain. A
+      #     Keychain read was a dialog on every secretspec rebuild, because macOS
+      #     trusts an item only for the exact cdhash of the build that owns it
+      #     (cachix/secretspec#438).
+      #   - a software backup key (mlkem768x25519), kept only in a password
+      #     manager, for a new or rebuilt Mac.
+      # The trade: nothing prompts, so any process running as this user can
+      # decrypt while it runs here, but it cannot take the key off the machine.
+      # `just secretspec-se-setup` creates the key and re-encrypts the file.
+      # Linux hosts keep the keyring.
+      #
       # force: the file used to be hand-written by `secretspec config init`.
       xdg.configFile."secretspec/config.toml" = {
         force = true;
@@ -100,8 +107,8 @@
             providers.personal =
               if pkgs.stdenv.hostPlatform.isDarwin
               then {
-                uri = "age://secretspec.age";
-                credentials.identity = "keyring";
+                # recipients-file resolves against the project root.
+                uri = "age://secretspec.age?identity=${config.xdg.configHome}/secretspec/se-identity.txt&recipients-file=secretspec.age.recipients";
               }
               else "keyring://";
           };

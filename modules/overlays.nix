@@ -10,19 +10,24 @@
       })
       (final: prev: {
         # The M-02877 `personal` secretspec alias (modules/shared-devtools.nix)
-        # is an age file under a post-quantum key. SecretSpec's Rust age library
-        # decrypts that key type only through the age-plugin-pq binary, found on
-        # PATH, so every secretspec caller needs it. That includes contexts with a
-        # minimal PATH, such as agent key helpers. wrapProgram keeps the real binary
-        # at its original store path, so Keychain "Always Allow" grants still
-        # match it.
+        # is an age file with two post-quantum recipients. SecretSpec's Rust age
+        # library handles both only through plugins found on PATH, so every
+        # secretspec caller needs them, including contexts with a minimal PATH
+        # such as agent key helpers:
+        #   - age-plugin-pq, from nixpkgs' age, for the backup key
+        #   - age-plugin-se, from Homebrew, for the Secure Enclave key. nixpkgs
+        #     builds it with Swift 5 and so without post-quantum support
+        #     ("Post-quantum not supported in this build"). Upstream needs Swift
+        #     6.2 and the macOS 26 SDK, which Homebrew's Xcode-built bottle has.
+        #     See modules/M-02877/secretspec-se.nix.
+        # Both paths are suffixed, so they never shadow anything already on PATH.
         secretspec = final.symlinkJoin {
           name = "secretspec-${prev.secretspec.version}";
           inherit (prev.secretspec) version meta;
           paths = [prev.secretspec];
           nativeBuildInputs = [final.makeWrapper];
           postBuild = ''
-            wrapProgram $out/bin/secretspec --suffix PATH : ${final.age}/bin
+            wrapProgram $out/bin/secretspec --suffix PATH : ${final.age}/bin${final.lib.optionalString final.stdenv.hostPlatform.isDarwin ":/opt/homebrew/opt/age-plugin-se/bin"}
           '';
         };
       })

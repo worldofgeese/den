@@ -269,23 +269,21 @@ Keys authorized to decrypt are declared in `secrets/secrets.nix`.
 
 [secretspec](https://secretspec.dev) holds per-user API secrets, which are declared in `secretspec.toml`. Every secret goes through the `personal` provider alias. Home Manager (`modules/shared-devtools.nix`) generates `~/.config/secretspec/config.toml` on each host to define it:
 
-- **M-02877:** `personal` is `secretspec.age`, an age-encrypted file committed next to `secretspec.toml` and encrypted to a post-quantum key. That key is the only Keychain item, so a secretspec rebuild raises one Keychain dialog, not one per secret.
+- **M-02877:** `personal` is `secretspec.age`, an age-encrypted file committed next to `secretspec.toml`. It is encrypted to the two post-quantum public keys in `secretspec.age.recipients`:
+  - this Mac's **Secure Enclave** key (`age-plugin-se`, Homebrew). It decrypts with no dialog and never touches the Keychain, so secretspec rebuilds no longer prompt ([cachix/secretspec#438](https://github.com/cachix/secretspec/issues/438)).
+  - a **backup** key that lives only in your password manager.
 - **Linux hosts:** `personal` is the system keyring.
 
-On a new Mac, deploy once, then move existing Keychain secrets into the file:
+The Secure Enclave key can't leave the machine, and it has no access control, so any process running as you can decrypt while on this Mac. The backup key is the only way to read the file anywhere else. Keep it in a password manager.
+
+On a new or rebuilt Mac, deploy, then re-key the file to that Mac's Secure Enclave:
 
 ```bash
-just secretspec-age-setup    # creates the age identity, imports, checks
-git add secretspec.age
-secretspec set HOMEBREW_GITHUB_API_TOKEN   # later writes also go to personal
+pbpaste | just secretspec-se-setup   # after copying the backup key from the password manager
+git add secretspec.age secretspec.age.recipients && git commit
 ```
 
-The age identity in the Keychain is the only way to decrypt `secretspec.age`. Back it up in a password manager:
-
-```bash
-just secretspec-age-backup                 # copies it to the clipboard, clears after 60s
-pbpaste | just secretspec-age-restore      # on a new Mac, after copying it from the manager
-```
+After `just secretspec-se-setup`, `secretspec set NAME` writes to both recipients as usual.
 
 ## Guix
 

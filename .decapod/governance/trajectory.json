@@ -5,6 +5,10 @@
   "task_id": "todo_01m3ca",
   "original_intent": "Also set HOMEBREW_NO_ENV_HINTS=1; VS Code cask upgrade failed",
   "derived_intent": "brew.env via nix-darwin; preflight guard for root-owned cask apps",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "No admin actions; no root-checkout mutation"
   ],
@@ -14,12 +18,21 @@
   "inspected_files": [
     "Justfile"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
       "name": "darwin-system-build",
+      "status": "passed"
+    },
+    {
+      "name": "decapod validate",
       "status": "passed"
     },
     {
@@ -31,7 +44,9 @@
       "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_daa94ad42705b26b completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -41,7 +56,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:39189e78f7825e2c541982797b4498a24b3ae86bd753b1ecad9658dd2732c817",
+  "artifact_hash": "sha256:7fdc72c5699915ff9ba1cb44a70df3a263fe344b5eada0c5fe3c52a29303c89b",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -83,6 +98,13 @@
         "intent_id": "intent:run-cask-preflight-01m3ca",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-cask-preflight-01m3ca"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-cask-preflight-01m3ca",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-cask-preflight-01m3ca"
       }
     ],
     "trajectories": {
@@ -107,12 +129,30 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "modules/M-02877/homebrew-env.nix scripts/cask-app-preflight.sh Justfile specs"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_daa94ad42705b26b completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

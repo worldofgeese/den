@@ -6,7 +6,7 @@
   "original_intent": "Publish the validated Doom Emacs configuration change to main after the user authorized integration.",
   "derived_intent": "Publish this isolated workspace through Decapod to worldofgeese/den main, preserve the root checkout, and merge after required checks pass.",
   "destination": "Pull request to worldofgeese/den main",
-  "current_phase": "validation",
+  "current_phase": "publish",
   "next_transitions": [
     "Run final Decapod validation in the container, then publish using the authenticated host environment if the container cannot push.",
     "Run v0.104.2 decapod validate --refresh-specs in the isolated container, then republish the generated surfaces.",
@@ -33,12 +33,32 @@
   "declared_commands": [
     "decapod validate",
     "decapod validate --format json in container",
+    "decapod validate --refresh-specs --format json",
     "decapod workspace publish",
     "git diff --check"
   ],
   "tool_calls": [
     "GitHub CI failed because the runner Decapod v0.104.2 refreshed release pins that were absent from this branch; the old CLI reports no newer crates.io release.",
     "The prior run recorded publication authorization; the prior publication attempts exposed a stale host validation epoch and container SSH host-key failure."
+  ],
+  "loops": [
+    {
+      "intent_id": "intent:run_01m3as33x3vq576p2",
+      "trajectory_id": "run_01m3as33x3vq576p2",
+      "loop_id": "decapod-1042-final-validation",
+      "loop_type": "verification",
+      "attempt": 1,
+      "trigger": "agent",
+      "grader_result": "pass",
+      "feedback": "Decapod 0.104.2 validation returned status ok with 185 passed and 0 failed",
+      "proof_refs": [
+        "git:64da6a6",
+        "validation:0.1042:status=ok:passed=185:failed=0"
+      ],
+      "mutation_proposal": "tool",
+      "status": "passed",
+      "custody_event_id": "event:8"
+    }
   ],
   "checks": [
     {
@@ -47,6 +67,10 @@
     },
     {
       "name": "decapod validate",
+      "status": "passed"
+    },
+    {
+      "name": "decapod_1042_validation",
       "status": "passed"
     },
     {
@@ -63,6 +87,7 @@
     }
   ],
   "evidence": [
+    "Decapod 0.104.2 validation: status ok, 185 passed, 0 failed",
     "Job 36102969622 ran decapod validate --refresh-specs with v0.104.2 and then detected drift in AGENTS.md, CLAUDE.md, GEMINI.md, CODEX.md, the managed Dockerfile pin, and the specs manifest.",
     "The Just check body passed with --no-deps; the Beads pre-commit hook passed separately; Decapod validation passed inside the workspace container.",
     "validation epoch ve_17f056bb1349739f completed with zero failures",
@@ -77,7 +102,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "unsupported"
   },
-  "artifact_hash": "sha256:ea936b2f769dd395f7312edb48ca5792055de5b704ca195ecb0f803bc670a52d",
+  "artifact_hash": "sha256:3770e4c4d954c4c756ba02012ec34486cd047715da304bd6cc35d252f03e6f22",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -137,6 +162,13 @@
       {
         "sequence": 7,
         "event_id": "event:7",
+        "intent_id": "intent:run_01m3as33x3vq576p2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run_01m3as33x3vq576p2"
+      },
+      {
+        "sequence": 8,
+        "event_id": "event:8",
         "intent_id": "intent:run_01m3as33x3vq576p2",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run_01m3as33x3vq576p2"
@@ -224,12 +256,28 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:7"
+          },
+          {
+            "sequence": 8,
+            "action": "loop:decapod-1042-final-validation:1",
+            "scope": [
+              "Doom Emacs jk escape and centered 80-column writing configuration plus required governance artifacts."
+            ],
+            "observations": [],
+            "proof_refs": [
+              "validation:0.1042:status=ok:passed=185:failed=0",
+              "git:64da6a6"
+            ],
+            "validation_findings": [
+              "Decapod 0.104.2 validation returned status ok with 185 passed and 0 failed"
+            ],
+            "custody_event_id": "event:8"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 7
+    "next_sequence": 8
   }
 }

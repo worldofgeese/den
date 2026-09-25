@@ -161,11 +161,20 @@ editing and focused writing:
 The `:ui zen` module bundles Writeroom behavior; users do not install or
 configure Olivetti separately for this workflow.
 
+## Secret Store and MCP Operator Interface
+| Command or file | Effect | Owner |
+|---|---|---|
+| `just secretspec-age-setup` | One-off on M-02877: creates the post-quantum age identity in the Keychain, imports every declared secret from the keyring into `secretspec.age`, then runs `secretspec check` | `Justfile` |
+| `just secretspec-age-backup` | Copies the age identity to the clipboard for a password manager; the clipboard is cleared after 60 s | `Justfile` |
+| `pbpaste \| just secretspec-age-restore` | Stores a backed-up identity in the Keychain, trusted for the current secretspec build | `Justfile` |
+| `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
+| `~/.config/mcp/mcp.json` | Declares the `nixos` MCP server (mcp-nixos) for pi-mcp-adapter, with direct tools | `modules/shared-devtools.nix` |
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `199dfd5b776c22e7446b4aeb365195a491af7505d2a4493bb7e9d85d636169aa`
+- Repository signal fingerprint: `6ecd29de0e2d1de4bfce7e87503327cf53fece351511a2f1e23d1e876f18f057`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

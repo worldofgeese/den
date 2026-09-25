@@ -96,6 +96,16 @@ flowchart LR
 | Simplicity vs extensibility | Faster iteration | Potential rework | Feature set expands |
 | Strict gates vs dev speed | Higher confidence | More upfront discipline | Lead time regressions |
 
+## Secret Prompt Budget (M-02877)
+Reading secretspec secrets on M-02877 should raise at most one Keychain dialog
+per secretspec build, not one per declared secret. The committed store must
+stay confidential in a public repository even against later cryptanalysis, so
+it uses a post-quantum age recipient, and the only key sits in the local
+Keychain. Linux hosts keep their current keyring behaviour. The live
+migration has not been observed yet: until `just secretspec-age-setup` runs
+and a rebuilt secretspec raises exactly one dialog, this outcome is inferred,
+not measured.
+
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
 - [ ] Define required data/contracts for that workflow.
@@ -134,7 +144,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `199dfd5b776c22e7446b4aeb365195a491af7505d2a4493bb7e9d85d636169aa`
+- Repository signal fingerprint: `6ecd29de0e2d1de4bfce7e87503327cf53fece351511a2f1e23d1e876f18f057`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

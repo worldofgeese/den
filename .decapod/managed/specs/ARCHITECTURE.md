@@ -152,11 +152,26 @@ command toggles the focused layout for the current buffer; `SPC t Z` also
 full-screens the Emacs frame. Doom supplies Writeroom through its Zen module,
 so this workflow does not add a separately managed Olivetti package.
 
+## Secret Resolution Flow
+`secretspec.toml` names every secret and routes all of them through the
+`personal` provider alias, then the keyring. Home Manager
+(`modules/shared-devtools.nix`) writes `~/.config/secretspec/config.toml`, which
+defines `personal` for each host. On M-02877 it is `age://secretspec.age`, an
+age file committed next to the manifest and encrypted to a post-quantum
+recipient. Its identity is read from the login Keychain at
+`secretspec/home-manager/_provider/identity`. On Linux hosts it is the keyring.
+A read tries `personal` first. The keyring fallback returns values that the
+migration has not moved yet. Writes go to `personal`. The
+`modules/overlays.nix` wrapper puts `age-plugin-pq` on secretspec's PATH but
+calls the unchanged binary, so Keychain trust given to that build still
+applies. A Keychain dialog appears once per secretspec build, for the one
+identity item, not once per secret.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `199dfd5b776c22e7446b4aeb365195a491af7505d2a4493bb7e9d85d636169aa`
+- Repository signal fingerprint: `6ecd29de0e2d1de4bfce7e87503327cf53fece351511a2f1e23d1e876f18f057`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -126,12 +126,16 @@ can leave root-owned files. This user may not run `sudo`, so Homebrew then can't
 move the app aside, and the failed upgrade can delete part of the bundle first.
 `just deploy-darwin` therefore runs `scripts/cask-app-preflight.sh` before
 `darwin-rebuild`. It moves leftover Caskroom backups of failed upgrades to the
-Trash, and stops the deploy if any casked app has files not owned by the user,
+Trash, and stops the deploy if a casked app, in the appdir Homebrew recorded for
+that cask, has files not owned by the user,
 printing one `osascript` admin command that changes ownership only.
 `/etc/homebrew/brew.env` (`modules/M-02877/homebrew-env.nix`) turns off Homebrew's
 env hints and the sudo service-domain warning. It is the only place those
 settings reach activation's `brew bundle`, which runs through
 `sudo --preserve-env=PATH`.
+Copies outside the recorded appdir are ignored: the Jamf device management on
+M-02877 installs its own SIP-protected `/Applications/Claude.app`, which even root
+cannot `chown`, alongside the Homebrew `claude` cask in `~/Applications`.
 
 ## Change Propagation Checklist
 - [ ] Component ownership remains singular and explicit.

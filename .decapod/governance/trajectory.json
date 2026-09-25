@@ -9,6 +9,7 @@
   "current_phase": "validation",
   "next_transitions": [
     "Run final Decapod validation in the container, then publish using the authenticated host environment if the container cannot push.",
+    "Run v0.104.2 decapod validate --refresh-specs in the isolated container, then republish the generated surfaces.",
     "Run validation in the container and publish the branch.",
     "publish"
   ],
@@ -20,11 +21,14 @@
   ],
   "inspected_files": [
     ".decapod/config.toml",
-    ".decapod/governance/validation.json"
+    ".decapod/governance/validation.json",
+    ".github/workflows/decapod-validate.yml"
   ],
   "modified_files": [
     ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json"
+    ".decapod/governance/validation.json",
+    ".decapod/managed/Dockerfile.decapod",
+    ".decapod/managed/specs/.manifest.json"
   ],
   "declared_commands": [
     "decapod validate",
@@ -33,6 +37,7 @@
     "git diff --check"
   ],
   "tool_calls": [
+    "GitHub CI failed because the runner Decapod v0.104.2 refreshed release pins that were absent from this branch; the old CLI reports no newer crates.io release.",
     "The prior run recorded publication authorization; the prior publication attempts exposed a stale host validation epoch and container SSH host-key failure."
   ],
   "checks": [
@@ -49,24 +54,30 @@
       "status": "passed"
     },
     {
+      "name": "github_ci_validate",
+      "status": "failed"
+    },
+    {
       "name": "repository_just_check",
       "status": "passed"
     }
   ],
   "evidence": [
+    "Job 36102969622 ran decapod validate --refresh-specs with v0.104.2 and then detected drift in AGENTS.md, CLAUDE.md, GEMINI.md, CODEX.md, the managed Dockerfile pin, and the specs manifest.",
     "The Just check body passed with --no-deps; the Beads pre-commit hook passed separately; Decapod validation passed inside the workspace container.",
+    "validation epoch ve_17f056bb1349739f completed with zero failures",
     "validation epoch ve_5334aabed66e867f completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
-  "proof_status": "passed",
+  "proof_status": "failed",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "supported"
+    "completion_proof": "unsupported"
   },
-  "artifact_hash": "sha256:5f9f21220e942de17f94e1d9e7263ab29bc8f332378bdfb9db7193ceb78139f4",
+  "artifact_hash": "sha256:ea936b2f769dd395f7312edb48ca5792055de5b704ca195ecb0f803bc670a52d",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -112,6 +123,20 @@
       {
         "sequence": 5,
         "event_id": "event:5",
+        "intent_id": "intent:run_01m3as33x3vq576p2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run_01m3as33x3vq576p2"
+      },
+      {
+        "sequence": 6,
+        "event_id": "event:6",
+        "intent_id": "intent:run_01m3as33x3vq576p2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run_01m3as33x3vq576p2"
+      },
+      {
+        "sequence": 7,
+        "event_id": "event:7",
         "intent_id": "intent:run_01m3as33x3vq576p2",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run_01m3as33x3vq576p2"
@@ -162,12 +187,49 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:5"
+          },
+          {
+            "sequence": 6,
+            "action": "validation",
+            "tool": "GitHub CI failed because the runner Decapod v0.104.2 refreshed release pins that were absent from this branch; the old CLI reports no newer crates.io release.",
+            "scope": [
+              "Doom Emacs jk escape and centered 80-column writing configuration plus required governance artifacts."
+            ],
+            "observations": [
+              ".github/workflows/decapod-validate.yml",
+              ".decapod/managed/Dockerfile.decapod",
+              ".decapod/managed/specs/.manifest.json",
+              "Job 36102969622 ran decapod validate --refresh-specs with v0.104.2 and then detected drift in AGENTS.md, CLAUDE.md, GEMINI.md, CODEX.md, the managed Dockerfile pin, and the specs manifest."
+            ],
+            "proof_refs": [
+              "github_ci_validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:6"
+          },
+          {
+            "sequence": 7,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "Doom Emacs jk escape and centered 80-column writing configuration plus required governance artifacts."
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_17f056bb1349739f completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:7"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 5
+    "next_sequence": 7
   }
 }

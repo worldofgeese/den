@@ -1,140 +1,152 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-20260925-mahakala-code_01m3astjeenawnc2",
-  "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+  "run_id": "run-20260925-mahakala-final-code_01m3astjeenawnc2",
+  "intent_id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
   "task_id": "code_01m3astjeenawnc2",
-  "original_intent": "Update everything on Mahakala, including operating system, Guix Home, Home Manager, and the Wi-Fi boot failure.",
-  "derived_intent": "Refresh shared flake inputs and Guix channels, verify the adapter identity, apply only Mahakala-scoped configuration changes, build and deploy Mahakala profiles, and prove the Wi-Fi driver behavior without modifying the root checkout or other hosts.",
+  "original_intent": "Update Mahakala after the QCA6174 ath10k boot failure, including system, user environments, and scoped recovery configuration.",
+  "derived_intent": "Record deployment and quality evidence in a fresh governed run, preserve the no-reboot boundary, validate in the Decapod container, and publish the isolated worktree. Treat actual next-boot Wi-Fi recovery as pending.",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
-    "Do not alter root main or its pre-existing .beads/dolt-server-config.yaml edit. Do not change or deploy other hosts. Do not cherry-pick or duplicate the completed Doom PR."
+    "Mahakala only; preserve the root checkout and its pre-existing .beads/dolt-server-config.yaml edit; do not reboot now; do not duplicate the merged Doom PR.",
+    "Mahakala only; root checkout and its local Dolt config edit remain untouched; no immediate reboot; no duplicate Doom PR"
   ],
   "repo_scope": [
-    "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
+    "Guix channels and Mahakala System/Home deployments, Home Manager inputs and deployment, QCA6174 ath10k recovery trial",
+    "Guix channels, Guix System and Guix Home Mahakala generations, Home Manager flake inputs and generation, ath10k recovery trial, governed artifacts"
   ],
   "inspected_files": [
-    ".decapod/OVERRIDE.md",
-    ".decapod/config.toml",
     ".decapod/managed/specs/ARCHITECTURE.md",
     ".decapod/managed/specs/INTENT.md",
     ".decapod/managed/specs/INTERFACES.md",
     "Justfile",
-    "guix/channels.scm",
-    "guix/home-configuration.scm",
+    "flake.lock",
     "guix/system.scm"
   ],
   "modified_files": [
-    ".decapod/governance/plan.json",
     ".decapod/governance/trajectory.json",
-    ".decapod/managed/Dockerfile.decapod",
-    ".decapod/managed/specs/.manifest.json",
-    "AGENTS.md",
-    "CLAUDE.md",
-    "CODEX.md",
-    "GEMINI.md",
-    "Justfile"
+    ".decapod/governance/validation.json",
+    ".decapod/managed/specs/ARCHITECTURE.md",
+    ".decapod/managed/specs/INTENT.md",
+    ".decapod/managed/specs/INTERFACES.md",
+    "Justfile",
+    "flake.lock",
+    "guix/system.scm"
   ],
   "declared_commands": [
-    "./scripts/check-drvpaths.sh",
-    "just --fmt --check",
-    "just check-decapod-overrides",
-    "just check-fmt",
-    "just check-guix"
+    "./scripts/check-drvpaths.sh: exit 0; aarch64-darwin check skipped without a remote builder",
+    "Cachix push completed successfully; 245 paths uploaded",
+    "bd close home-manager-46h and bd dolt push: exit 0",
+    "decapod validate",
+    "just check-guix; just check-fmt; just check-decapod-overrides; just --fmt --check; git diff --check: all exit 0",
+    "just deploy-mahakala-hm-only: exit 0; Home Manager generation 359 active",
+    "just deploy-mahakala-system: exit 0; Guix System generation 278 active",
+    "just guix-pull-home and just deploy-mahakala-guix-only: exit 0; Guix Home generation 404 active",
+    "just update: exit 0; Home Manager and llm-agents inputs refreshed in flake.lock"
   ],
-  "tool_calls": [
-    "lspci -nnk confirmed QCA6174 168c:003e and ath10k_pci"
-  ],
-  "loops": [
-    {
-      "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
-      "trajectory_id": "run-20260925-mahakala-code_01m3astjeenawnc2",
-      "loop_id": "loop:justfile-format",
-      "loop_type": "verification",
-      "attempt": 1,
-      "trigger": "agent",
-      "grader_result": "fail",
-      "feedback": "The baseline Justfile format check failed; run the repository formatter and retry.",
-      "proof_refs": [
-        "command:just --fmt --check exit 1"
-      ],
-      "mutation_proposal": "tool",
-      "status": "failed",
-      "custody_event_id": "event:4"
-    },
-    {
-      "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
-      "trajectory_id": "run-20260925-mahakala-code_01m3astjeenawnc2",
-      "loop_id": "loop:justfile-format",
-      "loop_type": "verification",
-      "attempt": 2,
-      "trigger": "agent",
-      "grader_result": "pass",
-      "feedback": "The Justfile was formatted and just --fmt --check passed.",
-      "proof_refs": [
-        "command:just --fmt --check exit 0",
-        "sha256:Justfile:f68c803402e6ceaf7a9aff081f5aabe77f2573d26cf462d6ac1c46e74bc90025"
-      ],
-      "mutation_proposal": "none",
-      "status": "passed",
-      "custody_event_id": "event:5"
-    }
-  ],
+  "tool_calls": [],
   "checks": [
     {
-      "name": "baseline-drvpaths",
+      "name": "alejandra_format_check",
+      "status": "passed"
+    },
+    {
+      "name": "beads_close_and_sync",
+      "status": "passed"
+    },
+    {
+      "name": "current_boot_argument",
+      "status": "unavailable"
+    },
+    {
+      "name": "decapod validate",
+      "status": "passed"
+    },
+    {
+      "name": "decapod_override_check",
+      "status": "passed"
+    },
+    {
+      "name": "derivation_path_check",
       "status": "partial"
     },
     {
-      "name": "baseline-guix",
+      "name": "flake_input_refresh",
       "status": "passed"
     },
     {
-      "name": "baseline-just-format",
-      "status": "failed"
-    },
-    {
-      "name": "baseline-nix-format",
+      "name": "generated_grub_argument",
       "status": "passed"
     },
     {
-      "name": "baseline-overrides",
+      "name": "guix_config_evaluation",
       "status": "passed"
     },
     {
-      "name": "plan-readiness",
+      "name": "guix_home_deployment",
       "status": "passed"
     },
     {
-      "name": "remedial-just-format",
+      "name": "guix_system_deployment",
+      "status": "passed"
+    },
+    {
+      "name": "home_manager_deployment",
+      "status": "passed"
+    },
+    {
+      "name": "justfile_format_check",
+      "status": "passed"
+    },
+    {
+      "name": "next_boot_wifi_recovery_proof",
+      "status": "unavailable"
+    },
+    {
+      "name": "whitespace_check",
       "status": "passed"
     }
   ],
   "evidence": [
-    "The drvpath script skipped only aarch64-darwin.M-02877 because no remote builder exists; the Mahakala Guix module checks passed."
+    "/proc/cmdline is from the pre-deployment boot and lacks ath10k_pci.reset_mode=1; no reboot was performed.",
+    "A final revalidation against the previous run was rejected as STALE_VALIDATION_EVIDENCE after its trajectory changed. Decapod explicitly required a fresh run ID; this run was initialized for that recovery.",
+    "Beads home-manager-46h is closed with next-boot runtime proof explicitly pending, and bd dolt push completed.",
+    "Fresh quality gates passed; derivation-path check exited 0 with the Darwin remote-builder subcheck skipped.",
+    "The prior containerized validation passed with 184 checks and zero failures, before trajectory changes invalidated its binding.",
+    "guix home describe reports generation 404 current; home-manager generations reports generation 359 current.",
+    "ip -brief link showed wlp2s0 UP at inspection; this does not prove the recovery trial on a later boot.",
+    "sudo guix system describe reports generation 278 current with updated Guix channels; /boot/grub/grub.cfg contains ath10k_pci.reset_mode=1.",
+    "validation epoch ve_60260a9f5600b884 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
-  "unresolved_assumptions": [],
-  "proof_status": "failed",
+  "unresolved_assumptions": [
+    "No reboot is authorized or necessary for applying the generation; the next planned boot is required to test ath10k_pci.reset_mode=1 against the prior QCA6174 failure."
+  ],
+  "completion_claim": "Mahakala Guix System generation 278, Guix Home generation 404, and Home Manager generation 359 are active with refreshed inputs; the deployed GRUB entry contains ath10k_pci.reset_mode=1. This completes the scoped update/deployment, but Wi-Fi recovery on the next boot remains unproven.",
+  "proof_status": "partial",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "unsupported"
+    "completion_proof": "caution"
   },
-  "artifact_hash": "sha256:38b24f46490411f5ec3d112d71a48f2935e124b9713d65b99177edd891f17416",
+  "artifact_hash": "sha256:8e6767a71e05cd1706d28b10559dddd5ba238f888d70e8e2cac9599128c3d9b5",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-20260925-mahakala-code_01m3astjeenawnc2": {
-        "id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
-        "raw_intent": "Update everything on Mahakala, including operating system, Guix Home, Home Manager, and the Wi-Fi boot failure.",
-        "refined_intent": "Refresh shared flake inputs and Guix channels, verify the adapter identity, apply only Mahakala-scoped configuration changes, build and deploy Mahakala profiles, and prove the Wi-Fi driver behavior without modifying the root checkout or other hosts.",
+      "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2": {
+        "id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
+        "raw_intent": "Update Mahakala after the QCA6174 ath10k boot failure, including system, user environments, and scoped recovery configuration.",
+        "refined_intent": "Record deployment and quality evidence in a fresh governed run, preserve the no-reboot boundary, validate in the Decapod container, and publish the isolated worktree. Treat actual next-boot Wi-Fi recovery as pending.",
         "acceptance_criteria": [],
         "constraints": [
-          "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
+          "Guix channels, Guix System and Guix Home Mahakala generations, Home Manager flake inputs and generation, ath10k recovery trial, governed artifacts"
         ],
         "assumptions": [],
         "boundaries": [
-          "Do not alter root main or its pre-existing .beads/dolt-server-config.yaml edit. Do not change or deploy other hosts. Do not cherry-pick or duplicate the completed Doom PR."
+          "Mahakala only; preserve the root checkout and its pre-existing .beads/dolt-server-config.yaml edit; do not reboot now; do not duplicate the merged Doom PR."
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -147,65 +159,103 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+        "intent_id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+        "intent_id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+        "intent_id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-20260925-mahakala-code_01m3astjeenawnc2"
+        "detail": "trajectory:run-20260925-mahakala-final-code_01m3astjeenawnc2"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+        "intent_id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-20260925-mahakala-code_01m3astjeenawnc2"
+        "detail": "trajectory:run-20260925-mahakala-final-code_01m3astjeenawnc2"
       }
     ],
     "trajectories": {
-      "run-20260925-mahakala-code_01m3astjeenawnc2": {
-        "id": "run-20260925-mahakala-code_01m3astjeenawnc2",
-        "intent_id": "intent:run-20260925-mahakala-code_01m3astjeenawnc2",
+      "run-20260925-mahakala-final-code_01m3astjeenawnc2": {
+        "id": "run-20260925-mahakala-final-code_01m3astjeenawnc2",
+        "intent_id": "intent:run-20260925-mahakala-final-code_01m3astjeenawnc2",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
-            "action": "loop:loop:justfile-format:1",
+            "action": "validation",
+            "command": "just deploy-mahakala-system: exit 0; Guix System generation 278 active",
             "scope": [
-              "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
+              "Guix channels, Guix System and Guix Home Mahakala generations, Home Manager flake inputs and generation, ath10k recovery trial, governed artifacts"
             ],
-            "observations": [],
+            "observations": [
+              "guix/system.scm",
+              "Justfile",
+              "flake.lock",
+              ".decapod/managed/specs/INTENT.md",
+              ".decapod/managed/specs/ARCHITECTURE.md",
+              ".decapod/managed/specs/INTERFACES.md",
+              "guix/system.scm",
+              "Justfile",
+              "flake.lock",
+              ".decapod/managed/specs/INTENT.md",
+              ".decapod/managed/specs/ARCHITECTURE.md",
+              ".decapod/managed/specs/INTERFACES.md",
+              "A final revalidation against the previous run was rejected as STALE_VALIDATION_EVIDENCE after its trajectory changed. Decapod explicitly required a fresh run ID; this run was initialized for that recovery.",
+              "The prior containerized validation passed with 184 checks and zero failures, before trajectory changes invalidated its binding.",
+              "sudo guix system describe reports generation 278 current with updated Guix channels; /boot/grub/grub.cfg contains ath10k_pci.reset_mode=1.",
+              "/proc/cmdline is from the pre-deployment boot and lacks ath10k_pci.reset_mode=1; no reboot was performed.",
+              "guix home describe reports generation 404 current; home-manager generations reports generation 359 current.",
+              "ip -brief link showed wlp2s0 UP at inspection; this does not prove the recovery trial on a later boot.",
+              "Fresh quality gates passed; derivation-path check exited 0 with the Darwin remote-builder subcheck skipped.",
+              "Beads home-manager-46h is closed with next-boot runtime proof explicitly pending, and bd dolt push completed."
+            ],
             "proof_refs": [
-              "command:just --fmt --check exit 1"
+              "guix_system_deployment",
+              "guix_home_deployment",
+              "home_manager_deployment",
+              "flake_input_refresh",
+              "generated_grub_argument",
+              "guix_config_evaluation",
+              "alejandra_format_check",
+              "decapod_override_check",
+              "justfile_format_check",
+              "whitespace_check",
+              "derivation_path_check",
+              "beads_close_and_sync",
+              "current_boot_argument",
+              "next_boot_wifi_recovery_proof"
             ],
             "validation_findings": [
-              "The baseline Justfile format check failed; run the repository formatter and retry."
+              "No reboot is authorized or necessary for applying the generation; the next planned boot is required to test ath10k_pci.reset_mode=1 against the prior QCA6174 failure."
             ],
             "custody_event_id": "event:4"
           },
           {
             "sequence": 5,
-            "action": "loop:loop:justfile-format:2",
+            "action": "validation",
+            "command": "decapod validate",
             "scope": [
-              "Mahakala system and user profiles, shared flake lock only as used by Mahakala, targeted Guix configuration, generated Decapod workspace projections, and proof artifacts."
+              "Guix channels and Mahakala System/Home deployments, Home Manager inputs and deployment, QCA6174 ath10k recovery trial",
+              "Guix channels, Guix System and Guix Home Mahakala generations, Home Manager flake inputs and generation, ath10k recovery trial, governed artifacts"
             ],
-            "observations": [],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_60260a9f5600b884 completed with zero failures"
+            ],
             "proof_refs": [
-              "command:just --fmt --check exit 0",
-              "sha256:Justfile:f68c803402e6ceaf7a9aff081f5aabe77f2573d26cf462d6ac1c46e74bc90025"
+              "decapod validate"
             ],
-            "validation_findings": [
-              "The Justfile was formatted and just --fmt --check passed."
-            ],
+            "validation_findings": [],
             "custody_event_id": "event:5"
           }
         ]

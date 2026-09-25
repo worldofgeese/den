@@ -11,7 +11,8 @@
     "Run final Decapod validation in the container, then publish using the authenticated host environment if the container cannot push.",
     "Run v0.104.2 decapod validate --refresh-specs in the isolated container, then republish the generated surfaces.",
     "Run validation in the container and publish the branch.",
-    "publish"
+    "publish",
+    "publish corrected branch; rerun GitHub checks"
   ],
   "active_boundaries": [
     "Use only the existing Doom feature workspace; preserve the root main branch and its unrelated Beads edit."
@@ -31,6 +32,7 @@
     ".decapod/managed/specs/.manifest.json"
   ],
   "declared_commands": [
+    "Decapod workspace publish",
     "decapod validate",
     "decapod validate --format json in container",
     "decapod validate --refresh-specs --format json",
@@ -79,7 +81,7 @@
     },
     {
       "name": "github_ci_validate",
-      "status": "failed"
+      "status": "partial"
     },
     {
       "name": "repository_just_check",
@@ -90,19 +92,20 @@
     "Decapod 0.104.2 validation: status ok, 185 passed, 0 failed",
     "Job 36102969622 ran decapod validate --refresh-specs with v0.104.2 and then detected drift in AGENTS.md, CLAUDE.md, GEMINI.md, CODEX.md, the managed Dockerfile pin, and the specs manifest.",
     "The Just check body passed with --no-deps; the Beads pre-commit hook passed separately; Decapod validation passed inside the workspace container.",
+    "The previous GitHub CI run failed because release projections were stale; generated projections are now committed as 64da6a6. CI for the corrected branch has not run yet.",
     "validation epoch ve_17f056bb1349739f completed with zero failures",
     "validation epoch ve_5334aabed66e867f completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
-  "proof_status": "failed",
+  "proof_status": "partial",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "unsupported"
+    "completion_proof": "caution"
   },
-  "artifact_hash": "sha256:3770e4c4d954c4c756ba02012ec34486cd047715da304bd6cc35d252f03e6f22",
+  "artifact_hash": "sha256:94e3348d9a2592b5a3414bcfcb715e0a1327bc9c8192afaeac9870a94c87d523",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -169,6 +172,13 @@
       {
         "sequence": 8,
         "event_id": "event:8",
+        "intent_id": "intent:run_01m3as33x3vq576p2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run_01m3as33x3vq576p2"
+      },
+      {
+        "sequence": 9,
+        "event_id": "event:9",
         "intent_id": "intent:run_01m3as33x3vq576p2",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run_01m3as33x3vq576p2"
@@ -272,12 +282,28 @@
               "Decapod 0.104.2 validation returned status ok with 185 passed and 0 failed"
             ],
             "custody_event_id": "event:8"
+          },
+          {
+            "sequence": 9,
+            "action": "publish",
+            "command": "Decapod workspace publish",
+            "scope": [
+              "Doom Emacs jk escape and centered 80-column writing configuration plus required governance artifacts."
+            ],
+            "observations": [
+              "The previous GitHub CI run failed because release projections were stale; generated projections are now committed as 64da6a6. CI for the corrected branch has not run yet."
+            ],
+            "proof_refs": [
+              "github_ci_validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:9"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 8
+    "next_sequence": 9
   }
 }

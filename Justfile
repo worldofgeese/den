@@ -411,6 +411,49 @@ cachix-push flake-attr=default-cachix-attr:
       nix build --no-link --print-out-paths --no-warn-dirty {{flake-attr}} \
       | cachix push worldofgeese'
 
+# One-off, M-02877 only, after a deploy: move secretspec's secrets from one
+# Keychain item each into secretspec.age, so a secretspec rebuild raises one
+# Keychain dialog, not one per secret. Creates the post-quantum age identity (the
+# only Keychain item left), then imports every declared secret from the keyring.
+# The import reads each old item once, so expect a dialog per secret this one
+# last time; choose Always Allow. The old items stay as a fallback. The identity
+# goes to `security -i` on stdin, so it never appears in argv. Commit
+# secretspec.age afterwards. See modules/shared-devtools.nix.
+#
+# Move secretspec secrets into secretspec.age (M-02877)
+secretspec-age-setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    die() { printf 'secretspec-age-setup: %s\n' "$*" >&2; exit 1; }
+    [ "$(uname -s)" = Darwin ] || die "Darwin only; Linux hosts keep the keyring"
+    grep -q 'age://' "$HOME/.config/secretspec/config.toml" 2>/dev/null \
+      || die "~/.config/secretspec/config.toml has no age alias; run just deploy-darwin first"
+    spec="$PWD/secretspec.toml"
+    svc="secretspec/home-manager/_provider/identity"
+    wrapper="$(readlink -f "$(command -v secretspec)")"
+    real="$(readlink -f "$(dirname "$wrapper")/.secretspec-wrapped")"
+    [ -x "$real" ] || die "secretspec is not the age-wrapped build from modules/overlays.nix"
+    if security find-generic-password -a "$USER" -s "$svc" >/dev/null 2>&1; then
+      echo "age identity already in Keychain ($svc); reusing it"
+    else
+      tmp="$(mktemp -d)"
+      trap 'rm -rf "$tmp"' EXIT
+      age-keygen -pq -o "$tmp/key" >/dev/null
+      age-plugin-pq -identity -o "$tmp/id" "$tmp/key"
+      # -T trusts the real secretspec binary up front, so reads by this build
+      # stay silent. Plugin identities are plain [A-Z0-9-] text, safe to
+      # embed unquoted.
+      printf 'add-generic-password -a %s -s %s -l %s -T %s -w %s\n' \
+        "$USER" "$svc" "secretspec-age-identity" "$real" "$(cat "$tmp/id")" \
+        | security -i
+      security find-generic-password -a "$USER" -s "$svc" >/dev/null \
+        || die "could not store the age identity in Keychain"
+      echo "stored a new post-quantum age identity in Keychain ($svc)"
+    fi
+    secretspec import keyring -f "$spec" --reason "migrate secretspec keyring items into secretspec.age"
+    secretspec check -f "$spec" --reason "verify secretspec.age after migration" </dev/null
+    echo "done: commit secretspec.age (git add secretspec.age)"
+
 # Update a single flake input
 # One-command repair when a Nix-built app's macOS privacy toggle (App
 # Management, Full Disk Access) keeps switching itself off. Signs the app with a

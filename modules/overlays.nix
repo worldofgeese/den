@@ -9,6 +9,24 @@
         devenv = inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv;
       })
       (final: prev: {
+        # The M-02877 `personal` secretspec alias (modules/shared-devtools.nix)
+        # is an age file under a post-quantum key. SecretSpec's Rust age library
+        # decrypts that key type only through the age-plugin-pq binary, found on
+        # PATH, so every secretspec caller needs it. That includes contexts with a
+        # minimal PATH, such as agent key helpers. wrapProgram keeps the real binary
+        # at its original store path, so Keychain "Always Allow" grants still
+        # match it.
+        secretspec = final.symlinkJoin {
+          name = "secretspec-${prev.secretspec.version}";
+          inherit (prev.secretspec) version meta;
+          paths = [prev.secretspec];
+          nativeBuildInputs = [final.makeWrapper];
+          postBuild = ''
+            wrapProgram $out/bin/secretspec --suffix PATH : ${final.age}/bin
+          '';
+        };
+      })
+      (final: prev: {
         # Upstream ships packages.default as of DecapodLabs/decapod#1169, so the
         # version and both hashes now come from flake.lock. This previously was a
         # buildRustPackage here, which meant scripts/update-rust-tools.sh had to

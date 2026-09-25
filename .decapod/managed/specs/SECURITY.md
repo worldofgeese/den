@@ -52,13 +52,23 @@ flowchart LR
 | Secret | Source | Rotation | Consumer |
 |---|---|---|---|
 | `LEGO_GATEWAY_API_KEY` | `secretspec` provider, named (not stored) in `gateway.json` | provider-managed | every CLI coding agent, Emacs agent-shell, headroom |
+| Every `secretspec.toml` secret (M-02877) | `secretspec.age`, age ciphertext committed to the repo, post-quantum (ML-KEM-768 + X25519) recipient | re-encrypted on every `secretspec set` | shell init, agents, `just cachix-push`, `hm-app-signing` |
+| secretspec age identity (M-02877) | login Keychain, `secretspec/home-manager/_provider/identity`, created by `just secretspec-age-setup` | manual: new identity, then re-import | the `secretspec` binary only |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
 
 ### Credential Handling Invariant
-No secret value may enter a tracked file or the Nix store. Only the *name* of a
-secret and a *command* that prints it may be declared; the value exists solely
-in the environment of a process about to spend it.
+No plaintext secret value may enter a tracked file or the Nix store. Only the
+*name* of a secret and a *command* that prints it may be declared; the value
+exists solely in the environment of a process about to spend it.
+
+Ciphertext is the one exception, and only when its decryption key never enters
+the repo or the store: agenix files under `secrets/`, and `secretspec.age`.
+The repo is public, so a committed ciphertext must be treated as already
+harvested. For that reason `secretspec.age` uses a post-quantum recipient.
+Its identity lives only in the M-02877 login Keychain. Losing that item makes
+the file unreadable. The pre-migration Keychain items remain as a fallback
+until they are deleted by hand.
 
 This forces a documented departure from vendor setup instructions. The gateway's
 own docs configure Claude Code with `ANTHROPIC_AUTH_TOKEN=<credential>`, which

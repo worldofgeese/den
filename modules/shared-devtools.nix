@@ -42,6 +42,9 @@
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.
           secretspec
+          # age-keygen and age-plugin-pq, for `just secretspec-age-setup` and for
+          # inspecting secretspec.age by hand.
+          age
           # Pushes to the worldofgeese binary cache via `just cachix-push`.
           cachix
           herdr
@@ -59,6 +62,39 @@
           dolt
           rtk
         ];
+
+      # secretspec.toml routes every secret through the `personal` alias. Each
+      # host defines that alias here, in its user-global secretspec config.
+      #
+      # macOS ties each Keychain item to the exact build that wrote it, and a
+      # Nix build is new on every secretspec bump. With one Keychain item per
+      # secret, that meant one password dialog per secret. On Darwin the secrets
+      # therefore live in one age file committed next to secretspec.toml
+      # (secretspec.age). Its post-quantum identity is the only Keychain item
+      # (secretspec/home-manager/_provider/identity), so a rebuild costs one
+      # dialog. The repo is public, so the key is post-quantum: a copy of the file
+      # harvested now stays sealed. The wrapped secretspec (modules/overlays.nix)
+      # puts age-plugin-pq on PATH. Linux hosts keep the per-secret keyring,
+      # which has no such prompt. `just secretspec-age-setup` does the one-off
+      # migration.
+      #
+      # force: the file used to be hand-written by `secretspec config init`.
+      xdg.configFile."secretspec/config.toml" = {
+        force = true;
+        source = (pkgs.formats.toml {}).generate "secretspec-config.toml" {
+          defaults = {
+            provider = "keyring";
+            profile = "default";
+            providers.personal =
+              if pkgs.stdenv.hostPlatform.isDarwin
+              then {
+                uri = "age://secretspec.age";
+                credentials.identity = "keyring";
+              }
+              else "keyring://";
+          };
+        };
+      };
 
       # uv, plus the tools it manages. Declarative replacement for
       # `uv tool install`: entries are installed and upgraded on activation.

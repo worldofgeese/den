@@ -12,6 +12,7 @@
 ## Product Outcome
 - To quickly bring up my Home Manager config first install Nix then
 - In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
+- On Mahakala, use `just deploy-mahakala` to update and apply the Guix System, Guix Home, and Home Manager profiles. The boot configuration also requests the ath10k warm-only reset mode for the verified QCA6174 card.
 
 ## What This Project Is
 home-manager is a service_or_library project built using shell.
@@ -59,6 +60,10 @@ flowchart LR
 - [ ] Decapod validate passes, required tests pass, and promotion-relevant artifacts are present.
 - [ ] The Home Manager managed Doom config enables `:ui zen`, sets its writing width to 80 columns, and configures Evil escape as `jk`.
 - [ ] Doom's buffer and full-screen Zen toggles keep writing text centered at the configured width and can be toggled off.
+- [ ] Mahakala deployment recipes read Guix source files from the active Justfile directory, including an isolated worktree.
+- [ ] Mahakala's Guix System kernel arguments include `ath10k_pci.reset_mode=1` for PCI device `168c:003e` using `ath10k_pci`.
+- [ ] Guix System, Guix Home, and Home Manager profiles build and apply through `just deploy-mahakala` without changing another host.
+- [ ] The deployment does not force an immediate reboot. The next planned boot supplies runtime proof for the Wi-Fi recovery trial.
 - [ ] Non-functional targets are met (latency, reliability, cost, etc.).
 - [ ] Validation gates pass and artifacts are attached.
 - [ ] Repository test/lint/typecheck commands are defined and wired into CI.
@@ -76,7 +81,8 @@ flowchart LR
 ### Measured vs Inferred Facts
 | Fact | Source (Provenance) | Type (Measured/Inferred) |
 |---|---|---|
-| | | |
+| PCI device `02:00.0` is QCA6174 `168c:003e` and uses `ath10k_pci` | `lspci -nnk` on Mahakala | Measured |
+| `ath10k_pci.reset_mode=1` selects warm-only reset; `0` selects automatic reset | Built module `modinfo` and upstream Linux driver source | Measured |
 
 ### Unresolved Contradictions
 - [ ] List any evidence that conflicts with current assumptions or intent.
@@ -88,7 +94,9 @@ flowchart LR
 - [ ] Explicit conditions under which the agent should stop and ask for help.
 
 ### Proof Required Before Completion
-- [ ] Specific evidence needed to prove the outcome is met.
+- [ ] Record successful Guix System, Guix Home, and Home Manager profile application on Mahakala.
+- [ ] Confirm the active system generation contains the new kernel argument. Do not force a reboot during deployment.
+- [ ] Inspect ath10k probe logs after the next planned boot. Treat the parameter as a recovery trial until that boot succeeds.
 
 ## Tradeoffs Register
 | Decision | Benefit | Cost | Review Trigger |

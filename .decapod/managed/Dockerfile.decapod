@@ -6,6 +6,8 @@
 # Workspace creation and validation refresh this pin only when the evaluating Decapod release changes.
 
 
+
+
 ARG DECAPOD_IMAGE=ghcr.io/decapodlabs/decapod:v0.104.2-debian
 FROM $DECAPOD_IMAGE
 ARG DECAPOD_VERSION=0.104.2

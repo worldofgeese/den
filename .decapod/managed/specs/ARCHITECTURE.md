@@ -78,6 +78,15 @@ sequenceDiagram
 - Rollout strategy (blue/green/canary):
 - Rollback trigger and blast-radius scope:
 
+## Mahakala Guix Deployment
+`just deploy-mahakala` pulls the system and user Guix channels, applies Guix System and Guix Home, updates flake inputs, and switches Home Manager.
+
+The system configuration is `guix/system.scm`. The home configuration is `guix/home-configuration.scm`. System deploy and kernel recipes use `justfile_directory()` so an isolated worktree supplies its own source files.
+
+The QCA6174 card uses `ath10k_pci`. The Guix System kernel arguments request `ath10k_pci.reset_mode=1`. The built module defines `0` as automatic reset and `1` as warm-only reset.
+
+This reset mode is a recovery trial, not a proven fix. The deployment does not force a reboot. The next planned boot must confirm the ath10k probe result.
+
 ## Data and Contracts
 - Inbound contracts (CLI/API/events):
 - Outbound dependencies (datastores/queues/external APIs):

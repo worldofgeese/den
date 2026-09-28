@@ -1,21 +1,11 @@
 {
   description = "Den mono-repo: unified Nix infrastructure for all hosts";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://cache.numtide.com"
-      # nixarchy's own cache and the Hyprland cache its overlay pulls from.
-      # Without these, importing homeManagerModules.nixarchy means building
-      # Hyprland and ~80 runtime dependencies locally.
-      "https://nixarchy.cachix.org"
-      "https://hyprland.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-      "nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM="
-      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE="
-    ];
-  };
+  # No nixConfig: a flake's substituters apply only after a per-value trust
+  # prompt, and a host that declines prints two warnings on every nix command.
+  # Each host declares its own caches instead: M-02877 in
+  # modules/M-02877/darwin.nix, mahakala's Home Manager switch in the
+  # deploy-mahakala-hm-only recipe (nixarchy and Hyprland are Linux-only).
 
   inputs = {
     den.url = "github:denful/den";
@@ -35,6 +25,15 @@
     decapod = {
       url = "github:DecapodLabs/decapod";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
+    };
+    # One rust-overlay for every input that wants one. A transitive pin only
+    # moves when its parent's own lock does, so decapod's copy sat on a
+    # revision that still used the deprecated stdenv.isDarwin and warned on
+    # every darwin evaluation. As a root input `nix flake update` moves it.
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     # Coding-agent binaries share one tested runtime closure across Darwin and
     # Guix System. Keep upstream's nixpkgs input for cache compatibility.
@@ -44,6 +43,7 @@
     devenv = {
       url = "github:cachix/devenv";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
     };
     agenix = {
       url = "github:ryantm/agenix";
@@ -84,6 +84,7 @@
     emacs-tramp-rpc = {
       url = "github:ArthurHeymans/emacs-tramp-rpc";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rust-overlay.follows = "rust-overlay";
     };
     nix-doom-emacs-unstraightened = {
       url = "github:marienz/nix-doom-emacs-unstraightened";

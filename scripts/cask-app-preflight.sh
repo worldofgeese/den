@@ -18,8 +18,8 @@
 #
 # 1. Root-owned files inside the app. Self-updaters (Squirrel ShipIt, Sparkle,
 #    JetBrains) leave these in /Applications. Homebrew then cannot move the
-#    app aside, and its sudo chown is refused, because this user may not use
-#    sudo. Worse, the failed upgrade can delete part of the app first: that is
+#    app aside, and its sudo chown is refused: sudo works only while Privileges
+#    grants admin, and never unattended. Worse, the failed upgrade can delete part of the app first: that is
 #    how ChatGPT.app lost its binary. This script stops the deploy and prints
 #    the single admin command that fixes it (ownership only; nothing is
 #    deleted). Only the app in the cask's recorded appdir is checked.

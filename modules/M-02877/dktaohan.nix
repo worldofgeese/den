@@ -370,6 +370,15 @@
               "rustup"
               "pi"
               "claude_code"
+              # Each re-implements an updater that already runs: VS Code,
+              # Insiders and Cursor auto-update extensions themselves, and
+              # Intune manages Microsoft AutoUpdate (HowToCheck =
+              # AutomaticDownload). Together ~2 min per run, plus a Node
+              # DEP0169 warning from each editor CLI.
+              "vscode"
+              "vscode_insiders"
+              "cursor"
+              "microsoft_office"
             ];
             set_title = true;
           };
@@ -377,7 +386,7 @@
             # Separate steps on purpose. Attrset order puts "Flake inputs"
             # first, so inputs refresh before the deploy — but a forge outage
             # fails only its own step instead of blocking the deploy.
-            "Flake inputs" = "cd ~/.config/home-manager && just update";
+            "Flake inputs" = "cd ~/.config/home-manager && just update-darwin";
             "Nix-Darwin via Justfile" = "cd ~/.config/home-manager && just deploy-darwin";
           };
         };

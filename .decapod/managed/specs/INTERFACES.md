@@ -183,7 +183,9 @@ These commands do not force an immediate reboot. The next planned boot verifies 
 ## Darwin Deploy Preflight
 | Command or file | Effect | Exit |
 |---|---|---|
-| `scripts/cask-app-preflight.sh` (first step of `just deploy-darwin`) | Runs `brew update`; reinstalls into `~/Applications` every app cask whose recorded appdir is not user-writable and that is outdated (greedy) or an empty shell, printing an optional admin `rm -rf` for the old copies; moves a Caskroom backup left by a failed upgrade to `~/.Trash` when the live app exists; lists casked apps with non-user-owned files | 0 = proceed; 1 = a reinstall failed (Caskroom record restored), or prints the `osascript ... chown -R` fix, and stops the deploy |
+| `scripts/cask-app-preflight.sh` (first step of `just deploy-darwin`) | Runs `brew update`; reinstalls into `~/Applications` every app cask whose recorded appdir is not owned by the user and that is outdated (greedy) or an empty shell, parking and restoring its CLI symlinks, trashing the old copy when the appdir is writable and otherwise printing an optional admin `rm -rf`; moves a Caskroom backup left by a failed upgrade to `~/.Trash` when the live app exists; lists casked apps with non-user-owned files | 0 = proceed; 1 = a reinstall failed (Caskroom record restored), or prints the `osascript ... chown -R` fix, and stops the deploy |
+| `just update-darwin` (topgrade "Flake inputs" on M-02877) | `nix flake update` of every root input except `darwin-skip-inputs`, under the same 900 s SIGKILL guard as `just update` | nix's exit status |
+| `just cachix-push [target]` | `target` starting with `/` is pushed as a store path (after `readlink -f`); otherwise it is a flake attribute that is built, then pushed | cachix's exit status; callers treat failure as a warning |
 | `/etc/homebrew/brew.env` | `HOMEBREW_NO_ENV_HINTS=1`, `HOMEBREW_SERVICES_NO_DOMAIN_WARNING=1` for every brew invocation | n/a |
 
 <!-- decapod:codebase-attestation:start -->

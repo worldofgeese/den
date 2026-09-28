@@ -131,23 +131,47 @@ package state.
 ### Homebrew Cask Upgrade Guard
 Activation's `brew bundle` upgrades casks, including self-updating ones. The
 self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)
-can leave root-owned files. This user may not run `sudo`, so Homebrew then can't
-move the app aside, and the failed upgrade can delete part of the bundle first.
+can leave root-owned files. This user has `sudo` only while SAP Privileges
+grants admin, so Homebrew then can't move the app aside, and the failed upgrade
+can delete part of the bundle first.
 `just deploy-darwin` therefore runs `scripts/cask-app-preflight.sh` before
 `darwin-rebuild`. It moves leftover Caskroom backups of failed upgrades to the
 Trash, and stops the deploy if a casked app, in the appdir Homebrew recorded for
 that cask, has files not owned by the user,
 printing one `osascript` admin command that changes ownership only.
-The user is also not in the `admin` group, so `/Applications` (root:admin, 775)
-is read-only to them, yet casks installed during a brief admin grant are
-recorded there. An upgrade then empties the bundle, cannot remove the directory,
-and is refused `sudo`, leaving an empty app. For each cask whose recorded appdir
-is not writable and that is outdated (`brew outdated --cask --greedy`, after a
+SAP Privileges (Jamf-managed) makes the user an admin for 10 minutes at a time
+and revokes it on screen lock, so `/Applications` (root:admin, 775) is writable
+only intermittently, and a deploy outlasts a grant. Casks recorded there are
+upgraded after the grant lapses: the bundle is emptied, the directory cannot be
+removed, `sudo` is refused, and an empty app remains. For each cask whose
+recorded appdir is not owned by the user (ownership, not momentary
+writability, decides) and that is outdated (`brew outdated --cask --greedy`, after a
 `brew update`) or already an empty shell, the preflight parks its Caskroom
 record and reinstalls it into `~/Applications`, the configured
-`homebrew.caskArgs.appdir`. The old copy is left intact and an optional admin
-`rm -rf` command is printed. If the reinstall fails, the record is restored and
-the deploy stops. `pkg` casks are out of scope; they need an admin installer.
+`homebrew.caskArgs.appdir`, parking and restoring the cask's CLI symlinks
+around the install. The old copy goes to the Trash when the appdir is writable
+at that moment; otherwise it is left intact and an optional admin `rm -rf` is
+printed. If the reinstall fails, the record and symlinks are restored and the
+deploy stops. Each cask migrates once, so the check retires itself.
+
+### Flake Update Cost on M-02877
+Microsoft Defender inspects every file open by `nix` and `nix-daemon` on
+M-02877 (about 3.5 ms per file; `cat`, which is on its exclusion list, reads the
+same 54k-file nixpkgs tree 12x faster). Fetching one nixpkgs revision took 8.5
+minutes. The repository therefore minimises trees Nix must touch there:
+topgrade's "Flake inputs" step runs `just update-darwin`, which skips the
+Linux-only root inputs in `darwin-skip-inputs` (nixarchy brings a third nixpkgs
+and ~15 inputs); one root `rust-overlay` is followed by decapod, devenv and
+emacs-tramp-rpc; and `just cachix-push /run/current-system` pushes the path
+darwin-rebuild just built instead of evaluating the system again. The durable
+fix is a Defender exclusion for Lix's `nix`/`nix-daemon` or `/nix/store`, which
+only device management can grant.
+
+### Binary Cache Declarations
+`flake.nix` carries no `nixConfig`: a declined flake config warns on every nix
+command. M-02877 declares its caches in `modules/M-02877/darwin.nix`;
+mahakala's Home Manager switch passes the numtide, nixarchy and Hyprland caches
+with their keys through `NIX_CONFIG` in `deploy-mahakala-hm-only`. `pkg` casks are out of scope; they need an admin installer.
 `/etc/homebrew/brew.env` (`modules/M-02877/homebrew-env.nix`) turns off Homebrew's
 env hints and the sudo service-domain warning. It is the only place those
 settings reach activation's `brew bundle`, which runs through

@@ -45,15 +45,17 @@ deploy-mahakala-hm:
 # and note the push needs CACHIX_AUTH_TOKEN in mahakala's own secretspec
 # provider -- until it is set there, this warns on every deploy and uploads
 # nothing.
-# accept-flake-config is needed for the Omarchy session: flake.nix declares the
-# nixarchy and Hyprland cachix substituters, and nix ignores substituters coming
-# from a flake unless told to trust them. Measured 2026-09-19 against the omarchy
-# package alone: with the setting, 3 derivations built and 19 MiB fetched;
-# without it, 16 derivations (ttfx compiled from source) and 346 MiB. Both caches
-# are pinned to their public keys in flake.nix, so this accepts those keys rather
-# than whatever substituter a future input might add.
+# The Omarchy session needs the nixarchy and Hyprland caches (and numtide for
+# llm-agents). Measured 2026-09-19 against the omarchy package alone: with them,
+# 3 derivations built and 19 MiB fetched; without, 16 derivations (ttfx compiled
+# from source) and 346 MiB. They used to come from flake.nix's nixConfig via
+# accept-flake-config; they are declared here instead, pinned to their keys, so
+# no other host sees them and no future input can add a substituter. worldofgeese
+# is a trusted user in guix/system.scm, so the daemon honours them.
+mahakala-hm-caches := "https://cache.numtide.com https://nixarchy.cachix.org https://hyprland.cachix.org"
+mahakala-hm-keys := "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM= hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE="
 deploy-mahakala-hm-only:
-    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\naccept-flake-config = true')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"
+    NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\nextra-substituters = %s\nextra-trusted-public-keys = %s' '{{ mahakala-hm-caches }}' '{{ mahakala-hm-keys }}')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"
     update-desktop-database ~/.local/share/applications
     @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
@@ -205,7 +207,7 @@ deploy-oracle host="" build-host="":
 deploy-darwin:
     ./scripts/cask-app-preflight.sh
     sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
-    @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
+    @just cachix-push /run/current-system || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:
@@ -404,6 +406,18 @@ check-doom-linux-image:
 update:
     timeout -s KILL 900 nix flake update --no-warn-dirty
 
+# Root inputs M-02877 never evaluates. Every source tree nix fetches is read and
+# written file by file, and on M-02877 Microsoft Defender inspects each open by
+# nix and nix-daemon (~3.5 ms/file; measured 2026-09-28, a 54k-file nixpkgs
+# took 8.5 min to fetch). nixarchy alone brings a third nixpkgs plus ~15
+# inputs. mahakala's own `just update` still moves these. A new Linux-only
+# input left off this list only costs time here; it breaks nothing.
+darwin-skip-inputs := "nixarchy ewm nix-on-droid nixpkgs-nod home-manager-nod"
+
+# Update the flake inputs M-02877 uses (topgrade's "Flake inputs" step there)
+update-darwin:
+    timeout -s KILL 900 nix flake update --no-warn-dirty $(jq -r --arg skip '{{ darwin-skip-inputs }}' '($skip | split(" ")) as $s | .nodes.root.inputs | keys[] | select(IN($s[]) | not)' flake.lock)
+
 # Push this machine's closure to the worldofgeese Cachix cache so other hosts
 # fetch instead of rebuilding. Reads CACHIX_AUTH_TOKEN from secretspec
 # (keyring) so the token never lands in a file, argv, or shell history.
@@ -412,11 +426,18 @@ update:
 # is x86_64-linux with no aarch64-darwin capability, so it cannot populate
 # anything M-02877 would consume. Run this on both.
 #
+# `target` is a flake attribute (built, then pushed) or an absolute store path
+# or symlink to one (pushed as is). deploy-darwin passes /run/current-system:
+# darwin-rebuild has just built it, and evaluating the system a second time only
+# to rediscover that path cost a full evaluation per deploy.
+#
 # Push the current closure to Cachix
-cachix-push flake-attr=default-cachix-attr:
+cachix-push target=default-cachix-attr:
     secretspec run --reason "push closure to worldofgeese Cachix cache" -- sh -c '\
-      nix build --no-link --print-out-paths --no-warn-dirty {{ flake-attr }} \
-      | cachix push worldofgeese'
+      case "$1" in \
+        /*) readlink -f "$1" ;; \
+        *) nix build --no-link --print-out-paths --no-warn-dirty "$1" ;; \
+      esac | cachix push worldofgeese' sh {{ quote(target) }}
 
 # M-02877: make secretspec.age readable with no dialog at all. Creates this
 # Mac's post-quantum Secure Enclave age key (access control `none`) in

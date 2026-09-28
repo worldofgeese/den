@@ -5,6 +5,10 @@
   "task_id": "todo_01m3m0",
   "original_intent": "Run topgrade and eliminate slow operations, errors and warnings; review the custom layer",
   "derived_intent": "Publish topgrade hardening",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "No Defender policy changes"
   ],
@@ -15,8 +19,13 @@
   "inspected_files": [
     "Justfile"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
@@ -28,6 +37,10 @@
       "status": "passed"
     },
     {
+      "name": "decapod validate",
+      "status": "passed"
+    },
+    {
       "name": "deploy-darwin",
       "status": "passed"
     },
@@ -36,7 +49,9 @@
       "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_ad609b885f20b207 completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -46,7 +61,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:d6fdd2171f2f2e7978beff777d2afaec25b69a14ef78914abcdd6aca4e6a4c12",
+  "artifact_hash": "sha256:8b6247deb5761daafd75841e9b5039242285c6dbe1d5ba9f68bf66cf9e82b0f0",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -89,6 +104,13 @@
         "intent_id": "intent:run-01m3m0-host2",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-01m3m0-host2"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-01m3m0-host2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-01m3m0-host2"
       }
     ],
     "trajectories": {
@@ -115,12 +137,31 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "Justfile",
+              "flake.nix"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_ad609b885f20b207 completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

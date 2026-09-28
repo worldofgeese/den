@@ -138,6 +138,16 @@ move the app aside, and the failed upgrade can delete part of the bundle first.
 Trash, and stops the deploy if a casked app, in the appdir Homebrew recorded for
 that cask, has files not owned by the user,
 printing one `osascript` admin command that changes ownership only.
+The user is also not in the `admin` group, so `/Applications` (root:admin, 775)
+is read-only to them, yet casks installed during a brief admin grant are
+recorded there. An upgrade then empties the bundle, cannot remove the directory,
+and is refused `sudo`, leaving an empty app. For each cask whose recorded appdir
+is not writable and that is outdated (`brew outdated --cask --greedy`, after a
+`brew update`) or already an empty shell, the preflight parks its Caskroom
+record and reinstalls it into `~/Applications`, the configured
+`homebrew.caskArgs.appdir`. The old copy is left intact and an optional admin
+`rm -rf` command is printed. If the reinstall fails, the record is restored and
+the deploy stops. `pkg` casks are out of scope; they need an admin installer.
 `/etc/homebrew/brew.env` (`modules/M-02877/homebrew-env.nix`) turns off Homebrew's
 env hints and the sudo service-domain warning. It is the only place those
 settings reach activation's `brew bundle`, which runs through

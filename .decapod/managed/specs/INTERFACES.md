@@ -183,7 +183,7 @@ These commands do not force an immediate reboot. The next planned boot verifies 
 ## Darwin Deploy Preflight
 | Command or file | Effect | Exit |
 |---|---|---|
-| `scripts/cask-app-preflight.sh` (first step of `just deploy-darwin`) | Moves a Caskroom backup left by a failed upgrade to `~/.Trash` when the live app exists; lists casked apps with non-user-owned files | 0 = proceed; 1 = prints the `osascript ... chown -R` fix and stops the deploy |
+| `scripts/cask-app-preflight.sh` (first step of `just deploy-darwin`) | Runs `brew update`; reinstalls into `~/Applications` every app cask whose recorded appdir is not user-writable and that is outdated (greedy) or an empty shell, printing an optional admin `rm -rf` for the old copies; moves a Caskroom backup left by a failed upgrade to `~/.Trash` when the live app exists; lists casked apps with non-user-owned files | 0 = proceed; 1 = a reinstall failed (Caskroom record restored), or prints the `osascript ... chown -R` fix, and stops the deploy |
 | `/etc/homebrew/brew.env` | `HOMEBREW_NO_ENV_HINTS=1`, `HOMEBREW_SERVICES_NO_DOMAIN_WARNING=1` for every brew invocation | n/a |
 
 <!-- decapod:codebase-attestation:start -->

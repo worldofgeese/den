@@ -115,8 +115,11 @@ A backup key held only in a password manager is the recovery path.
 ## Deploys Must Not Damage Apps
 A failed Homebrew cask upgrade during `just deploy-darwin` must stop before it
 can touch the app. It must not leave an app half-deleted, as happened to
-ChatGPT.app. Fixes that need admin rights are one command the user runs, and
-they change ownership only.
+ChatGPT.app, or empty, as happened to ChatGPT.app again once the user lost
+admin-group membership and `/Applications` became read-only to them. Casks the
+user cannot upgrade in place move to `~/Applications` automatically. Fixes that
+need admin rights are one command the user runs, and they change ownership only
+or delete an unused old copy.
 
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.

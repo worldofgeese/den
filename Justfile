@@ -199,8 +199,9 @@ deploy-oracle host="" build-host="":
 # means a slow next deploy, not a broken this one.
 #
 # cask-app-preflight runs first: activation's `brew bundle` upgrades casks, and
-# an upgrade over an app with root-owned files fails and can leave the app
-# half-deleted. See scripts/cask-app-preflight.sh.
+# an upgrade over an app with root-owned files, or in an appdir this non-admin
+# user cannot write, fails and can leave the app half-deleted or empty. It
+# moves such casks to ~/Applications first. See scripts/cask-app-preflight.sh.
 deploy-darwin:
     ./scripts/cask-app-preflight.sh
     sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877

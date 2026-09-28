@@ -3,16 +3,18 @@
 # `brew bundle`. Checks every installed cask's app bundles for three states that
 # make a cask upgrade fail:
 #
-# 0. An appdir this user cannot write. This user is not in the admin group, so
-#    /Applications (root:admin, 775) is read-only to them, but casks installed
-#    while they briefly had admin rights are recorded there. Homebrew's upgrade
-#    empties the bundle, then cannot remove the directory, then tries sudo and
-#    is refused. The result is an empty ChatGPT.app in /Applications and an
-#    empty backup in the Caskroom. So before that can happen, every such cask
-#    that is outdated, or whose app is already an empty shell, is reinstalled
-#    into $target_appdir (the configured homebrew.caskArgs.appdir). The old
-#    copy in the unwritable appdir is left untouched, and the admin command to
-#    remove it is printed.
+# 0. An appdir this user does not own. /Applications is root:admin 775, and
+#    this user is an admin only while SAP Privileges (Jamf-managed) grants it:
+#    10 minutes at a time, revoked on screen lock. A deploy outlasts that, so
+#    whether /Applications is writable at preflight time says nothing about
+#    whether it is writable when `brew bundle` reaches a cask. When it is not,
+#    Homebrew's upgrade empties the bundle, cannot remove the directory, is
+#    refused sudo, and leaves an empty app (ChatGPT.app, twice). So every cask
+#    recorded in such an appdir that is outdated, or whose app is already an
+#    empty shell, is reinstalled into $target_appdir (the configured
+#    homebrew.caskArgs.appdir). The old copy is moved to the Trash if the
+#    appdir is writable right then; otherwise it is left untouched and the
+#    admin command to remove it is printed.
 #
 # 1. Root-owned files inside the app. Self-updaters (Squirrel ShipIt, Sparkle,
 #    JetBrains) leave these in /Applications. Homebrew then cannot move the
@@ -29,7 +31,8 @@
 set -euo pipefail
 
 command -v brew >/dev/null || exit 0
-caskroom="$(brew --prefix)/Caskroom"
+prefix="$(brew --prefix)"
+caskroom="$prefix/Caskroom"
 # Must match homebrew.caskArgs.appdir in modules/M-02877/darwin.nix.
 target_appdir="$HOME/Applications"
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/cask-app-preflight"
@@ -47,20 +50,36 @@ rows="$(brew info --cask --installed --json=v2 2>/dev/null | jq -r '
   | [$t, $v, .] | @tsv')"
 
 # Reinstall a cask into $target_appdir. Its Caskroom record is parked first so
-# Homebrew forgets the unwritable appdir and never tries to delete the old app;
-# on failure the record is put back and the old app is still intact.
+# Homebrew forgets the unwritable appdir and never tries to delete the old app.
+# The cask's CLI and manpage symlinks into the old app are parked too: `brew
+# install --force` refuses to replace them ("already a Binary at ..."). On
+# failure the record and the symlinks are put back and the old app still works.
 migrate() {
-  local token="$1" parked
+  local token="$1" live="$2" parked links=() link rc=0
   mkdir -p "$state_dir"
   parked="$state_dir/$token-caskroom-$(date +%Y%m%d%H%M%S)"
+  if [ -n "$live" ]; then
+    while IFS= read -r link; do links+=("$link"); done < <(
+      find "$prefix/bin" "$prefix/share/man" -type l -lname "$live/*" 2>/dev/null)
+  fi
   mv "$caskroom/$token" "$parked" || return 1
-  # </dev/null: the caller's read loop owns stdin.
-  if brew install --cask --force --appdir="$target_appdir" "$token" </dev/null; then
-    rm -rf "$parked"
+  for link in ${links[@]+"${links[@]}"}; do
+    printf '%s\t%s\n' "$link" "$(readlink "$link")" >>"$parked.links"
+    rm -f "$link"
+  done
+  # </dev/null: the caller's read loop owns stdin. The API was refreshed above.
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install --cask --force \
+    --appdir="$target_appdir" "$token" </dev/null || rc=$?
+  if [ "$rc" -eq 0 ]; then
+    rm -rf "$parked" "$parked.links"
     return 0
   fi
   rm -rf "${caskroom:?}/$token"
   mv "$parked" "$caskroom/$token"
+  if [ -f "$parked.links" ]; then
+    while IFS=$'\t' read -r link target; do ln -sfn "$target" "$link"; done <"$parked.links"
+    rm -f "$parked.links"
+  fi
   return 1
 }
 
@@ -80,17 +99,24 @@ while IFS=$'\t' read -r token version app; do
   appdir="${appdir:-/Applications}"
   live="$appdir/$app"
   [ -e "$live" ] || live=""
-  if [ ! -w "$appdir" ]; then
+  if [ "$(stat -f %Su "$appdir" 2>/dev/null)" != "$USER" ]; then
     # A cask can list several apps; decide once per cask.
     case "$seen" in *" $token "*) continue ;; esac
     seen+="$token "
     gutted=""
     [ -n "$live" ] && [ ! -e "$live/Contents/Info.plist" ] && gutted=1
     if is_outdated "$token" || [ -n "$gutted" ]; then
-      echo "cask-app-preflight: $appdir is not writable; moving $token to $target_appdir"
-      if migrate "$token"; then
+      echo "cask-app-preflight: $appdir is not yours to write; moving $token to $target_appdir"
+      if migrate "$token" "$live"; then
         migrated+=("$token")
-        [ -z "$live" ] || stale+=("$live")
+        if [ -n "$live" ]; then
+          dest="$HOME/.Trash/$(basename "$live" .app)-$(date +%Y%m%d%H%M%S).app"
+          if [ -w "$appdir" ] && mv "$live" "$dest" 2>/dev/null; then
+            echo "cask-app-preflight: moved old $live to $dest"
+          else
+            stale+=("$live")
+          fi
+        fi
       else
         failed+=("$token")
       fi

@@ -5,6 +5,10 @@
   "task_id": "todo_01m3m0",
   "original_intent": "Repair my ChatGPT install knocked out by topgrade, then remediate forever",
   "derived_intent": "Publish cask-app-preflight appdir migration",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "No sudo/admin actions"
   ],
@@ -14,8 +18,13 @@
   "inspected_files": [
     "scripts/cask-app-preflight.sh"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
@@ -27,6 +36,10 @@
       "status": "passed"
     },
     {
+      "name": "decapod validate",
+      "status": "passed"
+    },
+    {
       "name": "shellcheck",
       "status": "passed"
     },
@@ -35,7 +48,9 @@
       "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_2ee6b87fac4720ad completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -45,7 +60,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:5f3ccd43d7c2b7cfb9b5800375d3da0554d864144b86e0303ada0cd3ec0dba78",
+  "artifact_hash": "sha256:3b6ddc4ca6eeea88dd3d7aaacdecbb2662f38a34b1ba2adaa62734913a00bbeb",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -87,6 +102,13 @@
         "intent_id": "intent:run-01m3m0-host",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-01m3m0-host"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-01m3m0-host",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-01m3m0-host"
       }
     ],
     "trajectories": {
@@ -112,12 +134,30 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "scripts/cask-app-preflight.sh"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_2ee6b87fac4720ad completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

@@ -141,7 +141,9 @@ locally on M-02877 (about 20 minutes including its test suite).
 apart. A secretspec age lookup must start `age-plugin-se`; twice on 2026-09-29
 it failed instantly at the tail of heavy builds and succeeded on the next call,
 and pi, which resolves the key per request, turned each miss into a failed
-turn. Earlier attempts are silent so stderr-capturing callers see one error.
+turn. Earlier attempts append their error text to
+`~/.local/state/secretspec-gateway.log` so the next miss records its cause;
+stderr-capturing callers see one error.
 
 ### Unattended topgrade on M-02877
 topgrade must finish without input. Steps that would ask for a password or

@@ -1,22 +1,23 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-01m3p8-h",
-  "intent_id": "intent:run-01m3p8-h",
-  "task_id": "todo_01m3p8",
+  "run_id": "run-01m3pb-c",
+  "intent_id": "intent:run-01m3pb-c",
+  "task_id": "todo_01m3pb",
   "original_intent": "Complete everything end to end",
-  "derived_intent": "Publish",
+  "derived_intent": "Lix override and key retries",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
   ],
   "active_boundaries": [
-    "OS updates stay with Jamf/Nudge"
+    "No Defender or Privileges policy changes"
   ],
   "repo_scope": [
-    "modules/M-02877/dktaohan.nix"
+    "modules/M-02877/darwin.nix",
+    "modules/gateway.nix"
   ],
   "inspected_files": [
-    "modules/M-02877/dktaohan.nix"
+    "modules/gateway.nix"
   ],
   "modified_files": [
     ".decapod/governance/trajectory.json",
@@ -28,16 +29,20 @@
   "tool_calls": [],
   "checks": [
     {
-      "name": "container-validate",
+      "name": "darwin-system-build",
       "status": "passed"
     },
     {
       "name": "decapod validate",
       "status": "passed"
+    },
+    {
+      "name": "retry-harness",
+      "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_e99d531e2db2a739 completed with zero failures"
+    "validation epoch ve_22d3969d07116b11 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -48,21 +53,22 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:bf8bc7d943cfcf996c6ad1d825f03e9093c3272441f607594012c06bc9ecc85e",
+  "artifact_hash": "sha256:cf7bbde9d3283f6262818fc8e8f5aa1be1a30b314a1b81086e62f07c02cdc7d0",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-01m3p8-h": {
-        "id": "intent:run-01m3p8-h",
+      "intent:run-01m3pb-c": {
+        "id": "intent:run-01m3pb-c",
         "raw_intent": "Complete everything end to end",
-        "refined_intent": "Publish",
+        "refined_intent": "Lix override and key retries",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/M-02877/dktaohan.nix"
+          "modules/M-02877/darwin.nix",
+          "modules/gateway.nix"
         ],
         "assumptions": [],
         "boundaries": [
-          "OS updates stay with Jamf/Nudge"
+          "No Defender or Privileges policy changes"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -75,47 +81,49 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-c",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-c",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-c",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3p8-h"
+        "detail": "trajectory:run-01m3pb-c"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-c",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3p8-h"
+        "detail": "trajectory:run-01m3pb-c"
       }
     ],
     "trajectories": {
-      "run-01m3p8-h": {
-        "id": "run-01m3p8-h",
-        "intent_id": "intent:run-01m3p8-h",
+      "run-01m3pb-c": {
+        "id": "run-01m3pb-c",
+        "intent_id": "intent:run-01m3pb-c",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
             "scope": [
-              "modules/M-02877/dktaohan.nix"
+              "modules/M-02877/darwin.nix",
+              "modules/gateway.nix"
             ],
             "observations": [
-              "modules/M-02877/dktaohan.nix"
+              "modules/gateway.nix"
             ],
             "proof_refs": [
-              "container-validate"
+              "darwin-system-build",
+              "retry-harness"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
@@ -125,12 +133,13 @@
             "action": "validation",
             "command": "decapod validate",
             "scope": [
-              "modules/M-02877/dktaohan.nix"
+              "modules/M-02877/darwin.nix",
+              "modules/gateway.nix"
             ],
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_e99d531e2db2a739 completed with zero failures"
+              "validation epoch ve_22d3969d07116b11 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

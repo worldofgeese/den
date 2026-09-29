@@ -1,13 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "title": "Unattended topgrade: no system step",
-  "intent": "topgrade on M-02877 finishes without any password prompt",
+  "title": "Lix Darwin link flag; gateway key retries",
+  "intent": "darwin system builds with nixpkgs Lix 2.95.3; pi gateway key lookups survive transient age-plugin-se failures",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m3p8ytvcqyfk8y"
+    "code_01m3pbzvmj8pzr8h"
   ],
   "proof_hooks": [
-    "topgrade --yes completes with no SecurityAgent dialog and no Password prompt"
+    "nix build darwin system succeeds (Lix installCheck passes)",
+    "retry wrapper returns key on attempts 1-3 and fails in 3 s with one error line"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -19,5 +20,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790675571Z"
+  "updated_at": "1790680865Z"
 }

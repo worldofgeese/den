@@ -261,14 +261,10 @@
         # be populated from mahakala: entries are per system and this host is
         # aarch64-darwin.
         #
-        # cache.numtide.com serves llm-agents (pi, claude-code, omp). It is also
-        # in flake.nix's nixConfig, but a flake's substituters only apply after an
-        # interactive per-value trust prompt, and that value now also lists the
-        # Linux-only nixarchy and Hyprland caches. Declared here, this host gets
-        # numtide unconditionally and can decline the flake's list: nothing in
-        # it builds for aarch64-darwin, and each entry is another narinfo
-        # lookup per path. An unanswered prompt also failed the pre-commit
-        # `just check` outright on 2026-09-24.
+        # cache.numtide.com serves llm-agents (pi, claude-code, omp). Hosts
+        # declare their own caches; flake.nix has no nixConfig. A flake's
+        # substituters only apply after an interactive per-value trust prompt;
+        # an unanswered one failed the pre-commit `just check` on 2026-09-24.
         extra-substituters = [
           "https://worldofgeese.cachix.org"
           "https://cache.numtide.com"
@@ -277,10 +273,9 @@
           "worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs="
           "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
         ];
-        # With numtide declared above, this host needs nothing from flake.nix's
-        # nixConfig. Decline it outright instead of per user: root (which runs
-        # darwin-rebuild) keeps its own trust file, and an unanswered prompt
-        # there would stall an unattended deploy.
+        # Should an input's flake ever carry nixConfig again, decline it
+        # outright instead of per user: root (which runs darwin-rebuild) keeps
+        # its own trust file, and an unanswered prompt would stall a deploy.
         accept-flake-config = false;
       };
 
@@ -796,11 +791,13 @@
         finder.AppleShowAllFiles = true;
       };
 
+      # Homebrew's GitHub API token for activation's `brew bundle`: gh's own
+      # token, read as the Homebrew user. gh goes through /usr/bin/security, so
+      # this never raises a keychain dialog (a secretspec copy did; see
+      # secretspec.toml).
       system.activationScripts.preActivation.text = ''
         if [ -z "''${HOMEBREW_GITHUB_API_TOKEN:-}" ]; then
-          if token="$(sudo --user=${lib.escapeShellArg config.homebrew.user} --set-home sh -lc 'cd ${inputs.self} && ${pkgs.secretspec}/bin/secretspec get HOMEBREW_GITHUB_API_TOKEN --reason "nix-darwin activation / Homebrew API rate limits"' 2>/dev/null)"; then
-            export HOMEBREW_GITHUB_API_TOKEN="$token"
-          elif token="$(sudo --user=${lib.escapeShellArg config.homebrew.user} --set-home ${pkgs.github-cli}/bin/gh auth token 2>/dev/null)"; then
+          if token="$(sudo --user=${lib.escapeShellArg config.homebrew.user} --set-home ${pkgs.github-cli}/bin/gh auth token 2>/dev/null)"; then
             export HOMEBREW_GITHUB_API_TOKEN="$token"
           fi
         fi

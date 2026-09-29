@@ -379,6 +379,11 @@
               "vscode_insiders"
               "cursor"
               "microsoft_office"
+              # macOS updates: `softwareupdate --install` needs an admin
+              # password, which an unattended run cannot give (it hung at
+              # "Password:" on 2026-09-29 for Tahoe 26.7.1), and Jamf + Nudge
+              # own OS updates on this managed Mac.
+              "system"
             ];
             set_title = true;
           };

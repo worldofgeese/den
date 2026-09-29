@@ -128,6 +128,13 @@ Home Manager owns user-space tools; Pi is sourced from the flake's
 manual because they are user credentials and network policy, not reproducible
 package state.
 
+### Unattended topgrade on M-02877
+topgrade must finish without input. Steps that would ask for a password or
+duplicate a managed updater are disabled in `modules/M-02877/dktaohan.nix`:
+`system` (macOS `softwareupdate` needs an admin password; Jamf and Nudge own
+OS updates), `microsoft_office` (Intune-managed AutoUpdate), and the VS Code,
+Insiders and Cursor extension steps (the editors self-update).
+
 ### Tailnet Name Resolution on M-02877
 "Use Tailscale DNS" stays off on M-02877 because the tailnet pushes global
 resolvers that would displace LAN and corporate DNS. MagicDNS names still

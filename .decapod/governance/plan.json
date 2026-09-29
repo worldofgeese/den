@@ -1,14 +1,13 @@
 {
   "schema_version": "1.0.0",
-  "title": "Fleet name resolution and ssh",
-  "intent": "Make tailnet ssh aliases work on M-02877 without accepting Tailscale DNS, add mahakala host, stop .br_history dirtying main, land the mahakala synology commit",
+  "title": "Unattended topgrade: no system step",
+  "intent": "topgrade on M-02877 finishes without any password prompt",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m3p5tte1v0jp5q"
+    "code_01m3p8ytvcqyfk8y"
   ],
   "proof_hooks": [
-    "ssh mahakala and ssh paphos succeed by name on M-02877",
-    "deploy-darwin succeeds; /etc/resolver/hound-celsius.ts.net present"
+    "topgrade --yes completes with no SecurityAgent dialog and no Password prompt"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -20,5 +19,5 @@
     "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790672473Z"
+  "updated_at": "1790675571Z"
 }

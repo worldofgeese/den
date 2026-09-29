@@ -128,6 +128,13 @@ Home Manager owns user-space tools; Pi is sourced from the flake's
 manual because they are user credentials and network policy, not reproducible
 package state.
 
+### Unattended topgrade on M-02877
+topgrade must finish without input. Steps that would ask for a password or
+duplicate a managed updater are disabled in `modules/M-02877/dktaohan.nix`:
+`system` (macOS `softwareupdate` needs an admin password; Jamf and Nudge own
+OS updates), `microsoft_office` (Intune-managed AutoUpdate), and the VS Code,
+Insiders and Cursor extension steps (the editors self-update).
+
 ### Tailnet Name Resolution on M-02877
 "Use Tailscale DNS" stays off on M-02877 because the tailnet pushes global
 resolvers that would displace LAN and corporate DNS. MagicDNS names still
@@ -251,7 +258,7 @@ because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `ea5d665712b18426b25b7c56f0269b601dbb32718c7e52a550d54cc338e6b623`
+- Repository signal fingerprint: `0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

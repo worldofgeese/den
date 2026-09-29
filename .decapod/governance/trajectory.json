@@ -5,6 +5,10 @@
   "task_id": "todo_01m3pk",
   "original_intent": "Durable App Management grant for WezTerm",
   "derived_intent": "Publish",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "No TCC or MDM changes"
   ],
@@ -14,16 +18,27 @@
   "inspected_files": [
     "scripts/hm-app-signing.sh"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
       "name": "container-validate",
       "status": "passed"
+    },
+    {
+      "name": "decapod validate",
+      "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_9604709c2281f2e0 completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -33,7 +48,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:c854be918ccb91e7d39a62e7b69dab967ee6f84914e7ff16f3d600abff51bd5d",
+  "artifact_hash": "sha256:814225b521dfdf5e715e736ba91182a209e36815e564966c96c7b959789410c8",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -75,6 +90,13 @@
         "intent_id": "intent:run-01m3pk-h",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-01m3pk-h"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-01m3pk-h",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-01m3pk-h"
       }
     ],
     "trajectories": {
@@ -97,12 +119,30 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "scripts/hm-app-signing.sh"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_9604709c2281f2e0 completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

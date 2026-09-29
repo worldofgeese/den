@@ -1,22 +1,22 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-01m3m0-host3",
-  "intent_id": "intent:run-01m3m0-host3",
-  "task_id": "todo_01m3m0",
-  "original_intent": "No keychain password dialogs; topgrade clean",
-  "derived_intent": "Publish",
+  "run_id": "run-01m3p5-h2",
+  "intent_id": "intent:run-01m3p5-h2",
+  "task_id": "todo_01m3p5",
+  "original_intent": "Complete everything end to end",
+  "derived_intent": "Publish fleet ssh fix",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
   ],
   "active_boundaries": [
-    "No Defender policy changes"
+    "Tailscale DNS acceptance unchanged"
   ],
   "repo_scope": [
-    "secretspec.toml"
+    "modules/ssh.nix"
   ],
   "inspected_files": [
-    "secretspec.toml"
+    "modules/ssh.nix"
   ],
   "modified_files": [
     ".decapod/governance/trajectory.json",
@@ -28,20 +28,20 @@
   "tool_calls": [],
   "checks": [
     {
-      "name": "container-pull-no-dialog",
-      "status": "passed"
-    },
-    {
       "name": "container-validate",
       "status": "passed"
     },
     {
       "name": "decapod validate",
       "status": "passed"
+    },
+    {
+      "name": "ssh-by-name",
+      "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_5ee1162c446dc554 completed with zero failures"
+    "validation epoch ve_4672e13af2e0d46f completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -52,21 +52,21 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:d9331e3250afc616513d12216be6825f10e6dc21b26e4b9a2dc31dca3f0c1845",
+  "artifact_hash": "sha256:850c2742eac5458e83b9b6b174f16723c85e44cd21ac26bf2cad7506a95341a3",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-01m3m0-host3": {
-        "id": "intent:run-01m3m0-host3",
-        "raw_intent": "No keychain password dialogs; topgrade clean",
-        "refined_intent": "Publish",
+      "intent:run-01m3p5-h2": {
+        "id": "intent:run-01m3p5-h2",
+        "raw_intent": "Complete everything end to end",
+        "refined_intent": "Publish fleet ssh fix",
         "acceptance_criteria": [],
         "constraints": [
-          "secretspec.toml"
+          "modules/ssh.nix"
         ],
         "assumptions": [],
         "boundaries": [
-          "No Defender policy changes"
+          "Tailscale DNS acceptance unchanged"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -79,48 +79,48 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-01m3m0-host3",
+        "intent_id": "intent:run-01m3p5-h2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-01m3m0-host3",
+        "intent_id": "intent:run-01m3p5-h2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-01m3m0-host3",
+        "intent_id": "intent:run-01m3p5-h2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3m0-host3"
+        "detail": "trajectory:run-01m3p5-h2"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-01m3m0-host3",
+        "intent_id": "intent:run-01m3p5-h2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3m0-host3"
+        "detail": "trajectory:run-01m3p5-h2"
       }
     ],
     "trajectories": {
-      "run-01m3m0-host3": {
-        "id": "run-01m3m0-host3",
-        "intent_id": "intent:run-01m3m0-host3",
+      "run-01m3p5-h2": {
+        "id": "run-01m3p5-h2",
+        "intent_id": "intent:run-01m3p5-h2",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
             "scope": [
-              "secretspec.toml"
+              "modules/ssh.nix"
             ],
             "observations": [
-              "secretspec.toml"
+              "modules/ssh.nix"
             ],
             "proof_refs": [
-              "container-validate",
-              "container-pull-no-dialog"
+              "ssh-by-name",
+              "container-validate"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
@@ -130,12 +130,12 @@
             "action": "validation",
             "command": "decapod validate",
             "scope": [
-              "secretspec.toml"
+              "modules/ssh.nix"
             ],
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_5ee1162c446dc554 completed with zero failures"
+              "validation epoch ve_4672e13af2e0d46f completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

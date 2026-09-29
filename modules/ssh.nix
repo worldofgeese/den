@@ -26,6 +26,10 @@
           HostName = "loving-kypris.hound-celsius.ts.net";
           User = "worldofgeese";
         };
+        mahakala = {
+          HostName = "mahakala.hound-celsius.ts.net";
+          User = "worldofgeese";
+        };
         paphos = {
           HostName = "paphos.hound-celsius.ts.net";
           User = "kypris";

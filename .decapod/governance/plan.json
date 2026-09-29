@@ -1,27 +1,24 @@
 {
   "schema_version": "1.0.0",
-  "title": "Cask preflight: migrate casks out of unwritable appdirs",
-  "intent": "Repair ChatGPT.app emptied by a failed brew bundle cask upgrade, and stop future upgrades from emptying any app cask recorded in an appdir the non-admin user cannot write, by reinstalling such casks into ~/Applications before activation.",
+  "title": "Fleet name resolution and ssh",
+  "intent": "Make tailnet ssh aliases work on M-02877 without accepting Tailscale DNS, add mahakala host, stop .br_history dirtying main, land the mahakala synology commit",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m3m043qedn0rej"
+    "code_01m3p5tte1v0jp5q"
   ],
   "proof_hooks": [
-    "shellcheck and /bin/bash -n pass on scripts/cask-app-preflight.sh",
-    "Stubbed-brew harness: outdated and gutted casks in a read-only appdir are reinstalled into ~/Applications; fresh and writable casks untouched; failed reinstall restores the Caskroom record and exits 1; read loop is not consumed by brew install",
-    "Real repair: ChatGPT 26.924.22138 installed in ~/Applications with codesign --deep --strict passing"
+    "ssh mahakala and ssh paphos succeed by name on M-02877",
+    "deploy-darwin succeeds; /etc/resolver/hound-celsius.ts.net present"
   ],
   "unknowns": [],
   "human_questions": [],
-  "stop_conditions": [
-    "Reinstall would require admin rights or delete an app in /Applications"
-  ],
+  "stop_conditions": [],
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 12
+    "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790599442Z"
+  "updated_at": "1790672473Z"
 }

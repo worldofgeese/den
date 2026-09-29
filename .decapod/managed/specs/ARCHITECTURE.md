@@ -128,6 +128,13 @@ Home Manager owns user-space tools; Pi is sourced from the flake's
 manual because they are user credentials and network policy, not reproducible
 package state.
 
+### Tailnet Name Resolution on M-02877
+"Use Tailscale DNS" stays off on M-02877 because the tailnet pushes global
+resolvers that would displace LAN and corporate DNS. MagicDNS names still
+resolve: nix-darwin writes `/etc/resolver/hound-celsius.ts.net` pointing at
+tailscaled's `100.100.100.100`, which macOS consults for that domain only. The
+fleet SSH aliases in `modules/ssh.nix` (now including `mahakala`) depend on it.
+
 ### Homebrew Cask Upgrade Guard
 Activation's `brew bundle` upgrades casks, including self-updating ones. The
 self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)

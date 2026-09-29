@@ -1,15 +1,14 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-code_01m3p5tte1v0jp5q-c",
-  "intent_id": "intent:run-code_01m3p5tte1v0jp5q-c",
-  "task_id": "code_01m3p5tte1v0jp5q",
+  "run_id": "run-code_01m3p5tte1v0jp5q-h",
+  "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
+  "task_id": "todo_01m3p5",
   "original_intent": "Complete everything end to end",
-  "derived_intent": "Fleet ssh and resolver",
+  "derived_intent": "Publish fleet ssh fix",
   "active_boundaries": [
     "Tailscale DNS acceptance unchanged"
   ],
   "repo_scope": [
-    "modules/M-02877/darwin.nix",
     "modules/ssh.nix"
   ],
   "inspected_files": [
@@ -20,7 +19,7 @@
   "tool_calls": [],
   "checks": [
     {
-      "name": "deploy-darwin",
+      "name": "container-validate",
       "status": "passed"
     },
     {
@@ -38,18 +37,17 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:733b1f2e5481980f2438c42e7a8c97d79acb7933d88b49d536b4ca9297f201f4",
+  "artifact_hash": "sha256:888f4507222ad436077eda0ef42a45a46f56c49614252e2fa3025fce723c253e",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-code_01m3p5tte1v0jp5q-c": {
-        "id": "intent:run-code_01m3p5tte1v0jp5q-c",
+      "intent:run-code_01m3p5tte1v0jp5q-h": {
+        "id": "intent:run-code_01m3p5tte1v0jp5q-h",
         "raw_intent": "Complete everything end to end",
-        "refined_intent": "Fleet ssh and resolver",
+        "refined_intent": "Publish fleet ssh fix",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/ssh.nix",
-          "modules/M-02877/darwin.nix"
+          "modules/ssh.nix"
         ],
         "assumptions": [],
         "boundaries": [
@@ -66,34 +64,33 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-c",
+        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-c",
+        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-c",
+        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code_01m3p5tte1v0jp5q-c"
+        "detail": "trajectory:run-code_01m3p5tte1v0jp5q-h"
       }
     ],
     "trajectories": {
-      "run-code_01m3p5tte1v0jp5q-c": {
-        "id": "run-code_01m3p5tte1v0jp5q-c",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-c",
+      "run-code_01m3p5tte1v0jp5q-h": {
+        "id": "run-code_01m3p5tte1v0jp5q-h",
+        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
             "scope": [
-              "modules/M-02877/darwin.nix",
               "modules/ssh.nix"
             ],
             "observations": [
@@ -101,7 +98,7 @@
             ],
             "proof_refs": [
               "ssh-by-name",
-              "deploy-darwin"
+              "container-validate"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"

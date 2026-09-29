@@ -1,10 +1,14 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-code_01m3p5tte1v0jp5q-h",
-  "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
+  "run_id": "run-01m3p5-c2",
+  "intent_id": "intent:run-01m3p5-c2",
   "task_id": "todo_01m3p5",
   "original_intent": "Complete everything end to end",
-  "derived_intent": "Publish fleet ssh fix",
+  "derived_intent": "Fleet ssh fix; verify prior todo",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "Tailscale DNS acceptance unchanged"
   ],
@@ -14,12 +18,21 @@
   "inspected_files": [
     "modules/ssh.nix"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
-      "name": "container-validate",
+      "name": "decapod validate",
+      "status": "passed"
+    },
+    {
+      "name": "deploy-darwin",
       "status": "passed"
     },
     {
@@ -27,7 +40,9 @@
       "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_6852bf79d929545b completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -37,14 +52,14 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:888f4507222ad436077eda0ef42a45a46f56c49614252e2fa3025fce723c253e",
+  "artifact_hash": "sha256:76e113097db09e6147b9cf930fd6a7e9e50dd09b5abd0c12f722e95a3fa6ba06",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-code_01m3p5tte1v0jp5q-h": {
-        "id": "intent:run-code_01m3p5tte1v0jp5q-h",
+      "intent:run-01m3p5-c2": {
+        "id": "intent:run-01m3p5-c2",
         "raw_intent": "Complete everything end to end",
-        "refined_intent": "Publish fleet ssh fix",
+        "refined_intent": "Fleet ssh fix; verify prior todo",
         "acceptance_criteria": [],
         "constraints": [
           "modules/ssh.nix"
@@ -64,27 +79,34 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
+        "intent_id": "intent:run-01m3p5-c2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
+        "intent_id": "intent:run-01m3p5-c2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
+        "intent_id": "intent:run-01m3p5-c2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code_01m3p5tte1v0jp5q-h"
+        "detail": "trajectory:run-01m3p5-c2"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-01m3p5-c2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-01m3p5-c2"
       }
     ],
     "trajectories": {
-      "run-code_01m3p5tte1v0jp5q-h": {
-        "id": "run-code_01m3p5tte1v0jp5q-h",
-        "intent_id": "intent:run-code_01m3p5tte1v0jp5q-h",
+      "run-01m3p5-c2": {
+        "id": "run-01m3p5-c2",
+        "intent_id": "intent:run-01m3p5-c2",
         "evidence_only": true,
         "steps": [
           {
@@ -98,16 +120,34 @@
             ],
             "proof_refs": [
               "ssh-by-name",
-              "container-validate"
+              "deploy-darwin"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "modules/ssh.nix"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_6852bf79d929545b completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

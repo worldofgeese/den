@@ -5,6 +5,10 @@
   "task_id": "todo_01m3m0",
   "original_intent": "No keychain password dialogs; topgrade clean",
   "derived_intent": "Publish",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "No Defender policy changes"
   ],
@@ -14,8 +18,13 @@
   "inspected_files": [
     "secretspec.toml"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
@@ -25,9 +34,15 @@
     {
       "name": "container-validate",
       "status": "passed"
+    },
+    {
+      "name": "decapod validate",
+      "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_5ee1162c446dc554 completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -37,7 +52,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:fba0f3a88eb74c53f41efc8b6f57f4055a94816bbb9645534dcda95255dad20f",
+  "artifact_hash": "sha256:d9331e3250afc616513d12216be6825f10e6dc21b26e4b9a2dc31dca3f0c1845",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -79,6 +94,13 @@
         "intent_id": "intent:run-01m3m0-host3",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-01m3m0-host3"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-01m3m0-host3",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-01m3m0-host3"
       }
     ],
     "trajectories": {
@@ -102,12 +124,30 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "secretspec.toml"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_5ee1162c446dc554 completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

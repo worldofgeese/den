@@ -128,6 +128,20 @@ Home Manager owns user-space tools; Pi is sourced from the flake's
 manual because they are user credentials and network policy, not reproducible
 package state.
 
+### Durable App Signing Identity on M-02877
+macOS privacy grants (App Management, Full Disk Access) for Home Manager's
+WezTerm are pinned to its designated requirement: bundle identifier plus the
+leaf certificate `scripts/hm-app-signing.sh` signs with. The identity
+(certificate and key, PKCS#12 encrypted with `HM_APP_SIGNING_KEYCHAIN_PASSWORD`)
+is escrowed as `HM_APP_SIGNING_IDENTITY` in `secretspec.age`, so the
+`hm-app-signing` keychain is a cache: `sign`, which runs on every activation,
+rebuilds it from the escrow whenever it is missing, will not open with the
+stored password, or holds another identity, and signs with the same
+certificate. A grant made once therefore survives rebuilds and keychain loss;
+only `hm-app-signing setup` without an escrow mints a new identity. The escrow
+shares `secretspec.age`'s recovery path (the post-quantum backup key).
+`just deploy-darwin` ends by printing `hm-app-signing status`.
+
 ### Temporary Lix Link-Flag Override on M-02877
 nixpkgs 97bf56b78d set `NIX_LDFLAGS = "-z,noexecstack"` on Lix for every
 platform; Apple's ld rejects `-z`, so Lix 2.95.3 and the whole darwin system

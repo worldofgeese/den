@@ -208,6 +208,9 @@ deploy-darwin:
     ./scripts/cask-app-preflight.sh
     sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
     @just cachix-push /run/current-system || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
+    @# Surface the signing state every deploy: a broken signing keychain once
+    @# went unnoticed for hours as one warning line inside topgrade output.
+    @hm-app-signing status || true
 
 # Deploy nix-on-droid on pixel-fold (Android/Termux)
 deploy-pixel-fold:

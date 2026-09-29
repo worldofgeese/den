@@ -78,12 +78,30 @@ stably_signed() {
     "$CODESIGN" --verify --deep --strict "$app" 2>/dev/null
 }
 
-cmd_setup() {
-  if [ -n "$(identity_sha1)" ]; then
-    say "signing identity present in ${KEYCHAIN}"
-    return 0
-  fi
-  local pw tmp p12pass
+# The signing identity (certificate + private key, as PKCS#12 encrypted with
+# the keychain password) is escrowed in secretspec, so the keychain is only a
+# cache. Privacy grants are pinned to the certificate, so losing it -- a
+# keychain that stopped opening with its stored password on 2026-09-29 forced
+# a new identity -- silently voids every grant. With the escrow, a keychain
+# that is missing, will not unlock, or holds a different identity is rebuilt
+# from it with the same certificate, and the grants keep applying.
+readonly ESCROW_NAME="HM_APP_SIGNING_IDENTITY"
+
+escrow_get() {
+  secretspec get -f "$SECRETSPEC_FILE" "$ESCROW_NAME" \
+    --reason "hm-app-signing: restore the local code-signing identity" 2>/dev/null
+}
+
+# SHA-1 of the escrowed certificate, the value codesign and `security` print.
+escrow_sha1() {
+  local b64=$1 pw=$2
+  printf '%s' "$b64" | openssl base64 -d -A |
+    openssl pkcs12 -legacy -nokeys -passin "pass:${pw}" 2>/dev/null |
+    openssl x509 -noout -fingerprint -sha1 | sed 's/.*=//; s/://g'
+}
+
+ensure_password() {
+  local pw
   pw=$(keychain_password || true)
   if [ -z "$pw" ]; then
     pw=$(openssl rand -base64 32 | tr -d '\n')
@@ -92,18 +110,59 @@ cmd_setup() {
     [ "$(keychain_password)" = "$pw" ] || die "could not store ${SECRET_NAME} in secretspec"
     say "stored a new keychain password as ${SECRET_NAME} in secretspec"
   fi
-  if [ ! -f "$KEYCHAIN" ]; then
-    # The password is passed on argv here, visible to `ps` for a moment. This
-    # keychain holds nothing but the local signing key, so that is acceptable.
-    "$SECURITY" create-keychain -p "$pw" "$KEYCHAIN"
-    chmod 600 "$KEYCHAIN"
-    # Prove the stored password really opens it before putting a key inside:
-    # a keychain nobody can unlock is worse than none (2026-09-24).
-    "$SECURITY" lock-keychain "$KEYCHAIN"
-  fi
-  "$SECURITY" unlock-keychain -p "$(keychain_password)" "$KEYCHAIN" ||
-    die "the password stored as ${SECRET_NAME} does not open ${KEYCHAIN}; delete the keychain and re-run setup"
+  printf '%s' "$pw"
+}
 
+# Recreate the keychain from a base64 PKCS#12 and the keychain password.
+rebuild_keychain() {
+  local b64=$1 pw=$2 tmp rc=0
+  tmp=$(mktemp -d)
+  (umask 077 && printf '%s' "$b64" | openssl base64 -d -A >"$tmp/id.p12")
+  "$SECURITY" delete-keychain "$KEYCHAIN" >/dev/null 2>&1 || rm -f "$KEYCHAIN"
+  # The password is passed on argv here, visible to `ps` for a moment. This
+  # keychain holds nothing but the local signing key, so that is acceptable.
+  "$SECURITY" create-keychain -p "$pw" "$KEYCHAIN"
+  chmod 600 "$KEYCHAIN"
+  "$SECURITY" import "$tmp/id.p12" -k "$KEYCHAIN" -P "$pw" -T "$CODESIGN" >/dev/null || rc=1
+  rm -rf "$tmp"
+  [ "$rc" = 0 ] || return 1
+  # Pre-authorise codesign so signing never raises a keychain dialog; this is
+  # what lets `sign` run unattended during activation.
+  "$SECURITY" set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$pw" "$KEYCHAIN" >/dev/null
+  "$SECURITY" lock-keychain "$KEYCHAIN"
+  # Prove the stored password opens what was just built (2026-09-24, -29).
+  "$SECURITY" unlock-keychain -p "$pw" "$KEYCHAIN" || return 1
+  "$SECURITY" lock-keychain "$KEYCHAIN"
+}
+
+# Make the keychain hold the escrowed identity, unlockable with the stored
+# password. Returns 1 when there is no escrow (only `setup` may mint one).
+restore_from_escrow() {
+  local pw b64 want
+  pw=$1
+  b64=$(escrow_get || true)
+  [ -n "$b64" ] || return 1
+  want=$(escrow_sha1 "$b64" "$pw")
+  [ -n "$want" ] || soft_die "${ESCROW_NAME} does not open with ${SECRET_NAME}"
+  if [ "$(identity_sha1)" = "$want" ] &&
+    "$SECURITY" unlock-keychain -p "$pw" "$KEYCHAIN" 2>/dev/null; then
+    "$SECURITY" lock-keychain "$KEYCHAIN"
+    return 0
+  fi
+  say "keychain missing, locked out, or holding another identity; rebuilding it from ${ESCROW_NAME}"
+  rebuild_keychain "$b64" "$pw" || soft_die "could not rebuild ${KEYCHAIN} from ${ESCROW_NAME}"
+  [ "$(identity_sha1)" = "$want" ] || soft_die "restored identity does not match the escrow"
+}
+
+cmd_setup() {
+  local pw tmp b64
+  pw=$(ensure_password)
+  if restore_from_escrow "$pw"; then
+    say "signing identity present ($(identity_sha1)), escrowed as ${ESCROW_NAME}"
+    return 0
+  fi
+  # No escrow yet: mint the identity once. Any grant made to an app signed by
+  # an earlier, un-escrowed identity has to be made again after this.
   tmp=$(mktemp -d)
   # shellcheck disable=SC2064 # expand $tmp now, not at exit
   trap "rm -rf '$tmp'" EXIT
@@ -114,24 +173,27 @@ cmd_setup() {
       -addext "basicConstraints=critical,CA:false" \
       -addext "keyUsage=critical,digitalSignature" \
       -addext "extendedKeyUsage=critical,codeSigning" 2>/dev/null
+    # -legacy: macOS `security import` cannot read OpenSSL 3's default PKCS#12.
+    openssl pkcs12 -export -legacy -inkey "$tmp/key.pem" -in "$tmp/cert.pem" \
+      -out "$tmp/id.p12" -passout "pass:${pw}"
   )
-  p12pass=$(openssl rand -hex 16)
-  # -legacy: macOS `security import` cannot read OpenSSL 3's default PKCS#12.
-  openssl pkcs12 -export -legacy -inkey "$tmp/key.pem" -in "$tmp/cert.pem" \
-    -out "$tmp/id.p12" -passout "pass:${p12pass}"
-  "$SECURITY" import "$tmp/id.p12" -k "$KEYCHAIN" -P "$p12pass" -T "$CODESIGN" >/dev/null
-  # Pre-authorise codesign so signing never raises a keychain dialog; this is
-  # what lets `sign` run unattended during activation.
-  "$SECURITY" set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$pw" "$KEYCHAIN" >/dev/null
-  "$SECURITY" lock-keychain "$KEYCHAIN"
+  b64=$(openssl base64 -A -in "$tmp/id.p12")
   rm -rf "$tmp"
   trap - EXIT
-  [ -n "$(identity_sha1)" ] || die "certificate import failed"
-  say "created signing identity '${CERT_CN}' ($(identity_sha1))"
+  printf '%s' "$b64" | secretspec set -f "$SECRETSPEC_FILE" "$ESCROW_NAME" \
+    --reason "hm-app-signing: escrow the local code-signing identity" >/dev/null
+  [ "$(escrow_get)" = "$b64" ] || die "could not store ${ESCROW_NAME} in secretspec"
+  restore_from_escrow "$pw" || die "escrowed identity did not restore"
+  say "created signing identity '${CERT_CN}' ($(identity_sha1)), escrowed as ${ESCROW_NAME}"
 }
 
 cmd_sign() {
   local sha pw app todo=() original=() line
+  pw=$(keychain_password || true)
+  [ -n "$pw" ] || soft_die "could not read ${SECRET_NAME} from secretspec"
+  # Repair the keychain from the escrow before anything else, so a broken
+  # keychain never leaves an app ad-hoc signed (and its grants void).
+  restore_from_escrow "$pw" || soft_die "no escrowed identity yet; run 'hm-app-signing setup'"
   sha=$(identity_sha1)
   [ -n "$sha" ] || soft_die "no signing identity yet"
   while IFS= read -r app; do
@@ -145,8 +207,6 @@ cmd_sign() {
   done < <(each_app)
   [ "${#todo[@]}" -gt 0 ] || return 0
 
-  pw=$(keychain_password || true)
-  [ -n "$pw" ] || soft_die "could not read ${SECRET_NAME} from secretspec"
   "$SECURITY" unlock-keychain -p "$pw" "$KEYCHAIN" || soft_die "could not unlock ${KEYCHAIN}"
 
   # codesign only finds identities in keychains on the user search list. Add

@@ -1,8 +1,8 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-01m3p8-h",
-  "intent_id": "intent:run-01m3p8-h",
-  "task_id": "todo_01m3p8",
+  "run_id": "run-01m3pb-h2",
+  "intent_id": "intent:run-01m3pb-h2",
+  "task_id": "todo_01m3pb",
   "original_intent": "Complete everything end to end",
   "derived_intent": "Publish",
   "current_phase": "validation",
@@ -10,13 +10,13 @@
     "publish"
   ],
   "active_boundaries": [
-    "OS updates stay with Jamf/Nudge"
+    "No policy changes"
   ],
   "repo_scope": [
-    "modules/M-02877/dktaohan.nix"
+    "modules/gateway.nix"
   ],
   "inspected_files": [
-    "modules/M-02877/dktaohan.nix"
+    "modules/gateway.nix"
   ],
   "modified_files": [
     ".decapod/governance/trajectory.json",
@@ -37,7 +37,7 @@
     }
   ],
   "evidence": [
-    "validation epoch ve_e99d531e2db2a739 completed with zero failures"
+    "validation epoch ve_92c00e66e58d7e38 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -48,21 +48,21 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:bf8bc7d943cfcf996c6ad1d825f03e9093c3272441f607594012c06bc9ecc85e",
+  "artifact_hash": "sha256:fbbe6c2d47d280126dad95420216dcc0b3d649c7887c366ebce9d0a77e7381a7",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-01m3p8-h": {
-        "id": "intent:run-01m3p8-h",
+      "intent:run-01m3pb-h2": {
+        "id": "intent:run-01m3pb-h2",
         "raw_intent": "Complete everything end to end",
         "refined_intent": "Publish",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/M-02877/dktaohan.nix"
+          "modules/gateway.nix"
         ],
         "assumptions": [],
         "boundaries": [
-          "OS updates stay with Jamf/Nudge"
+          "No policy changes"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -75,44 +75,44 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-h2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-h2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-h2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3p8-h"
+        "detail": "trajectory:run-01m3pb-h2"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-01m3p8-h",
+        "intent_id": "intent:run-01m3pb-h2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3p8-h"
+        "detail": "trajectory:run-01m3pb-h2"
       }
     ],
     "trajectories": {
-      "run-01m3p8-h": {
-        "id": "run-01m3p8-h",
-        "intent_id": "intent:run-01m3p8-h",
+      "run-01m3pb-h2": {
+        "id": "run-01m3pb-h2",
+        "intent_id": "intent:run-01m3pb-h2",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
             "scope": [
-              "modules/M-02877/dktaohan.nix"
+              "modules/gateway.nix"
             ],
             "observations": [
-              "modules/M-02877/dktaohan.nix"
+              "modules/gateway.nix"
             ],
             "proof_refs": [
               "container-validate"
@@ -125,12 +125,12 @@
             "action": "validation",
             "command": "decapod validate",
             "scope": [
-              "modules/M-02877/dktaohan.nix"
+              "modules/gateway.nix"
             ],
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_e99d531e2db2a739 completed with zero failures"
+              "validation epoch ve_92c00e66e58d7e38 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

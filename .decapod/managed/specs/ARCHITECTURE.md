@@ -128,6 +128,23 @@ Home Manager owns user-space tools; Pi is sourced from the flake's
 manual because they are user credentials and network policy, not reproducible
 package state.
 
+### Temporary Lix Link-Flag Override on M-02877
+nixpkgs 97bf56b78d set `NIX_LDFLAGS = "-z,noexecstack"` on Lix for every
+platform; Apple's ld rejects `-z`, so Lix 2.95.3 and the whole darwin system
+failed to build. `modules/M-02877/darwin.nix` clears the flag on Darwin through
+`lixPackageSets.latest.overrideScope`, keyed on the flag's presence so it turns
+into a no-op once upstream restricts the flag to Linux. Until then Lix builds
+locally on M-02877 (about 20 minutes including its test suite).
+
+### Gateway Key Lookup Retries
+`gateway.keyCommand` retries `secretspec get` up to three times about a second
+apart. A secretspec age lookup must start `age-plugin-se`; twice on 2026-09-29
+it failed instantly at the tail of heavy builds and succeeded on the next call,
+and pi, which resolves the key per request, turned each miss into a failed
+turn. Earlier attempts append their error text to
+`~/.local/state/secretspec-gateway.log` so the next miss records its cause;
+stderr-capturing callers see one error.
+
 ### Unattended topgrade on M-02877
 topgrade must finish without input. Steps that would ask for a password or
 duplicate a managed updater are disabled in `modules/M-02877/dktaohan.nix`:

@@ -197,9 +197,28 @@
       nix.enable = true;
       nixpkgs.config.allowUnfree = true;
       nixpkgs.overlays = [
+        # nixpkgs 97bf56b78d (2026-09-28, "lix: link with -z,noexecstack") sets
+        # NIX_LDFLAGS = "-z,noexecstack" unconditionally. That is an ELF linker
+        # flag; Apple's ld rejects it ("ld: unknown option: -z"), so Lix 2.95.3
+        # fails meson's compiler sanity check on Darwin and the whole system
+        # fails to build. Mach-O has no executable-stack notion, so dropping it
+        # here loses nothing. The guard keys on the flag itself: once upstream
+        # makes it Linux-only, this override stops matching and does nothing.
+        (final: prev: {
+          lixPackageSets =
+            prev.lixPackageSets
+            // {
+              latest = prev.lixPackageSets.latest.overrideScope (_: lp: {
+                lix = lp.lix.overrideAttrs (o:
+                  prev.lib.optionalAttrs (prev.lib.hasPrefix "-z" (o.env.NIX_LDFLAGS or "")) {
+                    env = o.env // {NIX_LDFLAGS = "";};
+                  });
+              });
+            };
+        })
         (final: prev: {
           inherit
-            (prev.lixPackageSets.latest)
+            (final.lixPackageSets.latest)
             nixpkgs-review
             nix-eval-jobs
             nix-fast-build

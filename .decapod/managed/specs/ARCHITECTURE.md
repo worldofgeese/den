@@ -167,6 +167,17 @@ darwin-rebuild just built instead of evaluating the system again. The durable
 fix is a Defender exclusion for Lix's `nix`/`nix-daemon` or `/nix/store`, which
 only device management can grant.
 
+### No Keychain Dialogs on M-02877
+Unattended work must not raise keychain password dialogs. Two sources did, both
+because a keychain item's ACL trusted one exact build of a binary Nix or
+Homebrew rebuilds. secretspec on M-02877 reads only `secretspec.age` (no
+`keyring` fallback in `secretspec.toml`), and Homebrew's GitHub API token comes
+from `gh auth token` (gh reaches the keychain through Apple's stable
+`/usr/bin/security`). Apple container's `ghcr.io` credential, read on every
+headroom and local-model-proxy start, is gh's token stored by `just
+ghcr-login` with an any-app ACL. The accepted trade-off matches the age store:
+any process running as the user can read these without a dialog.
+
 ### Binary Cache Declarations
 `flake.nix` carries no `nixConfig`: a declined flake config warns on every nix
 command. M-02877 declares its caches in `modules/M-02877/darwin.nix`;

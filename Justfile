@@ -406,6 +406,22 @@ check-doom-linux-image:
 update:
     timeout -s KILL 900 nix flake update --no-warn-dirty
 
+# M-02877: store gh's token as Apple container's ghcr.io credential, readable
+# by any app without a dialog. `container registry login` creates the item with
+# an ACL trusting only the running build, and Homebrew's `container` is ad-hoc
+# signed (no team ID), so every `brew upgrade container` turned each image pull
+# (headroom and local-model-proxy pull on every start) into a keychain password
+# dialog. gh's token has read:packages. Re-run after `gh auth login` or after
+# anything runs `container registry login ghcr.io`. The attributes match what
+# container itself writes; without the security domain it does not find it.
+ghcr-login:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    tok="$(gh auth token)"
+    security delete-internet-password -s ghcr.io -a worldofgeese >/dev/null 2>&1 || true
+    security add-internet-password -A -s ghcr.io -a worldofgeese -d com.apple.container.registry -l ghcr.io -w "$tok"
+    echo "ghcr.io credential stored for container (any-app access, no dialogs)"
+
 # Root inputs M-02877 never evaluates. Every source tree nix fetches is read and
 # written file by file, and on M-02877 Microsoft Defender inspects each open by
 # nix and nix-daemon (~3.5 ms/file; measured 2026-09-28, a 54k-file nixpkgs

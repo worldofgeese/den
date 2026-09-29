@@ -405,17 +405,15 @@
         export XCURSOR_PATH=$XCURSOR_PATH:/usr/share/icons:~/.local/share/icons:~/.icons:~/.nix-profile/share/icons
       '';
       programs.zsh.initContent = ''
-        if [ -z "''${HOMEBREW_GITHUB_API_TOKEN:-}" ]; then
-          token=""
-          if command -v secretspec &>/dev/null; then
-            token="$(secretspec get HOMEBREW_GITHUB_API_TOKEN --reason "nix-darwin activation / Homebrew API rate limits" 2>/dev/null || true)"
-          fi
-          if [ -z "$token" ] && command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
-            token="$(gh auth token)"
-          fi
-          if [ -n "$token" ]; then
-            export HOMEBREW_GITHUB_API_TOKEN="$token"
-          fi
+        # Homebrew's GitHub API token is gh's own token. gh reads it from the
+        # login keychain through Apple's /usr/bin/security, whose identity never
+        # changes, so this never raises a keychain dialog. (A copy in secretspec
+        # did: it fell through to a keychain item whose ACL trusted one
+        # secretspec build, so each rebuild prompted.)
+        if [ -z "''${HOMEBREW_GITHUB_API_TOKEN:-}" ] && command -v gh &>/dev/null; then
+          token="$(gh auth token 2>/dev/null || true)"
+          [ -z "$token" ] || export HOMEBREW_GITHUB_API_TOKEN="$token"
+          unset token
         fi
 
         # Chorus AI-DLC (https://chorus.devrel.internal.lego). URL is

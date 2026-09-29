@@ -805,6 +805,19 @@
 
       environment.systemPackages = [neardrop];
 
+      # Resolve the tailnet's MagicDNS names, and only those, through
+      # tailscaled's own resolver. "Use Tailscale DNS" stays off on purpose: the
+      # tailnet pushes global resolvers, and accepting them would route every
+      # lookup away from the LAN/corporate DNS. With it off, nothing resolved
+      # *.hound-celsius.ts.net, so every tailnet alias in modules/ssh.nix failed
+      # here (`ssh mahakala` reached an unrelated LAN host instead). macOS
+      # consults /etc/resolver/<domain> for that domain alone; 100.100.100.100
+      # answers MagicDNS queries whether or not Tailscale DNS is accepted
+      # (verified 2026-09-29).
+      environment.etc."resolver/hound-celsius.ts.net".text = ''
+        nameserver 100.100.100.100
+      '';
+
       homebrew = {
         enable = true;
         global.autoUpdate = true;

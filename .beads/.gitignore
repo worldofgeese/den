@@ -41,6 +41,11 @@ sync-state.json
 .local_version
 backup/
 
+# br (beads_rust) keeps timestamped local snapshots of issues.jsonl here.
+# Per-machine, and an untracked copy makes the root checkout dirty, which blocks
+# `decapod workspace ensure`.
+.br_history/
+
 # Worktree redirect file
 redirect
 

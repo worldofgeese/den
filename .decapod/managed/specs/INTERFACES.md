@@ -193,7 +193,7 @@ These commands do not force an immediate reboot. The next planned boot verifies 
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `ea5d665712b18426b25b7c56f0269b601dbb32718c7e52a550d54cc338e6b623`
+- Repository signal fingerprint: `0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e`
 - Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod specs.refresh`
 <!-- decapod:codebase-attestation:end -->

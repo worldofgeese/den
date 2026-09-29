@@ -5,6 +5,10 @@
   "task_id": "todo_01m3pb",
   "original_intent": "Complete everything end to end",
   "derived_intent": "Publish",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "No policy changes"
   ],
@@ -14,16 +18,27 @@
   "inspected_files": [
     "modules/gateway.nix"
   ],
-  "modified_files": [],
-  "declared_commands": [],
+  "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
+  ],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
     {
       "name": "container-validate",
       "status": "passed"
+    },
+    {
+      "name": "decapod validate",
+      "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_92c00e66e58d7e38 completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -33,7 +48,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:de5fce6061a2be650691ccffa3c65dfc926608a94d4ede1a84825b06ffed54e5",
+  "artifact_hash": "sha256:fbbe6c2d47d280126dad95420216dcc0b3d649c7887c366ebce9d0a77e7381a7",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -75,6 +90,13 @@
         "intent_id": "intent:run-01m3pb-h2",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-01m3pb-h2"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-01m3pb-h2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-01m3pb-h2"
       }
     ],
     "trajectories": {
@@ -97,12 +119,30 @@
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "modules/gateway.nix"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_92c00e66e58d7e38 completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

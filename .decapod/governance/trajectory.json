@@ -1,14 +1,10 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-01m3p8-c",
-  "intent_id": "intent:run-01m3p8-c",
+  "run_id": "run-01m3p8-h",
+  "intent_id": "intent:run-01m3p8-h",
   "task_id": "todo_01m3p8",
   "original_intent": "Complete everything end to end",
-  "derived_intent": "Disable topgrade system step",
-  "current_phase": "validation",
-  "next_transitions": [
-    "publish"
-  ],
+  "derived_intent": "Publish",
   "active_boundaries": [
     "OS updates stay with Jamf/Nudge"
   ],
@@ -18,27 +14,16 @@
   "inspected_files": [
     "modules/M-02877/dktaohan.nix"
   ],
-  "modified_files": [
-    ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json"
-  ],
-  "declared_commands": [
-    "decapod validate"
-  ],
+  "modified_files": [],
+  "declared_commands": [],
   "tool_calls": [],
   "checks": [
     {
-      "name": "decapod validate",
-      "status": "passed"
-    },
-    {
-      "name": "pre-commit-just-check",
+      "name": "container-validate",
       "status": "passed"
     }
   ],
-  "evidence": [
-    "validation epoch ve_fece1fca7f753378 completed with zero failures"
-  ],
+  "evidence": [],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
   "proof_status": "passed",
@@ -48,14 +33,14 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:557f8a1892aad595208f71e98e7ac51e7deb8a062c8bddef2f96951a1fc95979",
+  "artifact_hash": "sha256:270b26254c9a9bc5b325aecfe2b3be72a5ee900b9eb8f6b2a19631a4f7097e5d",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-01m3p8-c": {
-        "id": "intent:run-01m3p8-c",
+      "intent:run-01m3p8-h": {
+        "id": "intent:run-01m3p8-h",
         "raw_intent": "Complete everything end to end",
-        "refined_intent": "Disable topgrade system step",
+        "refined_intent": "Publish",
         "acceptance_criteria": [],
         "constraints": [
           "modules/M-02877/dktaohan.nix"
@@ -75,34 +60,27 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-01m3p8-c",
+        "intent_id": "intent:run-01m3p8-h",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-01m3p8-c",
+        "intent_id": "intent:run-01m3p8-h",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-01m3p8-c",
+        "intent_id": "intent:run-01m3p8-h",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3p8-c"
-      },
-      {
-        "sequence": 5,
-        "event_id": "event:5",
-        "intent_id": "intent:run-01m3p8-c",
-        "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3p8-c"
+        "detail": "trajectory:run-01m3p8-h"
       }
     ],
     "trajectories": {
-      "run-01m3p8-c": {
-        "id": "run-01m3p8-c",
-        "intent_id": "intent:run-01m3p8-c",
+      "run-01m3p8-h": {
+        "id": "run-01m3p8-h",
+        "intent_id": "intent:run-01m3p8-h",
         "evidence_only": true,
         "steps": [
           {
@@ -115,34 +93,16 @@
               "modules/M-02877/dktaohan.nix"
             ],
             "proof_refs": [
-              "pre-commit-just-check"
+              "container-validate"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
-          },
-          {
-            "sequence": 5,
-            "action": "validation",
-            "command": "decapod validate",
-            "scope": [
-              "modules/M-02877/dktaohan.nix"
-            ],
-            "observations": [
-              ".decapod/governance/trajectory.json",
-              ".decapod/governance/validation.json",
-              "validation epoch ve_fece1fca7f753378 completed with zero failures"
-            ],
-            "proof_refs": [
-              "decapod validate"
-            ],
-            "validation_findings": [],
-            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 5
+    "next_sequence": 4
   }
 }

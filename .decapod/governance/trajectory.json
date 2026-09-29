@@ -1,10 +1,10 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-01m3pb-h",
-  "intent_id": "intent:run-01m3pb-h",
+  "run_id": "run-01m3pb-c2",
+  "intent_id": "intent:run-01m3pb-c2",
   "task_id": "todo_01m3pb",
   "original_intent": "Complete everything end to end",
-  "derived_intent": "Publish",
+  "derived_intent": "Key retry logging",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
@@ -28,16 +28,20 @@
   "tool_calls": [],
   "checks": [
     {
-      "name": "container-validate",
+      "name": "decapod validate",
       "status": "passed"
     },
     {
-      "name": "decapod validate",
+      "name": "live-key-command",
+      "status": "passed"
+    },
+    {
+      "name": "retry-harness",
       "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_659933c35e0fb78b completed with zero failures"
+    "validation epoch ve_0a6e9fdf2e8ed7be completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -48,14 +52,14 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:9cc40f4ddf2fe427249ab0e45246bc110adcb01c39b09851857ecc7c9f9e8b22",
+  "artifact_hash": "sha256:2f022677e9e9f8851636b2f0b8f199217c25d1dfe48a29d45c8818be98ffb526",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-01m3pb-h": {
-        "id": "intent:run-01m3pb-h",
+      "intent:run-01m3pb-c2": {
+        "id": "intent:run-01m3pb-c2",
         "raw_intent": "Complete everything end to end",
-        "refined_intent": "Publish",
+        "refined_intent": "Key retry logging",
         "acceptance_criteria": [],
         "constraints": [
           "modules/gateway.nix"
@@ -75,34 +79,34 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-01m3pb-h",
+        "intent_id": "intent:run-01m3pb-c2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-01m3pb-h",
+        "intent_id": "intent:run-01m3pb-c2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-01m3pb-h",
+        "intent_id": "intent:run-01m3pb-c2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3pb-h"
+        "detail": "trajectory:run-01m3pb-c2"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-01m3pb-h",
+        "intent_id": "intent:run-01m3pb-c2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3pb-h"
+        "detail": "trajectory:run-01m3pb-c2"
       }
     ],
     "trajectories": {
-      "run-01m3pb-h": {
-        "id": "run-01m3pb-h",
-        "intent_id": "intent:run-01m3pb-h",
+      "run-01m3pb-c2": {
+        "id": "run-01m3pb-c2",
+        "intent_id": "intent:run-01m3pb-c2",
         "evidence_only": true,
         "steps": [
           {
@@ -115,7 +119,8 @@
               "modules/gateway.nix"
             ],
             "proof_refs": [
-              "container-validate"
+              "retry-harness",
+              "live-key-command"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
@@ -130,7 +135,7 @@
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_659933c35e0fb78b completed with zero failures"
+              "validation epoch ve_0a6e9fdf2e8ed7be completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

@@ -5,6 +5,10 @@
   "task_id": "fend_01m3sspyk0j39gvf",
   "original_intent": "Fix topgrade HM step failing with substituter cache.nixos.org is disabled; run and babysit topgrade; speed, reliability, no surprises",
   "derived_intent": "Raise download-attempts 2->5 so a transient fetch failure is retried instead of disabling cache.nixos.org and triggering mass fallback builds",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
     "only modules/M-02877/darwin.nix nix.settings and OPERATIONS.md runbook"
   ],
@@ -16,15 +20,22 @@
     "modules/M-02877/darwin.nix"
   ],
   "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json",
     ".decapod/managed/specs/OPERATIONS.md",
     "modules/M-02877/darwin.nix"
   ],
   "declared_commands": [
+    "decapod validate",
     "nix build --dry-run .#darwinConfigurations.M-02877.system",
     "nix eval .#darwinConfigurations.M-02877.config.nix.settings.download-attempts"
   ],
   "tool_calls": [],
   "checks": [
+    {
+      "name": "decapod validate",
+      "status": "passed"
+    },
     {
       "name": "dry-run-closure",
       "status": "passed"
@@ -37,7 +48,8 @@
   "evidence": [
     "dry-run on healthy link: 377 built, 1121 fetched (vs 4100 built in failed run)",
     "liblix.dylib contains 'disabling binary cache %s for %s seconds' and 'substituter %s is disabled'",
-    "nix eval download-attempts => 5"
+    "nix eval download-attempts => 5",
+    "validation epoch ve_f030ce9c9184cfa9 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [
@@ -50,7 +62,7 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:bcb38638cdfca1dc4993f87291f67b6271410bada2b88e162606e8f3bafde5fb",
+  "artifact_hash": "sha256:583af648a17ccb6dd336fa18a0bca29fd3155dc8fe56a356497defe54dc49598",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
@@ -92,6 +104,13 @@
         "intent_id": "intent:run-fend-01m3ss",
         "kind": "trajectory_step_recorded",
         "detail": "trajectory:run-fend-01m3ss"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-fend-01m3ss",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-fend-01m3ss"
       }
     ],
     "trajectories": {
@@ -124,12 +143,30 @@
               "trigger was a transient network/CDN failure; not reproduced on demand"
             ],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "modules/M-02877/darwin.nix"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_f030ce9c9184cfa9 completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

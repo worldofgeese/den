@@ -55,19 +55,37 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Runbook
 ### Detect
-- Signals that indicate the service/workflow is unhealthy:
-- Dashboards, logs, and evidence locations:
+- Signals that indicate the service/workflow is unhealthy: a deploy
+  (`just deploy-darwin`, usually via topgrade) prints repeated
+  `substituter 'https://cache.nixos.org' is disabled`, the `failed` copy count
+  climbs, and the build total jumps far past normal (4100 instead of ~400).
+- Dashboards, logs, and evidence locations: the deploy's terminal output;
+  `nix build --dry-run .#darwinConfigurations.M-02877.system` gives the true
+  built/fetched counts on a healthy connection.
 
 ### Triage
-- First bounded checks:
-- How to distinguish code, dependency, data, and capacity failures:
-- Who owns the decision to continue, roll back, or stop:
+- First bounded checks: `curl -w '%{http_code}' https://cache.nixos.org/nix-cache-info`
+  over IPv4 and IPv6, then the dry-run above.
+- How to distinguish code, dependency, data, and capacity failures: if the
+  cache answers and the dry-run shows a normal count, the cause was a transient
+  fetch failure. Lix disables a whole substituter after one request exhausts
+  `download-attempts`, and `fallback = true` then queues every missing path for
+  a local build. Paths still being queried on the lower-priority caches
+  (Cachix, numtide) are a symptom, not a second fault.
+- Who owns the decision to continue, roll back, or stop: the operator.
 
 ### Mitigate and Recover
-- Safe mitigation:
-- Rollback or forward-fix trigger:
-- Data repair/replay procedure:
-- Verification required after recovery:
+- Safe mitigation: cancel the deploy. Pre-build the closure as the trusted user
+  with `nix build --no-link --fallback --option download-attempts 5
+  .#darwinConfigurations.M-02877.system`, then rerun the deploy, which only has
+  to activate.
+- Rollback or forward-fix trigger: forward fix. `download-attempts` is 5 in
+  `modules/M-02877/darwin.nix` so a single blip is retried instead of disabling
+  the cache. The 20s stall timeout still bounds a bad NAR.
+- Data repair/replay procedure: none. The store is content-addressed and a
+  cancelled deploy leaves the active system unchanged.
+- Verification required after recovery: `/etc/nix/nix.conf` shows
+  `download-attempts = 5`, and the deploy log has no `is disabled` lines.
 
 ## Release and Migration Readiness
 - [ ] Release artifact and schema versions are identified.

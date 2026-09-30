@@ -1,46 +1,48 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-01m3pk-h",
-  "intent_id": "intent:run-01m3pk-h",
-  "task_id": "todo_01m3pk",
-  "original_intent": "Durable App Management grant for WezTerm",
-  "derived_intent": "Publish",
-  "current_phase": "validation",
-  "next_transitions": [
-    "publish"
-  ],
+  "run_id": "run-fend-01m3ss",
+  "intent_id": "intent:run-fend-01m3ss",
+  "task_id": "fend_01m3sspyk0j39gvf",
+  "original_intent": "Fix topgrade HM step failing with substituter cache.nixos.org is disabled; run and babysit topgrade; speed, reliability, no surprises",
+  "derived_intent": "Raise download-attempts 2->5 so a transient fetch failure is retried instead of disabling cache.nixos.org and triggering mass fallback builds",
   "active_boundaries": [
-    "No TCC or MDM changes"
+    "only modules/M-02877/darwin.nix nix.settings and OPERATIONS.md runbook"
   ],
   "repo_scope": [
-    "scripts/hm-app-signing.sh"
+    "modules/M-02877/darwin.nix"
   ],
   "inspected_files": [
-    "scripts/hm-app-signing.sh"
+    "Justfile",
+    "modules/M-02877/darwin.nix"
   ],
   "modified_files": [
-    ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json"
+    ".decapod/managed/specs/OPERATIONS.md",
+    "modules/M-02877/darwin.nix"
   ],
   "declared_commands": [
-    "decapod validate"
+    "nix build --dry-run .#darwinConfigurations.M-02877.system",
+    "nix eval .#darwinConfigurations.M-02877.config.nix.settings.download-attempts"
   ],
   "tool_calls": [],
   "checks": [
     {
-      "name": "container-validate",
+      "name": "dry-run-closure",
       "status": "passed"
     },
     {
-      "name": "decapod validate",
+      "name": "eval-download-attempts",
       "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_9604709c2281f2e0 completed with zero failures"
+    "dry-run on healthy link: 377 built, 1121 fetched (vs 4100 built in failed run)",
+    "liblix.dylib contains 'disabling binary cache %s for %s seconds' and 'substituter %s is disabled'",
+    "nix eval download-attempts => 5"
   ],
   "shortcut_risk_signals": [],
-  "unresolved_assumptions": [],
+  "unresolved_assumptions": [
+    "trigger was a transient network/CDN failure; not reproduced on demand"
+  ],
   "proof_status": "passed",
   "verdicts": {
     "intent_alignment": "supported",
@@ -48,21 +50,21 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:814225b521dfdf5e715e736ba91182a209e36815e564966c96c7b959789410c8",
+  "artifact_hash": "sha256:bcb38638cdfca1dc4993f87291f67b6271410bada2b88e162606e8f3bafde5fb",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-01m3pk-h": {
-        "id": "intent:run-01m3pk-h",
-        "raw_intent": "Durable App Management grant for WezTerm",
-        "refined_intent": "Publish",
+      "intent:run-fend-01m3ss": {
+        "id": "intent:run-fend-01m3ss",
+        "raw_intent": "Fix topgrade HM step failing with substituter cache.nixos.org is disabled; run and babysit topgrade; speed, reliability, no surprises",
+        "refined_intent": "Raise download-attempts 2->5 so a transient fetch failure is retried instead of disabling cache.nixos.org and triggering mass fallback builds",
         "acceptance_criteria": [],
         "constraints": [
-          "scripts/hm-app-signing.sh"
+          "modules/M-02877/darwin.nix"
         ],
         "assumptions": [],
         "boundaries": [
-          "No TCC or MDM changes"
+          "only modules/M-02877/darwin.nix nix.settings and OPERATIONS.md runbook"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -75,74 +77,59 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-01m3pk-h",
+        "intent_id": "intent:run-fend-01m3ss",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-01m3pk-h",
+        "intent_id": "intent:run-fend-01m3ss",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-01m3pk-h",
+        "intent_id": "intent:run-fend-01m3ss",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3pk-h"
-      },
-      {
-        "sequence": 5,
-        "event_id": "event:5",
-        "intent_id": "intent:run-01m3pk-h",
-        "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-01m3pk-h"
+        "detail": "trajectory:run-fend-01m3ss"
       }
     ],
     "trajectories": {
-      "run-01m3pk-h": {
-        "id": "run-01m3pk-h",
-        "intent_id": "intent:run-01m3pk-h",
+      "run-fend-01m3ss": {
+        "id": "run-fend-01m3ss",
+        "intent_id": "intent:run-fend-01m3ss",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
+            "command": "nix build --dry-run .#darwinConfigurations.M-02877.system",
             "scope": [
-              "scripts/hm-app-signing.sh"
+              "modules/M-02877/darwin.nix"
             ],
             "observations": [
-              "scripts/hm-app-signing.sh"
+              "modules/M-02877/darwin.nix",
+              "Justfile",
+              "modules/M-02877/darwin.nix",
+              ".decapod/managed/specs/OPERATIONS.md",
+              "dry-run on healthy link: 377 built, 1121 fetched (vs 4100 built in failed run)",
+              "liblix.dylib contains 'disabling binary cache %s for %s seconds' and 'substituter %s is disabled'",
+              "nix eval download-attempts => 5"
             ],
             "proof_refs": [
-              "container-validate"
+              "eval-download-attempts",
+              "dry-run-closure"
             ],
-            "validation_findings": [],
+            "validation_findings": [
+              "trigger was a transient network/CDN failure; not reproduced on demand"
+            ],
             "custody_event_id": "event:4"
-          },
-          {
-            "sequence": 5,
-            "action": "validation",
-            "command": "decapod validate",
-            "scope": [
-              "scripts/hm-app-signing.sh"
-            ],
-            "observations": [
-              ".decapod/governance/trajectory.json",
-              ".decapod/governance/validation.json",
-              "validation epoch ve_9604709c2281f2e0 completed with zero failures"
-            ],
-            "proof_refs": [
-              "decapod validate"
-            ],
-            "validation_findings": [],
-            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 5
+    "next_sequence": 4
   }
 }

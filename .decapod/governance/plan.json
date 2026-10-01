@@ -1,13 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "title": "Escrowed app-signing identity",
-  "intent": "WezTerm privacy grants survive rebuilds and signing-keychain loss",
+  "title": "Resilient nix substitution",
+  "intent": "One transient cache.nixos.org failure must not disable the substituter and cascade into thousands of fallback builds during topgrade/deploy-darwin",
   "state": "APPROVED",
   "todo_ids": [
-    "bugs_01m3pkmafgfrvpeg"
+    "fend_01m3sspyk0j39gvf"
   ],
   "proof_hooks": [
-    "keychain deleted, wrong-password, and empty cases each restore the same certificate; ad-hoc WezTerm re-signed with the same leaf"
+    "nix eval of darwinConfigurations.M-02877.config.nix.settings.download-attempts returns 5",
+    "clean prebuild log has zero 'is disabled' lines"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -16,8 +17,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": null
+    "file_touch_budget": 3
   },
   "phases": [],
-  "updated_at": "1790686818Z"
+  "updated_at": "1790793577Z"
 }

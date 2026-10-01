@@ -267,7 +267,14 @@
         # link starts aborting mid-NAR.
         connect-timeout = 5;
         stalled-download-timeout = 20;
-        download-attempts = 2;
+        # Measured 2026-09-30: with 2 attempts, one transient failure against
+        # cache.nixos.org exhausted retries, Lix then disabled the whole
+        # substituter ("disabling binary cache ... for N seconds"), every
+        # in-flight lookup failed with "substituter ... is disabled" (652 failed
+        # copies), and `fallback` turned a 377-build deploy into 4100 local
+        # builds. Retries are cheap now that a stall costs 20s, not 300s:
+        # 5 attempts bound one bad NAR at ~100s while riding out blips.
+        download-attempts = 5;
         # An unusable substitute should cost a local build, not a failed deploy.
         # The justfile passes --fallback at the call sites too, because those
         # also drive mahakala and pixel-fold, which never read this file.

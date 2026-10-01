@@ -22,8 +22,8 @@
       "maxTokens": 128000
     },
     "sonnet": {
-      "id": "eu.anthropic.claude-sonnet-5",
-      "name": "Sonnet 5 (LEGO)",
+      "id": "eu.anthropic.claude-sonnet-5-5",
+      "name": "Sonnet 5.5 (LEGO)",
       "reasoning": true,
       "contextWindow": 1000000,
       "maxTokens": 128000

@@ -348,7 +348,9 @@
           prompt = "enabled";
           editor = "zed";
         };
-        extensions = with pkgs; [gh-dash];
+        # gh-stack: stacked PRs (`gh stack link/merge`); `gh extension install`
+        # cannot write here because the extensions dir is a store symlink.
+        extensions = with pkgs; [gh-dash gh-stack];
       };
 
       programs.topgrade = {

@@ -1,67 +1,85 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "gateway-cause-01",
-  "intent_id": "intent:gateway-cause-01",
+  "run_id": "gateway-cause-02",
+  "intent_id": "intent:gateway-cause-02",
   "task_id": "cicd_01m3vfs2xt2vx2a4",
-  "original_intent": "Remediate everything; correct ARCHITECTURE.md per QuickIce agreement",
-  "derived_intent": "Replace the CPU-load attribution with the confirmed locked-keybag cause and add per-miss timestamps to the gateway key log",
+  "original_intent": "Remediate everything; correct ARCHITECTURE.md; live-test pr-reviewer",
+  "derived_intent": "Confirmed locked-keybag cause, per-miss timestamps, live-test runbook in OPERATIONS.md",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
-    "PR #19 retry behaviour kept; only documentation and logging change"
+    "PR #19 retry behaviour kept"
   ],
   "repo_scope": [
     ".decapod/managed/specs/ARCHITECTURE.md",
+    ".decapod/managed/specs/OPERATIONS.md",
     "modules/gateway.nix"
   ],
-  "inspected_files": [
-    "modules/agent-providers.nix",
-    "modules/doom-emacs.nix"
-  ],
+  "inspected_files": [],
   "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json",
     ".decapod/managed/specs/ARCHITECTURE.md",
+    ".decapod/managed/specs/OPERATIONS.md",
     "modules/gateway.nix"
   ],
-  "declared_commands": [],
+  "declared_commands": [
+    "decapod validate"
+  ],
   "tool_calls": [],
   "checks": [
+    {
+      "name": "decapod validate",
+      "status": "passed"
+    },
     {
       "name": "forced-miss-writes-5-timestamped-lines",
       "status": "passed"
     },
     {
-      "name": "success-path-returns-key-no-log",
+      "name": "pr-reviewer-live-followup-review-52s",
       "status": "passed"
     },
     {
-      "name": "unified-log-attribution-of-2026-09-29",
-      "status": "unavailable"
+      "name": "pr-reviewer-live-initial-review-89s",
+      "status": "passed"
+    },
+    {
+      "name": "success-path-returns-key-no-log",
+      "status": "passed"
     }
   ],
-  "evidence": [],
+  "evidence": [
+    "validation epoch ve_7dc3d192a6729cef completed with zero failures"
+  ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
-  "proof_status": "partial",
+  "proof_status": "passed",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "caution"
+    "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:a7d43aaf3b97301d88d5c35a0df44b50269fd4370d69fb224ce00b071dc91184",
+  "artifact_hash": "sha256:fde60049bcd480d0130a10d8a137a80df4c50077b8df8f86e20f9aecb6ba43ab",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:gateway-cause-01": {
-        "id": "intent:gateway-cause-01",
-        "raw_intent": "Remediate everything; correct ARCHITECTURE.md per QuickIce agreement",
-        "refined_intent": "Replace the CPU-load attribution with the confirmed locked-keybag cause and add per-miss timestamps to the gateway key log",
+      "intent:gateway-cause-02": {
+        "id": "intent:gateway-cause-02",
+        "raw_intent": "Remediate everything; correct ARCHITECTURE.md; live-test pr-reviewer",
+        "refined_intent": "Confirmed locked-keybag cause, per-miss timestamps, live-test runbook in OPERATIONS.md",
         "acceptance_criteria": [],
         "constraints": [
           "modules/gateway.nix",
-          ".decapod/managed/specs/ARCHITECTURE.md"
+          ".decapod/managed/specs/ARCHITECTURE.md",
+          ".decapod/managed/specs/OPERATIONS.md"
         ],
         "assumptions": [],
         "boundaries": [
-          "PR #19 retry behaviour kept; only documentation and logging change"
+          "PR #19 retry behaviour kept"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -74,27 +92,34 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:gateway-cause-01",
+        "intent_id": "intent:gateway-cause-02",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:gateway-cause-01",
+        "intent_id": "intent:gateway-cause-02",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:gateway-cause-01",
+        "intent_id": "intent:gateway-cause-02",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:gateway-cause-01"
+        "detail": "trajectory:gateway-cause-02"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:gateway-cause-02",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:gateway-cause-02"
       }
     ],
     "trajectories": {
-      "gateway-cause-01": {
-        "id": "gateway-cause-01",
-        "intent_id": "intent:gateway-cause-01",
+      "gateway-cause-02": {
+        "id": "gateway-cause-02",
+        "intent_id": "intent:gateway-cause-02",
         "evidence_only": true,
         "steps": [
           {
@@ -102,27 +127,48 @@
             "action": "trajectory.record",
             "scope": [
               ".decapod/managed/specs/ARCHITECTURE.md",
+              ".decapod/managed/specs/OPERATIONS.md",
               "modules/gateway.nix"
             ],
             "observations": [
-              "modules/agent-providers.nix",
-              "modules/doom-emacs.nix",
               "modules/gateway.nix",
-              ".decapod/managed/specs/ARCHITECTURE.md"
+              ".decapod/managed/specs/ARCHITECTURE.md",
+              ".decapod/managed/specs/OPERATIONS.md"
             ],
             "proof_refs": [
               "forced-miss-writes-5-timestamped-lines",
               "success-path-returns-key-no-log",
-              "unified-log-attribution-of-2026-09-29"
+              "pr-reviewer-live-initial-review-89s",
+              "pr-reviewer-live-followup-review-52s"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              ".decapod/managed/specs/ARCHITECTURE.md",
+              ".decapod/managed/specs/OPERATIONS.md",
+              "modules/gateway.nix"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_7dc3d192a6729cef completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "title": "Resilient nix substitution",
-  "intent": "One transient cache.nixos.org failure must not disable the substituter and cascade into thousands of fallback builds during topgrade/deploy-darwin",
+  "title": "pr-reviewer under nix-darwin",
+  "intent": "pr-reviewer runs durably as a launchd agent from a pinned, patched Nix build, covers a repo list declared here (incl. LEGO/ai-daily-assistant), and authenticates its claude harness with a dedicated gateway key so reviews survive a locked keybag",
   "state": "APPROVED",
   "todo_ids": [
-    "fend_01m3sspyk0j39gvf"
+    "cicd_01m3vfs2xt2vx2a4"
   ],
   "proof_hooks": [
-    "nix eval of darwinConfigurations.M-02877.config.nix.settings.download-attempts returns 5",
-    "clean prebuild log has zero 'is disabled' lines"
+    "launchctl print gui/501/com.dktaohan.pr-reviewer shows state = running after deploy from main",
+    "a review is posted on GitHub by the deployed daemon after the deploy"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -17,8 +17,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 3
+    "file_touch_budget": 8
   },
   "phases": [],
-  "updated_at": "1790793577Z"
+  "updated_at": "1790850256Z"
 }

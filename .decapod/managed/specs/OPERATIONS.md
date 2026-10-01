@@ -11,6 +11,37 @@
 ## Deployment Model
 Describe the operational runtime model, scheduling, and system deployment architecture.
 
+### pr-reviewer (M-02877)
+`modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
+agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of upstream
+`NicholaiVogel/pr-reviewer` carrying a local patch (git HTTPS auth sent as
+Basic, not Bearer, which GitHub's git endpoint rejects).
+
+- **Which repos are reviewed** is the `repos` list in that file. The agent's
+  start wrapper runs `pr-reviewer add` for every declared repo missing from
+  the runtime config, then `exec`s `pr-reviewer start`. Adding a repo is one
+  list entry plus `just deploy-darwin`. Reconciliation is add-only; a
+  configured but undeclared repo is logged, not removed.
+- **Runtime state** (config.toml with the machine-bound encrypted token,
+  keyfile, state.db, managed clones) stays in
+  `~/Library/Application Support/pr-reviewer` and is mutated only by the CLI.
+- **Never start it by hand.** The pidfile is not a lock, so a manual
+  `pr-reviewer start` runs a second daemon that double-reviews every PR.
+  Restart with `launchctl kickstart -k gui/$UID/com.dktaohan.pr-reviewer`.
+- **Health**: `launchctl print gui/$UID/com.dktaohan.pr-reviewer` (state,
+  last exit), `pr-reviewer status` (heartbeat, queue, rate limit), log at
+  `~/Library/Logs/pr-reviewer.log`.
+- **Gateway auth** uses a dedicated key file,
+  `~/Library/Application Support/pr-reviewer/gateway.key` (0600), via a
+  `claude` shim on the agent's PATH that adds `--settings` with an
+  `apiKeyHelper` reading that file. It must not use the interactive
+  secretspec helper: the Secure Enclave key only works while the Mac is
+  unlocked, so reviews started under a locked screen failed. The wrapper
+  refuses to start if the key file is missing.
+- The agent needs `/usr/sbin` (ioreg) and `USER` in its environment: both
+  feed the machine key that decrypts the GitHub token, and their absence
+  fails only under launchd, never in an interactive shell.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

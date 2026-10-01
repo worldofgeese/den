@@ -1,60 +1,42 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-fend-01m3ss",
-  "intent_id": "intent:run-fend-01m3ss",
-  "task_id": "fend_01m3sspyk0j39gvf",
-  "original_intent": "Fix topgrade HM step failing with substituter cache.nixos.org is disabled; run and babysit topgrade; speed, reliability, no surprises",
-  "derived_intent": "Raise download-attempts 2->5 so a transient fetch failure is retried instead of disabling cache.nixos.org and triggering mass fallback builds",
+  "run_id": "validation_01M3VANNYMCNW6JJ59Y288Z0CB",
+  "intent_id": "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB",
+  "task_id": "test_01m3vak6r517hn18",
+  "original_intent": "Produce proof artifacts for a repository validation completion.",
+  "derived_intent": "Run the bounded validation gates and bind the successful receipt to a trajectory.",
+  "destination": "validation completion",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
   ],
   "active_boundaries": [
-    "only modules/M-02877/darwin.nix nix.settings and OPERATIONS.md runbook"
+    "Repository validation and tracked proof artifacts"
   ],
   "repo_scope": [
-    "modules/M-02877/darwin.nix"
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json"
   ],
-  "inspected_files": [
-    "Justfile",
-    "modules/M-02877/darwin.nix"
-  ],
+  "inspected_files": [],
   "modified_files": [
     ".decapod/governance/trajectory.json",
-    ".decapod/governance/validation.json",
-    ".decapod/managed/specs/OPERATIONS.md",
-    "modules/M-02877/darwin.nix"
+    ".decapod/governance/validation.json"
   ],
   "declared_commands": [
-    "decapod validate",
-    "nix build --dry-run .#darwinConfigurations.M-02877.system",
-    "nix eval .#darwinConfigurations.M-02877.config.nix.settings.download-attempts"
+    "decapod validate"
   ],
   "tool_calls": [],
   "checks": [
     {
       "name": "decapod validate",
       "status": "passed"
-    },
-    {
-      "name": "dry-run-closure",
-      "status": "passed"
-    },
-    {
-      "name": "eval-download-attempts",
-      "status": "passed"
     }
   ],
   "evidence": [
-    "dry-run on healthy link: 377 built, 1121 fetched (vs 4100 built in failed run)",
-    "liblix.dylib contains 'disabling binary cache %s for %s seconds' and 'substituter %s is disabled'",
-    "nix eval download-attempts => 5",
-    "validation epoch ve_f030ce9c9184cfa9 completed with zero failures"
+    "validation epoch ve_3c575120ae59ab05 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
-  "unresolved_assumptions": [
-    "trigger was a transient network/CDN failure; not reproduced on demand"
-  ],
+  "unresolved_assumptions": [],
   "proof_status": "passed",
   "verdicts": {
     "intent_alignment": "supported",
@@ -62,21 +44,22 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:583af648a17ccb6dd336fa18a0bca29fd3155dc8fe56a356497defe54dc49598",
+  "artifact_hash": "sha256:fe316fa241df67692e8f45f4e83dfde577e34e4c8103231b03f18ca7227dd6d0",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-fend-01m3ss": {
-        "id": "intent:run-fend-01m3ss",
-        "raw_intent": "Fix topgrade HM step failing with substituter cache.nixos.org is disabled; run and babysit topgrade; speed, reliability, no surprises",
-        "refined_intent": "Raise download-attempts 2->5 so a transient fetch failure is retried instead of disabling cache.nixos.org and triggering mass fallback builds",
+      "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB": {
+        "id": "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB",
+        "raw_intent": "Produce proof artifacts for a repository validation completion.",
+        "refined_intent": "Run the bounded validation gates and bind the successful receipt to a trajectory.",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/M-02877/darwin.nix"
+          ".decapod/governance/trajectory.json",
+          ".decapod/governance/validation.json"
         ],
         "assumptions": [],
         "boundaries": [
-          "only modules/M-02877/darwin.nix nix.settings and OPERATIONS.md runbook"
+          "Repository validation and tracked proof artifacts"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -89,84 +72,53 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-fend-01m3ss",
+        "intent_id": "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-fend-01m3ss",
+        "intent_id": "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-fend-01m3ss",
+        "intent_id": "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-fend-01m3ss"
-      },
-      {
-        "sequence": 5,
-        "event_id": "event:5",
-        "intent_id": "intent:run-fend-01m3ss",
-        "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-fend-01m3ss"
+        "detail": "trajectory:validation_01M3VANNYMCNW6JJ59Y288Z0CB"
       }
     ],
     "trajectories": {
-      "run-fend-01m3ss": {
-        "id": "run-fend-01m3ss",
-        "intent_id": "intent:run-fend-01m3ss",
+      "validation_01M3VANNYMCNW6JJ59Y288Z0CB": {
+        "id": "validation_01M3VANNYMCNW6JJ59Y288Z0CB",
+        "intent_id": "intent:validation_01M3VANNYMCNW6JJ59Y288Z0CB",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
-            "action": "trajectory.record",
-            "command": "nix build --dry-run .#darwinConfigurations.M-02877.system",
-            "scope": [
-              "modules/M-02877/darwin.nix"
-            ],
-            "observations": [
-              "modules/M-02877/darwin.nix",
-              "Justfile",
-              "modules/M-02877/darwin.nix",
-              ".decapod/managed/specs/OPERATIONS.md",
-              "dry-run on healthy link: 377 built, 1121 fetched (vs 4100 built in failed run)",
-              "liblix.dylib contains 'disabling binary cache %s for %s seconds' and 'substituter %s is disabled'",
-              "nix eval download-attempts => 5"
-            ],
-            "proof_refs": [
-              "eval-download-attempts",
-              "dry-run-closure"
-            ],
-            "validation_findings": [
-              "trigger was a transient network/CDN failure; not reproduced on demand"
-            ],
-            "custody_event_id": "event:4"
-          },
-          {
-            "sequence": 5,
             "action": "validation",
             "command": "decapod validate",
             "scope": [
-              "modules/M-02877/darwin.nix"
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json"
             ],
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_f030ce9c9184cfa9 completed with zero failures"
+              "validation epoch ve_3c575120ae59ab05 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"
             ],
             "validation_findings": [],
-            "custody_event_id": "event:5"
+            "custody_event_id": "event:4"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 5
+    "next_sequence": 4
   }
 }

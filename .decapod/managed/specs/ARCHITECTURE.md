@@ -150,34 +150,48 @@ failed to build. `modules/M-02877/darwin.nix` clears the flag on Darwin through
 into a no-op once upstream restricts the flag to Linux. Until then Lix builds
 locally on M-02877 (about 20 minutes including its test suite).
 
-### Gateway Key Lookup Retries
-`gateway.keyCommand` tries `secretspec get` up to six times, sleeping 0.5, 1,
-1, 1.5 and 2 seconds between attempts (6 s of backoff inside pi's 10 s
-per-request budget). A secretspec age lookup must start `age-plugin-se`, which
-asks the Secure Enclave; pi resolves the key per request and turns each miss
-into a failed turn.
+### Gateway Key Lookup and the Last-Known-Good Cache
+`gateway.keyCommand` asks `secretspec get` for the key. A secretspec age lookup
+starts `age-plugin-se`, which asks the Secure Enclave. pi resolves the key per
+request with a 10 s budget and turns each miss into a failed turn.
 
-**Confirmed cause: a locked keybag.** The Secure Enclave key's access control
-carries `ock`, so it is usable only while the keybag is unlocked. On
-2026-10-01 the screen locked at 10:26:55 and the keybag at 10:27:04; every
-lookup then failed (ctkd "unable to decapsulate shared key", e00002e2, which
-secretspec reports as "No matching keys found") until Touch ID unlocked it at
-10:31:44. No retry survives that, so an unattended consumer must not depend on
-this key; pr-reviewer authenticates with its own key file instead (see
-OPERATIONS.md).
+**Confirmed cause of misses: a locked screen.** The Secure Enclave key's access
+control carries `ock`, so it works only while the keybag is unlocked. On
+2026-10-01 the screen locked at 10:26:55 and the keybag at 10:27:04. Every
+lookup then failed until Touch ID unlocked it at 10:31:44. ctkd logged "unable
+to decapsulate shared key" (e00002e2), which secretspec reports as "No matching
+keys found". The same afternoon, an agent that was in flight lost its turn as
+soon as the user locked the screen. No retry survives a locked keybag.
 
-**Suspected, unconfirmed: heavy CPU load.** Misses also coincided with load
-averages of 16–32 (an emulated podman build), and lookups passed after the
-podman VM was reniced, but those misses were never checked against lock
-state. The 2026-09-29 misses can no longer be attributed: the unified log has
-rotated. The six-attempt backoff covers short transient misses of that kind
-and nothing more.
+**So every successful lookup refreshes a last-known-good cache**,
+`~/.local/state/gateway-key.cache`:
+- The file is 0600. It is written only when the value changes, and renamed into
+  place, so a reader never sees half a key.
+- A miss serves the cache at once, without waiting through retries.
+- secretspec stays the source of truth. A rotated key reaches the cache on the
+  next unlocked lookup. Until then, a locked session presents the old key and
+  the gateway rejects it.
+- The cache is plaintext at rest, like pr-reviewer's dedicated key file (see
+  OPERATIONS.md), and FileVault covers it.
 
-Earlier attempts append their error text, then a timestamp line, to
-`~/.local/state/secretspec-gateway.log`. The timestamp is what allows a miss
-to be matched against lock events (`coreauthd` "AKS: Locked"/"AKS: Unlocked"
-in the unified log), which is how the next miss gets a proven cause;
-stderr-capturing callers see one error.
+**With no cache** (first use, or after the file is deleted), six attempts with
+0.5, 1, 1, 1.5 and 2 s of backoff (6 s, inside the budget) cover short
+transient misses only. Heavy CPU load (load averages of 16 to 32) was suspected
+for some misses but never checked against lock state. The 2026-09-29 misses
+can no longer be attributed: the unified log has rotated.
+
+**Logging.** Each miss appends its error text and a timestamp line to
+`~/.local/state/secretspec-gateway.log`. A line is also written when the cache
+is served. The timestamps let a miss be matched against lock events
+(`coreauthd` "AKS: Locked"/"AKS: Unlocked" in the unified log). The final
+no-cache attempt leaves stderr alone, so callers see the real error.
+
+**Where the command goes.** The command string is embedded in pi's and
+Caveman Code's `models.json`, omp's `models.yml`, a shell `$(...)`, and an
+elisp string literal. It therefore must not contain a double quote or a
+backslash. The `models.json` files are seeded only when absent and are then
+hand-maintained, so a change to this command reaches an existing machine only
+when someone edits those files. Running agents pick it up when they restart.
 
 ### Unattended topgrade on M-02877
 topgrade must finish without input. Steps that would ask for a password or

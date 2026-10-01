@@ -1,14 +1,15 @@
 {
   "schema_version": "1.0.0",
-  "title": "Gateway key lookup: record the confirmed cause and timestamp misses",
-  "intent": "ARCHITECTURE.md and modules/gateway.nix state the locked-keybag (ock ACL) cause as confirmed and CPU load as unconfirmed; secretspec-gateway.log gains a timestamp per miss so future misses can be matched to lock events",
+  "title": "Gateway key: last-known-good cache for locked-screen misses",
+  "intent": "Agents in flight keep working when the screen locks: gateway.keyCommand serves a 0600 last-known-good cache when the Secure Enclave lookup misses, while secretspec stays the source of truth",
   "state": "APPROVED",
   "todo_ids": [
-    "cicd_01m3vfs2xt2vx2a4"
+    "code_01m3vkx3gkjp4jmy"
   ],
   "proof_hooks": [
-    "a forced miss writes one timestamped 'miss' line per failed attempt",
-    "a successful lookup returns the key and writes nothing"
+    "miss with cache present returns the cached key in under 1 s with exit 0",
+    "miss without cache keeps 6 attempts and surfaces the error",
+    "success writes the cache 0600 only on change"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -17,8 +18,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 4
+    "file_touch_budget": 5
   },
   "phases": [],
-  "updated_at": "1790852523Z"
+  "updated_at": "1790854635Z"
 }

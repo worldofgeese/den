@@ -93,35 +93,51 @@ in {
     # agent process starts, so the key never enters the store or tree.
     secretName = facts.secret.name;
     #
-    # Retried: secretspec's age provider starts age-plugin-se and asks the
-    # Secure Enclave. pi resolves the key per request with a 10 s budget and
-    # turns each miss into a failed turn.
+    # secretspec's age provider starts age-plugin-se and asks the Secure
+    # Enclave. pi resolves the key per request with a 10 s budget and turns
+    # each miss into a failed turn.
     #
-    # The one *confirmed* cause of misses is a locked keybag, and no retry
-    # fixes it. The Secure Enclave key's access control carries `ock` (usable
-    # only while the keybag is unlocked). On 2026-10-01 the screen locked at
-    # 10:26:55, the keybag at 10:27:04, and every lookup then failed
+    # A locked screen is the confirmed cause of misses. The Secure Enclave
+    # key's access control carries `ock` (usable only while the keybag is
+    # unlocked), so every lookup fails from "AKS: Locked" to "AKS: Unlocked"
     # (ctkd: "unable to decapsulate shared key", e00002e2; secretspec reports
-    # it as "No matching keys found") until Touch ID unlocked it at 10:31:44.
-    # Unattended consumers must not depend on this key: pr-reviewer has its
-    # own key file for that reason (modules/M-02877/pr-reviewer.nix).
+    # "No matching keys found"). Seen 2026-10-01 10:27-10:31, and again that
+    # afternoon when an agent in flight lost its turn the moment the user
+    # locked the screen. No retry survives that, so:
     #
-    # Six attempts with a growing backoff (0.5+1+1+1.5+2 = 6 s of sleep, inside
-    # the budget) only cover short transient misses. Heavy CPU load (load
-    # average 16-32 on 2026-10-01) was *suspected*, not confirmed: those
-    # failures were never checked against lock state. The 2026-09-29 misses
-    # can no longer be attributed because the unified log has rotated.
+    # Last-known-good cache. Every successful lookup refreshes
+    # ~/.local/state/gateway-key.cache (0600, written only when the value
+    # changes, renamed into place so a reader never sees half a key). A miss
+    # serves the cache at once, without waiting through retries. secretspec
+    # stays the source of truth: a rotated key reaches the cache on the next
+    # unlocked lookup. The cache is plaintext at rest, like pr-reviewer's
+    # key file (modules/M-02877/pr-reviewer.nix); FileVault covers it at rest.
     #
-    # Earlier attempts append their stderr (error text only; the key goes to
-    # stdout) to ~/.local/state/secretspec-gateway.log, followed by a
-    # timestamp line. The timestamp is what lets a miss be lined up against
-    # lock/unlock events (`log show --predicate 'process == "coreauthd"'`,
-    # "AKS: Locked"/"AKS: Unlocked"); without it neither cause could be
-    # proven. Callers that capture stderr (Doom's call-process-shell-command)
-    # still see only the final attempt's error.
+    # With no cache yet (first use, or after it is deleted), six attempts with
+    # a growing backoff (0.5+1+1+1.5+2 = 6 s of sleep, inside the budget)
+    # cover short transient misses only. Heavy CPU load was suspected for
+    # some misses on 2026-10-01 but never confirmed.
+    #
+    # Every miss appends its error text and a timestamp line to
+    # ~/.local/state/secretspec-gateway.log (the key goes to stdout only),
+    # plus a line when the cache was served, so a miss can be lined up
+    # against lock events (`log show --predicate 'process == "coreauthd"'`).
+    # The final no-cache attempt leaves stderr alone so callers see the error.
+    #
+    # The string is embedded in JSON, a shell script and an elisp string
+    # literal (doom.d agent-shell config.el), so it must contain no double
+    # quote and no backslash.
     keyCommand = homeDirectory: let
       get = "secretspec get -f ${homeDirectory}/.config/home-manager/${facts.secret.profile} ${facts.secret.name} --reason 'model gateway auth for coding agent'";
       log = "${homeDirectory}/.local/state/secretspec-gateway.log";
-    in "for d in 0.5 1 1 1.5 2; do ${get} 2>>${log} && exit 0; date '+%Y-%m-%dT%H:%M:%S%z miss' >>${log}; sleep $d; done; ${get}";
+      cache = "${homeDirectory}/.local/state/gateway-key.cache";
+      stamp = what: "date '+%Y-%m-%dT%H:%M:%S%z ${what}' >>${log}";
+      save = "echo $k | cmp -s - ${cache} 2>/dev/null || (umask 077; echo $k >${cache}.$$ && mv ${cache}.$$ ${cache})";
+      try = redirect: "k=$(${get}${redirect}) && { ${save}; echo $k; exit 0; }";
+    in
+      "${try " 2>>${log}"}; ${stamp "miss"}; "
+      + "[ -s ${cache} ] && { ${stamp "served cache"}; cat ${cache}; exit 0; }; "
+      + "for d in 0.5 1 1 1.5; do sleep $d; ${try " 2>>${log}"}; ${stamp "miss"}; done; "
+      + "sleep 2; ${try ""}; exit 1";
   };
 }

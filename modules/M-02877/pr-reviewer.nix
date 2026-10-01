@@ -70,6 +70,34 @@
       };
     };
 
+    # The model gateway key the review harness authenticates with.
+    #
+    # Interactive claude gets its key from the Secure Enclave via the
+    # secretspec apiKeyHelper in ~/.claude/settings.json. That key's access
+    # control only permits use while the keybag is unlocked, so every review
+    # started while the screen is locked failed ("No matching keys found";
+    # ctkd: unable to decapsulate shared key, e00002e2). pr-reviewer therefore
+    # has its own gateway virtual key in an owner-only file next to its other
+    # runtime state, and its claude is pointed at that file.
+    gatewayKeyFile = "${home}/Library/Application Support/pr-reviewer/gateway.key";
+
+    # Store-resident, but holds only the *path* to the key, never the key.
+    harnessSettings = pkgs.writeText "pr-reviewer-claude-settings.json" (builtins.toJSON {
+      apiKeyHelper = "cat ${lib.escapeShellArg gatewayKeyFile}";
+    });
+
+    # pr-reviewer spawns `claude` by bare name and offers no way to add flags,
+    # so this shim, first on the agent's PATH, adds them. Environment
+    # variables cannot do it: a settings apiKeyHelper outranks
+    # ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN, whereas --settings outranks
+    # user settings. Everything else in ~/.claude/settings.json (gateway base
+    # URL, model aliases) still applies.
+    #
+    # The real claude is named by absolute path so the shim cannot find itself.
+    claudeShim = pkgs.writeShellScriptBin "claude" ''
+      exec /etc/profiles/per-user/dktaohan/bin/claude --settings ${harnessSettings} "$@"
+    '';
+
     # Reconcile the declared repo list, then become the daemon.
     #
     # A failed `add` (network down at login, token lacking access) is logged
@@ -79,6 +107,13 @@
       name = "pr-reviewer-launchd";
       runtimeInputs = [pr-reviewer pkgs.gawk];
       text = ''
+        # Fail loudly: without the key every review would fail at the gateway
+        # with an auth error that reads like a gateway outage.
+        if [ ! -s ${lib.escapeShellArg gatewayKeyFile} ]; then
+          echo "pr-reviewer-launchd: ${gatewayKeyFile} is missing or empty" >&2
+          exit 1
+        fi
+
         declared=(${lib.escapeShellArgs repos})
         configured="$(pr-reviewer list | awk '{print $1}')"
 
@@ -115,8 +150,9 @@
     # stopped until the next login or `launchctl kickstart`.
     #
     # PATH is explicit because a LaunchAgent inherits almost nothing:
-    #   - /etc/profiles/per-user/dktaohan/bin: claude (the review harness),
-    #     npx/node (gitnexus code index), git and gh;
+    #   - the claude shim above, ahead of everything else;
+    #   - /etc/profiles/per-user/dktaohan/bin: the real claude, npx/node
+    #     (gitnexus code index), git and gh;
     #   - /usr/sbin: ioreg, from which the daemon derives the machine identity
     #     that decrypts its token. Without it every start fails with "failed
     #     to run ioreg: No such file or directory" -- which never reproduces in
@@ -128,7 +164,7 @@
         HOME = home;
         USER = "dktaohan";
         PATH = lib.concatStringsSep ":" [
-          (lib.makeBinPath [pkgs.git])
+          (lib.makeBinPath [claudeShim pkgs.git])
           "/etc/profiles/per-user/dktaohan/bin"
           "/usr/bin"
           "/bin"

@@ -31,6 +31,13 @@ Basic, not Bearer, which GitHub's git endpoint rejects).
 - **Health**: `launchctl print gui/$UID/com.dktaohan.pr-reviewer` (state,
   last exit), `pr-reviewer status` (heartbeat, queue, rate limit), log at
   `~/Library/Logs/pr-reviewer.log`.
+- **Gateway auth** uses a dedicated key file,
+  `~/Library/Application Support/pr-reviewer/gateway.key` (0600), via a
+  `claude` shim on the agent's PATH that adds `--settings` with an
+  `apiKeyHelper` reading that file. It must not use the interactive
+  secretspec helper: the Secure Enclave key only works while the Mac is
+  unlocked, so reviews started under a locked screen failed. The wrapper
+  refuses to start if the key file is missing.
 - The agent needs `/usr/sbin` (ioreg) and `USER` in its environment: both
   feed the machine key that decrypts the GitHub token, and their absence
   fails only under launchd, never in an interactive shell.

@@ -56,6 +56,7 @@ flowchart LR
 | secretspec.age decryption key (M-02877) | Secure Enclave, post-quantum (mlkem768p256tag), access control `none`; handle in `~/.config/secretspec/se-identity.txt`, created by `just secretspec-se-setup` | new Mac: new key, then re-encrypt with the backup key | any process running as the user, on this Mac only |
 | secretspec.age backup key | password manager only (`AGE-PLUGIN-PQ-1...`, mlkem768x25519) | manual: new key, then re-encrypt | `just secretspec-se-setup` on a new Mac |
 | pr-reviewer GitHub token (M-02877) | `~/Library/Application Support/pr-reviewer/config.toml`, AES-GCM encrypted under a sibling 0600 keyfile plus a key derived from IOPlatformUUID and `$USER`; never in Nix | manual: `pr-reviewer config set-token` | `com.dktaohan.pr-reviewer` launchd agent; passed to git per-process via `GIT_CONFIG_*` env, never written to a clone's `.git/config` |
+| pr-reviewer gateway virtual key (M-02877) | `~/Library/Application Support/pr-reviewer/gateway.key`, plaintext, 0600, FileVault at rest; a dedicated key so a locked keybag cannot block background reviews; never in Nix (the store holds only its path) | manual: replace the file | `com.dktaohan.pr-reviewer`'s claude harness, read per call by `apiKeyHelper` |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
 

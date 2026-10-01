@@ -94,23 +94,34 @@ in {
     secretName = facts.secret.name;
     #
     # Retried: secretspec's age provider starts age-plugin-se and asks the
-    # Secure Enclave, and on M-02877 that failed instantly
-    # (provider_operation_failed in `secretspec audit`) twice on 2026-09-29,
-    # both at the tail of heavy Lix builds, while the next call succeeded.
-    # pi resolves the key per request with a 10 s budget and turned each miss
-    # into a failed turn. Three attempts ~1 s apart were not enough: on
-    # 2026-10-01 a sustained load average of ~16 (an emulated container build
-    # in the podman VM) failed all three, repeatedly. Six attempts with a
-    # growing backoff (0.5+1+1+1.5+2 = 6 s of sleep) ride out a longer stall
-    # and still fit the budget, since a successful call returns in well under
-    # a second.
+    # Secure Enclave. pi resolves the key per request with a 10 s budget and
+    # turns each miss into a failed turn.
+    #
+    # The one *confirmed* cause of misses is a locked keybag, and no retry
+    # fixes it. The Secure Enclave key's access control carries `ock` (usable
+    # only while the keybag is unlocked). On 2026-10-01 the screen locked at
+    # 10:26:55, the keybag at 10:27:04, and every lookup then failed
+    # (ctkd: "unable to decapsulate shared key", e00002e2; secretspec reports
+    # it as "No matching keys found") until Touch ID unlocked it at 10:31:44.
+    # Unattended consumers must not depend on this key: pr-reviewer has its
+    # own key file for that reason (modules/M-02877/pr-reviewer.nix).
+    #
+    # Six attempts with a growing backoff (0.5+1+1+1.5+2 = 6 s of sleep, inside
+    # the budget) only cover short transient misses. Heavy CPU load (load
+    # average 16-32 on 2026-10-01) was *suspected*, not confirmed: those
+    # failures were never checked against lock state. The 2026-09-29 misses
+    # can no longer be attributed because the unified log has rotated.
+    #
     # Earlier attempts append their stderr (error text only; the key goes to
-    # stdout) to ~/.local/state/secretspec-gateway.log, so the cause of the
-    # next miss is on record, while callers that capture stderr (Doom's
-    # call-process-shell-command) see only the final attempt's error.
+    # stdout) to ~/.local/state/secretspec-gateway.log, followed by a
+    # timestamp line. The timestamp is what lets a miss be lined up against
+    # lock/unlock events (`log show --predicate 'process == "coreauthd"'`,
+    # "AKS: Locked"/"AKS: Unlocked"); without it neither cause could be
+    # proven. Callers that capture stderr (Doom's call-process-shell-command)
+    # still see only the final attempt's error.
     keyCommand = homeDirectory: let
       get = "secretspec get -f ${homeDirectory}/.config/home-manager/${facts.secret.profile} ${facts.secret.name} --reason 'model gateway auth for coding agent'";
       log = "${homeDirectory}/.local/state/secretspec-gateway.log";
-    in "for d in 0.5 1 1 1.5 2; do ${get} 2>>${log} && exit 0; sleep $d; done; ${get}";
+    in "for d in 0.5 1 1 1.5 2; do ${get} 2>>${log} && exit 0; date '+%Y-%m-%dT%H:%M:%S%z miss' >>${log}; sleep $d; done; ${get}";
   };
 }

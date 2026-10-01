@@ -153,15 +153,30 @@ locally on M-02877 (about 20 minutes including its test suite).
 ### Gateway Key Lookup Retries
 `gateway.keyCommand` tries `secretspec get` up to six times, sleeping 0.5, 1,
 1, 1.5 and 2 seconds between attempts (6 s of backoff inside pi's 10 s
-per-request budget). A secretspec age lookup must start `age-plugin-se`, and
-under heavy CPU load the Secure Enclave call fails instantly with "No matching
-keys found": twice on 2026-09-29 at the tail of heavy builds, and repeatedly on
-2026-10-01 at a load average of ~16 from an emulated container build, when the
-earlier three attempts one second apart all missed. pi resolves the key per
-request and turns each miss into a failed turn. Lowering the load (for example
-`renice` on the podman VM) is the immediate remedy; the backoff makes a short
-stall survivable. Earlier attempts append their error text to
-`~/.local/state/secretspec-gateway.log` so the next miss records its cause;
+per-request budget). A secretspec age lookup must start `age-plugin-se`, which
+asks the Secure Enclave; pi resolves the key per request and turns each miss
+into a failed turn.
+
+**Confirmed cause: a locked keybag.** The Secure Enclave key's access control
+carries `ock`, so it is usable only while the keybag is unlocked. On
+2026-10-01 the screen locked at 10:26:55 and the keybag at 10:27:04; every
+lookup then failed (ctkd "unable to decapsulate shared key", e00002e2, which
+secretspec reports as "No matching keys found") until Touch ID unlocked it at
+10:31:44. No retry survives that, so an unattended consumer must not depend on
+this key; pr-reviewer authenticates with its own key file instead (see
+OPERATIONS.md).
+
+**Suspected, unconfirmed: heavy CPU load.** Misses also coincided with load
+averages of 16–32 (an emulated podman build), and lookups passed after the
+podman VM was reniced, but those misses were never checked against lock
+state. The 2026-09-29 misses can no longer be attributed: the unified log has
+rotated. The six-attempt backoff covers short transient misses of that kind
+and nothing more.
+
+Earlier attempts append their error text, then a timestamp line, to
+`~/.local/state/secretspec-gateway.log`. The timestamp is what allows a miss
+to be matched against lock events (`coreauthd` "AKS: Locked"/"AKS: Unlocked"
+in the unified log), which is how the next miss gets a proven cause;
 stderr-capturing callers see one error.
 
 ### Unattended topgrade on M-02877

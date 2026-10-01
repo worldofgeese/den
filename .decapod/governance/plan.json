@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
-  "title": "pr-reviewer under nix-darwin",
-  "intent": "pr-reviewer runs durably as a launchd agent from a pinned, patched Nix build, covers a repo list declared here (incl. LEGO/ai-daily-assistant), and authenticates its claude harness with a dedicated gateway key so reviews survive a locked keybag",
+  "title": "Gateway key lookup: record the confirmed cause and timestamp misses",
+  "intent": "ARCHITECTURE.md and modules/gateway.nix state the locked-keybag (ock ACL) cause as confirmed and CPU load as unconfirmed; secretspec-gateway.log gains a timestamp per miss so future misses can be matched to lock events",
   "state": "APPROVED",
   "todo_ids": [
     "cicd_01m3vfs2xt2vx2a4"
   ],
   "proof_hooks": [
-    "launchctl print gui/501/com.dktaohan.pr-reviewer shows state = running after deploy from main",
-    "a review is posted on GitHub by the deployed daemon after the deploy"
+    "a forced miss writes one timestamped 'miss' line per failed attempt",
+    "a successful lookup returns the key and writes nothing"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -17,8 +17,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 8
+    "file_touch_budget": 4
   },
   "phases": [],
-  "updated_at": "1790850256Z"
+  "updated_at": "1790852523Z"
 }

@@ -62,6 +62,29 @@ notifies nobody else. It is deliberately *not* in the declared list.
 For the locked-screen case, lock the Mac between steps 2 and 3. The review
 must still post, because the harness never touches the Secure Enclave key.
 
+#### Documentation review
+pr-reviewer reviews documentation changes. It does not skip them. Two values
+in the runtime configuration file `config.toml` control this. Nix does not
+write them.
+1. `defaults.skip_docs_only` is `false`. Set it with
+   `pr-reviewer config set defaults.skip_docs_only false`.
+2. Each `[[repos]]` entry has a `custom_instructions` value. The CLI cannot
+   set a value in one repo entry, so you edit `config.toml` by hand. Keep a
+   copy of the file first. Then restart the daemon while it is idle.
+
+The instructions tell the reviewer to load four skills from
+`~/.claude/skills`: simple-english, rewrite-slop, diataxis and
+technical-writer. They also give the path of the managed clone of the repo.
+The reviewer runs in an empty temporary directory. Without the path, it cannot
+read the source, so it cannot compare the text with the code.
+
+A repo that you add, or that the launchd wrapper adds, has no instructions.
+Copy the value from another entry and change the clone path in it.
+
+Prose findings are suggestions. In the live test on 2026-10-02, a page
+described a function that did not exist on the default branch. The reviewer
+found it, but posted a comment and did not request changes.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

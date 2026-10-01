@@ -98,7 +98,12 @@ in {
     # (provider_operation_failed in `secretspec audit`) twice on 2026-09-29,
     # both at the tail of heavy Lix builds, while the next call succeeded.
     # pi resolves the key per request with a 10 s budget and turned each miss
-    # into a failed turn. Up to three attempts ~1 s apart fit that budget.
+    # into a failed turn. Three attempts ~1 s apart were not enough: on
+    # 2026-10-01 a sustained load average of ~16 (an emulated container build
+    # in the podman VM) failed all three, repeatedly. Six attempts with a
+    # growing backoff (0.5+1+1+1.5+2 = 6 s of sleep) ride out a longer stall
+    # and still fit the budget, since a successful call returns in well under
+    # a second.
     # Earlier attempts append their stderr (error text only; the key goes to
     # stdout) to ~/.local/state/secretspec-gateway.log, so the cause of the
     # next miss is on record, while callers that capture stderr (Doom's
@@ -106,6 +111,6 @@ in {
     keyCommand = homeDirectory: let
       get = "secretspec get -f ${homeDirectory}/.config/home-manager/${facts.secret.profile} ${facts.secret.name} --reason 'model gateway auth for coding agent'";
       log = "${homeDirectory}/.local/state/secretspec-gateway.log";
-    in "for _ in 1 2; do ${get} 2>>${log} && exit 0; sleep 1; done; ${get}";
+    in "for d in 0.5 1 1 1.5 2; do ${get} 2>>${log} && exit 0; sleep $d; done; ${get}";
   };
 }

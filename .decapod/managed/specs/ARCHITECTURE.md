@@ -151,11 +151,16 @@ into a no-op once upstream restricts the flag to Linux. Until then Lix builds
 locally on M-02877 (about 20 minutes including its test suite).
 
 ### Gateway Key Lookup Retries
-`gateway.keyCommand` retries `secretspec get` up to three times about a second
-apart. A secretspec age lookup must start `age-plugin-se`; twice on 2026-09-29
-it failed instantly at the tail of heavy builds and succeeded on the next call,
-and pi, which resolves the key per request, turned each miss into a failed
-turn. Earlier attempts append their error text to
+`gateway.keyCommand` tries `secretspec get` up to six times, sleeping 0.5, 1,
+1, 1.5 and 2 seconds between attempts (6 s of backoff inside pi's 10 s
+per-request budget). A secretspec age lookup must start `age-plugin-se`, and
+under heavy CPU load the Secure Enclave call fails instantly with "No matching
+keys found": twice on 2026-09-29 at the tail of heavy builds, and repeatedly on
+2026-10-01 at a load average of ~16 from an emulated container build, when the
+earlier three attempts one second apart all missed. pi resolves the key per
+request and turns each miss into a failed turn. Lowering the load (for example
+`renice` on the podman VM) is the immediate remedy; the backoff makes a short
+stall survivable. Earlier attempts append their error text to
 `~/.local/state/secretspec-gateway.log` so the next miss records its cause;
 stderr-capturing callers see one error.
 

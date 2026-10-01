@@ -1,0 +1,38 @@
+diff --git a/src/repo_manager.rs b/src/repo_manager.rs
+index ce9f47a..ba78b98 100644
+--- a/src/repo_manager.rs
++++ b/src/repo_manager.rs
+@@ -43,6 +43,15 @@ pub fn resolve_local_path(repo_cfg: &RepoConfig) -> Result<PathBuf> {
+     }
+ }
+ 
++/// GitHub's git smart-HTTP endpoint does not accept `Authorization: Bearer`
++/// for personal-access or OAuth tokens and answers "invalid credentials"; it
++/// wants HTTP Basic with the token as the password.
++fn git_basic_auth_header(token: &str) -> String {
++    use base64::Engine as _;
++    let creds = base64::engine::general_purpose::STANDARD.encode(format!("x-access-token:{token}"));
++    format!("Authorization: Basic {creds}")
++}
++
+ /// Clones a repo into the managed directory if not already present.
+ /// Uses HTTPS with the token passed via http.extraHeader to avoid embedding it in .git/config.
+ /// Returns the path to the clone.
+@@ -78,7 +87,7 @@ pub async fn ensure_cloned(owner: &str, name: &str, token: &str) -> Result<PathB
+         .env("GIT_CONFIG_KEY_0", "http.extraHeader")
+         .env(
+             "GIT_CONFIG_VALUE_0",
+-            format!("Authorization: Bearer {token}"),
++            git_basic_auth_header(token),
+         )
+         .stdout(std::process::Stdio::piped())
+         .stderr(std::process::Stdio::piped())
+@@ -313,7 +322,7 @@ async fn run_git_with_auth(repo_path: &Path, token: &str, args: &[&str]) -> Resu
+         .env("GIT_CONFIG_KEY_0", "http.extraHeader")
+         .env(
+             "GIT_CONFIG_VALUE_0",
+-            format!("Authorization: Bearer {token}"),
++            git_basic_auth_header(token),
+         )
+         .stdout(std::process::Stdio::piped())
+         .stderr(std::process::Stdio::piped())

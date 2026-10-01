@@ -1,14 +1,15 @@
 {
   "schema_version": "1.0.0",
-  "title": "Resilient nix substitution",
-  "intent": "One transient cache.nixos.org failure must not disable the substituter and cascade into thousands of fallback builds during topgrade/deploy-darwin",
+  "title": "pr-reviewer under nix-darwin",
+  "intent": "pr-reviewer runs durably as a launchd agent from a pinned Nix build, covering a repo list declared in this repository (now including LEGO/ai-daily-assistant), and can clone new repos over HTTPS itself",
   "state": "APPROVED",
   "todo_ids": [
-    "fend_01m3sspyk0j39gvf"
+    "secu_01m3v6se28k8qsyq"
   ],
   "proof_hooks": [
-    "nix eval of darwinConfigurations.M-02877.config.nix.settings.download-attempts returns 5",
-    "clean prebuild log has zero 'is disabled' lines"
+    "nix eval of darwinConfigurations.M-02877.config.launchd.user.agents.pr-reviewer.serviceConfig.ProgramArguments points into /nix/store",
+    "launchctl print gui/501/com.dktaohan.pr-reviewer shows state = running after just deploy-darwin",
+    "pr-reviewer list shows LEGO/ai-daily-assistant as [managed]"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -16,9 +17,11 @@
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
-    "forbidden_paths": [],
-    "file_touch_budget": 3
+    "forbidden_paths": [
+      "~/Library/Application Support/pr-reviewer/config.toml content beyond pr-reviewer CLI mutations"
+    ],
+    "file_touch_budget": 6
   },
   "phases": [],
-  "updated_at": "1790793577Z"
+  "updated_at": "1790840763Z"
 }

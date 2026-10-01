@@ -24,7 +24,7 @@
       # Claude Code model ids published by LEGO AI Model Gateway.
       slots = {
         opus = "eu.anthropic.claude-opus-5-5";
-        sonnet = "eu.anthropic.claude-sonnet-5";
+        sonnet = "eu.anthropic.claude-sonnet-5-5";
         haiku = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
       };
     in {

@@ -1,15 +1,13 @@
 {
   "schema_version": "1.0.0",
-  "title": "Gateway key: last-known-good cache for locked-screen misses",
-  "intent": "Agents in flight keep working when the screen locks: gateway.keyCommand serves a 0600 last-known-good cache when the Secure Enclave lookup misses, while secretspec stays the source of truth",
+  "title": "Record pr-reviewer docs review configuration",
+  "intent": "OPERATIONS.md records that docs PRs are reviewed with the docs skills, which runtime values do it, and how to carry them to a new repo",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m3vkx3gkjp4jmy"
+    "docs_01m3wwyfp17exhqm"
   ],
   "proof_hooks": [
-    "miss with cache present returns the cached key in under 1 s with exit 0",
-    "miss without cache keeps 6 attempts and surfaces the error",
-    "success writes the cache 0600 only on change"
+    "live docs-only PR reviewed with skill-based findings"
   ],
   "unknowns": [],
   "human_questions": [],
@@ -18,8 +16,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 5
+    "file_touch_budget": 2
   },
   "phases": [],
-  "updated_at": "1790854635Z"
+  "updated_at": "1790897559Z"
 }

@@ -1,32 +1,25 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "gateway-cache-01",
-  "intent_id": "intent:gateway-cache-01",
-  "task_id": "code_01m3vkx3gkjp4jmy",
-  "original_intent": "User: agent in flight failed with anthropic-proxy key error when screen locked; fix, use best judgment",
-  "derived_intent": "Last-known-good cache in gateway.keyCommand; keyring fallback stays rejected (rebuild dialogs)",
+  "run_id": "docs-review-01",
+  "intent_id": "intent:docs-review-01",
+  "task_id": "docs_01m3wwyfp17exhqm",
+  "original_intent": "User: docs PRs reviewed by the docs skills instead of skipped; keep one diataxis skill",
+  "derived_intent": "skip_docs_only=false plus per-repo custom_instructions naming simple-english, rewrite-slop, diataxis, technical-writer and the clone path; removed writing-documentation-with-diataxis",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
   ],
   "active_boundaries": [
-    "no keyring fallback; key never in Nix store or tree; command has no double quote or backslash"
+    "runtime config stays CLI/user-owned; diataxis skill not edited"
   ],
   "repo_scope": [
-    ".decapod/managed/specs/ARCHITECTURE.md",
-    ".decapod/managed/specs/SECURITY.md",
-    "modules/gateway.nix"
+    ".decapod/managed/specs/OPERATIONS.md"
   ],
-  "inspected_files": [
-    "modules/doom.d/modules/tools/agent-shell/config.el",
-    "secretspec.toml"
-  ],
+  "inspected_files": [],
   "modified_files": [
     ".decapod/governance/trajectory.json",
     ".decapod/governance/validation.json",
-    ".decapod/managed/specs/ARCHITECTURE.md",
-    ".decapod/managed/specs/SECURITY.md",
-    "modules/gateway.nix"
+    ".decapod/managed/specs/OPERATIONS.md"
   ],
   "declared_commands": [
     "decapod validate"
@@ -38,55 +31,45 @@
       "status": "passed"
     },
     {
-      "name": "miss-no-cache-6-attempts-exit1-stderr",
+      "name": "factual-error-blocks",
+      "status": "failed"
+    },
+    {
+      "name": "livetest-pr2-docs-review-6-findings",
       "status": "passed"
     },
     {
-      "name": "miss-with-cache-0.1s-exit0",
-      "status": "passed"
-    },
-    {
-      "name": "success-writes-cache-0600",
-      "status": "passed"
-    },
-    {
-      "name": "unchanged-value-no-rewrite",
-      "status": "passed"
-    },
-    {
-      "name": "zsh-command-substitution",
+      "name": "livetest-pr2-reads-source-with-clone-path",
       "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_80a93a00c0be97cf completed with zero failures"
+    "validation epoch ve_22cdc38c60600ed3 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
-  "proof_status": "passed",
+  "proof_status": "failed",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "supported"
+    "completion_proof": "unsupported"
   },
-  "artifact_hash": "sha256:03a8889df707247100a49fed1a2371cdc70b28a53630c761a6c18092444ba942",
+  "artifact_hash": "sha256:f8c45e05102425bc3ec895fa027ca22d87e107b23fbf149115837d502c04ede1",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:gateway-cache-01": {
-        "id": "intent:gateway-cache-01",
-        "raw_intent": "User: agent in flight failed with anthropic-proxy key error when screen locked; fix, use best judgment",
-        "refined_intent": "Last-known-good cache in gateway.keyCommand; keyring fallback stays rejected (rebuild dialogs)",
+      "intent:docs-review-01": {
+        "id": "intent:docs-review-01",
+        "raw_intent": "User: docs PRs reviewed by the docs skills instead of skipped; keep one diataxis skill",
+        "refined_intent": "skip_docs_only=false plus per-repo custom_instructions naming simple-english, rewrite-slop, diataxis, technical-writer and the clone path; removed writing-documentation-with-diataxis",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/gateway.nix",
-          ".decapod/managed/specs/ARCHITECTURE.md",
-          ".decapod/managed/specs/SECURITY.md"
+          ".decapod/managed/specs/OPERATIONS.md"
         ],
         "assumptions": [],
         "boundaries": [
-          "no keyring fallback; key never in Nix store or tree; command has no double quote or backslash"
+          "runtime config stays CLI/user-owned; diataxis skill not edited"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -99,57 +82,49 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:gateway-cache-01",
+        "intent_id": "intent:docs-review-01",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:gateway-cache-01",
+        "intent_id": "intent:docs-review-01",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:gateway-cache-01",
+        "intent_id": "intent:docs-review-01",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:gateway-cache-01"
+        "detail": "trajectory:docs-review-01"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:gateway-cache-01",
+        "intent_id": "intent:docs-review-01",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:gateway-cache-01"
+        "detail": "trajectory:docs-review-01"
       }
     ],
     "trajectories": {
-      "gateway-cache-01": {
-        "id": "gateway-cache-01",
-        "intent_id": "intent:gateway-cache-01",
+      "docs-review-01": {
+        "id": "docs-review-01",
+        "intent_id": "intent:docs-review-01",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
             "scope": [
-              ".decapod/managed/specs/ARCHITECTURE.md",
-              ".decapod/managed/specs/SECURITY.md",
-              "modules/gateway.nix"
+              ".decapod/managed/specs/OPERATIONS.md"
             ],
             "observations": [
-              "secretspec.toml",
-              "modules/doom.d/modules/tools/agent-shell/config.el",
-              "modules/gateway.nix",
-              ".decapod/managed/specs/ARCHITECTURE.md",
-              ".decapod/managed/specs/SECURITY.md"
+              ".decapod/managed/specs/OPERATIONS.md"
             ],
             "proof_refs": [
-              "success-writes-cache-0600",
-              "unchanged-value-no-rewrite",
-              "miss-with-cache-0.1s-exit0",
-              "miss-no-cache-6-attempts-exit1-stderr",
-              "zsh-command-substitution"
+              "livetest-pr2-docs-review-6-findings",
+              "livetest-pr2-reads-source-with-clone-path",
+              "factual-error-blocks"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
@@ -159,14 +134,12 @@
             "action": "validation",
             "command": "decapod validate",
             "scope": [
-              ".decapod/managed/specs/ARCHITECTURE.md",
-              ".decapod/managed/specs/SECURITY.md",
-              "modules/gateway.nix"
+              ".decapod/managed/specs/OPERATIONS.md"
             ],
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_80a93a00c0be97cf completed with zero failures"
+              "validation epoch ve_22cdc38c60600ed3 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

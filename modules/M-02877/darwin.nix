@@ -655,10 +655,20 @@
                   podman machine start || sleep 5
                 done
 
+                # A new tag here does not replace a container that exists. To
+                # upgrade: back up ~/.agents with the daemon stopped, stop the
+                # daemon inside the container (`podman exec signet kill <pid>`;
+                # `launchctl kickstart -k` stops only the host side), run
+                # `podman rm -f signet`, then let this agent create the new one.
+                # Do not open the live database from the host: SQLite locks do
+                # not cross the podman VM file share, and the daemon then fails
+                # its reads with "disk I/O error". Read a copy.
+                # 0.232 moves the workspace to layout v2 on first start. The
+                # move is one-way.
                 podman container exists signet ||
                   DBX_CONTAINER_MANAGER=podman "$bin/distrobox" create --yes --no-entry --unshare-netns \
                     --name signet \
-                    --image ghcr.io/signet-ai/signet:0.214.27 \
+                    --image ghcr.io/signet-ai/signet:0.232.1 \
                     --volume "$home/.agents:/data/agents" \
                     --volume /var/folders:/var/folders \
                     --additional-flags "--publish 127.0.0.1:3850:3850 --env SIGNET_DAEMON_ENTRYPOINT=0 --env SIGNET_PATH=/data/agents --env SIGNET_BIND=0.0.0.0 --env SIGNET_PORT=3850"
@@ -706,9 +716,11 @@
                 # namespace, where the number is reusable after a restart, so
                 # the next daemon refuses to start. launchd owns the only
                 # instance: when nothing answers the published port, the lock
-                # is stale by definition.
+                # is stale by definition. The lock is in runtime/ on layout v2
+                # (Signet 0.232 and later) and in .daemon/ on layout v1.
                 if ! curl -sf --max-time 2 http://127.0.0.1:3850/health >/dev/null 2>&1; then
-                  rm -f "$home/.agents/.daemon/daemon.lock" "$home/.agents/.daemon/pid"
+                  rm -f "$home/.agents/runtime/daemon.lock" "$home/.agents/runtime/pid" \
+                    "$home/.agents/.daemon/daemon.lock" "$home/.agents/.daemon/pid"
                 fi
 
                 # Clean PATH excludes host Mach-O binaries while retaining the

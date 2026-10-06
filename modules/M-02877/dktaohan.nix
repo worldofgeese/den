@@ -173,6 +173,13 @@
         config.default_cursor_style = 'BlinkingBar'
         config.cursor_blink_rate = 500
         config.scrollback_lines = 10000
+        -- WezTerm's built-in agent proxy replaces SSH_AUTH_SOCK with a symlink named
+        -- after the GUI process (~/.local/share/wezterm/agent.<pid>). Long-lived
+        -- programs started from a pane (herdr, tmux, agents) keep that path after
+        -- WezTerm restarts, and then every ssh and Dagger call fails with a dead
+        -- agent. Keep the system agent socket instead: it lives for the whole
+        -- login session.
+        config.mux_enable_ssh_agent = false
         config.keys = {
           { key = 'd', mods = 'CMD', action = wezterm.action.SplitHorizontal({ domain = 'CurrentPaneDomain' }) },
           { key = 'd', mods = 'CMD|SHIFT', action = wezterm.action.SplitVertical({ domain = 'CurrentPaneDomain' }) },

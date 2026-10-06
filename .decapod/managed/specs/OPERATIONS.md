@@ -117,6 +117,14 @@ personal daemon on 3850 still runs; reach it with
 memories were exported on 2026-10-06 to `~/signet-handover/`, in full and as a
 filtered `personal-only` copy for the personal machines.
 
+Activation snippets run with Home Manager's activation PATH only: bash,
+coreutils, diffutils, findutils, gettext, grep, sed, jq and ncurses. Neither
+`/usr/bin` nor the user profile is on it, so `awk` and every other tool must be
+named by store path. The first deploy of the pi integrations (den#27) stopped at
+`awk: command not found` because the snippets were tested with a login shell's
+PATH. Test a new snippet with `env -i PATH=<the PATH line from the generated
+activate script> bash`.
+
 pi's Signet extension is installed once by hand with `signet connect pi`
 (it writes `~/.pi/agent/extensions/signet-pi.js`, which Signet owns).
 

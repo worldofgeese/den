@@ -1,8 +1,8 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "validation_01M48BCJNSHT4KEA5W3AVHK7JX",
-  "intent_id": "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX",
-  "task_id": "todo_01m489",
+  "run_id": "validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
+  "intent_id": "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
+  "task_id": "todo_01m48e",
   "original_intent": "Produce proof artifacts for a repository validation completion.",
   "derived_intent": "Run the bounded validation gates and bind the successful receipt to a trajectory.",
   "destination": "validation completion",
@@ -33,7 +33,7 @@
     }
   ],
   "evidence": [
-    "validation epoch ve_e77e62b4c9e65944 completed with zero failures"
+    "validation epoch ve_af30912064c62a08 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -44,12 +44,12 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:793f7a44c9e5ac5fbe3d860ef118efdc633f5bbee50406edd3b815c7c31ee141",
+  "artifact_hash": "sha256:ceb1a3d589914c365c6f294508e8e5cf34036ccea7a5a650f2dbeb06d717d941",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX": {
-        "id": "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX",
+      "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS": {
+        "id": "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
         "raw_intent": "Produce proof artifacts for a repository validation completion.",
         "refined_intent": "Run the bounded validation gates and bind the successful receipt to a trajectory.",
         "acceptance_criteria": [],
@@ -72,27 +72,27 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX",
+        "intent_id": "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX",
+        "intent_id": "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX",
+        "intent_id": "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:validation_01M48BCJNSHT4KEA5W3AVHK7JX"
+        "detail": "trajectory:validation_01M48FBG5ZE9A08ZVAX9TCJHQS"
       }
     ],
     "trajectories": {
-      "validation_01M48BCJNSHT4KEA5W3AVHK7JX": {
-        "id": "validation_01M48BCJNSHT4KEA5W3AVHK7JX",
-        "intent_id": "intent:validation_01M48BCJNSHT4KEA5W3AVHK7JX",
+      "validation_01M48FBG5ZE9A08ZVAX9TCJHQS": {
+        "id": "validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
+        "intent_id": "intent:validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
         "evidence_only": true,
         "steps": [
           {
@@ -106,7 +106,7 @@
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_e77e62b4c9e65944 completed with zero failures"
+              "validation epoch ve_af30912064c62a08 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

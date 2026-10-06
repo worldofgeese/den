@@ -25,6 +25,9 @@
   }: let
     cfg = config.piAgent;
     jq = lib.getExe pkgs.jq;
+    # Activation PATH is bash, coreutils, diffutils, findutils, gettext, grep,
+    # sed, jq and ncurses only; anything else is named by store path.
+    awk = "${pkgs.gawk}/bin/awk";
     pi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
     agentDir = "${config.home.homeDirectory}/.pi/agent";
     declaredMcp = pkgs.writeText "pi-mcp-servers.json" (builtins.toJSON {mcpServers = cfg.mcpServers;});
@@ -80,7 +83,7 @@
         piListed() {
           [ -e "$settings" ] || return 0
           ${jq} -r '.packages[]? | if type == "object" then .source else . end' "$settings" 2>/dev/null |
-            awk -v n="$1" '$0 == n || index($0, n "@") == 1' | head -n 1
+            ${awk} -v n="$1" '$0 == n || index($0, n "@") == 1' | head -n 1
         }
         for spec in ${lib.escapeShellArgs cfg.packages}; do
           have="$(piListed "''${spec%@*}")"

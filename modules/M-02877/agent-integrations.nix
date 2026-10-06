@@ -197,7 +197,7 @@
             done
           done
           agent=${home}/.pi/agent/agents/techwriter.md
-          body="$(awk 'n >= 2 { print; next } /^---$/ { n++ }' "$src/agents/techwriter.agent.md")"
+          body="$(${pkgs.gawk}/bin/awk 'n >= 2 { print; next } /^---$/ { n++ }' "$src/agents/techwriter.agent.md")"
           if [ "$(cat ${techwriterHeader}; printf '%s\n' "$body")" != "$(cat "$agent" 2>/dev/null)" ]; then
             run mkdir -p ${home}/.pi/agent/agents
             if [ -z "''${DRY_RUN:-}" ]; then

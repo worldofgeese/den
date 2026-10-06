@@ -28,11 +28,11 @@
       raw.published.${entity}
       or (throw "gateway: ${name} has no published port for entity '${entity}'. Add one to gateway.json or stop reading it here.");
 
-    # An empty host means "all interfaces" and renders as a bare port pair,
-    # preserving `-p 18787:8787` exactly. A non-empty host renders the
-    # three-part form Guix Home already used, `127.0.0.1:8787:8787`.
-    # home-manager-zdo tracks whether M-02877 should also bind loopback-only:
-    # that is a one-value change here rather than an edit in a shell string.
+    # An empty host means "all interfaces" and renders as a bare port pair
+    # (`-p 18787:8787`). A non-empty host renders the three-part form,
+    # `127.0.0.1:8787:8787`. Every host now publishes on loopback
+    # (home-manager-zdo): headroom's `allowUnauthenticatedBind`
+    # acknowledgement in gateway.json is honest only while that holds.
     publishSpec = entity: let
       p = on entity;
     in

@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
-  "title": "pi 1.0.4 codemode, Chorus key from any cwd, tunnel watchdog",
-  "intent": "Make Chorus usable from pi (codemode worker in pi 1.0.4 via the committed topgrade lock), resolve the Chorus key in any shell, keep Chorus discovery to ~/projects, and self-heal a wedged team Signet tunnel",
+  "title": "Repair the Headroom/local-model-proxy chain",
+  "intent": "Bring the M-02877 token proxy chain back: bounded image pulls with a cached fallback, loopback-only publishes plus Headroom's unauthenticated-bind acknowledgement, an exactly anchored watchdog that also recycles local-model-proxy, and the same Headroom setting for mahakala",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m48h6ft5cdx39x"
+    "code_01m49cxa2kgmh6mr"
   ],
   "proof_hooks": [
     "nix build .#darwinConfigurations.M-02877.system",
@@ -20,5 +20,5 @@
     "file_touch_budget": 6
   },
   "phases": [],
-  "updated_at": "1791293544Z"
+  "updated_at": "1791318222Z"
 }

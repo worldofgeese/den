@@ -15,6 +15,24 @@
       # 8787 is container-internal here and published as 18787; on mahakala
       # the same logical port is also the host port. See gateway.json.
       entity = "M-02877";
+
+      # Pull an image, but never let the pull decide whether the service runs.
+      # Measured 2026-10-06: `container image pull` of headroom:latest sat at
+      # "Fetching image" for 21+ minutes. Every start pulled first, so the
+      # whole chain stayed down although the image was already cached; a
+      # retry seconds later pulled in under a second. The pull is now bounded
+      # (perl's alarm, because macOS ships no `timeout`), and on failure or
+      # timeout a cached copy starts instead. Only a missing image fails the
+      # start, and KeepAlive retries it.
+      pullOrCached = image: ''
+        if ! /usr/bin/perl -e 'alarm shift; exec @ARGV' 300 $C image pull ${image}; then
+          $C image inspect ${image} >/dev/null 2>&1 || {
+            echo "FATAL: could not pull ${image} and no cached copy; exiting for KeepAlive relaunch" >&2
+            exit 1
+          }
+          echo "WARN: pull of ${image} failed or timed out; starting the cached copy" >&2
+        fi
+      '';
       pythonWithNacl = pkgs.python3.withPackages (pythonPackages: [pythonPackages.pynacl]);
 
       # The ambient team-Signet tunnel.
@@ -387,7 +405,12 @@
                 # OOM at the same ceiling. Only Apple container caps at 1 GB by
                 # default -- podman does not -- so leaving it implicit is exactly
                 # the silent cross-substrate drift that file exists to prevent.
-                $C image pull ${gateway.headroom.image} && exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
+                #
+                # HEADROOM_ALLOW_UNAUTHENTICATED_BIND: newer images refuse to bind
+                # 0.0.0.0 without it and exit at start. gateway.json carries why it
+                # is safe here (loopback-only publish) and why a proxy token is not.
+                ${pullOrCached gateway.headroom.image}
+                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e 'HEADROOM_STORE_URL=${gateway.headroom.storeUrl}' -e HEADROOM_SAVINGS_PATH=${gateway.headroom.savingsPath} -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;
@@ -455,9 +478,11 @@
                 # its command line, so a substring search would match the
                 # watchdog itself and kill the wrong pid. $2 is the executable,
                 # which is /bin/sh for this agent and /usr/bin/awk for the
-                # search. Both the --root path and --uuid carry the container
-                # name, so phoenix and local-model-proxy cannot be hit either.
-                HELPER=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && index($0,"containers/headroom") {print $1; exit}')
+                # search. Match `--uuid headroom` as a whole word: a substring
+                # match on the name also hit a container named headroom-test on
+                # 2026-10-06 and killed it. phoenix and local-model-proxy cannot
+                # match either.
+                HELPER=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && $0 ~ /--uuid headroom( |$)/ {print $1; exit}')
                 if [ -n "$HELPER" ]; then
                   echo "$(/bin/date -Iseconds) recovering: killing wedged headroom VM helper pid $HELPER"
                   kill -9 "$HELPER" 2>/dev/null || true
@@ -466,15 +491,25 @@
                 # `container run --rm` normally exits once its container is
                 # gone; if it has not, it is the orphan case from the incident.
                 sleep 5
-                SUP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container$/ && index($0,"--name headroom") {print $1; exit}')
+                SUP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container$/ && $0 ~ /--name headroom( |$)/ {print $1; exit}')
                 if [ -n "$SUP" ]; then
                   echo "$(/bin/date -Iseconds) supervisor pid $SUP did not exit; killing it too"
                   kill -9 "$SUP" 2>/dev/null || true
                 fi
 
+                # The new headroom gets a new IP, and local-model-proxy resolves
+                # it only when it starts, so it would 502 every request against
+                # the old one. Recycle it the same way; its start gates on the new
+                # headroom answering /livez.
+                LMP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && $0 ~ /--uuid local-model-proxy( |$)/ {print $1; exit}')
+                if [ -n "$LMP" ]; then
+                  echo "$(/bin/date -Iseconds) recycling local-model-proxy VM helper pid $LMP for the new headroom IP"
+                  kill -9 "$LMP" 2>/dev/null || true
+                fi
+
                 echo "$NOW" > "$COOLDOWN"
                 rm -f "$STATE"
-                echo "$(/bin/date -Iseconds) recovery done; KeepAlive will recreate headroom"
+                echo "$(/bin/date -Iseconds) recovery done; KeepAlive will recreate headroom and local-model-proxy"
               ''
             ];
             RunAtLoad = true;
@@ -497,7 +532,8 @@
                 $C network create proxy-chain 2>/dev/null || true
                 $C stop phoenix 2>/dev/null || true
                 $C rm phoenix 2>/dev/null || true
-                $C image pull ${gateway.phoenix.image} && exec $C run --rm --name phoenix --network proxy-chain -p ${gateway.phoenix.publishSpec entity} -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy ${gateway.phoenix.image}
+                ${pullOrCached gateway.phoenix.image}
+                exec $C run --rm --name phoenix --network proxy-chain -p ${gateway.phoenix.publishSpec entity} -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy ${gateway.phoenix.image}
               ''
             ];
             RunAtLoad = true;
@@ -586,7 +622,7 @@
                   exit 1
                 fi
 
-                $C image pull ${gateway.proxy.image}
+                ${pullOrCached gateway.proxy.image}
                 exec $C run --rm --name local-model-proxy --network proxy-chain -p ${gateway.proxy.publishSpec entity} \
                   -e PROXY_HOST=0.0.0.0 -e PROXY_PORT=${toString gateway.proxy.containerPort} \
                   -e MPS_BASE_URL="http://''${HEADROOM_IP}:${toString gateway.headroom.containerPort}" \

@@ -75,6 +75,11 @@
         rustup
         cargo-update
         saml2aws
+        # LEGO/devrel-infra: deploy.sh in aws-chorus, aws-tfh and aws-signet
+        # copies images with crane, and each project's scripts/connect.sh needs
+        # the Session Manager plugin.
+        crane
+        ssm-session-manager-plugin
         kubernetes-helm
         helm-dashboard
         fluxcd
@@ -430,13 +435,13 @@
           unset token
         fi
 
-        # Chorus AI-DLC (https://chorus.devrel.internal.lego). URL is
-        # non-secret; the API key is read from secretspec so the live
+        # Chorus AI-DLC, through the chorus-team-tunnel launchd agent
+        # (M-02877/darwin.nix) since devrel-infra#280. URL is non-secret; the API key is read from secretspec so the live
         # `cho_...` value never lands in this git-tracked Nix source.
         # -f: without it secretspec looks for secretspec.toml in the current
         # directory, so a shell opened anywhere else got no key and pi's
         # chorus MCP server failed to resolve its Authorization header.
-        export CHORUS_URL="https://chorus.devrel.internal.lego"
+        export CHORUS_URL="http://127.0.0.1:3870"
         if [ -z "''${CHORUS_API_KEY:-}" ] && command -v secretspec &>/dev/null; then
           chorus_key="$(secretspec get -f "$HOME/.config/home-manager/secretspec.toml" CHORUS_API_KEY --reason "omp/claude Chorus MCP server auth" 2>/dev/null || true)"
           if [ -n "$chorus_key" ]; then

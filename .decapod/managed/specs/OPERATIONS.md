@@ -93,8 +93,28 @@ found it, but posted a comment and did not request changes.
 
 ### Chorus pi daemon and team integrations (M-02877)
 
-The `signet-team-tunnel` agent is also a watchdog. It requests
-`/health/ready` through the tunnel every minute; after two misses in a row it
+Team Signet, Chorus and tfh have no load balancer or DNS name. Each is reached
+only through an IAM-authenticated Systems Manager tunnel, so each has a
+KeepAlive launchd agent. All three come from `mkSsmTunnel` in
+`modules/M-02877/darwin.nix` and log to `~/.local/state/<name>.log`:
+
+| agent | local URL | Session document | probe |
+|---|---|---|---|
+| `signet-team-tunnel` | `http://127.0.0.1:3860` | `Signet-production-Daemon` | `/health/ready`, needs a 2xx |
+| `chorus-team-tunnel` | `http://127.0.0.1:3870` (MCP at `/api/mcp`) | `Chorus-production-App` | `/api/health`, needs a 2xx |
+| `tfh-tunnel` | `http://127.0.0.1:3880` | `Tfh-production-App` | `/healthz`, any HTTP status |
+
+Chorus and tfh moved there in LEGO/devrel-infra#279 and #280 (2026-10-07). Both
+had internet-facing ALBs that admitted `0.0.0.0/0`; the `*.devrel.internal.lego`
+names hid them but did not protect them, and Chorus's served the login page and
+MCP API from off the LEGO network. Chorus's `NEXTAUTH_URL` is
+`http://127.0.0.1:3870`, so its web login works only on that port. tfh's probe
+accepts any status because every tfh route that serves content reads state from
+S3 and takes 3 to 17 seconds; `/healthz` answers 404 at once. Port 3890 belongs
+to FastHawk's local `ci:signet` dev service (devrel-infra#277).
+
+Each tunnel agent is also a watchdog. It requests its probe path
+through the tunnel every minute; after two misses in a row it
 ends the SSM session and launchd reconnects to the current task. On
 2026-10-06 a session stayed up and kept the port bound while every request
 through it hung, so agents lost team memory without any error until the agent

@@ -108,19 +108,36 @@
           # dead port most times it asks, and the failure looks like the server rather
           # than the session.
           #
-          # A request every four minutes keeps data on the channel, so the session
+          # A request every minute keeps data on the channel, so the session
           # never becomes idle. /health/ready is open in team mode, so the keepalive
           # carries no credential. The loop lives exactly as long as its session, so
           # a replaced task still ends the process and lets KeepAlive reconnect.
+          #
+          # The same request is the watchdog. On 2026-10-06 a session stayed up,
+          # still listening on the port, while every request through it hung, so
+          # every agent quietly lost team memory until the agent was restarted by
+          # hand. Two misses in a row (about two minutes, longer than the
+          # daemon's 36-second post-start 503 window) end the session; launchd
+          # then reconnects to whatever task is current.
           aws ssm start-session --region "$region" \
             --target "$target" \
             --document-name "Signet-$stage-Daemon" \
             --parameters "localPortNumber=$port" &
           session_pid=$!
 
+          misses=0
           while kill -0 "$session_pid" 2>/dev/null; do
-            sleep 240
-            curl -fsS -m 5 -o /dev/null "http://127.0.0.1:$port/health/ready" 2>/dev/null || true
+            sleep 60
+            if curl -fsS -m 10 -o /dev/null "http://127.0.0.1:$port/health/ready" 2>/dev/null; then
+              misses=0
+            else
+              misses=$((misses + 1))
+            fi
+            if [ "$misses" -ge 2 ]; then
+              echo "signet-team-tunnel: no answer through the tunnel for $misses checks; ending session $session_pid to reconnect" >&2
+              kill "$session_pid" 2>/dev/null || true
+              break
+            fi
           done
 
           wait "$session_pid"

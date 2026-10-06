@@ -92,6 +92,13 @@ described a function that did not exist on the default branch. The reviewer
 found it, but posted a comment and did not request changes.
 
 ### Chorus pi daemon and team integrations (M-02877)
+
+The `signet-team-tunnel` agent is also a watchdog. It requests
+`/health/ready` through the tunnel every minute; after two misses in a row it
+ends the SSM session and launchd reconnects to the current task. On
+2026-10-06 a session stayed up and kept the port bound while every request
+through it hung, so agents lost team memory without any error until the agent
+was restarted by hand.
 The launchd agent `com.dktaohan.chorus-pi-daemon` runs `chorus daemon --agent
 pi --cwd ~/projects`. Chorus wakes a headless `pi --mode rpc` in `~/projects`
 when work is assigned to the agent; that pi has this user's file access there,
@@ -110,6 +117,20 @@ which is why the served set is one directory. Log:
   pi's built-in MCP.
 - The Chorus CLI is an npm global (`~/.local/bin/chorus`), installed and pinned
   by activation because the package is the whole Chorus server app.
+
+Lessons from the first deploy (2026-10-06):
+- pi 0.99.2 from llm-agents shipped without its codemode worker
+  (numtide/llm-agents.nix#10128), so every codemode MCP call failed and chorus
+  tools were unreachable. llm-agents after d47e048 (pi 1.0.4) embeds it; the
+  flake.lock that topgrade produced is committed with that fix.
+- The shell's Chorus key lookup ran `secretspec get` without `-f`, so it only
+  worked in shells started inside this repo. It now names the project file.
+- The daemon's browse root defaulted to `$HOME`, listing every directory name
+  under it to the team server; it is now `~/projects`, like the served set.
+- topgrade's deploy can fail on a flaky upstream test while it builds what
+  Hydra has not cached (python3.14-fastmcp 3.4.7,
+  `test_ping_task_cancelled_on_disconnect`). Rebuild that derivation once
+  before suspecting the configuration.
 
 Team Signet: every Signet client on M-02877 now uses the team pool. The
 personal daemon on 3850 still runs; reach it with

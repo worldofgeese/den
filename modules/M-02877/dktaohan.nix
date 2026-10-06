@@ -426,9 +426,12 @@
         # Chorus AI-DLC (https://chorus.devrel.internal.lego). URL is
         # non-secret; the API key is read from secretspec so the live
         # `cho_...` value never lands in this git-tracked Nix source.
+        # -f: without it secretspec looks for secretspec.toml in the current
+        # directory, so a shell opened anywhere else got no key and pi's
+        # chorus MCP server failed to resolve its Authorization header.
         export CHORUS_URL="https://chorus.devrel.internal.lego"
         if [ -z "''${CHORUS_API_KEY:-}" ] && command -v secretspec &>/dev/null; then
-          chorus_key="$(secretspec get CHORUS_API_KEY --reason "omp/claude Chorus MCP server auth" 2>/dev/null || true)"
+          chorus_key="$(secretspec get -f "$HOME/.config/home-manager/secretspec.toml" CHORUS_API_KEY --reason "omp/claude Chorus MCP server auth" 2>/dev/null || true)"
           if [ -n "$chorus_key" ]; then
             export CHORUS_API_KEY="$chorus_key"
           fi

@@ -102,7 +102,10 @@
         fi
         # A woken pi gets the file access of this user in every served
         # directory, so the served set is deliberately just ~/projects.
-        exec chorus daemon --agent pi --cwd ${lib.escapeShellArg "${home}/projects"}
+        # The browse root defaults to $HOME, which lists every directory
+        # name under it to the team server; keep discovery to ~/projects too.
+        exec chorus daemon --agent pi --cwd ${lib.escapeShellArg "${home}/projects"} \
+          --browse-root ${lib.escapeShellArg "${home}/projects"}
       '';
     };
   in {

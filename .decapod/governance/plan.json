@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
-  "title": "Fix awk in pi activation snippets",
-  "intent": "Name awk by store path in the piPackages and toolboxDocs activation snippets so the den#27 deploy completes",
+  "title": "pi 1.0.4 codemode, Chorus key from any cwd, tunnel watchdog",
+  "intent": "Make Chorus usable from pi (codemode worker in pi 1.0.4 via the committed topgrade lock), resolve the Chorus key in any shell, keep Chorus discovery to ~/projects, and self-heal a wedged team Signet tunnel",
   "state": "APPROVED",
   "todo_ids": [
-    "bugs_01m48ecpsfe4r12x"
+    "code_01m48h6ft5cdx39x"
   ],
   "proof_hooks": [
     "nix build .#darwinConfigurations.M-02877.system",
@@ -17,8 +17,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 3
+    "file_touch_budget": 6
   },
   "phases": [],
-  "updated_at": "1791285390Z"
+  "updated_at": "1791293544Z"
 }

@@ -2,13 +2,13 @@
   "schema_version": "1.0.0",
   "kind": "validation_receipt",
   "decapod_release": "0.104.2",
-  "git_revision": "4e81d7b99c39e98ac61127820593c67f0b53a5b7",
+  "git_revision": "bbb5d8ff7320c6732579d2831466c5b3e4a56717",
   "repo_signal_fingerprint": "0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e",
-  "trajectory_run_id": "validation_01M48FBG5ZE9A08ZVAX9TCJHQS",
-  "trajectory_artifact_hash": "sha256:ceb1a3d589914c365c6f294508e8e5cf34036ccea7a5a650f2dbeb06d717d941",
+  "trajectory_run_id": "validation_01M48PRBZ8M63EWM9M41Z634PX",
+  "trajectory_artifact_hash": "sha256:b1590c0f836e3cbbe5df9cdbbf55cdb80f33c07cb49c3ec264e20c6499d18c49",
   "validation_epoch": {
     "schema_version": "1.0.0",
-    "epoch_id": "ve_af30912064c62a08",
+    "epoch_id": "ve_f9b88dbbef6ca872",
     "evaluator_identity": "decapod-validate@0.104.2",
     "evaluator_set_hash": "sha256:6322b61008dc8cc81b550b93bac4df58e25a1e90e9b9e19b49513bc0ee597862",
     "constitution_version": "embedded-docs@0.104.2",
@@ -17,24 +17,24 @@
     "validation_profile_hash": "sha256:37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f",
     "proof_rubric": "decapod-validate/current-proof-v1",
     "proof_rubric_hash": "sha256:99e8ef25629da391e9b479db9fff52b82f340224f7a69d8a88d2992ae8e90466",
-    "generated_specs_manifest_hash": "sha256:a6cff4eb5310f718eb1e144a1aca1b10e500bea9a008cb55d4f6caee908bda9c",
+    "generated_specs_manifest_hash": "sha256:eac740b317d9e8a1424929d128ebf725ab9d5b14480a4509fc70b9bc23bf3b4f",
     "generated_specs_fingerprint": "0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e",
     "material_hashes": {
       "constitution:core/DECAPOD": "sha256:b999a046ce411c9d24f30bcce0274eaad13b5337c4d72aa4a1f7b80a7dd90fc3",
       "generated_spec:.decapod/managed/specs/ARCHITECTURE.md": "sha256:a8f8557b12ec8ec44f87778f7cb2028f43c52dc0dd2205de0a320392730fbb5b",
       "generated_spec:.decapod/managed/specs/INTENT.md": "sha256:017f3878959910ac5b4ad3ad4a0eecdd7740bedeb0431c67eb43df90b8ba8adf",
       "generated_spec:.decapod/managed/specs/INTERFACES.md": "sha256:78d6607282fff26f4b626e372dc7dd3f6189e61ac0fe113db872700aa3e44d62",
-      "generated_spec:.decapod/managed/specs/OPERATIONS.md": "sha256:6b61c2c55ae9cf7d22a557f666bc80a2ee3def9c24cb63096b70023c0147b91b",
+      "generated_spec:.decapod/managed/specs/OPERATIONS.md": "sha256:8fac078a673522fd521f869499dd47ffe2b95952c45170c8e33e45e6d1a21623",
       "generated_spec:.decapod/managed/specs/README.md": "sha256:341542583f915e642420277ac1df3426aa090fc7718b00855e2827a8a89bcb28",
       "generated_spec:.decapod/managed/specs/SECURITY.md": "sha256:0c05451c444e8926a117fa5ca59a8ac1a91be1823ad11dee2c8f6592f77bbdf3",
       "generated_spec:.decapod/managed/specs/SEMANTICS.md": "sha256:c9ccef2e7a13100e946388ac182b5c18fc9c2dcf131a43ecd26d01c894e47c4c",
       "generated_spec:.decapod/managed/specs/VALIDATION.md": "sha256:e607d8e9a1f86823616bd63f719710e58dbb83cf9870ee5dabe7b5e0b763cca7",
       "generated_specs_fingerprint": "0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e",
-      "generated_specs_manifest": "sha256:a6cff4eb5310f718eb1e144a1aca1b10e500bea9a008cb55d4f6caee908bda9c",
+      "generated_specs_manifest": "sha256:eac740b317d9e8a1424929d128ebf725ab9d5b14480a4509fc70b9bc23bf3b4f",
       "living_spec_material:.decapod/managed/specs/ARCHITECTURE.md": "sha256:fa4c4613905d16b4a12ae6cb6dfb56063cf1f6dedbc7ff2595675c305ad515d2",
       "living_spec_material:.decapod/managed/specs/INTENT.md": "sha256:7f03aaff54eb34397de434448bfbd4caf8e65b93635f53c801803d2475a999d1",
       "living_spec_material:.decapod/managed/specs/INTERFACES.md": "sha256:8f87417e5e8231cdb4950192b18115ac2d200d0132f5bd3c037c5a70f9806ada",
-      "living_spec_material:.decapod/managed/specs/OPERATIONS.md": "sha256:88b0a8465fedde5c4748bd9847cfca8497d976b1acf1b89f2d839f5018b95f34",
+      "living_spec_material:.decapod/managed/specs/OPERATIONS.md": "sha256:6521129b4c8664be8b393e2075238875ed9999302d9e717bf9fb6ddc84e45adc",
       "living_spec_material:.decapod/managed/specs/README.md": "sha256:2657d7a156b5ccd0e73067aa65f4401426d6637ce10af87f4b4ebd3a738c9b70",
       "living_spec_material:.decapod/managed/specs/SECURITY.md": "sha256:4a89fec71657ffec5505da38060a70efb7dd23886c206c9ab5b94bed893709cd",
       "living_spec_material:.decapod/managed/specs/SEMANTICS.md": "sha256:9923d5d3319d8619a3c2a253493107cd3d9aafd99541233204f0de89cd3ce560",
@@ -47,131 +47,155 @@
   "pass_count": 186,
   "fail_count": 0,
   "warn_count": 4,
-  "elapsed_ms": 6457,
+  "elapsed_ms": 33491,
   "drift_findings": [],
   "temporary_artifacts_cleaned": 0,
   "failures": [],
   "warnings": [
     "Risk map missing (run `decapod riskmap init`)",
-    "Stale workspaces preserved for explicit review: <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files)",
+    "Stale workspaces preserved for explicit review: <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files)",
     "Watcher audit trail missing (run `decapod govern watcher run`)",
-    "Workspace branch 'agent/unknown/todo-01m48e-plus-2-1791284914' has unpushed commits or does not exist on origin. Run `git push origin agent/unknown/todo-01m48e-plus-2-1791284914`."
+    "Workspace branch 'agent/unknown/todo-01m48e-plus-3-1791287852' has unpushed commits or does not exist on origin. Run `git push origin agent/unknown/todo-01m48e-plus-3-1791287852`."
   ],
   "gate_timings": [
     {
-      "name": "validate_markdown_primitives_roundtrip_gate",
-      "elapsed_ms": 2217
-    },
-    {
-      "name": "validate_obligations",
-      "elapsed_ms": 1071
-    },
-    {
-      "name": "validate_stale_workspaces",
-      "elapsed_ms": 604
-    },
-    {
       "name": "validate_project_specs_docs",
-      "elapsed_ms": 495
-    },
-    {
-      "name": "validate_no_legacy_namespaces",
-      "elapsed_ms": 399
+      "elapsed_ms": 15815
     },
     {
       "name": "validate_legacy_jsonl_retired",
-      "elapsed_ms": 329
+      "elapsed_ms": 13112
     },
     {
-      "name": "validate_health_purity",
-      "elapsed_ms": 276
+      "name": "validate_markdown_primitives_roundtrip_gate",
+      "elapsed_ms": 1845
     },
     {
-      "name": "validate_git_workspace_context",
-      "elapsed_ms": 219
+      "name": "validate_obligations",
+      "elapsed_ms": 574
     },
     {
-      "name": "validate_archive_integrity",
-      "elapsed_ms": 171
-    },
-    {
-      "name": "validate_control_plane_contract",
-      "elapsed_ms": 94
+      "name": "validate_stale_workspaces",
+      "elapsed_ms": 344
     },
     {
       "name": "validate_machine_contract",
-      "elapsed_ms": 50
+      "elapsed_ms": 298
     },
     {
-      "name": "validate_federation_gates",
-      "elapsed_ms": 47
+      "name": "validate_archive_integrity",
+      "elapsed_ms": 182
     },
     {
-      "name": "validate_lcm_immutability",
-      "elapsed_ms": 45
+      "name": "validate_validation_receipt_if_present",
+      "elapsed_ms": 174
     },
     {
-      "name": "validate_lcm_rebuild_gate",
-      "elapsed_ms": 41
+      "name": "validate_git_workspace_context",
+      "elapsed_ms": 125
     },
     {
-      "name": "validate_git_protected_branch",
-      "elapsed_ms": 41
+      "name": "validate_control_plane_contract",
+      "elapsed_ms": 106
+    },
+    {
+      "name": "validate_health_purity",
+      "elapsed_ms": 98
+    },
+    {
+      "name": "validate_spec_drift",
+      "elapsed_ms": 77
+    },
+    {
+      "name": "validate_no_legacy_namespaces",
+      "elapsed_ms": 71
     },
     {
       "name": "validate_repomap_determinism",
-      "elapsed_ms": 34
+      "elapsed_ms": 55
+    },
+    {
+      "name": "validate_research_claims_if_present",
+      "elapsed_ms": 43
     },
     {
       "name": "validate_lineage_hard_gate",
-      "elapsed_ms": 31
+      "elapsed_ms": 38
     },
     {
-      "name": "validate_git_push_pr_gate",
-      "elapsed_ms": 27
+      "name": "validate_lcm_immutability",
+      "elapsed_ms": 25
     },
     {
-      "name": "validate_gatekeeper_gate",
-      "elapsed_ms": 21
+      "name": "validate_git_protected_branch",
+      "elapsed_ms": 24
     },
     {
       "name": "validate_watcher_audit",
-      "elapsed_ms": 20
+      "elapsed_ms": 24
+    },
+    {
+      "name": "validate_federation_gates",
+      "elapsed_ms": 24
     },
     {
       "name": "validate_knowledge_promotions_if_present",
-      "elapsed_ms": 19
+      "elapsed_ms": 23
+    },
+    {
+      "name": "validate_lcm_rebuild_gate",
+      "elapsed_ms": 23
     },
     {
       "name": "validate_generated_artifact_whitelist",
-      "elapsed_ms": 11
+      "elapsed_ms": 15
+    },
+    {
+      "name": "validate_trajectory_artifacts_if_present",
+      "elapsed_ms": 15
+    },
+    {
+      "name": "validate_git_push_pr_gate",
+      "elapsed_ms": 12
     },
     {
       "name": "validate_schema_determinism",
-      "elapsed_ms": 10
+      "elapsed_ms": 12
     },
     {
-      "name": "validate_plan_governed_execution_gate",
+      "name": "validate_workunit_manifests_if_present",
+      "elapsed_ms": 8
+    },
+    {
+      "name": "validate_gatekeeper_gate",
       "elapsed_ms": 7
     },
     {
+      "name": "validate_plan_governed_execution_gate",
+      "elapsed_ms": 4
+    },
+    {
       "name": "validate_entrypoint_invariants",
-      "elapsed_ms": 5
+      "elapsed_ms": 4
     },
     {
       "name": "validate_database_schema_versions",
       "elapsed_ms": 4
     },
     {
-      "name": "validate_override_authority",
-      "elapsed_ms": 3
+      "name": "validate_context_capsules_if_present",
+      "elapsed_ms": 4
     },
     {
       "name": "validate_knowledge_integrity",
+      "elapsed_ms": 4
+    },
+    {
+      "name": "validate_context_capsule_policy_contract",
       "elapsed_ms": 3
     },
     {
-      "name": "validate_project_scoped_state",
+      "name": "validate_health_cache_integrity",
       "elapsed_ms": 2
     },
     {
@@ -179,95 +203,31 @@
       "elapsed_ms": 2
     },
     {
-      "name": "validate_watcher_purity",
-      "elapsed_ms": 1
-    },
-    {
       "name": "validate_policy_integrity",
+      "elapsed_ms": 2
+    },
+    {
+      "name": "validate_override_authority",
       "elapsed_ms": 1
     },
     {
-      "name": "validate_health_cache_integrity",
+      "name": "validate_project_scoped_state",
       "elapsed_ms": 1
     },
     {
-      "name": "validate_spec_drift",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_trajectory_artifacts_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_heartbeat_invocation_gate",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_docs_templates_bucket",
-      "elapsed_ms": 0
+      "name": "validate_recursive_improvement_passes_if_present",
+      "elapsed_ms": 1
     },
     {
       "name": "validate_canon_mutation",
-      "elapsed_ms": 0
+      "elapsed_ms": 1
     },
     {
       "name": "validate_risk_map_violations",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_root_dockerfile_seed_detection",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_interface_contract_bootstrap",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_context_capsule_policy_contract",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_research_claims_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_coplayer_policy_tightening",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_embedded_self_contained",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_validation_receipt_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_repo_map",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_risk_map",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_workunit_manifests_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_state_commit_gate",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_internalization_artifacts_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_tooling_gate",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_eval_gate_if_required",
+      "name": "validate_watcher_purity",
       "elapsed_ms": 0
     },
     {
@@ -275,11 +235,51 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_context_capsules_if_present",
+      "name": "validate_docs_templates_bucket",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_recursive_improvement_passes_if_present",
+      "name": "validate_repo_map",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_root_dockerfile_seed_detection",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_embedded_self_contained",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_internalization_artifacts_if_present",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_heartbeat_invocation_gate",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_eval_gate_if_required",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_interface_contract_bootstrap",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_state_commit_gate",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_risk_map",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_coplayer_policy_tightening",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_tooling_gate",
       "elapsed_ms": 0
     }
   ],
@@ -289,14 +289,14 @@
     "confidence": "medium",
     "reasons": [
       "Risk map missing (run `decapod riskmap init`)",
-      "Stale workspaces preserved for explicit review: <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files)",
+      "Stale workspaces preserved for explicit review: <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files)",
       "Watcher audit trail missing (run `decapod govern watcher run`)",
-      "Workspace branch 'agent/unknown/todo-01m48e-plus-2-1791284914' has unpushed commits or does not exist on origin. Run `git push origin agent/unknown/todo-01m48e-plus-2-1791284914`."
+      "Workspace branch 'agent/unknown/todo-01m48e-plus-3-1791287852' has unpushed commits or does not exist on origin. Run `git push origin agent/unknown/todo-01m48e-plus-3-1791287852`."
     ],
     "recommendations": [
       "Review the reported validation warnings before relying on the CI result.",
       "Use `decapod validate -v --format json` to inspect the affected gate output."
     ]
   },
-  "receipt_hash": "sha256:3d7d6957134122a745bbcdc265e42bd604685bdba7cfbc243ba24844ff4e410c"
+  "receipt_hash": "sha256:54641e76902ef47117478056eba7b62d717c8b1530b9c0c47afa04046c06b097"
 }

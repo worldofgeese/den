@@ -101,6 +101,14 @@
       models = map mkModel ["opus" "sonnet" "haiku"];
     };
 
+    # pi's provider can take a host-specific first hop (agentProviders.pi).
+    piProvider =
+      mkProvider piModel
+      // {inherit (config.agentProviders.pi) baseUrl;}
+      // lib.optionalAttrs (config.agentProviders.pi.headers != {}) {
+        inherit (config.agentProviders.pi) headers;
+      };
+    piProviderJson = pkgs.writeText "pi-lego-claude.json" (builtins.toJSON piProvider);
     piModels = builtins.toJSON {providers.lego-claude = mkProvider piModel;};
     ompModels = builtins.toJSON {providers.lego-claude = mkProvider ompModel;};
 
@@ -134,9 +142,47 @@
 
     home = config.home.homeDirectory;
   in {
-    home.activation = {
+    options.agentProviders.pi = {
+      baseUrl = lib.mkOption {
+        type = lib.types.str;
+        default = baseUrl;
+        description = ''
+          First hop for pi's `lego-claude` provider. Defaults to headroom's
+          loopback URL, like the other harnesses; a host can put a proxy
+          in front.
+        '';
+      };
+      headers = lib.mkOption {
+        type = lib.types.attrsOf lib.types.str;
+        default = {};
+        description = "Extra request headers for pi's `lego-claude` provider.";
+      };
+    };
+
+    config.home.activation = {
       ompGatewayProvider = seedJson "omp-models.json" "${home}/.omp/agent/models.json" ompModels;
-      piGatewayProvider = seedJson "pi-models.json" "${home}/.pi/agent/models.json" piModels;
+      # pi's file is merged, not seeded: `lego-claude` is den's and is replaced
+      # on every switch, and every other provider is left as it is. A seeded
+      # file never received the provider once one existed, so pi kept a
+      # hand-made provider that went straight to the gateway.
+      piGatewayProvider = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        models=${lib.escapeShellArg "${home}/.pi/agent/models.json"}
+        current='{}'
+        [ -e "$models" ] && current="$(cat "$models")"
+        if merged="$(printf '%s' "$current" | ${lib.getExe pkgs.jq} --slurpfile p ${piProviderJson} \
+            '.providers = ((.providers // {}) + {"lego-claude": $p[0]})')"; then
+          if [ ! -e "$models" ] || [ "$merged" != "$(${lib.getExe pkgs.jq} . "$models")" ]; then
+            run mkdir -p ${lib.escapeShellArg "${home}/.pi/agent"}
+            if [ -z "''${DRY_RUN:-}" ]; then
+              (umask 077 && printf '%s\n' "$merged" >"$models.hm-tmp") && mv "$models.hm-tmp" "$models"
+            else
+              echo "would write $models"
+            fi
+          fi
+        else
+          warnEcho "pi: $models is not valid JSON; left it unchanged"
+        fi
+      '';
       caveGatewayProvider = seedJson "cave-models.json" "${home}/.cave/agent/models.json" piModels;
     };
 
@@ -165,7 +211,7 @@
     # entrypoint. --set-default keeps every variable overridable from the
     # calling environment, so a one-off run against another model, or straight
     # at the gateway instead of through headroom, needs no edit here.
-    home.packages = [
+    config.home.packages = [
       (pkgs.symlinkJoin {
         name = "claude-code-gateway";
         paths = [agents.claude-code];

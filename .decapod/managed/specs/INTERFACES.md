@@ -122,7 +122,10 @@ Beads task state uses the legacy `bd` CLI as the single project workflow
 interface. Linux Home Manager profiles receive the Nixpkgs `beads` and `dolt`
 packages, with `beads` providing the `bd` command; the Darwin profile resolves
 `bd` from Homebrew at `/opt/homebrew/bin` and keeps Dolt under nix-darwin.
-Codex, Cursor, and Git hook integrations all invoke `bd` directly. The Rust
+Codex, Cursor, and Git hook integrations all invoke `bd` directly. On
+M-02877, pi gets two packages that also only run `bd`: `pi-beads-extension`
+(agent side: `bd prime` in the system prompt and through compaction, `/beads:*`
+commands) and `@soleone/pi-tasks` (human side: the `/tasks` browser). The Rust
 `br` CLI and `bv` viewer are not part of the supported package or interface
 surface.
 
@@ -168,7 +171,23 @@ configure Olivetti separately for this workflow.
 | `pbpaste \| just secretspec-se-setup` | New-Mac recovery from the password-manager backup key | `Justfile` |
 | `just secretspec-age-backup` | Copies the backup key from the old Keychain item to the clipboard; cleared after 60 s | `Justfile` |
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
-| `~/.config/mcp/mcp.json` | Declares the `nixos` MCP server (mcp-nixos) for pi-mcp-adapter, with direct tools | `modules/shared-devtools.nix` |
+| `~/.pi/agent/mcp.json` | pi's built-in MCP config. Activation merges the declared `piAgent.mcpServers` in by name (`nixos` on every host; `chorus` and `github-spaces` on M-02877) and keeps every other entry. Credentials are `${VAR}` or `!command` values, never literals | `modules/pi.nix` |
+
+## pi Team Integrations (M-02877)
+`modules/M-02877/agent-integrations.nix` connects pi, and the other agents on
+the work Mac, to the team services in LEGO/devrel-infra. Nothing here is
+installed on the personal hosts.
+
+| Service | Endpoint | Credential | Consumers |
+|---|---|---|---|
+| Chorus (`projects/aws-chorus`, server v0.20.0) | `https://chorus.devrel.internal.lego/api/mcp` | `CHORUS_API_KEY` from secretspec, agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.21.1`; the `chorus-pi-daemon` launchd agent |
+| Team Signet (`projects/aws-signet`) | `http://127.0.0.1:3860` through `signet-team-tunnel` | `~/.config/signet/token`, scoped to agent `tao.hansen` | every Signet client: `SIGNET_DAEMON_URL`, `SIGNET_AGENT_ID` and `SIGNET_API_KEY` in the session environment, and in the daemon's |
+| Copilot Spaces | `https://api.githubcopilot.com/mcp/x/copilot_spaces` | `gh auth token` (OAuth, no PAT) | the `techwriter` pi agent |
+| toolbox-docs (`LEGO/agentic-engineering-community`) | git, pinned rev | gh's git credential | `~/.agents/skills/{diataxis,simple-english,rewrite-slop,rewrite-documentation,write-usecase,edit-confluence-page}`, `~/.pi/agent/agents/techwriter.md` |
+
+`piAgent.packages` entries must be pinned (`npm:name@version`); the option type
+rejects anything else. Activation installs and removes them through `pi`
+itself, so `settings.json` stays pi's file.
 
 ## Mahakala Maintenance Interface
 | Command or setting | Reads | Writes | Scope | Proof |

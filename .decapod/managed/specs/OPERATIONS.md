@@ -91,6 +91,35 @@ Prose findings are suggestions. In the live test on 2026-10-02, a page
 described a function that did not exist on the default branch. The reviewer
 found it, but posted a comment and did not request changes.
 
+### Chorus pi daemon and team integrations (M-02877)
+The launchd agent `com.dktaohan.chorus-pi-daemon` runs `chorus daemon --agent
+pi --cwd ~/projects`. Chorus wakes a headless `pi --mode rpc` in `~/projects`
+when work is assigned to the agent; that pi has this user's file access there,
+which is why the served set is one directory. Log:
+`~/.local/state/chorus-pi-daemon.log`.
+
+- Credentials. The Secure Enclave identity behind secretspec refuses to
+  decrypt while the screen is locked (`errSecInteractionNotAllowed`, -25308).
+  The daemon therefore caches `CHORUS_API_KEY` in
+  `~/.local/state/chorus-api-key.cache` (0600) after each good read and uses
+  the cache when secretspec fails, as the gateway `keyCommand` already does.
+  The first start must happen while the Mac is unlocked.
+- Versions. Client and `chorus-pi` are 0.21.1, the server v0.20.0. If wakes
+  fail with errors about missing endpoints, upgrade `projects/aws-chorus` to
+  0.21.1 rather than downgrading the client: 0.21.1 is the first release with
+  pi's built-in MCP.
+- The Chorus CLI is an npm global (`~/.local/bin/chorus`), installed and pinned
+  by activation because the package is the whole Chorus server app.
+
+Team Signet: every Signet client on M-02877 now uses the team pool. The
+personal daemon on 3850 still runs; reach it with
+`env -u SIGNET_DAEMON_URL -u SIGNET_API_KEY signet ...`. Its remaining
+memories were exported on 2026-10-06 to `~/signet-handover/`, in full and as a
+filtered `personal-only` copy for the personal machines.
+
+pi's Signet extension is installed once by hand with `signet connect pi`
+(it writes `~/.pi/agent/extensions/signet-pi.js`, which Signet owns).
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

@@ -21,6 +21,14 @@ Architectural principles:
 This project's architecture consists of the following key layers/directories:
 - `src/`: Main source directory containing primary logic.
 - `tests/`: Integration and unit test suite.
+- `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
+  servers and pinned pi packages; activation merges them into pi's own
+  writable files (`mcp.json`, `settings.json`) instead of linking store files,
+  because pi writes to both.
+- `modules/M-02877/agent-integrations.nix`: work-Mac-only team integrations
+  (Chorus, Beads, team Signet, toolbox-docs), the Chorus pi daemon launchd
+  agent, and the session environment that points Signet clients at the team
+  pool.
 
 ## Data Flows
 - Inbound request/command parses and validates at the entrypoint.

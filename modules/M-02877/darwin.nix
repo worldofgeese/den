@@ -735,9 +735,11 @@
         # missing credential or a stopped service costs one wait rather than a hot
         # restart loop; ThrottleInterval is the floor under that.
         #
-        # This does not repoint any tool at the team daemon. The personal Signet
-        # on 3850 keeps its own workspace, and switching an agent over is one
-        # explicit `SIGNET_DAEMON_URL=http://127.0.0.1:3860`.
+        # Every Signet client on this machine uses the team daemon through this
+        # tunnel: M-02877/agent-integrations.nix sets SIGNET_DAEMON_URL,
+        # SIGNET_AGENT_ID and SIGNET_API_KEY for shells and the Chorus daemon.
+        # The personal Signet on 3850 keeps its own workspace; reach it with
+        # `env -u SIGNET_DAEMON_URL -u SIGNET_API_KEY signet ...`.
         signet-team-tunnel = {
           serviceConfig = {
             Label = "com.dktaohan.signet-team-tunnel";

@@ -12,7 +12,7 @@
     # agentProviders points the CLI agents installed below at the model
     # gateway. Included here rather than named per entity because every host
     # that gets the agents needs them wired.
-    includes = [den.aspects.devtools den.aspects.agentProviders];
+    includes = [den.aspects.devtools den.aspects.agentProviders den.aspects.piAgent];
     homeManager = {
       pkgs,
       lib,
@@ -64,16 +64,19 @@
           rtk
         ];
 
-      # Tool-agnostic user MCP config. pi reads it through pi-mcp-adapter (pi has
-      # no MCP client of its own). directTools lists mcp-nixos's tools next to
-      # read/bash rather than behind the adapter's search proxy, so agents look
-      # up packages and options instead of running slow `nix eval`s.
-      xdg.configFile."mcp/mcp.json".text = builtins.toJSON {
+      # pi's built-in MCP client (modules/pi.nix). `direct` exposure declares
+      # mcp-nixos's tools next to read/bash rather than behind codemode, so
+      # agents look up packages and options instead of running slow
+      # `nix eval`s. This replaces ~/.config/mcp/mcp.json, which only
+      # pi-mcp-adapter read.
+      piAgent = {
         mcpServers.nixos = {
           command = "${pkgs.mcp-nixos}/bin/mcp-nixos";
           args = [];
-          directTools = true;
+          exposure = "direct";
+          description = "NixOS, Home Manager and nix-darwin packages, options and docs";
         };
+        removedPackages = ["npm:pi-mcp-adapter"];
       };
 
       # secretspec.toml routes every secret through the `personal` alias. Each

@@ -184,6 +184,32 @@ keeps the old Headroom IP and returns 502 for every request. Its process
 matchers use the exact container name (`--uuid headroom`): a substring match
 killed a test container named `headroom-test` on 2026-10-06.
 
+pi uses the chain through the den-owned `lego-claude` provider
+(`modules/M-02877/token-toolchain.nix`, after the community guide
+`setup-token-saving-toolchain.md`). Its first hop is Caveman's proxy
+(`com.dktaohan.caveman-proxy`, `127.0.0.1:8787`), configured by
+`~/.caveman/caveman.yaml` to forward to local-model-proxy. New sessions
+start on `lego-claude`. Running sessions keep the provider they started
+with, and `/model anthropic-proxy/...` goes straight to the gateway if the
+chain is down. pi also loads RTK's and Caveman's extensions, ponytail and
+context-mode (packages), Caveman's skills, and the context-mode, CodeGraph
+and Headroom MCP servers.
+
+Two Caveman behaviours shape this design, both measured on 2026-10-06:
+- Without `caveman.yaml`, Caveman sends Anthropic-format requests to
+  `api.anthropic.com`, which would hand the LEGO gateway key to Anthropic.
+- Caveman's pi extension routes a model by re-registering its provider with
+  only a new `baseUrl`. pi then sends the key only as `x-api-key`, which the
+  gateway rejects with 401. So the provider points at Caveman itself, a shim
+  (`~/.pi/agent/extensions/caveman.js`) makes the extension's provider
+  registration a no-op, and an empty `x-api-key` header makes Caveman forward
+  the bearer. The cost is that there is no pass-through: if Caveman's proxy
+  is down, `lego-claude` requests fail until KeepAlive restarts it.
+
+Caveman's extension also shrinks tool output and returns a `ccr://` handle
+for `caveman_retrieve`. Small outputs are shrunk too, which costs extra
+retrieve turns. Watch for this before treating the setup as a net saving.
+
 When testing by hand, use container names that do not start with `headroom`,
 and spare loopback ports (28787 and 28788 were used). Verify the chain with
 `curl -s 127.0.0.1:18787/readyz` and `curl -s 127.0.0.1:18788/health`, then a

@@ -47,8 +47,10 @@
     "storeUrl": "sqlite:////data/headroom.db",
     "savingsPath": "/data/proxy_savings.json",
     "telemetry": "off",
+    "_allowUnauthenticatedBind": "Headroom images from 2026-10 refuse to bind 0.0.0.0 unless HEADROOM_PROXY_TOKEN is set, because their /v1/* routes would relay the caller's gateway credential to anyone who can reach the port. A token does not fit here: local-model-proxy and the harnesses already send the gateway key as the Authorization bearer, so a second bearer would collide with it. The image's documented alternative is this acknowledgement. It is honest only while every host publishes the port on loopback (published.*.host); on the container network, only our own sibling containers can reach it. Measured 2026-10-06: without it headroom exits at start, and local-model-proxy then loops on 'could not resolve headroom container IP'.",
+    "allowUnauthenticatedBind": "1",
     "published": {
-      "M-02877": {"host": "", "port": 18787},
+      "M-02877": {"host": "127.0.0.1", "port": 18787},
       "mahakala": {"host": "127.0.0.1", "port": 8787}
     }
   },
@@ -57,7 +59,7 @@
     "image": "ghcr.io/lego/local-model-proxy:latest",
     "containerPort": 8788,
     "published": {
-      "M-02877": {"host": "", "port": 18788}
+      "M-02877": {"host": "127.0.0.1", "port": 18788}
     }
   },
 
@@ -65,7 +67,7 @@
     "image": "docker.io/arizephoenix/phoenix:latest",
     "containerPort": 6006,
     "published": {
-      "M-02877": {"host": "", "port": 16006}
+      "M-02877": {"host": "127.0.0.1", "port": 16006}
     }
   }
 }

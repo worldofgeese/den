@@ -149,6 +149,47 @@ activate script> bash`.
 pi's Signet extension is installed once by hand with `signet connect pi`
 (it writes `~/.pi/agent/extensions/signet-pi.js`, which Signet owns).
 
+The tunnel also depends on AWS credentials from the LEGO credential process,
+which gets them through the Azure CLI. On 2026-10-06 ECS replaced the Signet
+task at 16:14 while that Azure call timed out, so the tunnel could not resolve
+the new task and team Signet was unreachable for about 15 minutes. It recovered
+without intervention once `az` answered again. If the tunnel log shows sessions
+ending and none starting, run `AWS_PROFILE=bts-devrel aws sts
+get-caller-identity` before anything else.
+
+### Token proxy chain (M-02877)
+
+Three launchd agents run Apple `container` images on the `proxy-chain`
+network, in the order a request passes them: local-model-proxy
+(`127.0.0.1:18788`), Headroom (`127.0.0.1:18787`) and the LEGO gateway's
+`/claude` endpoint. Phoenix (`127.0.0.1:16006`) receives local-model-proxy's
+traces. `com.headroom.watchdog` probes Headroom's `/readyz` every minute.
+Logs: `/tmp/{headroom,local-model-proxy,phoenix,headroom-watchdog}.{log,err}`.
+
+The chain was down on 2026-10-06 for two independent reasons:
+- Every start pulled `:latest` first and ran the container only if the pull
+  succeeded. One pull hung for over 21 minutes while the image was already
+  cached. Pulls are now bounded at 300 s, and a cached image starts when the
+  pull fails or times out.
+- The new Headroom image refuses to bind `0.0.0.0` without a proxy token and
+  exited at start, so local-model-proxy looped on "could not resolve headroom
+  container IP". A token would collide with the gateway bearer that the
+  harnesses already send, so every host now publishes all three ports on
+  loopback only and sets `HEADROOM_ALLOW_UNAUTHENTICATED_BIND`
+  (`gateway.json` holds the reasoning). mahakala's Guix config reads the same
+  value.
+
+The watchdog's recovery now also recycles local-model-proxy, which otherwise
+keeps the old Headroom IP and returns 502 for every request. Its process
+matchers use the exact container name (`--uuid headroom`): a substring match
+killed a test container named `headroom-test` on 2026-10-06.
+
+When testing by hand, use container names that do not start with `headroom`,
+and spare loopback ports (28787 and 28788 were used). Verify the chain with
+`curl -s 127.0.0.1:18787/readyz` and `curl -s 127.0.0.1:18788/health`, then a
+`/v1/messages` call that sends the gateway key as `Authorization: Bearer`. The
+gateway rejects the key when it arrives only as `x-api-key`.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

@@ -293,6 +293,11 @@ mv \"$tmp\" \"$target\""))
                         (environment
                          (list
                           "HEADROOM_HOST=0.0.0.0"
+                          ;; Newer images refuse a 0.0.0.0 bind without this and exit
+                          ;; at start. Safe only because the port is published on
+                          ;; loopback; gateway.json carries the reasoning.
+                          (string-append "HEADROOM_ALLOW_UNAUTHENTICATED_BIND="
+                                         (gateway-ref "headroom" "allowUnauthenticatedBind"))
                           (string-append "HEADROOM_STORE_URL="
                                          (gateway-ref "headroom" "storeUrl"))
                           (string-append "HEADROOM_SAVINGS_PATH="

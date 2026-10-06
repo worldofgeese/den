@@ -44,14 +44,34 @@
       # scripts/connect.sh, so the agent does not break when a checkout moves.
       # The portable equivalent for teammates who do not run Nix is
       # `scripts/install-tunnel.sh` in that project; the two must stay in step.
-      signetTeamTunnel = pkgs.writeShellApplication {
-        name = "signet-team-tunnel";
+      #
+      # Since devrel-infra#279 and #280 (2026-10), aws-tfh and aws-chorus are
+      # reached the same way, so one function builds all three tunnels. Each
+      # names its SST app, its Session document, its local port and a probe URL
+      # path. `probeAnyStatus` makes any HTTP answer count as alive: tfh's
+      # routes read state from S3 and take 3 to 17 seconds, so its probe asks
+      # /healthz, which answers 404 at once.
+      mkSsmTunnel = {
+        name,
+        app,
+        document,
+        port,
+        probePath,
+        probeAnyStatus ? false,
+      }: let
+        curlFlags =
+          if probeAnyStatus
+          then "-sS"
+          else "-fsS";
+      in
+        pkgs.writeShellApplication {
+        inherit name;
         runtimeInputs = [pkgs.awscli2 pkgs.jq pkgs.ssm-session-manager-plugin pkgs.curl];
         text = ''
           set -eu
           region="''${AWS_REGION:-eu-west-1}"
-          stage="''${SIGNET_STAGE:-production}"
-          port="''${SIGNET_LOCAL_PORT:-3860}"
+          stage="''${TUNNEL_STAGE:-production}"
+          port="''${TUNNEL_LOCAL_PORT:-${toString port}}"
 
           # Wait for credentials rather than crash-looping against them. The
           # account's SSO-Admin role caps a session at one hour, and the LEGO CLI
@@ -60,9 +80,10 @@
           # useful to do until they do.
           until aws sts get-caller-identity >/dev/null 2>&1; do sleep 60; done
 
-          # 3850 is where a personal Signet listens, so the team tunnel takes
-          # 3860. Refuse to bind over anything already there: adopting a local
-          # daemon would silently point every agent at one laptop's workspace.
+          # Refuse to bind over anything already there. For Signet this matters
+          # most: 3850 is where a personal Signet listens, so the team tunnel
+          # takes 3860, and adopting a local daemon would silently point every
+          # agent at one laptop's workspace.
           if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
             echo "port $port already in use; not starting a second tunnel" >&2
             sleep 300
@@ -81,7 +102,7 @@
           while [ -z "$target" ]; do
             cluster_arn=$(aws resourcegroupstaggingapi get-resources --region "$region" \
               --resource-type-filters ecs:cluster \
-              --tag-filters "Key=sst:app,Values=aws-signet" "Key=sst:stage,Values=$stage" \
+              --tag-filters "Key=sst:app,Values=${app}" "Key=sst:stage,Values=$stage" \
               --query 'ResourceTagMappingList[0].ResourceARN' --output text 2>/dev/null || true)
             if [ -z "$cluster_arn" ] || [ "$cluster_arn" = "None" ]; then
               sleep 30
@@ -92,8 +113,8 @@
             task=$(aws ecs list-tasks --region "$region" --cluster "$cluster" \
               --desired-status RUNNING --query 'taskArns[0]' --output text 2>/dev/null || true)
             if [ -z "$task" ] || [ "$task" = "None" ]; then
-              # The daemon exits 0 when it cannot take its workspace lock, so an
-              # absent task can mean a refused start rather than a deploy.
+              # Signet's daemon exits 0 when it cannot take its workspace lock, so
+              # an absent task can mean a refused start rather than a deploy.
               sleep 10
               continue
             fi
@@ -127,8 +148,9 @@
           # than the session.
           #
           # A request every minute keeps data on the channel, so the session
-          # never becomes idle. /health/ready is open in team mode, so the keepalive
-          # carries no credential. The loop lives exactly as long as its session, so
+          # never becomes idle. Each probe path is open without a credential
+          # (Signet's /health/ready in team mode, Chorus's /api/health, tfh's
+          # /healthz), so the keepalive carries none. The loop lives exactly as long as its session, so
           # a replaced task still ends the process and lets KeepAlive reconnect.
           #
           # The same request is the watchdog. On 2026-10-06 a session stayed up,
@@ -139,20 +161,20 @@
           # then reconnects to whatever task is current.
           aws ssm start-session --region "$region" \
             --target "$target" \
-            --document-name "Signet-$stage-Daemon" \
+            --document-name "${document}" \
             --parameters "localPortNumber=$port" &
           session_pid=$!
 
           misses=0
           while kill -0 "$session_pid" 2>/dev/null; do
             sleep 60
-            if curl -fsS -m 10 -o /dev/null "http://127.0.0.1:$port/health/ready" 2>/dev/null; then
+            if curl ${curlFlags} -m 10 -o /dev/null "http://127.0.0.1:$port${probePath}" 2>/dev/null; then
               misses=0
             else
               misses=$((misses + 1))
             fi
             if [ "$misses" -ge 2 ]; then
-              echo "signet-team-tunnel: no answer through the tunnel for $misses checks; ending session $session_pid to reconnect" >&2
+              echo "${name}: no answer through the tunnel for $misses checks; ending session $session_pid to reconnect" >&2
               kill "$session_pid" 2>/dev/null || true
               break
             fi
@@ -160,6 +182,30 @@
 
           wait "$session_pid"
         '';
+      };
+      signetTeamTunnel = mkSsmTunnel {
+        name = "signet-team-tunnel";
+        app = "aws-signet";
+        document = "Signet-$stage-Daemon";
+        port = 3860;
+        probePath = "/health/ready";
+      };
+      # Chorus's NEXTAUTH_URL is http://127.0.0.1:3870, so the web login only
+      # works on this port.
+      chorusTeamTunnel = mkSsmTunnel {
+        name = "chorus-team-tunnel";
+        app = "aws-chorus";
+        document = "Chorus-$stage-App";
+        port = 3870;
+        probePath = "/api/health";
+      };
+      tfhTunnel = mkSsmTunnel {
+        name = "tfh-tunnel";
+        app = "aws-tfh";
+        document = "Tfh-$stage-App";
+        port = 3880;
+        probePath = "/healthz";
+        probeAnyStatus = true;
       };
       signetReadLegoSecret = pkgs.writeTextFile {
         name = "signet-read-lego-secret";
@@ -811,6 +857,51 @@
             ProcessType = "Background";
             StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-team-tunnel.log";
             StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-team-tunnel.log";
+          };
+        };
+
+        # Chorus (http://127.0.0.1:3870, MCP at /api/mcp) and tfh
+        # (http://127.0.0.1:3880), reached like team Signet since
+        # devrel-infra#279 and #280: no load balancer, only Systems Manager.
+        chorus-team-tunnel = {
+          serviceConfig = {
+            Label = "com.dktaohan.chorus-team-tunnel";
+            ProgramArguments = ["${chorusTeamTunnel}/bin/chorus-team-tunnel"];
+            EnvironmentVariables = {
+              # Any profile whose credential_process is the LEGO CLI works; that
+              # is the one path that rotates without re-prompting for a second
+              # factor every hour.
+              AWS_PROFILE = "bts-devrel";
+              AWS_REGION = "eu-west-1";
+              HOME = config.users.users.dktaohan.home;
+            };
+            RunAtLoad = true;
+            KeepAlive = true;
+            ThrottleInterval = 30;
+            ProcessType = "Background";
+            StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/chorus-team-tunnel.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/chorus-team-tunnel.log";
+          };
+        };
+
+        tfh-tunnel = {
+          serviceConfig = {
+            Label = "com.dktaohan.tfh-tunnel";
+            ProgramArguments = ["${tfhTunnel}/bin/tfh-tunnel"];
+            EnvironmentVariables = {
+              # Any profile whose credential_process is the LEGO CLI works; that
+              # is the one path that rotates without re-prompting for a second
+              # factor every hour.
+              AWS_PROFILE = "bts-devrel";
+              AWS_REGION = "eu-west-1";
+              HOME = config.users.users.dktaohan.home;
+            };
+            RunAtLoad = true;
+            KeepAlive = true;
+            ThrottleInterval = 30;
+            ProcessType = "Background";
+            StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/tfh-tunnel.log";
+            StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/tfh-tunnel.log";
           };
         };
 

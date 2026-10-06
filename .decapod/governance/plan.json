@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
-  "title": "Wire pi to the token-saving toolchain",
-  "intent": "New pi sessions on M-02877 use the den-owned lego-claude provider through Caveman, local-model-proxy and Headroom, with RTK, Caveman, ponytail and context-mode loaded and the context-mode, CodeGraph and Headroom MCP servers; running sessions are not switched",
+  "title": "Reach Chorus and tfh over SSM tunnels",
+  "intent": "M-02877 reaches Chorus (3870) and tfh (3880) through KeepAlive SSM tunnel agents built by the same function as team Signet's, after devrel-infra#279/#280 removed their internet-facing ALBs; CHORUS_URL and pi's Chorus MCP URL follow; crane and the Session Manager plugin are installed for devrel-infra work",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m49f9wjv21nn23"
+    "code_01m49nzdfxaqybeg"
   ],
   "proof_hooks": [
     "nix build .#darwinConfigurations.M-02877.system",
@@ -17,8 +17,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 4
+    "file_touch_budget": 5
   },
   "phases": [],
-  "updated_at": "1791320143Z"
+  "updated_at": "1791328428Z"
 }

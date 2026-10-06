@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "kind": "validation_receipt",
   "decapod_release": "0.104.2",
-  "git_revision": "ca95216c3de1d5b0ddc24c19b9ffdd8bc19c0f5f",
+  "git_revision": "4eb6153a4b515631526fdea746e18ab3d049ae2c",
   "repo_signal_fingerprint": "0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e",
-  "trajectory_run_id": "validation_01M481WFM0X6A8X9KC1YP208J7",
-  "trajectory_artifact_hash": "sha256:304d07f86d00c02dd2d03acc3fb41f4bb72faebdcdbc5cebbe462bd6fbbc103f",
+  "trajectory_run_id": "feat_01m481k6kpfnsb2e-r2",
+  "trajectory_artifact_hash": "sha256:ca4ce6711e35e142840fd130396f27f368f81310707039f40cf4a03f27307d75",
   "validation_epoch": {
     "schema_version": "1.0.0",
     "epoch_id": "ve_5c6df426a44aff7e",
@@ -47,7 +47,7 @@
   "pass_count": 186,
   "fail_count": 0,
   "warn_count": 4,
-  "elapsed_ms": 6567,
+  "elapsed_ms": 26614,
   "drift_findings": [],
   "temporary_artifacts_cleaned": 0,
   "failures": [],
@@ -59,104 +59,108 @@
   ],
   "gate_timings": [
     {
-      "name": "validate_markdown_primitives_roundtrip_gate",
-      "elapsed_ms": 2805
-    },
-    {
       "name": "validate_obligations",
-      "elapsed_ms": 901
+      "elapsed_ms": 20050
     },
     {
-      "name": "validate_health_purity",
-      "elapsed_ms": 766
-    },
-    {
-      "name": "validate_stale_workspaces",
-      "elapsed_ms": 428
-    },
-    {
-      "name": "validate_legacy_jsonl_retired",
-      "elapsed_ms": 339
-    },
-    {
-      "name": "validate_project_specs_docs",
-      "elapsed_ms": 290
-    },
-    {
-      "name": "validate_git_workspace_context",
-      "elapsed_ms": 185
-    },
-    {
-      "name": "validate_archive_integrity",
-      "elapsed_ms": 181
-    },
-    {
-      "name": "validate_machine_contract",
-      "elapsed_ms": 112
-    },
-    {
-      "name": "validate_control_plane_contract",
-      "elapsed_ms": 94
-    },
-    {
-      "name": "validate_no_legacy_namespaces",
-      "elapsed_ms": 48
-    },
-    {
-      "name": "validate_repomap_determinism",
-      "elapsed_ms": 41
+      "name": "validate_markdown_primitives_roundtrip_gate",
+      "elapsed_ms": 2124
     },
     {
       "name": "validate_lcm_immutability",
-      "elapsed_ms": 38
+      "elapsed_ms": 992
     },
     {
       "name": "validate_lcm_rebuild_gate",
-      "elapsed_ms": 37
+      "elapsed_ms": 710
+    },
+    {
+      "name": "validate_stale_workspaces",
+      "elapsed_ms": 508
+    },
+    {
+      "name": "validate_gatekeeper_gate",
+      "elapsed_ms": 464
+    },
+    {
+      "name": "validate_legacy_jsonl_retired",
+      "elapsed_ms": 345
+    },
+    {
+      "name": "validate_project_specs_docs",
+      "elapsed_ms": 307
+    },
+    {
+      "name": "validate_git_workspace_context",
+      "elapsed_ms": 189
+    },
+    {
+      "name": "validate_archive_integrity",
+      "elapsed_ms": 182
+    },
+    {
+      "name": "validate_machine_contract",
+      "elapsed_ms": 130
+    },
+    {
+      "name": "validate_health_purity",
+      "elapsed_ms": 103
+    },
+    {
+      "name": "validate_control_plane_contract",
+      "elapsed_ms": 99
+    },
+    {
+      "name": "validate_no_legacy_namespaces",
+      "elapsed_ms": 42
+    },
+    {
+      "name": "validate_repomap_determinism",
+      "elapsed_ms": 40
     },
     {
       "name": "validate_lineage_hard_gate",
+      "elapsed_ms": 30
+    },
+    {
+      "name": "validate_plan_governed_execution_gate",
       "elapsed_ms": 28
     },
     {
       "name": "validate_federation_gates",
-      "elapsed_ms": 25
-    },
-    {
-      "name": "validate_knowledge_promotions_if_present",
-      "elapsed_ms": 21
+      "elapsed_ms": 26
     },
     {
       "name": "validate_watcher_audit",
+      "elapsed_ms": 20
+    },
+    {
+      "name": "validate_knowledge_promotions_if_present",
       "elapsed_ms": 19
     },
     {
       "name": "validate_git_protected_branch",
-      "elapsed_ms": 12
+      "elapsed_ms": 14
+    },
+    {
+      "name": "validate_git_push_pr_gate",
+      "elapsed_ms": 14
     },
     {
       "name": "validate_schema_determinism",
       "elapsed_ms": 12
     },
     {
-      "name": "validate_gatekeeper_gate",
-      "elapsed_ms": 12
-    },
-    {
-      "name": "validate_git_push_pr_gate",
-      "elapsed_ms": 11
-    },
-    {
       "name": "validate_generated_artifact_whitelist",
-      "elapsed_ms": 6
-    },
-    {
-      "name": "validate_plan_governed_execution_gate",
-      "elapsed_ms": 6
+      "elapsed_ms": 5
     },
     {
       "name": "validate_database_schema_versions",
-      "elapsed_ms": 3
+      "elapsed_ms": 5
+    },
+    {
+      "name": "validate_docs_templates_bucket",
+      "elapsed_ms": 4
     },
     {
       "name": "validate_knowledge_integrity",
@@ -183,14 +187,6 @@
       "elapsed_ms": 1
     },
     {
-      "name": "validate_docs_templates_bucket",
-      "elapsed_ms": 1
-    },
-    {
-      "name": "validate_project_scoped_state",
-      "elapsed_ms": 1
-    },
-    {
       "name": "validate_project_config_toml",
       "elapsed_ms": 0
     },
@@ -199,19 +195,11 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_watcher_purity",
-      "elapsed_ms": 0
-    },
-    {
       "name": "validate_trajectory_artifacts_if_present",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_research_claims_if_present",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_risk_map_violations",
+      "name": "validate_project_scoped_state",
       "elapsed_ms": 0
     },
     {
@@ -219,15 +207,11 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_repo_map",
+      "name": "validate_workunit_manifests_if_present",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_heartbeat_invocation_gate",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_tooling_gate",
+      "name": "validate_watcher_purity",
       "elapsed_ms": 0
     },
     {
@@ -235,7 +219,7 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_recursive_improvement_passes_if_present",
+      "name": "validate_research_claims_if_present",
       "elapsed_ms": 0
     },
     {
@@ -243,23 +227,19 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_risk_map",
+      "name": "validate_tooling_gate",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_workunit_manifests_if_present",
+      "name": "validate_repo_map",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_embedded_self_contained",
+      "name": "validate_risk_map_violations",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_root_dockerfile_seed_detection",
-      "elapsed_ms": 0
-    },
-    {
-      "name": "validate_coplayer_policy_tightening",
+      "name": "validate_heartbeat_invocation_gate",
       "elapsed_ms": 0
     },
     {
@@ -267,11 +247,11 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_interface_contract_bootstrap",
+      "name": "validate_root_dockerfile_seed_detection",
       "elapsed_ms": 0
     },
     {
-      "name": "validate_eval_gate_if_required",
+      "name": "validate_context_capsules_if_present",
       "elapsed_ms": 0
     },
     {
@@ -279,7 +259,27 @@
       "elapsed_ms": 0
     },
     {
-      "name": "validate_context_capsules_if_present",
+      "name": "validate_embedded_self_contained",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_coplayer_policy_tightening",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_eval_gate_if_required",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_recursive_improvement_passes_if_present",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_risk_map",
+      "elapsed_ms": 0
+    },
+    {
+      "name": "validate_interface_contract_bootstrap",
       "elapsed_ms": 0
     }
   ],
@@ -298,5 +298,5 @@
       "Use `decapod validate -v --format json` to inspect the affected gate output."
     ]
   },
-  "receipt_hash": "sha256:3ce01e08669c1d48fba590425db5d61bcffb0e2762247a74f698e70001248596"
+  "receipt_hash": "sha256:4007cface7dff4ae3370c62ddb59ccb1be3a843fb544f587ac878cb72380da61"
 }

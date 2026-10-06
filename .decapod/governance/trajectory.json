@@ -1,75 +1,79 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "docs-review-01",
-  "intent_id": "intent:docs-review-01",
-  "task_id": "docs_01m3wwyfp17exhqm",
-  "original_intent": "User: docs PRs reviewed by the docs skills instead of skipped; keep one diataxis skill",
-  "derived_intent": "skip_docs_only=false plus per-repo custom_instructions naming simple-english, rewrite-slop, diataxis, technical-writer and the clone path; removed writing-documentation-with-diataxis",
+  "run_id": "feat_01m481k6kpfnsb2e-r2",
+  "intent_id": "intent:feat_01m481k6kpfnsb2e-r2",
+  "task_id": "feat_01m481k6kpfnsb2e",
+  "original_intent": "Add https://github.com/LEGO/team-friendship-hour to pr-reviewer's repos, make sure it reviews the open PR and shepherd that PR to merge",
+  "derived_intent": "One repos-list entry in modules/M-02877/pr-reviewer.nix plus OPERATIONS.md update; deploy; confirm review of LEGO/team-friendship-hour#1; drive #1 to merge",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
   ],
   "active_boundaries": [
-    "runtime config stays CLI/user-owned; diataxis skill not edited"
+    "No change to pr-reviewer runtime state except via CLI and the documented custom_instructions edit"
   ],
   "repo_scope": [
-    ".decapod/managed/specs/OPERATIONS.md"
+    "modules/M-02877/pr-reviewer.nix, .decapod/managed/specs/OPERATIONS.md"
   ],
-  "inspected_files": [],
+  "inspected_files": [
+    ".decapod/managed/specs/OPERATIONS.md",
+    "modules/M-02877/pr-reviewer.nix"
+  ],
   "modified_files": [
     ".decapod/governance/trajectory.json",
     ".decapod/governance/validation.json",
-    ".decapod/managed/specs/OPERATIONS.md"
+    ".decapod/managed/specs/OPERATIONS.md",
+    "modules/M-02877/pr-reviewer.nix"
   ],
   "declared_commands": [
-    "decapod validate"
+    "decapod validate",
+    "just check-fmt",
+    "nix build .#darwinConfigurations.M-02877.system"
   ],
   "tool_calls": [],
   "checks": [
     {
+      "name": "alejandra",
+      "status": "passed"
+    },
+    {
+      "name": "darwin-build",
+      "status": "passed"
+    },
+    {
       "name": "decapod validate",
-      "status": "passed"
-    },
-    {
-      "name": "factual-error-blocks",
-      "status": "failed"
-    },
-    {
-      "name": "livetest-pr2-docs-review-6-findings",
-      "status": "passed"
-    },
-    {
-      "name": "livetest-pr2-reads-source-with-clone-path",
       "status": "passed"
     }
   ],
   "evidence": [
-    "validation epoch ve_22cdc38c60600ed3 completed with zero failures"
+    "validation epoch ve_5c6df426a44aff7e completed with zero failures"
   ],
   "shortcut_risk_signals": [],
-  "unresolved_assumptions": [],
-  "proof_status": "failed",
+  "unresolved_assumptions": [
+    "Daemon queues all open PRs lacking a recorded review for the head SHA (verified in upstream daemon.rs poll loop)"
+  ],
+  "proof_status": "passed",
   "verdicts": {
     "intent_alignment": "supported",
     "boundary_discipline": "supported",
     "shortcut_risk": "supported",
-    "completion_proof": "unsupported"
+    "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:f8c45e05102425bc3ec895fa027ca22d87e107b23fbf149115837d502c04ede1",
+  "artifact_hash": "sha256:ca4ce6711e35e142840fd130396f27f368f81310707039f40cf4a03f27307d75",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:docs-review-01": {
-        "id": "intent:docs-review-01",
-        "raw_intent": "User: docs PRs reviewed by the docs skills instead of skipped; keep one diataxis skill",
-        "refined_intent": "skip_docs_only=false plus per-repo custom_instructions naming simple-english, rewrite-slop, diataxis, technical-writer and the clone path; removed writing-documentation-with-diataxis",
+      "intent:feat_01m481k6kpfnsb2e-r2": {
+        "id": "intent:feat_01m481k6kpfnsb2e-r2",
+        "raw_intent": "Add https://github.com/LEGO/team-friendship-hour to pr-reviewer's repos, make sure it reviews the open PR and shepherd that PR to merge",
+        "refined_intent": "One repos-list entry in modules/M-02877/pr-reviewer.nix plus OPERATIONS.md update; deploy; confirm review of LEGO/team-friendship-hour#1; drive #1 to merge",
         "acceptance_criteria": [],
         "constraints": [
-          ".decapod/managed/specs/OPERATIONS.md"
+          "modules/M-02877/pr-reviewer.nix, .decapod/managed/specs/OPERATIONS.md"
         ],
         "assumptions": [],
         "boundaries": [
-          "runtime config stays CLI/user-owned; diataxis skill not edited"
+          "No change to pr-reviewer runtime state except via CLI and the documented custom_instructions edit"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -82,51 +86,56 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:docs-review-01",
+        "intent_id": "intent:feat_01m481k6kpfnsb2e-r2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:docs-review-01",
+        "intent_id": "intent:feat_01m481k6kpfnsb2e-r2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:docs-review-01",
+        "intent_id": "intent:feat_01m481k6kpfnsb2e-r2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:docs-review-01"
+        "detail": "trajectory:feat_01m481k6kpfnsb2e-r2"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:docs-review-01",
+        "intent_id": "intent:feat_01m481k6kpfnsb2e-r2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:docs-review-01"
+        "detail": "trajectory:feat_01m481k6kpfnsb2e-r2"
       }
     ],
     "trajectories": {
-      "docs-review-01": {
-        "id": "docs-review-01",
-        "intent_id": "intent:docs-review-01",
+      "feat_01m481k6kpfnsb2e-r2": {
+        "id": "feat_01m481k6kpfnsb2e-r2",
+        "intent_id": "intent:feat_01m481k6kpfnsb2e-r2",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "trajectory.record",
+            "command": "nix build .#darwinConfigurations.M-02877.system",
             "scope": [
-              ".decapod/managed/specs/OPERATIONS.md"
+              "modules/M-02877/pr-reviewer.nix, .decapod/managed/specs/OPERATIONS.md"
             ],
             "observations": [
+              "modules/M-02877/pr-reviewer.nix",
+              ".decapod/managed/specs/OPERATIONS.md",
+              "modules/M-02877/pr-reviewer.nix",
               ".decapod/managed/specs/OPERATIONS.md"
             ],
             "proof_refs": [
-              "livetest-pr2-docs-review-6-findings",
-              "livetest-pr2-reads-source-with-clone-path",
-              "factual-error-blocks"
+              "darwin-build",
+              "alejandra"
             ],
-            "validation_findings": [],
+            "validation_findings": [
+              "Daemon queues all open PRs lacking a recorded review for the head SHA (verified in upstream daemon.rs poll loop)"
+            ],
             "custody_event_id": "event:4"
           },
           {
@@ -134,12 +143,12 @@
             "action": "validation",
             "command": "decapod validate",
             "scope": [
-              ".decapod/managed/specs/OPERATIONS.md"
+              "modules/M-02877/pr-reviewer.nix, .decapod/managed/specs/OPERATIONS.md"
             ],
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_22cdc38c60600ed3 completed with zero failures"
+              "validation epoch ve_5c6df426a44aff7e completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

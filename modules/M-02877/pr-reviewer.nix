@@ -33,6 +33,7 @@
       "LEGO/devrel-infra"
       "LEGO/agentic-engineering-community"
       "LEGO/ai-daily-assistant"
+      "LEGO/team-friendship-hour"
     ];
 
     # Upstream ships no flake, no tags, and is absent from nixpkgs, so this is

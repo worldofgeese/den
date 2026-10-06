@@ -21,7 +21,13 @@ Basic, not Bearer, which GitHub's git endpoint rejects).
   start wrapper runs `pr-reviewer add` for every declared repo missing from
   the runtime config, then `exec`s `pr-reviewer start`. Adding a repo is one
   list entry plus `just deploy-darwin`. Reconciliation is add-only; a
-  configured but undeclared repo is logged, not removed.
+  configured but undeclared repo is logged, not removed. The declared repos
+  are LEGO/conference-dashboard, LEGO/devrel-infra,
+  LEGO/agentic-engineering-community, LEGO/ai-daily-assistant and
+  LEGO/team-friendship-hour.
+- **PRs opened before a repo was added** are reviewed too: each poll queues
+  every open PR whose head SHA has no recorded review, so the first poll after
+  registration picks up the existing backlog.
 - **Runtime state** (config.toml with the machine-bound encrypted token,
   keyfile, state.db, managed clones) stays in
   `~/Library/Application Support/pr-reviewer` and is mutated only by the CLI.

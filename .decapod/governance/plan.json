@@ -1,23 +1,25 @@
 {
   "schema_version": "1.0.0",
-  "title": "Record pr-reviewer docs review configuration",
-  "intent": "OPERATIONS.md records that docs PRs are reviewed with the docs skills, which runtime values do it, and how to carry them to a new repo",
+  "title": "pr-reviewer reviews LEGO/team-friendship-hour",
+  "intent": "Add LEGO/team-friendship-hour to the declared pr-reviewer repo list so its open PR #1 gets reviewed, then shepherd that PR to merge",
   "state": "APPROVED",
   "todo_ids": [
-    "docs_01m3wwyfp17exhqm"
+    "feat_01m481k6kpfnsb2e"
   ],
   "proof_hooks": [
-    "live docs-only PR reviewed with skill-based findings"
+    "nix build .#darwinConfigurations.M-02877.system"
   ],
   "unknowns": [],
   "human_questions": [],
-  "stop_conditions": [],
+  "stop_conditions": [
+    "Daemon fails to register or review the repo after deploy"
+  ],
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 2
+    "file_touch_budget": null
   },
   "phases": [],
-  "updated_at": "1790897559Z"
+  "updated_at": "1791271703Z"
 }

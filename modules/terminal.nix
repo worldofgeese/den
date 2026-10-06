@@ -114,6 +114,13 @@
             'Fira Code',
           })
           config.font_size = 14.0
+          -- WezTerm's built-in agent proxy replaces SSH_AUTH_SOCK with a symlink named
+          -- after the GUI process (~/.local/share/wezterm/agent.<pid>). Long-lived
+          -- programs started from a pane (herdr, tmux, agents) keep that path after
+          -- WezTerm restarts, and then every ssh and Dagger call fails with a dead
+          -- agent. Keep the system agent socket instead: it lives for the whole
+          -- login session.
+          config.mux_enable_ssh_agent = false
           config.line_height = 1.1
           config.window_padding = { left = 12, right = 12, top = 12, bottom = 12 }
           config.window_decorations = 'RESIZE'

@@ -47,6 +47,10 @@
     "storeUrl": "sqlite:////data/headroom.db",
     "savingsPath": "/data/proxy_savings.json",
     "telemetry": "off",
+    "_noMemoryTools": "Headroom 0.40.0 answers its injected memory_save/memory_search tools server-side; when the model also called a client tool in the same turn, the continuation leaves that call unanswered and the provider rejects it with a 400 mid-stream (headroomlabs-ai/headroom#4009, fix in #4013). This stops the injection only: memory storage and --learn stay on. Drop it once a release has #4013.",
+    "noMemoryTools": "1",
+    "_excludeTools": "Headroom 0.40.0 lossy-compresses caveman_retrieve output, so the original Caveman recovers arrives rewritten (headroomlabs-ai/headroom#4010, fix in #4014). Excluded tools still get lossless cleanup, so indented JSON arrives minified. Drop it once a release has #4014.",
+    "excludeTools": "caveman_retrieve",
     "_allowUnauthenticatedBind": "Headroom images from 2026-10 refuse to bind 0.0.0.0 unless HEADROOM_PROXY_TOKEN is set, because their /v1/* routes would relay the caller's gateway credential to anyone who can reach the port. A token does not fit here: local-model-proxy and the harnesses already send the gateway key as the Authorization bearer, so a second bearer would collide with it. The image's documented alternative is this acknowledgement. It is honest only while every host publishes the port on loopback (published.*.host); on the container network, only our own sibling containers can reach it. Measured 2026-10-06: without it headroom exits at start, and local-model-proxy then loops on 'could not resolve headroom container IP'.",
     "allowUnauthenticatedBind": "1",
     "published": {

@@ -10,9 +10,11 @@
   #   6 CodeGraph   MCP server
   #   8.5 Headroom  MCP server (container exec)
   #
-  # A pi request then goes pi -> Caveman (127.0.0.1:8787) -> local-model-proxy
-  # (127.0.0.1:18788, traces to Phoenix) -> Headroom (127.0.0.1:18787) ->
-  # gateway /claude. The chain itself is in darwin.nix.
+  # A pi request goes pi -> local-model-proxy (127.0.0.1:18788, traces to
+  # Phoenix) -> Headroom (127.0.0.1:18787) -> gateway /claude. Caveman's
+  # proxy (127.0.0.1:8787) is not in that path (see agentProviders.pi); it
+  # serves the pi extension's tool-output shrinking. The chain itself is in
+  # darwin.nix.
   den.aspects.dktaohan.homeManager = {
     pkgs,
     lib,
@@ -28,7 +30,6 @@
     # default gateway; headroom's 8787 is container-internal on this host,
     # so the two do not collide.
     cavemanListen = "127.0.0.1:8787";
-    cavemanUrl = "http://${cavemanListen}";
 
     # The Caveman CLI and its native binaries come from npm
     # (@caveman-ai/cli, `caveman setup --install`), not Nix: ~/.caveman/bin.
@@ -71,14 +72,11 @@
           base_url: ${proxyUrl}
     '';
 
-    # Caveman's pi extension routes a model by re-registering its provider
-    # with only a new baseUrl. pi then drops the provider's authHeader and
-    # sends the key only as x-api-key, which the gateway rejects (401). So
-    # the lego-claude provider points at Caveman itself, with authHeader
-    # intact, and this shim makes the extension's provider (un)registration
-    # a no-op. Everything else -- hooks, tool-output shrink, caveman_retrieve
-    # -- is the extension's own. The trade-off: no pass-through when the
-    # proxy is down, which KeepAlive below covers.
+    # Loads the npm-installed extension, and degrades to nothing when it is
+    # not installed. Caveman 1.x re-registered the provider to route it,
+    # which dropped authHeader (401), and this shim used to no-op that; 2.x
+    # routes with pi.setModel instead, and does not route lego-claude at all
+    # (see agentProviders.pi).
     cavemanShim = ''
       // Managed by den (modules/M-02877/token-toolchain.nix). Edits are overwritten.
       import { existsSync } from "node:fs";
@@ -93,14 +91,7 @@
           return;
         }
         const { default: caveman } = await import(pathToFileURL(upstream).href);
-        const shim = new Proxy(pi, {
-          get(target, key) {
-            if (key === "registerProvider" || key === "unregisterProvider") return () => {};
-            const value = Reflect.get(target, key);
-            return typeof value === "function" ? value.bind(target) : value;
-          },
-        });
-        return caveman(shim);
+        return caveman(pi);
       }
     '';
 
@@ -115,10 +106,18 @@
     cavemanSkills = ["caveman" "caveman-commit" "caveman-compress" "caveman-help" "caveman-review" "caveman-stats"];
   in {
     agentProviders.pi = {
-      baseUrl = "${cavemanUrl}/w/pi";
-      # pi sends the key both as the bearer and as x-api-key. Caveman forwards
-      # only x-api-key when both arrive, and the gateway accepts only the
-      # bearer. An empty x-api-key makes Caveman forward the bearer.
+      # Direct to the real first hop, not through Caveman's proxy, so pi
+      # works while that proxy is down. Measured 2026-10-07 on Caveman
+      # 2.0.1/bin-v2.0.2, the proxy cannot route lego-claude anyway: pi sends
+      # the key as the bearer and as x-api-key, the proxy forwards only
+      # x-api-key when both arrive, and the gateway accepts only the bearer
+      # (401). Its request compression saved ~0 tokens here, and tool-output
+      # shrinking does not depend on this route.
+      baseUrl = proxyUrl;
+      # Load-bearing: Caveman's pi extension refuses to route a provider whose
+      # x-api-key is empty ("keep the provider direct"), and that refusal is
+      # what keeps it from rerouting this provider into the 401 above. The
+      # gateway ignores the empty header.
       headers."x-api-key" = "";
     };
 

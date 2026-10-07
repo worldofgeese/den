@@ -498,6 +498,27 @@
                 COOLDOWN=/tmp/headroom-watchdog.cooldown
                 THRESHOLD=3
 
+                # Drift check, on every run, before the health probe. headroom
+                # gets a new IP each time it restarts, whatever the cause: a
+                # crash and KeepAlive relaunch, a new :latest image, a manual
+                # restart. local-model-proxy reads that IP only when it starts,
+                # and the recovery below recycles it only when this watchdog did
+                # the restarting. On 2026-10-07 headroom restarted by itself and
+                # every pi request returned 500 against the old address, while
+                # /readyz stayed green. So compare the proxy's target with
+                # headroom's address and recycle the proxy when they differ.
+                # Either side missing means one is mid-start: do nothing.
+                C=/opt/homebrew/bin/container
+                HR_IP=$($C inspect headroom 2>/dev/null | /usr/bin/python3 -c "import sys,json; print(json.load(sys.stdin)[0]['status']['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null)
+                LMP_URL=$($C inspect local-model-proxy 2>/dev/null | /usr/bin/python3 -c "import sys,json; env=json.load(sys.stdin)[0]['configuration']['initProcess']['environment']; print(next((e.split('=',1)[1] for e in env if e.startswith('MPS_BASE_URL=')), str()))" 2>/dev/null)
+                if [ -n "$HR_IP" ] && [ -n "$LMP_URL" ] && [ "$LMP_URL" != "http://$HR_IP:8787" ]; then
+                  LMP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && $0 ~ /--uuid local-model-proxy( |$)/ {print $1; exit}')
+                  if [ -n "$LMP" ]; then
+                    echo "$(/bin/date -Iseconds) drift: local-model-proxy targets $LMP_URL but headroom is at $HR_IP; recycling VM helper pid $LMP"
+                    kill -9 "$LMP" 2>/dev/null || true
+                  fi
+                fi
+
                 if /usr/bin/curl -sf -o /dev/null -m 10 "$URL"; then
                   rm -f "$STATE"
                   exit 0
@@ -622,9 +643,11 @@
                 $C rm local-model-proxy 2>/dev/null
 
                 # ponytail: resolved at start only. A headroom restart alone hands it a
-                # new IP and this job keeps the old one until KeepAlive cycles it, so
-                # the watchdog's recovery must kick local-model-proxy too. Revert to a
-                # stable published-port address if Apple ever forwards non-loopback.
+                # new IP and this job keeps the old one until KeepAlive cycles it. The
+                # headroom watchdog's drift check compares the two every minute and
+                # kicks this job when they differ, whatever restarted headroom. Revert
+                # to a stable published-port address if Apple ever forwards
+                # non-loopback.
                 container_ip() {
                   for i in $(seq 1 30); do
                     # status.networks, not configuration.networks: the latter

@@ -248,8 +248,8 @@ retrieve turns. Watch for this before treating the setup as a net saving.
 A handle is only recoverable while the session can call `caveman_retrieve`:
 a pi subagent with its own `tools:` list replaces the active set, so the
 den-generated `techwriter` agent names `caveman_retrieve` until Caveman ships
-the fix for JuliusBrussee/caveman#1211 (PR #1196). Caveman binaries up to
-`bin-v1.1.4` also lose every handle (#1008); upgrade, then restart the proxy
+the fix for JuliusBrussee/caveman#1211 (PR #1196). Caveman binaries before
+`bin-v1.1.7` also lose every handle (#1008, fixed by #1015); upgrade, then restart the proxy
 from a plain terminal, never from an agent session that talks through it.
 
 Headroom 0.40.0 runs with two workarounds from `gateway.json`:

@@ -20,7 +20,7 @@
     pkgs,
     ...
   }: let
-    worldofgeeseGithubSshKeys = import ../_github-ssh-keys.nix pkgs;
+    worldofgeeseGithubSshKeys = import ../_github-ssh-keys.nix;
   in {
     # Was a module-list entry on the retired nixosSystem call. den has no place
     # to pass extra NixOS modules for a host, and does not need one: a NixOS

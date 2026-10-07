@@ -1,24 +1,29 @@
 {
   "schema_version": "1.0.0",
-  "title": "Record Chorus server v0.21.1",
-  "intent": "den's notes and specs say the team Chorus server is v0.21.1 (devrel-infra#291), matching the client",
+  "title": "Vendor GitHub SSH keys for paphos/oracle",
+  "intent": "paphos and oracle nixos-upgrade must never fail because keys on github.com/worldofgeese.keys changed; vendor the key list in-repo instead of a hash-pinned builtins.fetchurl of a mutable URL",
   "state": "APPROVED",
   "todo_ids": [
-    "bend_01m4a58120wvmfyp"
+    "bugs_01m4aczdyrq6etvz"
   ],
   "proof_hooks": [
-    "nix build .#darwinConfigurations.M-02877.system",
-    "activation snippets exercised in a scratch home (merge, pinned installs, skill replacement, idempotent rerun)"
+    "repro: nix eval of paphos kypris keyFiles fails with hash mismatch on main",
+    "nix eval paphos+oracle toplevel drvPath succeeds",
+    "generated authorized_keys = deployed set + google-pixel-fold key (no key removed)",
+    "just check",
+    "nixos-upgrade.service succeeds on paphos and oracle after merge; health check clean"
   ],
   "unknowns": [],
   "human_questions": [],
-  "stop_conditions": [],
+  "stop_conditions": [
+    "both hosts upgraded and SSH still works"
+  ],
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 3
+    "file_touch_budget": 8
   },
   "phases": [],
-  "updated_at": "1791342468Z"
+  "updated_at": "1791351813Z"
 }

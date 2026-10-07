@@ -238,6 +238,35 @@ and spare loopback ports (28787 and 28788 were used). Verify the chain with
 `/v1/messages` call that sends the gateway key as `Authorization: Bearer`. The
 gateway rejects the key when it arrives only as `x-api-key`.
 
+### Server auto-upgrade and human SSH keys (paphos, oracle)
+
+paphos (`Wed 03:00`, no reboot) and oracle (daily `04:00`, reboot allowed) run
+`nixos-upgrade.service` against the published flake `github:worldofgeese/den`,
+not a local checkout. Whatever is on `main` is what they build. paphos'
+health check sends a Telegram alert `nixos-upgrade-failed` while the unit is
+in the failed state.
+
+Invariant: evaluating a server configuration MUST NOT depend on mutable remote
+content. A hash-pinned fetch of a URL whose content can change (for example
+`https://github.com/worldofgeese.keys`) passes on any machine that still has
+the old download cached. It then fails on a host as soon as that host's store
+is garbage-collected. That makes the breakage silent locally and in CI.
+
+Human SSH keys for `kypris@paphos` and `nixos@oracle` therefore come from
+`modules/_worldofgeese.keys`, a vendored, byte-exact copy of the GitHub keys
+endpoint. `modules/_github-ssh-keys.nix` returns that path. After adding or
+removing a key on GitHub, refresh it with
+`curl -fsSL https://github.com/worldofgeese.keys -o modules/_worldofgeese.keys`.
+Review the diff and merge. The next upgrade applies it. To apply it now, run
+`sudo systemctl start nixos-upgrade.service` on the host. If you forget the
+refresh, the new key is not authorized yet. Upgrades keep working.
+
+Incident 2026-10-07: both hosts' upgrades failed with `hash mismatch in file
+downloaded from 'https://github.com/worldofgeese.keys'` after the
+`google-pixel-fold` key was added on GitHub (2026-09-30). This was the second
+occurrence. The first was fixed on 2026-09-09 by bumping the pin. Vendoring
+the file removed the failure mode.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

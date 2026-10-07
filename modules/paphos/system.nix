@@ -1,6 +1,6 @@
 {den, ...}: {
-  den.aspects.paphos.nixos = {pkgs, ...}: let
-    worldofgeeseGithubSshKeys = import ../_github-ssh-keys.nix pkgs;
+  den.aspects.paphos.nixos = {...}: let
+    worldofgeeseGithubSshKeys = import ../_github-ssh-keys.nix;
     keys = import ./_keys.nix;
   in {
     system.stateVersion = "25.11";

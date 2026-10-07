@@ -21,9 +21,19 @@ flowchart LR
 | Elevation of privilege | Admin interfaces | least privilege + policy checks | authz tests |
 
 ## Authentication
-- Identity source:
+- Identity source: human SSH access to servers (`kypris@paphos`,
+  `nixos@oracle`) is public-key only. The authorized keys are each host's
+  explicit keys plus `modules/_worldofgeese.keys`, a vendored copy of
+  `https://github.com/worldofgeese.keys` that is reviewed in git. Servers never
+  read GitHub when they evaluate keys, so a GitHub-side change cannot add
+  access or break upgrades without a merged commit.
 - Token/session lifetime:
-- Rotation and revocation:
+- Rotation and revocation: change the key on GitHub, refresh the vendored file
+  (the command is in `modules/_github-ssh-keys.nix`), merge, and upgrade the
+  hosts. A key that is removed only on GitHub stays authorized until that
+  refresh is merged and deployed. To revoke a compromised key, refresh and run
+  `sudo systemctl start nixos-upgrade.service` on each host. Do not wait for
+  the timer.
 
 ## Authorization
 - Role model:

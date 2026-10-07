@@ -180,7 +180,7 @@ installed on the personal hosts.
 
 | Service | Endpoint | Credential | Consumers |
 |---|---|---|---|
-| Chorus (`projects/aws-chorus`, server v0.20.0) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from secretspec, agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.21.1`; the `chorus-pi-daemon` launchd agent |
+| Chorus (`projects/aws-chorus`, server v0.21.1) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from secretspec, agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.21.1`; the `chorus-pi-daemon` launchd agent |
 | Team Signet (`projects/aws-signet`) | `http://127.0.0.1:3860` through `signet-team-tunnel` | `~/.config/signet/token`, scoped to agent `tao.hansen` | every Signet client: `SIGNET_DAEMON_URL`, `SIGNET_AGENT_ID` and `SIGNET_API_KEY` in the session environment, and in the daemon's |
 | Team Friendship Hour (`projects/aws-tfh`) | `http://127.0.0.1:3880` through `tfh-tunnel` | none: tfh has no login, so the tunnel is the only access control | a browser |
 | Copilot Spaces | `https://api.githubcopilot.com/mcp/x/copilot_spaces` | `gh auth token` (OAuth, no PAT) | the `techwriter` pi agent |

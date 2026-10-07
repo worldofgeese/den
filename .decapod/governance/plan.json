@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
-  "title": "Reach Chorus and tfh over SSM tunnels",
-  "intent": "M-02877 reaches Chorus (3870) and tfh (3880) through KeepAlive SSM tunnel agents built by the same function as team Signet's, after devrel-infra#279/#280 removed their internet-facing ALBs; CHORUS_URL and pi's Chorus MCP URL follow; crane and the Session Manager plugin are installed for devrel-infra work",
+  "title": "Record Chorus server v0.21.1",
+  "intent": "den's notes and specs say the team Chorus server is v0.21.1 (devrel-infra#291), matching the client",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m49nzdfxaqybeg"
+    "bend_01m4a58120wvmfyp"
   ],
   "proof_hooks": [
     "nix build .#darwinConfigurations.M-02877.system",
@@ -17,8 +17,8 @@
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 5
+    "file_touch_budget": 3
   },
   "phases": [],
-  "updated_at": "1791328428Z"
+  "updated_at": "1791342468Z"
 }

@@ -115,6 +115,7 @@ persisted precisely because the file was unmanaged, so no deploy could correct i
 | Entrypoint -> core | | | | | deny/reject |
 | Core -> persistence | | | | | fail closed/transaction rollback |
 | Runtime -> external dependency | | | | | timeout/degrade |
+| paphos -> oracle (upgrade-state probe) | paphos' SSH host key (`modules/_host-keys.nix`), used by the root `paphos-oracle-relay-check` | `upgrade-status@oracle` can only run the forced command `systemctl is-failed nixos-upgrade.service` (`restrict`: no pty, no forwarding) | oracle's host key is pinned in paphos' `known_hosts`; `StrictHostKeyChecking=yes`, user known_hosts ignored | paphos journal for `paphos-oracle-relay-check`, Telegram alert | any other output alerts `oracle-nixos-upgrade-status-unavailable` |
 
 ## Agent and Automation Safety
 - Prompt/configuration text is treated as untrusted input until evaluated by

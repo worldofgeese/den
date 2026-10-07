@@ -176,6 +176,19 @@
     # kernels (about 180 MB). The cost: GRUB offers no older generation.
     boot.loader.grub.configurationLimit = 1;
 
+    # paphos' hourly oracle check (modules/paphos/ops.nix) logs in here to read
+    # this host's nixos-upgrade state. The only key is paphos' host key, and it
+    # is restricted to that one read-only command.
+    users.users.upgrade-status = {
+      isSystemUser = true;
+      group = "upgrade-status";
+      useDefaultShell = true; # sshd runs the forced command through the login shell
+      openssh.authorizedKeys.keys = [
+        ''restrict,command="${config.systemd.package}/bin/systemctl is-failed nixos-upgrade.service" ${(import ../_host-keys.nix).paphos}''
+      ];
+    };
+    users.groups.upgrade-status = {};
+
     nix.optimise.automatic = true;
 
     # Default nix.registry pins nixpkgs to pkgs.path in /etc/nix/registry.json;

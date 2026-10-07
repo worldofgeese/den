@@ -282,8 +282,21 @@ Incident, oracle part: oracle's last successful upgrade was 2026-09-24. From
 Each failed attempt left a partial `*.tmp` copy in `/boot/kernels`, and nothing
 cleans those up, so every later upgrade failed too. From 2026-10-02 the keys
 hash mismatch masked this. Nothing alerted on oracle's failures for 13 days.
-Only paphos' own `nixos-upgrade.service` is monitored, by the paphos health
-check, which pings oracle only for relay reachability.
+At the time, only paphos' own `nixos-upgrade.service` was monitored, by the
+paphos health check, which pinged oracle only for relay reachability.
+
+Monitoring: both servers' upgrade failures now alert through the same
+Telegram bot. paphos' hourly `paphos-health-check` sends
+`nixos-upgrade-failed`. paphos' hourly `paphos-oracle-relay-check` logs in
+as `upgrade-status@oracle`, which can only run the forced command
+`systemctl is-failed nixos-upgrade.service`, and sends
+`oracle-nixos-upgrade-failed`. If the probe gets any unexpected answer
+(unreachable, auth failure, or a changed host key) it sends
+`oracle-nixos-upgrade-status-unavailable`, so the probe cannot silently go
+blind. The check identifies itself with paphos' host key, and oracle's host
+key is pinned in paphos' `known_hosts`. Both keys are defined once in
+`modules/_host-keys.nix`. If either host is reinstalled, update that file and
+rekey the agenix secrets for paphos.
 
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |

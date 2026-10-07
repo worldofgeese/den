@@ -12,7 +12,8 @@
   #
   # A pi request then goes pi -> Caveman (127.0.0.1:8787) -> local-model-proxy
   # (127.0.0.1:18788, traces to Phoenix) -> Headroom (127.0.0.1:18787) ->
-  # gateway /claude. The chain itself is in darwin.nix.
+  # gateway /claude, or straight to local-model-proxy when Caveman cannot
+  # route it. The chain itself is in darwin.nix.
   den.aspects.dktaohan.homeManager = {
     pkgs,
     lib,
@@ -28,7 +29,6 @@
     # default gateway; headroom's 8787 is container-internal on this host,
     # so the two do not collide.
     cavemanListen = "127.0.0.1:8787";
-    cavemanUrl = "http://${cavemanListen}";
 
     # The Caveman CLI and its native binaries come from npm
     # (@caveman-ai/cli, `caveman setup --install`), not Nix: ~/.caveman/bin.
@@ -63,7 +63,9 @@
     };
 
     # Without this file the proxy's anthropic upstream is api.anthropic.com,
-    # which would send the LEGO gateway key to Anthropic's public API.
+    # which would send the LEGO gateway key to Anthropic's public API. It is
+    # also what the pi extension matches lego-claude's baseUrl against to
+    # route it, so both come from proxyUrl.
     cavemanConfig = ''
       # Managed by den (modules/M-02877/token-toolchain.nix).
       providers:
@@ -71,14 +73,11 @@
           base_url: ${proxyUrl}
     '';
 
-    # Caveman's pi extension routes a model by re-registering its provider
-    # with only a new baseUrl. pi then drops the provider's authHeader and
-    # sends the key only as x-api-key, which the gateway rejects (401). So
-    # the lego-claude provider points at Caveman itself, with authHeader
-    # intact, and this shim makes the extension's provider (un)registration
-    # a no-op. Everything else -- hooks, tool-output shrink, caveman_retrieve
-    # -- is the extension's own. The trade-off: no pass-through when the
-    # proxy is down, which KeepAlive below covers.
+    # Loads the npm-installed extension, and degrades to nothing when it is
+    # not installed. Caveman 2.x routes a model with pi.setModel (same
+    # provider, new baseUrl), so the provider's authHeader is kept; 1.x
+    # re-registered the provider, which dropped it (401), and this shim used
+    # to no-op that.
     cavemanShim = ''
       // Managed by den (modules/M-02877/token-toolchain.nix). Edits are overwritten.
       import { existsSync } from "node:fs";
@@ -93,14 +92,7 @@
           return;
         }
         const { default: caveman } = await import(pathToFileURL(upstream).href);
-        const shim = new Proxy(pi, {
-          get(target, key) {
-            if (key === "registerProvider" || key === "unregisterProvider") return () => {};
-            const value = Reflect.get(target, key);
-            return typeof value === "function" ? value.bind(target) : value;
-          },
-        });
-        return caveman(shim);
+        return caveman(pi);
       }
     '';
 
@@ -115,7 +107,11 @@
     cavemanSkills = ["caveman" "caveman-commit" "caveman-compress" "caveman-help" "caveman-review" "caveman-stats"];
   in {
     agentProviders.pi = {
-      baseUrl = "${cavemanUrl}/w/pi";
+      # The real first hop, not Caveman: the extension sees it equals the
+      # proxy's anthropic upstream and routes the session through
+      # Caveman's /w/pi/anthropic. When the proxy is down or a check fails,
+      # pi keeps this URL and still works, without compression.
+      baseUrl = proxyUrl;
       # pi sends the key both as the bearer and as x-api-key. Caveman forwards
       # only x-api-key when both arrive, and the gateway accepts only the
       # bearer. An empty x-api-key makes Caveman forward the bearer.

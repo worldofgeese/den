@@ -208,25 +208,36 @@ killed a test container named `headroom-test` on 2026-10-06.
 
 pi uses the chain through the den-owned `lego-claude` provider
 (`modules/M-02877/token-toolchain.nix`, after the community guide
-`setup-token-saving-toolchain.md`). Its first hop is Caveman's proxy
-(`com.dktaohan.caveman-proxy`, `127.0.0.1:8787`), configured by
-`~/.caveman/caveman.yaml` to forward to local-model-proxy. New sessions
+`setup-token-saving-toolchain.md`). The provider's `baseUrl` is
+local-model-proxy (`127.0.0.1:18788`), its real first hop. Caveman's pi
+extension routes each session through Caveman's proxy
+(`com.dktaohan.caveman-proxy`, `127.0.0.1:8787/w/pi/anthropic`), whose
+`~/.caveman/caveman.yaml` forwards to the same local-model-proxy. New sessions
 start on `lego-claude`. Running sessions keep the provider they started
 with, and `/model anthropic-proxy/...` goes straight to the gateway if the
 chain is down. pi also loads RTK's and Caveman's extensions, ponytail and
 context-mode (packages), Caveman's skills, and the context-mode, CodeGraph
 and Headroom MCP servers.
 
-Two Caveman behaviours shape this design, both measured on 2026-10-06:
+Three Caveman behaviours shape this design:
 - Without `caveman.yaml`, Caveman sends Anthropic-format requests to
-  `api.anthropic.com`, which would hand the LEGO gateway key to Anthropic.
-- Caveman's pi extension routes a model by re-registering its provider with
-  only a new `baseUrl`. pi then sends the key only as `x-api-key`, which the
-  gateway rejects with 401. So the provider points at Caveman itself, a shim
-  (`~/.pi/agent/extensions/caveman.js`) makes the extension's provider
-  registration a no-op, and an empty `x-api-key` header makes Caveman forward
-  the bearer. The cost is that there is no pass-through: if Caveman's proxy
-  is down, `lego-claude` requests fail until KeepAlive restarts it.
+  `api.anthropic.com`, which would hand the LEGO gateway key to Anthropic
+  (measured 2026-10-06).
+- Caveman 2.x (`@caveman-ai/cli` 2.0.1, binaries `bin-v2.0.2`, installed
+  2026-10-07) routes a model with `pi.setModel`: same provider, `baseUrl`
+  swapped for its proxy route, so the provider's `authHeader` is kept. It
+  routes only when the original `baseUrl` equals a published upstream
+  (`caveman.yaml` `providers.anthropic.base_url`, so both come from
+  `proxyUrl`) and the provider's headers are forwardable; otherwise pi keeps
+  the original URL and still works, uncompressed. Caveman 1.x instead
+  re-registered the provider, which dropped `authHeader` (gateway 401), so
+  the provider used to point at Caveman itself, with a shim no-oping
+  registration and no pass-through when the proxy was down. The shim
+  (`~/.pi/agent/extensions/caveman.js`) now only loads the npm-installed
+  extension.
+- Caveman forwards only `x-api-key` when both credentials arrive and the
+  gateway accepts only the bearer, so the provider sends an empty
+  `x-api-key`, which makes Caveman forward the bearer.
 
 Caveman's extension also shrinks tool output and returns a `ccr://` handle
 for `caveman_retrieve`. Small outputs are shrunk too, which costs extra

@@ -267,6 +267,24 @@ downloaded from 'https://github.com/worldofgeese.keys'` after the
 occurrence. The first was fixed on 2026-09-09 by bumping the pin. Vendoring
 the file removed the failure mode.
 
+oracle `/boot` invariant: `/boot` is the OCI image's 249 MB ESP. Because it
+is a separate partition, GRUB copies the kernel and initrd of every menu
+generation into it (about 89 MB per aarch64 generation). install-grub copies
+the new files before it deletes obsolete ones. So `/boot` must never hold
+more than one generation's files after an install, which means
+`boot.loader.grub.configurationLimit = 1`. The peak during an upgrade is then
+two kernels (about 180 MB). The tradeoff: GRUB offers no older generation. To
+keep fallback entries, mount the ESP at `/boot/efi` instead so that GRUB
+reads kernels from the store. That migration needs a supervised reboot.
+
+Incident, oracle part: oracle's last successful upgrade was 2026-09-24. From
+2026-09-25 the copy of kernel 6.18.53 failed with "No space left on device".
+Each failed attempt left a partial `*.tmp` copy in `/boot/kernels`, and nothing
+cleans those up, so every later upgrade failed too. From 2026-10-02 the keys
+hash mismatch masked this. Nothing alerted on oracle's failures for 13 days.
+Only paphos' own `nixos-upgrade.service` is monitored, by the paphos health
+check, which pings oracle only for relay reachability.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

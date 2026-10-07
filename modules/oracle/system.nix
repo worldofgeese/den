@@ -167,6 +167,15 @@
       };
     };
 
+    # /boot is the OCI image's 249 MB ESP, a separate partition, so GRUB copies
+    # the aarch64 kernel and initrd of every menu generation into it (about
+    # 89 MB each). install-grub copies new files before it deletes obsolete
+    # ones, so with two generations in the menu the next kernel bump overflows
+    # /boot. The failed copy leaves a .tmp file behind, and every later upgrade
+    # fails (2026-09-25 to 2026-10-07). With one generation the peak is two
+    # kernels (about 180 MB). The cost: GRUB offers no older generation.
+    boot.loader.grub.configurationLimit = 1;
+
     nix.optimise.automatic = true;
 
     # Default nix.registry pins nixpkgs to pkgs.path in /etc/nix/registry.json;

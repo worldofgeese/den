@@ -3,6 +3,7 @@
   telegramChatId = "488228716";
   oracleTailscaleIp = "100.87.121.45";
   oracleHost = "oracle.hound-celsius.ts.net";
+  hostKeys = import ../_host-keys.nix;
 in {
   den.aspects.paphos.nixos = {
     config,
@@ -140,6 +141,18 @@ in {
         record_failure "oracle-ssh-tcp-$oracle_host"
       fi
 
+      # oracle's own upgrade state, read through the restricted upgrade-status
+      # key (modules/oracle/system.nix). Its failures were otherwise silent.
+      upgrade_state="$(${openssh}/bin/ssh -i /etc/ssh/ssh_host_ed25519_key \
+        -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 \
+        -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=yes \
+        "upgrade-status@$oracle_host" 2>/dev/null || true)"
+      case "$upgrade_state" in
+        failed) record_failure oracle-nixos-upgrade-failed ;;
+        active | activating | inactive | deactivating) ;;
+        *) record_failure oracle-nixos-upgrade-status-unavailable ;;
+      esac
+
       if [[ -n "''${failures// /}" ]]; then
         notify "paphos oracle relay FAIL ($host):$failures"
         exit 1
@@ -257,8 +270,14 @@ in {
       script = "${healthScript}";
     };
 
+    # Pins oracle's host key for the upgrade-state check above.
+    programs.ssh.knownHosts.oracle = {
+      hostNames = [oracleHost oracleTailscaleIp];
+      publicKey = hostKeys.oracle;
+    };
+
     systemd.services.paphos-oracle-relay-check = {
-      description = "Oracle tailnet relay reachability checks with Telegram notification on failure";
+      description = "Oracle relay reachability and nixos-upgrade checks with Telegram notification on failure";
       after = ["network-online.target" "tailscaled.service" "agenix-secrets.target"];
       wants = ["network-online.target" "tailscaled.service" "agenix-secrets.target"];
       serviceConfig = {

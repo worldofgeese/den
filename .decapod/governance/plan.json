@@ -1,27 +1,28 @@
 {
   "schema_version": "1.0.0",
-  "title": "oracle: stop /boot ESP overflow deadlocking nixos-upgrade",
-  "intent": "oracle nixos-upgrade must never fail because GRUB kernel copies overflow the 249MB ESP; keep at most one generation's kernel+initrd in /boot",
+  "title": "Alert on oracle nixos-upgrade failure",
+  "intent": "Send the same Telegram alert for oracle's failed nixos-upgrade as for paphos', from paphos' existing hourly oracle check, without putting the bot token on oracle",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m4ancq4yvvzgrd"
+    "code_01m4apass6ympph0"
   ],
   "proof_hooks": [
-    "nix eval oracle grub.configurationLimit == 1",
-    "nix eval oracle toplevel drvPath",
-    "oracle switch succeeds after /boot cleanup; grub.cfg references only current kernel"
+    "oracle authorized key renders restrict+forced systemctl is-failed with paphos host key",
+    "paphos known_hosts pins oracle host key; secrets.nix eval unchanged",
+    "generated relay script passes bash -n and shellcheck",
+    "deployed: probe returns unit state; arbitrary commands refused; forced-failure test alert observed; state restored"
   ],
   "unknowns": [],
   "human_questions": [],
   "stop_conditions": [
-    "oracle running new config, /boot has headroom for one more kernel"
+    "oracle upgrade failure produces a Telegram alert"
   ],
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
     "forbidden_paths": [],
-    "file_touch_budget": 8
+    "file_touch_budget": 10
   },
   "phases": [],
-  "updated_at": "1791359520Z"
+  "updated_at": "1791360726Z"
 }

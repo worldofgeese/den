@@ -65,124 +65,124 @@
           else "-fsS";
       in
         pkgs.writeShellApplication {
-        inherit name;
-        runtimeInputs = [pkgs.awscli2 pkgs.jq pkgs.ssm-session-manager-plugin pkgs.curl];
-        text = ''
-          set -eu
-          region="''${AWS_REGION:-eu-west-1}"
-          stage="''${TUNNEL_STAGE:-production}"
-          port="''${TUNNEL_LOCAL_PORT:-${toString port}}"
+          inherit name;
+          runtimeInputs = [pkgs.awscli2 pkgs.jq pkgs.ssm-session-manager-plugin pkgs.curl];
+          text = ''
+            set -eu
+            region="''${AWS_REGION:-eu-west-1}"
+            stage="''${TUNNEL_STAGE:-production}"
+            port="''${TUNNEL_LOCAL_PORT:-${toString port}}"
 
-          # Wait for credentials rather than crash-looping against them. The
-          # account's SSO-Admin role caps a session at one hour, and the LEGO CLI
-          # credential process re-issues silently only while the Azure session
-          # lives; when that lapses a human has to sign in, and there is nothing
-          # useful to do until they do.
-          until aws sts get-caller-identity >/dev/null 2>&1; do sleep 60; done
+            # Wait for credentials rather than crash-looping against them. The
+            # account's SSO-Admin role caps a session at one hour, and the LEGO CLI
+            # credential process re-issues silently only while the Azure session
+            # lives; when that lapses a human has to sign in, and there is nothing
+            # useful to do until they do.
+            until aws sts get-caller-identity >/dev/null 2>&1; do sleep 60; done
 
-          # Refuse to bind over anything already there. For Signet this matters
-          # most: 3850 is where a personal Signet listens, so the team tunnel
-          # takes 3860, and adopting a local daemon would silently point every
-          # agent at one laptop's workspace.
-          if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
-            echo "port $port already in use; not starting a second tunnel" >&2
-            sleep 300
-            exit 1
-          fi
-
-          # Wait inside one invocation rather than exiting for launchd to retry.
-          # Exiting was measured costing about four minutes of downtime after a
-          # task replacement: the guard slept, exited, and then each restart found
-          # the new task's exec agent still PENDING and exited again. Polling here
-          # reconnects as soon as the agent is ready.
-          #
-          # The target is resolved on every pass because it embeds the container
-          # runtime id, which changes whenever ECS replaces the task.
-          target=""
-          while [ -z "$target" ]; do
-            cluster_arn=$(aws resourcegroupstaggingapi get-resources --region "$region" \
-              --resource-type-filters ecs:cluster \
-              --tag-filters "Key=sst:app,Values=${app}" "Key=sst:stage,Values=$stage" \
-              --query 'ResourceTagMappingList[0].ResourceARN' --output text 2>/dev/null || true)
-            if [ -z "$cluster_arn" ] || [ "$cluster_arn" = "None" ]; then
-              sleep 30
-              continue
-            fi
-            cluster="''${cluster_arn##*/}"
-
-            task=$(aws ecs list-tasks --region "$region" --cluster "$cluster" \
-              --desired-status RUNNING --query 'taskArns[0]' --output text 2>/dev/null || true)
-            if [ -z "$task" ] || [ "$task" = "None" ]; then
-              # Signet's daemon exits 0 when it cannot take its workspace lock, so
-              # an absent task can mean a refused start rather than a deploy.
-              sleep 10
-              continue
+            # Refuse to bind over anything already there. For Signet this matters
+            # most: 3850 is where a personal Signet listens, so the team tunnel
+            # takes 3860, and adopting a local daemon would silently point every
+            # agent at one laptop's workspace.
+            if nc -z 127.0.0.1 "$port" >/dev/null 2>&1; then
+              echo "port $port already in use; not starting a second tunnel" >&2
+              sleep 300
+              exit 1
             fi
 
-            # Two queries rather than one line split by a heredoc: a heredoc
-            # terminator inside a Nix indented string only lands in column 1
-            # because Nix strips the common indentation, which is too fragile a
-            # thing to rely on.
-            agent_state=$(aws ecs describe-tasks --region "$region" --cluster "$cluster" \
-              --tasks "$task" --query 'tasks[0].containers[0].managedAgents[0].lastStatus' \
-              --output text 2>/dev/null || true)
-            runtime_id=$(aws ecs describe-tasks --region "$region" --cluster "$cluster" \
-              --tasks "$task" --query 'tasks[0].containers[0].runtimeId' \
-              --output text 2>/dev/null || true)
-            # The exec agent takes a couple of minutes to reach RUNNING after a
-            # task starts, and start-session fails until it does. Waiting here is
-            # what makes a deploy self-heal without anyone watching.
-            if [ "$agent_state" != "RUNNING" ] || [ -z "$runtime_id" ] || [ "$runtime_id" = "None" ]; then
-              sleep 10
-              continue
-            fi
-            target="ecs:''${cluster}_''${task##*/}_''${runtime_id}"
-          done
+            # Wait inside one invocation rather than exiting for launchd to retry.
+            # Exiting was measured costing about four minutes of downtime after a
+            # task replacement: the guard slept, exited, and then each restart found
+            # the new task's exec agent still PENDING and exited again. Polling here
+            # reconnects as soon as the agent is ready.
+            #
+            # The target is resolved on every pass because it embeds the container
+            # runtime id, which changes whenever ECS replaces the task.
+            target=""
+            while [ -z "$target" ]; do
+              cluster_arn=$(aws resourcegroupstaggingapi get-resources --region "$region" \
+                --resource-type-filters ecs:cluster \
+                --tag-filters "Key=sst:app,Values=${app}" "Key=sst:stage,Values=$stage" \
+                --query 'ResourceTagMappingList[0].ResourceARN' --output text 2>/dev/null || true)
+              if [ -z "$cluster_arn" ] || [ "$cluster_arn" = "None" ]; then
+                sleep 30
+                continue
+              fi
+              cluster="''${cluster_arn##*/}"
 
-          # Session Manager kills an idle session after 20 minutes - the AWS default,
-          # and this account sets no preference document to change it. Measured here:
-          # two consecutive sessions of 20m37s and 20m28s, each ended by the idle
-          # timer rather than by anything local. The loop then rebuilds the tunnel in
-          # about 80 seconds, so an agent that consults memory occasionally meets a
-          # dead port most times it asks, and the failure looks like the server rather
-          # than the session.
-          #
-          # A request every minute keeps data on the channel, so the session
-          # never becomes idle. Each probe path is open without a credential
-          # (Signet's /health/ready in team mode, Chorus's /api/health, tfh's
-          # /healthz), so the keepalive carries none. The loop lives exactly as long as its session, so
-          # a replaced task still ends the process and lets KeepAlive reconnect.
-          #
-          # The same request is the watchdog. On 2026-10-06 a session stayed up,
-          # still listening on the port, while every request through it hung, so
-          # every agent quietly lost team memory until the agent was restarted by
-          # hand. Two misses in a row (about two minutes, longer than the
-          # daemon's 36-second post-start 503 window) end the session; launchd
-          # then reconnects to whatever task is current.
-          aws ssm start-session --region "$region" \
-            --target "$target" \
-            --document-name "${document}" \
-            --parameters "localPortNumber=$port" &
-          session_pid=$!
+              task=$(aws ecs list-tasks --region "$region" --cluster "$cluster" \
+                --desired-status RUNNING --query 'taskArns[0]' --output text 2>/dev/null || true)
+              if [ -z "$task" ] || [ "$task" = "None" ]; then
+                # Signet's daemon exits 0 when it cannot take its workspace lock, so
+                # an absent task can mean a refused start rather than a deploy.
+                sleep 10
+                continue
+              fi
 
-          misses=0
-          while kill -0 "$session_pid" 2>/dev/null; do
-            sleep 60
-            if curl ${curlFlags} -m 10 -o /dev/null "http://127.0.0.1:$port${probePath}" 2>/dev/null; then
-              misses=0
-            else
-              misses=$((misses + 1))
-            fi
-            if [ "$misses" -ge 2 ]; then
-              echo "${name}: no answer through the tunnel for $misses checks; ending session $session_pid to reconnect" >&2
-              kill "$session_pid" 2>/dev/null || true
-              break
-            fi
-          done
+              # Two queries rather than one line split by a heredoc: a heredoc
+              # terminator inside a Nix indented string only lands in column 1
+              # because Nix strips the common indentation, which is too fragile a
+              # thing to rely on.
+              agent_state=$(aws ecs describe-tasks --region "$region" --cluster "$cluster" \
+                --tasks "$task" --query 'tasks[0].containers[0].managedAgents[0].lastStatus' \
+                --output text 2>/dev/null || true)
+              runtime_id=$(aws ecs describe-tasks --region "$region" --cluster "$cluster" \
+                --tasks "$task" --query 'tasks[0].containers[0].runtimeId' \
+                --output text 2>/dev/null || true)
+              # The exec agent takes a couple of minutes to reach RUNNING after a
+              # task starts, and start-session fails until it does. Waiting here is
+              # what makes a deploy self-heal without anyone watching.
+              if [ "$agent_state" != "RUNNING" ] || [ -z "$runtime_id" ] || [ "$runtime_id" = "None" ]; then
+                sleep 10
+                continue
+              fi
+              target="ecs:''${cluster}_''${task##*/}_''${runtime_id}"
+            done
 
-          wait "$session_pid"
-        '';
-      };
+            # Session Manager kills an idle session after 20 minutes - the AWS default,
+            # and this account sets no preference document to change it. Measured here:
+            # two consecutive sessions of 20m37s and 20m28s, each ended by the idle
+            # timer rather than by anything local. The loop then rebuilds the tunnel in
+            # about 80 seconds, so an agent that consults memory occasionally meets a
+            # dead port most times it asks, and the failure looks like the server rather
+            # than the session.
+            #
+            # A request every minute keeps data on the channel, so the session
+            # never becomes idle. Each probe path is open without a credential
+            # (Signet's /health/ready in team mode, Chorus's /api/health, tfh's
+            # /healthz), so the keepalive carries none. The loop lives exactly as long as its session, so
+            # a replaced task still ends the process and lets KeepAlive reconnect.
+            #
+            # The same request is the watchdog. On 2026-10-06 a session stayed up,
+            # still listening on the port, while every request through it hung, so
+            # every agent quietly lost team memory until the agent was restarted by
+            # hand. Two misses in a row (about two minutes, longer than the
+            # daemon's 36-second post-start 503 window) end the session; launchd
+            # then reconnects to whatever task is current.
+            aws ssm start-session --region "$region" \
+              --target "$target" \
+              --document-name "${document}" \
+              --parameters "localPortNumber=$port" &
+            session_pid=$!
+
+            misses=0
+            while kill -0 "$session_pid" 2>/dev/null; do
+              sleep 60
+              if curl ${curlFlags} -m 10 -o /dev/null "http://127.0.0.1:$port${probePath}" 2>/dev/null; then
+                misses=0
+              else
+                misses=$((misses + 1))
+              fi
+              if [ "$misses" -ge 2 ]; then
+                echo "${name}: no answer through the tunnel for $misses checks; ending session $session_pid to reconnect" >&2
+                kill "$session_pid" 2>/dev/null || true
+                break
+              fi
+            done
+
+            wait "$session_pid"
+          '';
+        };
       signetTeamTunnel = mkSsmTunnel {
         name = "signet-team-tunnel";
         app = "aws-signet";

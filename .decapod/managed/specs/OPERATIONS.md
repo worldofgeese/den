@@ -131,10 +131,12 @@ which is why the served set is one directory. Log:
   `~/.local/state/chorus-api-key.cache` (0600) after each good read and uses
   the cache when secretspec fails, as the gateway `keyCommand` already does.
   The first start must happen while the Mac is unlocked.
-- Versions. Client and `chorus-pi` are 0.21.1, the server v0.20.0. If wakes
-  fail with errors about missing endpoints, upgrade `projects/aws-chorus` to
-  0.21.1 rather than downgrading the client: 0.21.1 is the first release with
-  pi's built-in MCP.
+- Versions. Server, client and `chorus-pi` are all 0.21.1. The server moved
+  from v0.20.0 in LEGO/devrel-infra#291 (2026-10-07); v0.21.0 added private
+  projects with a schema migration. devrel-infra's nightly release job now
+  opens a PR for each new server release. Keep `chorusVersion` in step with
+  it: 0.21.1 is the first client release with pi's built-in MCP, so never
+  downgrade the client to match an older server.
 - The Chorus CLI is an npm global (`~/.local/bin/chorus`), installed and pinned
   by activation because the package is the whole Chorus server app.
 

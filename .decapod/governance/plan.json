@@ -1,22 +1,20 @@
 {
   "schema_version": "1.0.0",
-  "title": "Vendor GitHub SSH keys for paphos/oracle",
-  "intent": "paphos and oracle nixos-upgrade must never fail because keys on github.com/worldofgeese.keys changed; vendor the key list in-repo instead of a hash-pinned builtins.fetchurl of a mutable URL",
+  "title": "oracle: stop /boot ESP overflow deadlocking nixos-upgrade",
+  "intent": "oracle nixos-upgrade must never fail because GRUB kernel copies overflow the 249MB ESP; keep at most one generation's kernel+initrd in /boot",
   "state": "APPROVED",
   "todo_ids": [
-    "bugs_01m4aczdyrq6etvz"
+    "code_01m4ancq4yvvzgrd"
   ],
   "proof_hooks": [
-    "repro: nix eval of paphos kypris keyFiles fails with hash mismatch on main",
-    "nix eval paphos+oracle toplevel drvPath succeeds",
-    "generated authorized_keys = deployed set + google-pixel-fold key (no key removed)",
-    "just check",
-    "nixos-upgrade.service succeeds on paphos and oracle after merge; health check clean"
+    "nix eval oracle grub.configurationLimit == 1",
+    "nix eval oracle toplevel drvPath",
+    "oracle switch succeeds after /boot cleanup; grub.cfg references only current kernel"
   ],
   "unknowns": [],
   "human_questions": [],
   "stop_conditions": [
-    "both hosts upgraded and SSH still works"
+    "oracle running new config, /boot has headroom for one more kernel"
   ],
   "unresolved_contradictions": [],
   "deferred_questions": [],
@@ -25,5 +23,5 @@
     "file_touch_budget": 8
   },
   "phases": [],
-  "updated_at": "1791351813Z"
+  "updated_at": "1791359520Z"
 }

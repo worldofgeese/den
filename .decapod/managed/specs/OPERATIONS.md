@@ -209,39 +209,58 @@ killed a test container named `headroom-test` on 2026-10-06.
 pi uses the chain through the den-owned `lego-claude` provider
 (`modules/M-02877/token-toolchain.nix`, after the community guide
 `setup-token-saving-toolchain.md`). The provider's `baseUrl` is
-local-model-proxy (`127.0.0.1:18788`), its real first hop. Caveman's pi
-extension routes each session through Caveman's proxy
-(`com.dktaohan.caveman-proxy`, `127.0.0.1:8787/w/pi/anthropic`), whose
-`~/.caveman/caveman.yaml` forwards to the same local-model-proxy. New sessions
+local-model-proxy (`127.0.0.1:18788`), its real first hop, so model traffic
+does not pass Caveman's proxy (`com.dktaohan.caveman-proxy`,
+`127.0.0.1:8787`). That proxy still serves the Caveman pi extension's
+tool-output shrinking, and its `~/.caveman/caveman.yaml` points its
+Anthropic upstream at the same local-model-proxy. New sessions
 start on `lego-claude`. Running sessions keep the provider they started
 with, and `/model anthropic-proxy/...` goes straight to the gateway if the
 chain is down. pi also loads RTK's and Caveman's extensions, ponytail and
 context-mode (packages), Caveman's skills, and the context-mode, CodeGraph
 and Headroom MCP servers.
 
-Three Caveman behaviours shape this design:
+Caveman behaviours that shape this design:
 - Without `caveman.yaml`, Caveman sends Anthropic-format requests to
   `api.anthropic.com`, which would hand the LEGO gateway key to Anthropic
   (measured 2026-10-06).
-- Caveman 2.x (`@caveman-ai/cli` 2.0.1, binaries `bin-v2.0.2`, installed
-  2026-10-07) routes a model with `pi.setModel`: same provider, `baseUrl`
-  swapped for its proxy route, so the provider's `authHeader` is kept. It
-  routes only when the original `baseUrl` equals a published upstream
-  (`caveman.yaml` `providers.anthropic.base_url`, so both come from
-  `proxyUrl`) and the provider's headers are forwardable; otherwise pi keeps
-  the original URL and still works, uncompressed. Caveman 1.x instead
-  re-registered the provider, which dropped `authHeader` (gateway 401), so
-  the provider used to point at Caveman itself, with a shim no-oping
-  registration and no pass-through when the proxy was down. The shim
-  (`~/.pi/agent/extensions/caveman.js`) now only loads the npm-installed
-  extension.
-- Caveman forwards only `x-api-key` when both credentials arrive and the
-  gateway accepts only the bearer, so the provider sends an empty
-  `x-api-key`, which makes Caveman forward the bearer.
+- pi sends the key as the bearer and as `x-api-key`. Caveman's proxy
+  forwards only `x-api-key` when both arrive, and the gateway accepts only
+  the bearer, so a session routed through Caveman gets 401. An empty
+  `x-api-key` made Caveman 1.x forward the bearer, which is why the provider
+  used to point at Caveman itself (`/w/pi`), with a shim no-oping the
+  extension's provider re-registration (which dropped `authHeader`).
+- Caveman 2.x (`@caveman-ai/cli` 2.0.1, `bin-v2.0.2`, measured 2026-10-07)
+  routes with `pi.setModel` and keeps `authHeader`, but refuses to route a
+  provider whose `x-api-key` is empty ("keep the provider direct"), and its
+  proxy still forwards `x-api-key` over the bearer (401 with both). So the
+  provider goes direct, and the empty `x-api-key` stays: it is what keeps
+  the extension from rerouting `lego-claude` into that 401. Each new session
+  warns "Caveman: pass-through for lego-claude/...; no compression"; that is
+  expected. Request compression through Caveman saved ~0 tokens before
+  (201 tokens over 440 requests), and tool-output shrinking does not use
+  this route. The shim (`~/.pi/agent/extensions/caveman.js`) now only loads
+  the npm-installed extension.
 
 Caveman's extension also shrinks tool output and returns a `ccr://` handle
 for `caveman_retrieve`. Small outputs are shrunk too, which costs extra
 retrieve turns. Watch for this before treating the setup as a net saving.
+A handle is only recoverable while the session can call `caveman_retrieve`:
+a pi subagent with its own `tools:` list replaces the active set, so the
+den-generated `techwriter` agent names `caveman_retrieve` until Caveman ships
+the fix for JuliusBrussee/caveman#1211 (PR #1196). Caveman binaries up to
+`bin-v1.1.4` also lose every handle (#1008); upgrade, then restart the proxy
+from a plain terminal, never from an agent session that talks through it.
+
+Headroom 0.40.0 runs with two workarounds from `gateway.json`:
+`HEADROOM_NO_MEMORY_TOOLS=1` stops it injecting its memory tools, whose
+server-side continuation 400s when the model also called a client tool in
+the same turn (headroomlabs-ai/headroom#4009, fix #4013), while memory
+storage and `--learn` stay on; `HEADROOM_EXCLUDE_TOOLS=caveman_retrieve`
+stops it lossy-compressing recovered Caveman output (#4010, fix #4014).
+Drop each once a Headroom release carries its fix. Changing them restarts
+the Headroom container, which is in every session's model path, so apply
+from a plain terminal.
 
 When testing by hand, use container names that do not start with `headroom`,
 and spare loopback ports (28787 and 28788 were used). Verify the chain with

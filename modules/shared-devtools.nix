@@ -58,7 +58,8 @@
           decapod
         ]
         ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
-          # Darwin gets the Homebrew-managed bd from /opt/homebrew/bin.
+          # Darwin gets dolt and rtk from Homebrew, and bd from the BTS box
+          # companion (~/bin/bd wraps ~/.local/bin/bd); Homebrew has no beads.
           beads
           dolt
           rtk

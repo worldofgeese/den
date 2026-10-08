@@ -777,10 +777,14 @@
                   podman machine start || sleep 5
                 done
 
+                # The image is read only when the container is created, and
+                # the in-container auto-update fails (manifest_invalid for
+                # linux-arm64). To move to a new release: back up ~/.agents,
+                # boot this agent out, `podman rm -f signet`, bootstrap it.
                 podman container exists signet ||
                   DBX_CONTAINER_MANAGER=podman "$bin/distrobox" create --yes --no-entry --unshare-netns \
                     --name signet \
-                    --image ghcr.io/signet-ai/signet:0.214.27 \
+                    --image ghcr.io/signet-ai/signet:0.237.9 \
                     --volume "$home/.agents:/data/agents" \
                     --volume /var/folders:/var/folders \
                     --additional-flags "--publish 127.0.0.1:3850:3850 --env SIGNET_DAEMON_ENTRYPOINT=0 --env SIGNET_PATH=/data/agents --env SIGNET_BIND=0.0.0.0 --env SIGNET_PORT=3850"
@@ -842,6 +846,12 @@
             RunAtLoad = true;
             # Restart daemon failures; leave intentional clean exits stopped.
             KeepAlive = {SuccessfulExit = false;};
+            # When the script above starts the podman VM, vfkit and gvproxy
+            # keep this job's process group, and launchd kills the whole
+            # group when the job stops. On 2026-10-08 a bootout of this agent
+            # took the VM down, with the Gas City container on it. Stopping
+            # the agent must stop only the daemon.
+            AbandonProcessGroup = true;
             ProcessType = "Background";
             StandardOutPath = "${config.users.users.dktaohan.home}/.local/state/signet-container.log";
             StandardErrorPath = "${config.users.users.dktaohan.home}/.local/state/signet-container.log";

@@ -120,12 +120,13 @@ export enum ApiErrorCode {
 ## Beads Tooling Boundary
 Beads task state uses the legacy `bd` CLI as the single project workflow
 interface. Linux Home Manager profiles receive the Nixpkgs `beads` and `dolt`
-packages, with `beads` providing the `bd` command; the Darwin profile resolves
-`bd` from Homebrew at `/opt/homebrew/bin` and keeps Dolt under nix-darwin.
-Codex, Cursor, and Git hook integrations all invoke `bd` directly. On
-M-02877, pi gets two packages that also only run `bd`: `pi-beads-extension`
+packages, with `beads` providing the `bd` command. On Darwin, Homebrew has no
+beads: `~/bin/bd` wraps the BTS box companion's `~/.local/bin/bd`, and Dolt
+comes from Homebrew. Codex, Cursor, and Git hook integrations all invoke `bd`
+directly. On M-02877, pi gets `pi-beads-extension`, which also only runs `bd`
 (agent side: `bd prime` in the system prompt and through compaction, `/beads:*`
-commands) and `@soleone/pi-tasks` (human side: the `/tasks` browser). The Rust
+commands). `@soleone/pi-tasks`, the human-side `/tasks` browser, was removed on
+2026-10-08 (`piAgent.removedPackages`): nobody used it. The Rust
 `br` CLI and `bv` viewer are not part of the supported package or interface
 surface.
 

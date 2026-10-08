@@ -178,10 +178,11 @@
         # Agent side of Beads: `bd prime` in the system prompt and kept
         # through compaction, plus /beads:* commands. Only ever runs `bd`.
         "npm:pi-beads-extension@0.1.0"
-        # Human side: a task browser (/tasks, ctrl+shift+r, alt+x) over the
-        # same bd backend.
-        "npm:@soleone/pi-tasks@0.5.0"
       ];
+      # pi-tasks (/tasks over bd) added no agent tools, only the command and
+      # a startup notice, and nobody ran /tasks after 2026-10-06. Without
+      # devrel-infra's local beads store it only fell back to TODO.md.
+      removedPackages = ["npm:@soleone/pi-tasks"];
     };
 
     home.activation = {

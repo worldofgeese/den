@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-code-01m4djxscjbes3dd-2",
-  "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+  "run_id": "run-code-01m4djxscjbes3dd-3",
+  "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
   "task_id": "code_01m4djxscjbes3dd",
   "original_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user",
   "derived_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; Headroom workarounds stay until 0.41.0",
@@ -41,6 +41,10 @@
       "status": "passed"
     },
     {
+      "name": "container-validate",
+      "status": "passed"
+    },
+    {
       "name": "darwin-system-build",
       "status": "passed"
     },
@@ -76,12 +80,12 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:85daab6f0519272b00a90a40fd011e2d7fd2f7e27dd56013ffb4c0fef54d5192",
+  "artifact_hash": "sha256:9b328342e77a851a400cc324fe7b16ece1719727820174da3e35bdb75e976c2d",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-code-01m4djxscjbes3dd-2": {
-        "id": "intent:run-code-01m4djxscjbes3dd-2",
+      "intent:run-code-01m4djxscjbes3dd-3": {
+        "id": "intent:run-code-01m4djxscjbes3dd-3",
         "raw_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user",
         "refined_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; Headroom workarounds stay until 0.41.0",
         "acceptance_criteria": [],
@@ -103,34 +107,34 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code-01m4djxscjbes3dd-2"
+        "detail": "trajectory:run-code-01m4djxscjbes3dd-3"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code-01m4djxscjbes3dd-2"
+        "detail": "trajectory:run-code-01m4djxscjbes3dd-3"
       }
     ],
     "trajectories": {
-      "run-code-01m4djxscjbes3dd-2": {
-        "id": "run-code-01m4djxscjbes3dd-2",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+      "run-code-01m4djxscjbes3dd-3": {
+        "id": "run-code-01m4djxscjbes3dd-3",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
         "evidence_only": true,
         "steps": [
           {
@@ -157,7 +161,8 @@
               "alejandra",
               "chorus-mcp-auth-with-cached-key",
               "herdr-pane-env-simulation",
-              "personal-signet-0.237.9-health"
+              "personal-signet-0.237.9-health",
+              "container-validate"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"

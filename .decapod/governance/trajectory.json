@@ -1,10 +1,10 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-code-01m4djxscjbes3dd-3",
-  "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
+  "run_id": "run-code-01m4djxscjbes3dd-4",
+  "intent_id": "intent:run-code-01m4djxscjbes3dd-4",
   "task_id": "code_01m4djxscjbes3dd",
-  "original_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user",
-  "derived_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; Headroom workarounds stay until 0.41.0",
+  "original_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user; drop pi-tasks (user, via MintEagle)",
+  "derived_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; pi-tasks removed; Headroom workarounds stay until 0.41.0",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
@@ -20,6 +20,7 @@
     ".decapod/governance/trajectory.json",
     ".decapod/governance/validation.json",
     ".decapod/managed/specs/ARCHITECTURE.md",
+    ".decapod/managed/specs/INTENT.md",
     ".decapod/managed/specs/INTERFACES.md",
     ".decapod/managed/specs/OPERATIONS.md",
     "modules/M-02877/agent-integrations.nix",
@@ -41,10 +42,6 @@
       "status": "passed"
     },
     {
-      "name": "container-validate",
-      "status": "passed"
-    },
-    {
       "name": "darwin-system-build",
       "status": "passed"
     },
@@ -63,13 +60,18 @@
     {
       "name": "personal-signet-0.237.9-health",
       "status": "passed"
+    },
+    {
+      "name": "pi-tasks-removed-from-settings",
+      "status": "passed"
     }
   ],
   "evidence": [
     "3850 and 3860 /health report 0.237.9; verify-team.sh GREEN",
     "Chorus MCP initialize: 200 with cached key, 401 with bad key",
+    "activation ran pi remove npm:@soleone/pi-tasks; settings.json packages no longer list it",
     "new pane gets SIGNET_DAEMON_URL=3860, SIGNET_AGENT_ID=tao.hansen, CHORUS_API_KEY; nested shell keeps guard",
-    "validation epoch ve_10b90d2136a54c21 completed with zero failures"
+    "validation epoch ve_7893cf99aa82ff03 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -80,14 +82,14 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:9b328342e77a851a400cc324fe7b16ece1719727820174da3e35bdb75e976c2d",
+  "artifact_hash": "sha256:76e4d672f358003129ac47903e2636ad70639caa802bfe061f97605d129ae9b8",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-code-01m4djxscjbes3dd-3": {
-        "id": "intent:run-code-01m4djxscjbes3dd-3",
-        "raw_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user",
-        "refined_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; Headroom workarounds stay until 0.41.0",
+      "intent:run-code-01m4djxscjbes3dd-4": {
+        "id": "intent:run-code-01m4djxscjbes3dd-4",
+        "raw_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user; drop pi-tasks (user, via MintEagle)",
+        "refined_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; pi-tasks removed; Headroom workarounds stay until 0.41.0",
         "acceptance_criteria": [],
         "constraints": [
           "modules/M-02877/{agent-integrations,dktaohan,darwin}.nix, modules/shared-devtools.nix, .decapod/managed/specs"
@@ -107,34 +109,34 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-4",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-4",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-4",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code-01m4djxscjbes3dd-3"
+        "detail": "trajectory:run-code-01m4djxscjbes3dd-4"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-4",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code-01m4djxscjbes3dd-3"
+        "detail": "trajectory:run-code-01m4djxscjbes3dd-4"
       }
     ],
     "trajectories": {
-      "run-code-01m4djxscjbes3dd-3": {
-        "id": "run-code-01m4djxscjbes3dd-3",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd-3",
+      "run-code-01m4djxscjbes3dd-4": {
+        "id": "run-code-01m4djxscjbes3dd-4",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-4",
         "evidence_only": true,
         "steps": [
           {
@@ -151,9 +153,11 @@
               ".decapod/managed/specs/ARCHITECTURE.md",
               ".decapod/managed/specs/INTERFACES.md",
               ".decapod/managed/specs/OPERATIONS.md",
+              ".decapod/managed/specs/INTENT.md",
               "Chorus MCP initialize: 200 with cached key, 401 with bad key",
               "new pane gets SIGNET_DAEMON_URL=3860, SIGNET_AGENT_ID=tao.hansen, CHORUS_API_KEY; nested shell keeps guard",
-              "3850 and 3860 /health report 0.237.9; verify-team.sh GREEN"
+              "3850 and 3860 /health report 0.237.9; verify-team.sh GREEN",
+              "activation ran pi remove npm:@soleone/pi-tasks; settings.json packages no longer list it"
             ],
             "proof_refs": [
               "hm-activation-build",
@@ -162,7 +166,7 @@
               "chorus-mcp-auth-with-cached-key",
               "herdr-pane-env-simulation",
               "personal-signet-0.237.9-health",
-              "container-validate"
+              "pi-tasks-removed-from-settings"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
@@ -177,7 +181,7 @@
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_10b90d2136a54c21 completed with zero failures"
+              "validation epoch ve_7893cf99aa82ff03 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

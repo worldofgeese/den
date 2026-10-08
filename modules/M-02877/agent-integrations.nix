@@ -68,6 +68,37 @@
 
     '';
 
+    # The Chorus API key, for every consumer: secretspec first, else the
+    # last-known-good cache. secretspec's Secure Enclave identity refuses to
+    # decrypt while macOS holds the data-protection keybag locked
+    # (age-plugin-se: OSStatus -25308, errSecInteractionNotAllowed). That is
+    # the case while the screen is locked, and on 2026-10-08 it stayed so for
+    # hours with the screen unlocked, so every new shell lost the key and pi's
+    # chorus MCP server failed to resolve its Authorization header. Like the
+    # gateway keyCommand (modules/gateway.nix), a good read refreshes the 0600
+    # cache, so a rotated key reaches it on the next good read, and a failed
+    # read falls back to it. Prints the key; $1 is the reason secretspec
+    # records. Exits 1 when neither source has a key.
+    chorusApiKey = pkgs.writeShellApplication {
+      name = "chorus-api-key";
+      runtimeInputs = [pkgs.coreutils pkgs.diffutils];
+      text = ''
+        cache=${lib.escapeShellArg "${home}/.local/state/chorus-api-key.cache"}
+        if key="$(secretspec get -f ${lib.escapeShellArg "${home}/.config/home-manager/secretspec.toml"} CHORUS_API_KEY --reason "''${1:-Chorus API key}")" && [ -n "$key" ]; then
+          if ! printf '%s\n' "$key" | cmp -s - "$cache"; then
+            (umask 077 && printf '%s\n' "$key" >"$cache.$$" && mv "$cache.$$" "$cache")
+          fi
+        elif [ -s "$cache" ]; then
+          echo "chorus-api-key: secretspec unavailable (keybag locked?); using the cached key" >&2
+          key="$(cat "$cache")"
+        else
+          echo "chorus-api-key: CHORUS_API_KEY is in neither secretspec nor the cache" >&2
+          exit 1
+        fi
+        printf '%s\n' "$key"
+      '';
+    };
+
     # The Chorus daemon wakes a headless `pi --mode rpc` when work is sent to
     # this agent from Chorus. launchd starts it without a login shell, so it
     # gets the environment an interactive pi would have: PATH, Chorus and team
@@ -81,23 +112,13 @@
         ${lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "export ${n}=${lib.escapeShellArg v}") signetEnv)}
         SIGNET_API_KEY="$(cat ${lib.escapeShellArg signetTokenFile} 2>/dev/null || true)"
         export SIGNET_API_KEY
-        # secretspec's Secure Enclave identity refuses to decrypt while the
-        # screen is locked (errSecInteractionNotAllowed, -25308), and this
-        # daemon exists to be woken while nobody is at the Mac. So, like the
-        # gateway keyCommand (modules/gateway.nix), a good read refreshes a
-        # 0600 cache and a failed one falls back to it.
-        cache=${lib.escapeShellArg "${home}/.local/state/chorus-api-key.cache"}
-        if CHORUS_API_KEY="$(secretspec get -f ${lib.escapeShellArg "${home}/.config/home-manager/secretspec.toml"} CHORUS_API_KEY --reason "Chorus pi daemon")" && [ -n "$CHORUS_API_KEY" ]; then
-          if ! printf '%s\n' "$CHORUS_API_KEY" | cmp -s - "$cache"; then
-            (umask 077 && printf '%s\n' "$CHORUS_API_KEY" >"$cache.$$" && mv "$cache.$$" "$cache")
-          fi
-        elif [ -s "$cache" ]; then
-          echo "chorus-pi-daemon: secretspec unavailable (screen locked?); using the cached key" >&2
-          CHORUS_API_KEY="$(cat "$cache")"
-        else
+        # This daemon exists to be woken while nobody is at the Mac, which is
+        # when secretspec refuses most often; chorus-api-key then serves the
+        # cache.
+        if ! CHORUS_API_KEY="$(${lib.getExe chorusApiKey} "Chorus pi daemon")"; then
           # Fail slowly: launchd restarts after ThrottleInterval, so a missing
           # key costs one wait per minute rather than a hot loop.
-          echo "chorus-pi-daemon: CHORUS_API_KEY unavailable from secretspec and no cache; retrying" >&2
+          echo "chorus-pi-daemon: CHORUS_API_KEY unavailable; retrying" >&2
           sleep 60
           exit 1
         fi
@@ -116,6 +137,17 @@
       '';
     };
   in {
+    # pi's built-in MCP (`Bearer ${CHORUS_API_KEY}`) and chorus-pi read the
+    # Chorus connection from the environment only, so interactive shells
+    # export it. The key stays out of this git-tracked source.
+    programs.zsh.initContent = ''
+      export CHORUS_URL=${chorusUrl}
+      if [ -z "''${CHORUS_API_KEY:-}" ] && chorus_key="$(${lib.getExe chorusApiKey} "pi Chorus MCP server and chorus-pi" 2>/dev/null)"; then
+        export CHORUS_API_KEY="$chorus_key"
+      fi
+      unset chorus_key
+    '';
+
     home.sessionVariables =
       signetEnv
       // {
@@ -146,17 +178,21 @@
         # Agent side of Beads: `bd prime` in the system prompt and kept
         # through compaction, plus /beads:* commands. Only ever runs `bd`.
         "npm:pi-beads-extension@0.1.0"
-        # Human side: a task browser (/tasks, ctrl+shift+r, alt+x) over the
-        # same bd backend.
-        "npm:@soleone/pi-tasks@0.5.0"
       ];
+      # pi-tasks (/tasks over bd) added no agent tools, only the command and
+      # a startup notice, and nobody ran /tasks after 2026-10-06. Without
+      # devrel-infra's local beads store it only fell back to TODO.md.
+      removedPackages = ["npm:@soleone/pi-tasks"];
     };
 
     home.activation = {
       # The chorus CLI is the whole Chorus app (Next.js server included), so
       # it is installed from npm, pinned, rather than packaged in Nix.
+      # The CLI is a `#!/usr/bin/env node` script and the activation PATH has
+      # no node, so the version check needs it too. Without it the check
+      # always failed and every switch reinstalled all 795 packages.
       chorusCli = lib.hm.dag.entryAfter ["writeBoundary"] ''
-        if [ "$(${home}/.local/bin/chorus --version 2>/dev/null || true)" != ${chorusVersion} ]; then
+        if [ "$(PATH=${lib.makeBinPath [pkgs.nodejs]}:$PATH ${home}/.local/bin/chorus --version 2>/dev/null || true)" != ${chorusVersion} ]; then
           PATH=${lib.makeBinPath [pkgs.nodejs]}:$PATH NPM_CONFIG_PREFIX=${home}/.local \
             run npm install -g --no-fund --no-audit @chorus-aidlc/chorus@${chorusVersion} ||
             warnEcho "chorus: could not install @chorus-aidlc/chorus@${chorusVersion}; the next switch retries"

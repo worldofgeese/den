@@ -43,7 +43,8 @@
       home.sessionPath = [
         "${config.home.profileDirectory}/bin"
         "$HOME/bin"
-        # Homebrew provides the CGO-enabled beads binary used by this workspace.
+        # Homebrew: dolt, rtk, podman, container and age-plugin-se. bd is not
+        # from Homebrew: ~/bin/bd wraps the BTS companion's ~/.local/bin/bd.
         "/opt/homebrew/bin"
         "$HOME/.local/bin"
         "$HOME/.cargo/bin"
@@ -423,6 +424,21 @@
         [ -r ~/.nix-profile/etc/profile.d/nix.sh ] && source  ~/.nix-profile/etc/profile.d/nix.sh
         export XCURSOR_PATH=$XCURSOR_PATH:/usr/share/icons:~/.local/share/icons:~/.icons:~/.nix-profile/share/icons
       '';
+      # A herdr pane starts with the herdr server's environment, which is as
+      # old as the server, __HM_SESS_VARS_SOURCED included. Home Manager's
+      # source-once guard then skips the current session variables, so each
+      # pane missed everything set since the server started: on 2026-10-08
+      # panes had no SIGNET_* and pi fell back to the personal daemon on 3850
+      # as agent `default`. Restarting WezTerm does not help; herdr keeps its
+      # server. Load the current file once per pane; nested shells in the
+      # same pane keep the guard.
+      programs.zsh.envExtra = ''
+        if [[ -n ''${HERDR_PANE_ID-} && ''${__DEN_HERDR_PANE-} != "$HERDR_PANE_ID" ]]; then
+          export __DEN_HERDR_PANE="$HERDR_PANE_ID"
+          unset __HM_SESS_VARS_SOURCED
+          . "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh"
+        fi
+      '';
       programs.zsh.initContent = ''
         # Homebrew's GitHub API token is gh's own token. gh reads it from the
         # login keychain through Apple's /usr/bin/security, whose identity never
@@ -433,20 +449,6 @@
           token="$(gh auth token 2>/dev/null || true)"
           [ -z "$token" ] || export HOMEBREW_GITHUB_API_TOKEN="$token"
           unset token
-        fi
-
-        # Chorus AI-DLC, through the chorus-team-tunnel launchd agent
-        # (M-02877/darwin.nix) since devrel-infra#280. URL is non-secret; the API key is read from secretspec so the live
-        # `cho_...` value never lands in this git-tracked Nix source.
-        # -f: without it secretspec looks for secretspec.toml in the current
-        # directory, so a shell opened anywhere else got no key and pi's
-        # chorus MCP server failed to resolve its Authorization header.
-        export CHORUS_URL="http://127.0.0.1:3870"
-        if [ -z "''${CHORUS_API_KEY:-}" ] && command -v secretspec &>/dev/null; then
-          chorus_key="$(secretspec get -f "$HOME/.config/home-manager/secretspec.toml" CHORUS_API_KEY --reason "omp/claude Chorus MCP server auth" 2>/dev/null || true)"
-          if [ -n "$chorus_key" ]; then
-            export CHORUS_API_KEY="$chorus_key"
-          fi
         fi
 
         # Tokens that used to sit inline in ~/.claude/settings.json `env`, which

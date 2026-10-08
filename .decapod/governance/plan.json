@@ -1,22 +1,22 @@
 {
   "schema_version": "1.0.0",
-  "title": "Alert on oracle nixos-upgrade failure",
-  "intent": "Send the same Telegram alert for oracle's failed nixos-upgrade as for paphos', from paphos' existing hourly oracle check, without putting the bot token on oracle",
+  "title": "M-02877: Chorus key cache for shells, per-pane session vars in herdr, personal Signet 0.237.9",
+  "intent": "pi starts without Chorus warnings and on team Signet in every herdr pane, even while secretspec cannot decrypt; the personal Signet container and pi's Signet extension carry the upstream fixes (signetai#2076-#2079)",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m4apass6ympph0"
+    "code_01m4djxscjbes3dd"
   ],
   "proof_hooks": [
-    "oracle authorized key renders restrict+forced systemctl is-failed with paphos host key",
-    "paphos known_hosts pins oracle host key; secrets.nix eval unchanged",
-    "generated relay script passes bash -n and shellcheck",
-    "deployed: probe returns unit state; arbitrary commands refused; forced-failure test alert observed; state restored"
+    "nix build of the M-02877 Home Manager activation package and darwin system succeeds (shellcheck passes on chorus-api-key and chorus-pi-daemon)",
+    "chorus-api-key with secretspec failing serves the cache; Chorus MCP initialize answers 200 with it and 401 with a bad key",
+    "zsh with a stale herdr env and a new HERDR_PANE_ID gets SIGNET_DAEMON_URL=3860, SIGNET_AGENT_ID=tao.hansen and CHORUS_API_KEY; a nested shell in the same pane keeps the guard",
+    "activation changes only the chorus-pi-daemon plist, .zshenv and .zshrc; the daemon re-registers; the chorusCli step no longer reinstalls",
+    "personal Signet on 3850 reports 0.237.9; signet-pi.js contains SIGNET_PROMPT_SUBMIT_TIMEOUT; the built signet-container plist has AbandonProcessGroup and image 0.237.9",
+    "decapod validate passes"
   ],
   "unknowns": [],
   "human_questions": [],
-  "stop_conditions": [
-    "oracle upgrade failure produces a Telegram alert"
-  ],
+  "stop_conditions": [],
   "unresolved_contradictions": [],
   "deferred_questions": [],
   "constraints": {
@@ -24,5 +24,5 @@
     "file_touch_budget": 10
   },
   "phases": [],
-  "updated_at": "1791360726Z"
+  "updated_at": "1791460452Z"
 }

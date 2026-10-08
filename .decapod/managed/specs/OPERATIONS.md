@@ -138,7 +138,12 @@ which is why the served set is one directory. Log:
   it: 0.21.1 is the first client release with pi's built-in MCP, so never
   downgrade the client to match an older server.
 - The Chorus CLI is an npm global (`~/.local/bin/chorus`), installed and pinned
-  by activation because the package is the whole Chorus server app.
+  by activation because the package is the whole Chorus server app. The CLI is
+  a `#!/usr/bin/env node` script and the activation PATH has no Node, so the
+  version check runs it with Node on PATH. Until 2026-10-08 the check always
+  failed, and every switch reinstalled all 795 packages.
+- Shells and `chorus-pi-daemon` get the key from `chorus-api-key`: secretspec,
+  else the last-known-good cache. See ARCHITECTURE.md, Chorus Key Lookup.
 
 Lessons from the first deploy (2026-10-06):
 - pi 0.99.2 from llm-agents shipped without its codemode worker
@@ -160,6 +165,37 @@ personal daemon on 3850 still runs; reach it with
 memories were exported on 2026-10-06 to `~/signet-handover/`, in full and as a
 filtered `personal-only` copy for the personal machines.
 
+The team pool needs the `SIGNET_*` session variables in every shell. A herdr
+pane starts with the herdr server's environment, which is as old as the
+server, `__HM_SESS_VARS_SOURCED` included, so Home Manager's source-once guard
+skipped every variable added since. Restarting WezTerm does not help, because
+herdr keeps its server. On 2026-10-08 the server dated from 2026-09-30, its
+panes had no `SIGNET_*`, and pi fell back to the personal daemon as agent
+`default`. `programs.zsh.envExtra` (dktaohan.nix) now loads
+`hm-session-vars.sh` once per `HERDR_PANE_ID`. A pi started before that keeps
+its old environment: start it again in a new pane.
+
+The personal daemon has run `ghcr.io/signet-ai/signet:0.237.9` since
+2026-10-08 (before: 0.232.1). The `distrobox create` pin in darwin.nix is read
+only when the container is created; it had stayed at 0.214.27 while the
+container moved on. The in-container auto-update fails (`manifest_invalid` for
+linux-arm64), so to upgrade:
+1. Boot `com.dktaohan.signet-container` out. With the agent loaded, KeepAlive
+   would recreate a removed container from the deployed pin.
+2. With the container stopped, clone `~/.agents`:
+   `cp -cR ~/.agents ~/.agents.bak-signet-<old version>-<date>`. It is about
+   7 GB and takes about 5 minutes. The 2026-10-08 copy is
+   `~/.agents.bak-signet-0.232.1-20261008`.
+3. `podman rm signet`, then run the agent's `distrobox create` with the new
+   image.
+4. Bootstrap the agent again. The first enter runs distrobox-init, and the
+   daemon answers on 3850 after about 75 s.
+
+The agent carries `AbandonProcessGroup`. When its script has started the
+podman VM, vfkit and gvproxy keep the job's process group. On 2026-10-08,
+without that key, the bootout in step 1 stopped the VM, and the Gas City
+container with it.
+
 Activation snippets run with Home Manager's activation PATH only: bash,
 coreutils, diffutils, findutils, gettext, grep, sed, jq and ncurses. Neither
 `/usr/bin` nor the user profile is on it, so `awk` and every other tool must be
@@ -169,7 +205,12 @@ PATH. Test a new snippet with `env -i PATH=<the PATH line from the generated
 activate script> bash`.
 
 pi's Signet extension is installed once by hand with `signet connect pi`
-(it writes `~/.pi/agent/extensions/signet-pi.js`, which Signet owns).
+(it writes `~/.pi/agent/extensions/signet-pi.js`, which Signet owns). The
+host `signet` is exported from the personal container, so that command writes
+the container release's extension. Run it again after each container upgrade.
+On 2026-10-08 that brought in the fix for Signet-AI/signetai#2077: prompt-submit
+no longer blocks input. The previous file is in
+`~/.local/state/signet-pi-backup/`.
 
 The tunnel also depends on AWS credentials from the LEGO credential process,
 which gets them through the Azure CLI. On 2026-10-06 ECS replaced the Signet
@@ -258,7 +299,9 @@ server-side continuation 400s when the model also called a client tool in
 the same turn (headroomlabs-ai/headroom#4009, fix #4013), while memory
 storage and `--learn` stay on; `HEADROOM_EXCLUDE_TOOLS=caveman_retrieve`
 stops it lossy-compressing recovered Caveman output (#4010, fix #4014).
-Drop each once a Headroom release carries its fix. Changing them restarts
+Drop each once a Headroom release carries its fix. On 2026-10-08 both fixes
+were merged to main but unreleased; release PR headroomlabs-ai/headroom#4002
+(0.41.0) carries them, and `:latest` is still 0.40.0. Changing them restarts
 the Headroom container, which is in every session's model path, so apply
 from a plain terminal.
 

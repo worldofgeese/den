@@ -63,8 +63,8 @@ The credential is never a value in this repository. It crosses as a *command*
 that prints it when an agent process starts, so it reaches neither the store nor
 the work tree. The three pi-family harnesses resolve `!command` themselves.
 Claude Code has no equivalent marker, so its wrapper runs the lookup and exports
-the documented variable -- the same technique `modules/M-02877/dktaohan.nix`
-already used for `CHORUS_API_KEY`.
+the documented variable -- the same technique the zsh export of
+`CHORUS_API_KEY` uses (`chorus-api-key`, `modules/M-02877/agent-integrations.nix`).
 
 Ownership of these files is deliberately partial. Each harness writes its own
 picked default back (`/model`), so a store symlink would make that write fail.
@@ -120,12 +120,13 @@ export enum ApiErrorCode {
 ## Beads Tooling Boundary
 Beads task state uses the legacy `bd` CLI as the single project workflow
 interface. Linux Home Manager profiles receive the Nixpkgs `beads` and `dolt`
-packages, with `beads` providing the `bd` command; the Darwin profile resolves
-`bd` from Homebrew at `/opt/homebrew/bin` and keeps Dolt under nix-darwin.
-Codex, Cursor, and Git hook integrations all invoke `bd` directly. On
-M-02877, pi gets two packages that also only run `bd`: `pi-beads-extension`
+packages, with `beads` providing the `bd` command. On Darwin, Homebrew has no
+beads: `~/bin/bd` wraps the BTS box companion's `~/.local/bin/bd`, and Dolt
+comes from Homebrew. Codex, Cursor, and Git hook integrations all invoke `bd`
+directly. On M-02877, pi gets `pi-beads-extension`, which also only runs `bd`
 (agent side: `bd prime` in the system prompt and through compaction, `/beads:*`
-commands) and `@soleone/pi-tasks` (human side: the `/tasks` browser). The Rust
+commands). `@soleone/pi-tasks`, the human-side `/tasks` browser, was removed on
+2026-10-08 (`piAgent.removedPackages`): nobody used it. The Rust
 `br` CLI and `bv` viewer are not part of the supported package or interface
 surface.
 
@@ -180,7 +181,7 @@ installed on the personal hosts.
 
 | Service | Endpoint | Credential | Consumers |
 |---|---|---|---|
-| Chorus (`projects/aws-chorus`, server v0.21.1) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from secretspec, agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.21.1`; the `chorus-pi-daemon` launchd agent |
+| Chorus (`projects/aws-chorus`, server v0.21.1) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from `chorus-api-key`: secretspec, else the last-known-good cache `~/.local/state/chorus-api-key.cache`; agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.21.1`; the `chorus-pi-daemon` launchd agent |
 | Team Signet (`projects/aws-signet`) | `http://127.0.0.1:3860` through `signet-team-tunnel` | `~/.config/signet/token`, scoped to agent `tao.hansen` | every Signet client: `SIGNET_DAEMON_URL`, `SIGNET_AGENT_ID` and `SIGNET_API_KEY` in the session environment, and in the daemon's |
 | Team Friendship Hour (`projects/aws-tfh`) | `http://127.0.0.1:3880` through `tfh-tunnel` | none: tfh has no login, so the tunnel is the only access control | a browser |
 | Copilot Spaces | `https://api.githubcopilot.com/mcp/x/copilot_spaces` | `gh auth token` (OAuth, no PAT) | the `techwriter` pi agent |

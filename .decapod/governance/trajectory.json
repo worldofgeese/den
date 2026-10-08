@@ -1,23 +1,24 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-code-01m4djxscjbes3dd",
-  "intent_id": "intent:run-code-01m4djxscjbes3dd",
+  "run_id": "run-code-01m4djxscjbes3dd-2",
+  "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
   "task_id": "code_01m4djxscjbes3dd",
   "original_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user",
-  "derived_intent": "Chorus key from secretspec with a last-known-good cache for shells and the daemon; reload Home Manager session vars once per herdr pane; personal Signet container 0.237.9 with a refreshed pi extension; signet-container agent must not kill the podman VM; Headroom workarounds stay until 0.41.0",
-  "current_phase": "verify",
+  "derived_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; Headroom workarounds stay until 0.41.0",
+  "current_phase": "validation",
+  "next_transitions": [
+    "publish"
+  ],
   "active_boundaries": [
-    "M-02877 Home Manager and nix-darwin modules and specs only; no gateway keyCommand change; no Headroom change before a release"
+    "M-02877 modules and specs only; gateway keyCommand and Headroom untouched"
   ],
   "repo_scope": [
-    "modules/M-02877/agent-integrations.nix, modules/M-02877/dktaohan.nix, modules/M-02877/darwin.nix, modules/shared-devtools.nix, .decapod/managed/specs/{ARCHITECTURE,INTERFACES,OPERATIONS}.md"
+    "modules/M-02877/{agent-integrations,dktaohan,darwin}.nix, modules/shared-devtools.nix, .decapod/managed/specs"
   ],
-  "inspected_files": [
-    "<external-path>",
-    "modules/gateway.nix",
-    "modules/overlays.nix"
-  ],
+  "inspected_files": [],
   "modified_files": [
+    ".decapod/governance/trajectory.json",
+    ".decapod/governance/validation.json",
     ".decapod/managed/specs/ARCHITECTURE.md",
     ".decapod/managed/specs/INTERFACES.md",
     ".decapod/managed/specs/OPERATIONS.md",
@@ -27,9 +28,7 @@
     "modules/shared-devtools.nix"
   ],
   "declared_commands": [
-    "<generation>/activate",
-    "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage",
-    "nix build .#darwinConfigurations.M-02877.system"
+    "decapod validate"
   ],
   "tool_calls": [],
   "checks": [
@@ -46,6 +45,10 @@
       "status": "passed"
     },
     {
+      "name": "decapod validate",
+      "status": "passed"
+    },
+    {
       "name": "herdr-pane-env-simulation",
       "status": "passed"
     },
@@ -59,14 +62,13 @@
     }
   ],
   "evidence": [
-    "3850 /health version 0.237.9; 3860 /health version 0.237.9; verify-team.sh GREEN",
-    "Chorus MCP initialize: HTTP 200 with cached key, 401 with bad key",
-    "new pane: SIGNET_DAEMON_URL=http://127.0.0.1:3860 SIGNET_AGENT_ID=tao.hansen CHORUS_API_KEY set; nested shell keeps guard"
+    "3850 and 3860 /health report 0.237.9; verify-team.sh GREEN",
+    "Chorus MCP initialize: 200 with cached key, 401 with bad key",
+    "new pane gets SIGNET_DAEMON_URL=3860, SIGNET_AGENT_ID=tao.hansen, CHORUS_API_KEY; nested shell keeps guard",
+    "validation epoch ve_10b90d2136a54c21 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
-  "unresolved_assumptions": [
-    "keybag locked state is transient and user-cleared; cache is the bridge"
-  ],
+  "unresolved_assumptions": [],
   "proof_status": "passed",
   "verdicts": {
     "intent_alignment": "supported",
@@ -74,21 +76,21 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:8969250ce26b5cadcc7471624eabf1ad3463f6ddf63a5dfcfd062be28fb3e27e",
+  "artifact_hash": "sha256:85daab6f0519272b00a90a40fd011e2d7fd2f7e27dd56013ffb4c0fef54d5192",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-code-01m4djxscjbes3dd": {
-        "id": "intent:run-code-01m4djxscjbes3dd",
+      "intent:run-code-01m4djxscjbes3dd-2": {
+        "id": "intent:run-code-01m4djxscjbes3dd-2",
         "raw_intent": "Bring in the upstream Headroom and Signet fixes we filed, and fix pi's startup warnings; do everything rather than hand tasks to the user",
-        "refined_intent": "Chorus key from secretspec with a last-known-good cache for shells and the daemon; reload Home Manager session vars once per herdr pane; personal Signet container 0.237.9 with a refreshed pi extension; signet-container agent must not kill the podman VM; Headroom workarounds stay until 0.41.0",
+        "refined_intent": "Chorus key with last-known-good cache for shells and daemon; per-pane HM session vars in herdr; personal Signet 0.237.9 and refreshed pi extension; signet-container agent keeps the podman VM; Headroom workarounds stay until 0.41.0",
         "acceptance_criteria": [],
         "constraints": [
-          "modules/M-02877/agent-integrations.nix, modules/M-02877/dktaohan.nix, modules/M-02877/darwin.nix, modules/shared-devtools.nix, .decapod/managed/specs/{ARCHITECTURE,INTERFACES,OPERATIONS}.md"
+          "modules/M-02877/{agent-integrations,dktaohan,darwin}.nix, modules/shared-devtools.nix, .decapod/managed/specs"
         ],
         "assumptions": [],
         "boundaries": [
-          "M-02877 Home Manager and nix-darwin modules and specs only; no gateway keyCommand change; no Headroom change before a release"
+          "M-02877 modules and specs only; gateway keyCommand and Headroom untouched"
         ],
         "out_of_scope": [],
         "proof_requirements": [],
@@ -101,40 +103,43 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code-01m4djxscjbes3dd"
+        "detail": "trajectory:run-code-01m4djxscjbes3dd-2"
+      },
+      {
+        "sequence": 5,
+        "event_id": "event:5",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
+        "kind": "trajectory_step_recorded",
+        "detail": "trajectory:run-code-01m4djxscjbes3dd-2"
       }
     ],
     "trajectories": {
-      "run-code-01m4djxscjbes3dd": {
-        "id": "run-code-01m4djxscjbes3dd",
-        "intent_id": "intent:run-code-01m4djxscjbes3dd",
+      "run-code-01m4djxscjbes3dd-2": {
+        "id": "run-code-01m4djxscjbes3dd-2",
+        "intent_id": "intent:run-code-01m4djxscjbes3dd-2",
         "evidence_only": true,
         "steps": [
           {
             "sequence": 4,
             "action": "verify",
-            "command": "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage",
             "scope": [
-              "modules/M-02877/agent-integrations.nix, modules/M-02877/dktaohan.nix, modules/M-02877/darwin.nix, modules/shared-devtools.nix, .decapod/managed/specs/{ARCHITECTURE,INTERFACES,OPERATIONS}.md"
+              "modules/M-02877/{agent-integrations,dktaohan,darwin}.nix, modules/shared-devtools.nix, .decapod/managed/specs"
             ],
             "observations": [
-              "modules/gateway.nix",
-              "modules/overlays.nix",
-              "<external-path>",
               "modules/M-02877/agent-integrations.nix",
               "modules/M-02877/dktaohan.nix",
               "modules/M-02877/darwin.nix",
@@ -142,9 +147,9 @@
               ".decapod/managed/specs/ARCHITECTURE.md",
               ".decapod/managed/specs/INTERFACES.md",
               ".decapod/managed/specs/OPERATIONS.md",
-              "Chorus MCP initialize: HTTP 200 with cached key, 401 with bad key",
-              "new pane: SIGNET_DAEMON_URL=http://127.0.0.1:3860 SIGNET_AGENT_ID=tao.hansen CHORUS_API_KEY set; nested shell keeps guard",
-              "3850 /health version 0.237.9; 3860 /health version 0.237.9; verify-team.sh GREEN"
+              "Chorus MCP initialize: 200 with cached key, 401 with bad key",
+              "new pane gets SIGNET_DAEMON_URL=3860, SIGNET_AGENT_ID=tao.hansen, CHORUS_API_KEY; nested shell keeps guard",
+              "3850 and 3860 /health report 0.237.9; verify-team.sh GREEN"
             ],
             "proof_refs": [
               "hm-activation-build",
@@ -154,16 +159,32 @@
               "herdr-pane-env-simulation",
               "personal-signet-0.237.9-health"
             ],
-            "validation_findings": [
-              "keybag locked state is transient and user-cleared; cache is the bridge"
-            ],
+            "validation_findings": [],
             "custody_event_id": "event:4"
+          },
+          {
+            "sequence": 5,
+            "action": "validation",
+            "command": "decapod validate",
+            "scope": [
+              "modules/M-02877/{agent-integrations,dktaohan,darwin}.nix, modules/shared-devtools.nix, .decapod/managed/specs"
+            ],
+            "observations": [
+              ".decapod/governance/trajectory.json",
+              ".decapod/governance/validation.json",
+              "validation epoch ve_10b90d2136a54c21 completed with zero failures"
+            ],
+            "proof_refs": [
+              "decapod validate"
+            ],
+            "validation_findings": [],
+            "custody_event_id": "event:5"
           }
         ]
       }
     },
     "summaries": {},
     "knowledge_candidates": [],
-    "next_sequence": 4
+    "next_sequence": 5
   }
 }

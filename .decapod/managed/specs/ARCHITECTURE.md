@@ -194,6 +194,30 @@ is served. The timestamps let a miss be matched against lock events
 (`coreauthd` "AKS: Locked"/"AKS: Unlocked" in the unified log). The final
 no-cache attempt leaves stderr alone, so callers see the real error.
 
+### Chorus Key Lookup
+The Chorus key depends on the same Secure Enclave key, and since 2026-10-08 it
+uses the same last-known-good pattern. `chorus-api-key`
+(`modules/M-02877/agent-integrations.nix`) asks secretspec. On a miss it
+serves `~/.local/state/chorus-api-key.cache`, which is 0600, written only when
+the value changes, and renamed into place. It has two consumers:
+- The zsh export of `CHORUS_API_KEY`. pi's built-in MCP
+  (`Bearer ${CHORUS_API_KEY}`) and chorus-pi read only the environment.
+- `chorus-pi-daemon`.
+
+Before, only the daemon had a cache. A shell opened while the keybag was
+locked got no key, and every pi started from it warned that the chorus MCP
+server could not resolve its Authorization header.
+
+On 2026-10-08 the keybag stayed locked for hours while the screen was in use:
+- `MKBGetDeviceLockState` returned 1.
+- `IOConsoleLocked` was No, and the login keychain was unlocked.
+- `age-plugin-se` failed with OSStatus -25308 (errSecInteractionNotAllowed),
+  in a herdr pane and in a fresh Aqua launchd job alike.
+
+The cache kept Chorus working. It cannot help secretspec reads that have no
+cache, such as `hm-app-signing`. Those wait for a user unlock: on 2026-10-01,
+Touch ID was what unlocked the keybag. No retry does it.
+
 **Where the command goes.** The command string is embedded in pi's and
 Caveman Code's `models.json`, omp's `models.yml`, a shell `$(...)`, and an
 elisp string literal. It therefore must not contain a double quote or a

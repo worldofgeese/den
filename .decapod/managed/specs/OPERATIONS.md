@@ -54,6 +54,36 @@ Basic, not Bearer, which GitHub's git endpoint rejects).
   rows. If a PR was stranded anyway, `pr-reviewer review owner/repo#N --force`
   reviews it.
 
+#### Automerge
+The launchd agent `com.dktaohan.pr-reviewer-automerge`, defined in the same
+file, merges a PR in the declared repos once pr-reviewer has reviewed its
+current head. It merges as the gh identity, for two reasons. pr-reviewer never
+approves, so GitHub auto-merge cannot key on its reviews. A merge made with a
+workflow's `GITHUB_TOKEN` would not start the deploys on main.
+
+The agent runs every 120 s. It merges a PR only when all of these hold:
+- The PR is not a draft and has no `hold` or `do-not-merge` label.
+- The author is worldofgeese, `app/github-actions` or `app/dependabot`.
+  Teammates' PRs stay manual.
+- `pr-reviewer queue list` has a completed `review_pr` task at the PR's
+  current head SHA.
+- No review thread is unresolved, and no review requests changes.
+- Every check is complete with SUCCESS, SKIPPED or NEUTRAL. A PR with no
+  checks also qualifies.
+- GitHub reports the PR as MERGEABLE.
+- The description has no "Before you merge" steps. The bump/signet PR asks for
+  a restore drill first, so it stays manual, and so does any PR like it.
+
+It runs `gh pr merge --match-head-commit <sha> --delete-branch`, with
+`--squash` for LEGO/agentic-engineering-community and `--merge` elsewhere. A
+failed merge is remembered per head SHA in `~/.local/state/pr-reviewer-automerge`
+and is tried again only after a new push.
+
+The log is `~/Library/Logs/pr-reviewer-automerge.log`. It gets one line per
+merge, and one per change of skip reason. `PR_AUTOMERGE_DRY_RUN=1` runs a pass
+that only logs. To hold a PR, label it `hold`. To stop merging, run
+`launchctl bootout gui/$UID/com.dktaohan.pr-reviewer-automerge`.
+
 #### Live end-to-end test
 The private repo `worldofgeese/pr-reviewer-livetest` is a test target that
 notifies nobody else. It is deliberately *not* in the declared list.

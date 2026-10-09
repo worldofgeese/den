@@ -1,17 +1,16 @@
 {
   "schema_version": "1.0.0",
-  "title": "M-02877: Chorus key cache for shells, per-pane session vars in herdr, personal Signet 0.237.9",
-  "intent": "pi starts without Chorus warnings and on team Signet in every herdr pane, even while secretspec cannot decrypt; the personal Signet container and pi's Signet extension carry the upstream fixes (signetai#2076-#2079)",
+  "title": "M-02877: pr-reviewer-automerge launchd agent",
+  "intent": "PRs that pr-reviewer reviewed at their current head merge automatically, as the gh identity, when they are not held, by worldofgeese/github-actions/dependabot, threads resolved, checks green, mergeable, and without manual before-you-merge steps",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m4djxscjbes3dd"
+    "code_01m4fve8gtwfgv8f"
   ],
   "proof_hooks": [
-    "nix build of the M-02877 Home Manager activation package and darwin system succeeds (shellcheck passes on chorus-api-key and chorus-pi-daemon)",
-    "chorus-api-key with secretspec failing serves the cache; Chorus MCP initialize answers 200 with it and 401 with a bad key",
-    "zsh with a stale herdr env and a new HERDR_PANE_ID gets SIGNET_DAEMON_URL=3860, SIGNET_AGENT_ID=tao.hansen and CHORUS_API_KEY; a nested shell in the same pane keeps the guard",
-    "activation changes only the chorus-pi-daemon plist, .zshenv and .zshrc; the daemon re-registers; the chorusCli step no longer reinstalls",
-    "personal Signet on 3850 reports 0.237.9; signet-pi.js contains SIGNET_PROMPT_SUBMIT_TIMEOUT; the built signet-container plist has AbandonProcessGroup and image 0.237.9",
+    "darwin system builds; shellcheck passes on pr-reviewer-automerge",
+    "dry run lists merges and skip reasons without merging",
+    "live agent merged devrel-infra#319 and #331 and community#110 at their reviewed heads, and conference-dashboard#429 with --squash from repo settings",
+    "hold-labelled PRs are skipped",
     "decapod validate passes"
   ],
   "unknowns": [],
@@ -24,5 +23,5 @@
     "file_touch_budget": 10
   },
   "phases": [],
-  "updated_at": "1791460452Z"
+  "updated_at": "1791534386Z"
 }

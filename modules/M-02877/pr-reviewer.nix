@@ -135,6 +135,151 @@
         exec pr-reviewer start
       '';
     };
+
+    # Merges a PR once pr-reviewer has reviewed its current head. The daemon
+    # never approves, so GitHub auto-merge cannot key on its COMMENTED
+    # reviews, and a merge made with a workflow's GITHUB_TOKEN would not
+    # start the deploys on main. So the merge runs here, as the gh identity.
+    # The filter prints number, head SHA and the first reason not to merge;
+    # an empty reason means merge, once the review threads are checked too.
+    automergeFilter = pkgs.writeText "pr-reviewer-automerge.jq" ''
+      ($reviewed
+        | map(select(.task_kind == "review_pr" and .status == "completed")
+          | "\(.pr_number) \(.head_sha)")) as $done
+      | .[]
+      | . as $p
+      | [$p.labels[]?.name | ascii_downcase] as $labels
+      | (if $p.isDraft then "draft"
+        elif any($labels[]; . == "hold" or . == "do-not-merge") then "labelled hold or do-not-merge"
+        elif ($p.author.login | IN("worldofgeese", "app/github-actions", "app/dependabot") | not)
+        then "author \($p.author.login) is merged by hand"
+        elif (any($done[]; . == "\($p.number) \($p.headRefOid)") | not)
+        then "pr-reviewer has not reviewed head \($p.headRefOid[0:12])"
+        elif $p.reviewDecision == "CHANGES_REQUESTED" then "changes requested"
+        elif (($p.body // "") | test("before you merge"; "i"))
+        then "its description lists manual before-you-merge steps"
+        elif (all($p.statusCheckRollup[]?;
+            if .__typename == "StatusContext" then .state == "SUCCESS"
+            else .status == "COMPLETED" and ((.conclusion // "") | IN("SUCCESS", "SKIPPED", "NEUTRAL"))
+            end) | not)
+        then "checks are not all complete and green"
+        elif $p.mergeable != "MERGEABLE" then "mergeable is \($p.mergeable)"
+        else "" end) as $why
+      | [($p.number | tostring), $p.headRefOid, $why] | @tsv
+    '';
+
+    threadsQuery = pkgs.writeText "pr-reviewer-automerge-threads.graphql" ''
+      query($o: String!, $r: String!, $n: Int!) {
+        repository(owner: $o, name: $r) {
+          pullRequest(number: $n) { reviewThreads(first: 100) { nodes { isResolved } } }
+        }
+      }
+    '';
+
+    # One pass over the declared repos; launchd starts it every 120 s and
+    # never runs two at once. A gh error is logged and the next PR goes on.
+    # A failed merge is remembered per head SHA and not retried until a new
+    # push. A skip is logged when its reason changes, not on every pass.
+    # PR_AUTOMERGE_DRY_RUN=1 logs "would merge" instead of merging.
+    prReviewerAutomerge = pkgs.writeShellApplication {
+      name = "pr-reviewer-automerge";
+      runtimeInputs = [pr-reviewer pkgs.gh pkgs.jq pkgs.coreutils];
+      text = ''
+        # stderr, so a log line inside $(...) still reaches the log file.
+        log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
+        brief() { head -c 300 <<<"$1" | tr '\n' ' '; }
+        state=${lib.escapeShellArg "${home}/.local/state/pr-reviewer-automerge"}
+        mkdir -p "$state"
+        # Off any checkout, so --delete-branch only deletes the remote branch.
+        cd /
+
+        # The merge method a repo allows, read once per pass and only when a
+        # PR there is ready: merge commits where allowed, else squash, else
+        # rebase. LEGO/agentic-engineering-community always squashes.
+        merge_method() {
+          local allowed m s r
+          if [ "$1" = LEGO/agentic-engineering-community ]; then
+            echo --squash
+            return
+          fi
+          if ! allowed="$(gh api "repos/$1" --jq '[.allow_merge_commit, .allow_squash_merge, .allow_rebase_merge] | @tsv' 2>&1)"; then
+            log "$1: could not read its merge settings: $(brief "$allowed")"
+            echo none
+            return
+          fi
+          read -r m s r <<<"$allowed"
+          if [ "$m" = true ]; then
+            echo --merge
+          elif [ "$s" = true ]; then
+            echo --squash
+          elif [ "$r" = true ]; then
+            echo --rebase
+          else
+            log "$1: allows no merge method"
+            echo none
+          fi
+        }
+
+        for repo in ${lib.escapeShellArgs repos}; do
+          key="''${repo//\//_}"
+          method=""
+          if ! prs="$(gh pr list -R "$repo" --state open --limit 100 \
+              --json number,headRefOid,isDraft,author,labels,mergeable,statusCheckRollup,reviewDecision,body 2>&1)"; then
+            log "$repo: gh pr list failed: $(brief "$prs")"
+            continue
+          fi
+          if ! reviewed="$(pr-reviewer queue list --repo "$repo" --status completed --limit 200 --json 2>&1)"; then
+            log "$repo: pr-reviewer queue list failed: $(brief "$reviewed")"
+            continue
+          fi
+          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
+            log "$repo: could not evaluate its PRs: $(brief "$verdicts")"
+            continue
+          fi
+
+          while IFS=$'\t' read -r n sha why; do
+            [ -n "$n" ] || continue
+            if [ -z "$why" ]; then
+              if ! threads="$(gh api graphql -F n="$n" -f o="''${repo%%/*}" -f r="''${repo#*/}" \
+                  -F query=@${threadsQuery} \
+                  --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)] | length' 2>&1)"; then
+                why="could not read its review threads: $(brief "$threads")"
+              elif [ "$threads" != 0 ]; then
+                why="$threads unresolved review thread(s)"
+              elif [ -e "$state/failed-$key-$n-$sha" ]; then
+                why="a merge already failed at this head; waiting for a new push"
+              fi
+            fi
+
+            if [ -n "$why" ]; then
+              if [ "$(cat "$state/last-$key-$n" 2>/dev/null || true)" != "$sha $why" ]; then
+                log "$repo#$n: skip: $why"
+                printf '%s\n' "$sha $why" >"$state/last-$key-$n"
+              fi
+              continue
+            fi
+
+            if [ -z "$method" ]; then
+              method="$(merge_method "$repo")"
+            fi
+            if [ "$method" = none ]; then
+              continue
+            fi
+            if [ -n "''${PR_AUTOMERGE_DRY_RUN:-}" ]; then
+              log "$repo#$n: would merge $sha ($method)"
+              continue
+            fi
+            if out="$(gh pr merge "$n" -R "$repo" --match-head-commit "$sha" --delete-branch "$method" 2>&1)"; then
+              log "$repo#$n: merged $sha ($method)"
+              rm -f "$state/last-$key-$n"
+            else
+              log "$repo#$n: merge failed at $sha: $(brief "$out")"
+              : >"$state/failed-$key-$n-$sha"
+            fi
+          done <<<"$verdicts"
+        done
+      '';
+    };
   in {
     # The CLI on PATH is the same build the agent runs, so `pr-reviewer
     # status`/`queue`/`logs` talk about the daemon that is actually running.
@@ -179,6 +324,22 @@
       ThrottleInterval = 30;
       StandardOutPath = "${home}/Library/Logs/pr-reviewer.log";
       StandardErrorPath = "${home}/Library/Logs/pr-reviewer.log";
+    };
+
+    # Merges what pr-reviewer has reviewed; see prReviewerAutomerge above.
+    launchd.user.agents.pr-reviewer-automerge.serviceConfig = {
+      Label = "com.dktaohan.pr-reviewer-automerge";
+      ProgramArguments = ["${prReviewerAutomerge}/bin/pr-reviewer-automerge"];
+      EnvironmentVariables = {
+        HOME = home;
+        USER = "dktaohan";
+        PATH = lib.concatStringsSep ":" ["/etc/profiles/per-user/dktaohan/bin" "/usr/bin" "/bin" "/usr/sbin" "/sbin"];
+      };
+      RunAtLoad = true;
+      StartInterval = 120;
+      ProcessType = "Background";
+      StandardOutPath = "${home}/Library/Logs/pr-reviewer-automerge.log";
+      StandardErrorPath = "${home}/Library/Logs/pr-reviewer-automerge.log";
     };
   };
 }

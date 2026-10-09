@@ -70,6 +70,11 @@ The agent runs every 120 s. It merges a PR only when all of these hold:
 - No review thread is unresolved, and no review requests changes.
 - Every check is complete with SUCCESS, SKIPPED or NEUTRAL. A PR with no
   checks also qualifies.
+- Only the newest run of each check counts, grouped by check name and
+  workflow. So a run that a concurrency group cancelled does not block once a
+  newer run of the same check has superseded it, and the agent logs the
+  entries it set aside. A cancelled run with no newer run still blocks. On
+  2026-10-09, devrel-infra#330 was stuck behind a superseded `guides` run.
 - GitHub reports the PR as MERGEABLE.
 - The description has no "Before you merge" steps. The bump/signet PR asks for
   a restore drill first, so it stays manual, and so does any PR like it.

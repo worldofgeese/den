@@ -1,10 +1,10 @@
 {
   "schema_version": "1.1.0",
-  "run_id": "run-code_01m4fve8gtwfgv8f",
-  "intent_id": "intent:run-code_01m4fve8gtwfgv8f",
-  "task_id": "code_01m4fve8gtwfgv8f",
-  "original_intent": "Merge PRs automatically once pr-reviewer has reviewed them (user, via LoudMoon)",
-  "derived_intent": "launchd agent over the declared repos merging reviewed, green, unheld PRs by worldofgeese/github-actions/dependabot at their reviewed head, method from repo settings, no retry loops",
+  "run_id": "run-code_01m4fxy57mr4rcbf",
+  "intent_id": "intent:run-code_01m4fxy57mr4rcbf",
+  "task_id": "code_01m4fxy57mr4rcbf",
+  "original_intent": "A superseded CANCELLED check run must not block automerge (LoudMoon)",
+  "derived_intent": "judge only the newest entry per check name and workflow; log superseded entries; lone CANCELLED still blocks",
   "current_phase": "validation",
   "next_transitions": [
     "publish"
@@ -36,15 +36,19 @@
       "status": "passed"
     },
     {
-      "name": "dry-run",
+      "name": "filter-330-superseded",
       "status": "passed"
     },
     {
-      "name": "hold-skip",
+      "name": "filter-in-progress-blocks",
       "status": "passed"
     },
     {
-      "name": "live-merges",
+      "name": "filter-lone-cancelled-blocks",
+      "status": "passed"
+    },
+    {
+      "name": "live-agent",
       "status": "passed"
     },
     {
@@ -53,9 +57,8 @@
     }
   ],
   "evidence": [
-    "hold-labelled devrel-infra#333 #332 #329 skipped",
-    "merged devrel-infra#331 #319 (merge), community#110 (squash), conference-dashboard#429 (squash after method fix)",
-    "validation epoch ve_5b0eab88ca2da63d completed with zero failures"
+    "#330 real rollup: superseded guides CANCELLED ignored, next reason mergeable CONFLICTING",
+    "validation epoch ve_a282bd437baaebc0 completed with zero failures"
   ],
   "shortcut_risk_signals": [],
   "unresolved_assumptions": [],
@@ -66,14 +69,14 @@
     "shortcut_risk": "supported",
     "completion_proof": "supported"
   },
-  "artifact_hash": "sha256:765b0cf9f3e174a701f6308358e600f8d4642b29e540cf719434c7a73ec000b7",
+  "artifact_hash": "sha256:d5d660a3947101bc2e7b485692da17de52fab766d2e4f5101794f415402bbe3a",
   "custody": {
     "schema_version": "1.0.0",
     "intents": {
-      "intent:run-code_01m4fve8gtwfgv8f": {
-        "id": "intent:run-code_01m4fve8gtwfgv8f",
-        "raw_intent": "Merge PRs automatically once pr-reviewer has reviewed them (user, via LoudMoon)",
-        "refined_intent": "launchd agent over the declared repos merging reviewed, green, unheld PRs by worldofgeese/github-actions/dependabot at their reviewed head, method from repo settings, no retry loops",
+      "intent:run-code_01m4fxy57mr4rcbf": {
+        "id": "intent:run-code_01m4fxy57mr4rcbf",
+        "raw_intent": "A superseded CANCELLED check run must not block automerge (LoudMoon)",
+        "refined_intent": "judge only the newest entry per check name and workflow; log superseded entries; lone CANCELLED still blocks",
         "acceptance_criteria": [],
         "constraints": [
           "modules/M-02877/pr-reviewer.nix, .decapod/managed/specs/OPERATIONS.md"
@@ -93,34 +96,34 @@
       {
         "sequence": 2,
         "event_id": "event:2",
-        "intent_id": "intent:run-code_01m4fve8gtwfgv8f",
+        "intent_id": "intent:run-code_01m4fxy57mr4rcbf",
         "kind": "created"
       },
       {
         "sequence": 3,
         "event_id": "event:3",
-        "intent_id": "intent:run-code_01m4fve8gtwfgv8f",
+        "intent_id": "intent:run-code_01m4fxy57mr4rcbf",
         "kind": "refined"
       },
       {
         "sequence": 4,
         "event_id": "event:4",
-        "intent_id": "intent:run-code_01m4fve8gtwfgv8f",
+        "intent_id": "intent:run-code_01m4fxy57mr4rcbf",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code_01m4fve8gtwfgv8f"
+        "detail": "trajectory:run-code_01m4fxy57mr4rcbf"
       },
       {
         "sequence": 5,
         "event_id": "event:5",
-        "intent_id": "intent:run-code_01m4fve8gtwfgv8f",
+        "intent_id": "intent:run-code_01m4fxy57mr4rcbf",
         "kind": "trajectory_step_recorded",
-        "detail": "trajectory:run-code_01m4fve8gtwfgv8f"
+        "detail": "trajectory:run-code_01m4fxy57mr4rcbf"
       }
     ],
     "trajectories": {
-      "run-code_01m4fve8gtwfgv8f": {
-        "id": "run-code_01m4fve8gtwfgv8f",
-        "intent_id": "intent:run-code_01m4fve8gtwfgv8f",
+      "run-code_01m4fxy57mr4rcbf": {
+        "id": "run-code_01m4fxy57mr4rcbf",
+        "intent_id": "intent:run-code_01m4fxy57mr4rcbf",
         "evidence_only": true,
         "steps": [
           {
@@ -132,15 +135,15 @@
             "observations": [
               "modules/M-02877/pr-reviewer.nix",
               ".decapod/managed/specs/OPERATIONS.md",
-              "merged devrel-infra#331 #319 (merge), community#110 (squash), conference-dashboard#429 (squash after method fix)",
-              "hold-labelled devrel-infra#333 #332 #329 skipped"
+              "#330 real rollup: superseded guides CANCELLED ignored, next reason mergeable CONFLICTING"
             ],
             "proof_refs": [
               "darwin-system-build",
               "shellcheck",
-              "dry-run",
-              "live-merges",
-              "hold-skip"
+              "filter-330-superseded",
+              "filter-lone-cancelled-blocks",
+              "filter-in-progress-blocks",
+              "live-agent"
             ],
             "validation_findings": [],
             "custody_event_id": "event:4"
@@ -155,7 +158,7 @@
             "observations": [
               ".decapod/governance/trajectory.json",
               ".decapod/governance/validation.json",
-              "validation epoch ve_5b0eab88ca2da63d completed with zero failures"
+              "validation epoch ve_a282bd437baaebc0 completed with zero failures"
             ],
             "proof_refs": [
               "decapod validate"

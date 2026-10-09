@@ -149,6 +149,16 @@
       | .[]
       | . as $p
       | [$p.labels[]?.name | ascii_downcase] as $labels
+      # A re-run of a check (same name and workflow) supersedes the older
+      # entry, which a concurrency group may have left CANCELLED: judge only
+      # the newest entry of each check, and report the ones set aside.
+      | ([$p.statusCheckRollup[]?]
+        | group_by([(.name // .context // ""), (.workflowName // "")])
+        | map(sort_by(.completedAt // .startedAt // ""))) as $groups
+      | [$groups[] | last] as $checks
+      | [$groups[] | .[:-1][]
+        | "\(.name // .context) (\(.workflowName // "status")) \(.conclusion // .state // .status) at \(.completedAt // .startedAt // "?")"]
+        as $stale
       | (if $p.isDraft then "draft"
         elif any($labels[]; . == "hold" or . == "do-not-merge") then "labelled hold or do-not-merge"
         elif ($p.author.login | IN("worldofgeese", "app/github-actions", "app/dependabot") | not)
@@ -158,14 +168,22 @@
         elif $p.reviewDecision == "CHANGES_REQUESTED" then "changes requested"
         elif (($p.body // "") | test("before you merge"; "i"))
         then "its description lists manual before-you-merge steps"
-        elif (all($p.statusCheckRollup[]?;
+        else "" end) as $pre
+      | (if $pre != "" then $pre
+        elif (all($checks[];
             if .__typename == "StatusContext" then .state == "SUCCESS"
             else .status == "COMPLETED" and ((.conclusion // "") | IN("SUCCESS", "SKIPPED", "NEUTRAL"))
             end) | not)
         then "checks are not all complete and green"
         elif $p.mergeable != "MERGEABLE" then "mergeable is \($p.mergeable)"
         else "" end) as $why
-      | [($p.number | tostring), $p.headRefOid, $why] | @tsv
+      # Placeholders keep empty fields: tab is IFS whitespace, so read would
+      # merge two tabs. Superseded entries are reported only when the checks
+      # were judged.
+      | [($p.number | tostring), $p.headRefOid,
+        (if $why == "" then "-" else $why end),
+        (if $pre != "" or ($stale | length) == 0 then "-" else ($stale | join("; ")) end)]
+      | @tsv
     '';
 
     threadsQuery = pkgs.writeText "pr-reviewer-automerge-threads.graphql" ''
@@ -237,8 +255,15 @@
             continue
           fi
 
-          while IFS=$'\t' read -r n sha why; do
+          while IFS=$'\t' read -r n sha why stale; do
             [ -n "$n" ] || continue
+            if [ "$why" = - ]; then
+              why=""
+            fi
+            if [ "$stale" != - ] && [ "$(cat "$state/stale-$key-$n" 2>/dev/null || true)" != "$sha $stale" ]; then
+              log "$repo#$n: ignoring superseded checks: $stale"
+              printf '%s\n' "$sha $stale" >"$state/stale-$key-$n"
+            fi
             if [ -z "$why" ]; then
               if ! threads="$(gh api graphql -F n="$n" -f o="''${repo%%/*}" -f r="''${repo#*/}" \
                   -F query=@${threadsQuery} \
@@ -271,7 +296,7 @@
             fi
             if out="$(gh pr merge "$n" -R "$repo" --match-head-commit "$sha" --delete-branch "$method" 2>&1)"; then
               log "$repo#$n: merged $sha ($method)"
-              rm -f "$state/last-$key-$n"
+              rm -f "$state/last-$key-$n" "$state/stale-$key-$n"
             else
               log "$repo#$n: merge failed at $sha: $(brief "$out")"
               : >"$state/failed-$key-$n-$sha"

@@ -1,16 +1,15 @@
 {
   "schema_version": "1.0.0",
-  "title": "M-02877: pr-reviewer-automerge launchd agent",
-  "intent": "PRs that pr-reviewer reviewed at their current head merge automatically, as the gh identity, when they are not held, by worldofgeese/github-actions/dependabot, threads resolved, checks green, mergeable, and without manual before-you-merge steps",
+  "title": "M-02877: automerge judges only the newest run of each check",
+  "intent": "A check run superseded by a newer run of the same check (same name and workflow) no longer blocks automerge; a cancelled run without a newer sibling still blocks; superseded entries are logged",
   "state": "APPROVED",
   "todo_ids": [
-    "code_01m4fve8gtwfgv8f"
+    "code_01m4fxy57mr4rcbf"
   ],
   "proof_hooks": [
-    "darwin system builds; shellcheck passes on pr-reviewer-automerge",
-    "dry run lists merges and skip reasons without merging",
-    "live agent merged devrel-infra#319 and #331 and community#110 at their reviewed heads, and conference-dashboard#429 with --squash from repo settings",
-    "hold-labelled PRs are skipped",
+    "darwin system builds; shellcheck passes",
+    "filter on devrel-infra#330's real rollup: superseded CANCELLED guides ignored; lone CANCELLED blocks; newer IN_PROGRESS blocks",
+    "live agent runs the new build and exits 0",
     "decapod validate passes"
   ],
   "unknowns": [],
@@ -23,5 +22,5 @@
     "file_touch_budget": 10
   },
   "phases": [],
-  "updated_at": "1791534386Z"
+  "updated_at": "1791536481Z"
 }

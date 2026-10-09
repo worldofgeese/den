@@ -185,15 +185,44 @@
       name = "pr-reviewer-automerge";
       runtimeInputs = [pr-reviewer pkgs.gh pkgs.jq pkgs.coreutils];
       text = ''
-        log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
+        # stderr, so a log line inside $(...) still reaches the log file.
+        log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
         brief() { head -c 300 <<<"$1" | tr '\n' ' '; }
         state=${lib.escapeShellArg "${home}/.local/state/pr-reviewer-automerge"}
         mkdir -p "$state"
         # Off any checkout, so --delete-branch only deletes the remote branch.
         cd /
 
+        # The merge method a repo allows, read once per pass and only when a
+        # PR there is ready: merge commits where allowed, else squash, else
+        # rebase. LEGO/agentic-engineering-community always squashes.
+        merge_method() {
+          local allowed m s r
+          if [ "$1" = LEGO/agentic-engineering-community ]; then
+            echo --squash
+            return
+          fi
+          if ! allowed="$(gh api "repos/$1" --jq '[.allow_merge_commit, .allow_squash_merge, .allow_rebase_merge] | @tsv' 2>&1)"; then
+            log "$1: could not read its merge settings: $(brief "$allowed")"
+            echo none
+            return
+          fi
+          read -r m s r <<<"$allowed"
+          if [ "$m" = true ]; then
+            echo --merge
+          elif [ "$s" = true ]; then
+            echo --squash
+          elif [ "$r" = true ]; then
+            echo --rebase
+          else
+            log "$1: allows no merge method"
+            echo none
+          fi
+        }
+
         for repo in ${lib.escapeShellArgs repos}; do
           key="''${repo//\//_}"
+          method=""
           if ! prs="$(gh pr list -R "$repo" --state open --limit 100 \
               --json number,headRefOid,isDraft,author,labels,mergeable,statusCheckRollup,reviewDecision,body 2>&1)"; then
             log "$repo: gh pr list failed: $(brief "$prs")"
@@ -230,9 +259,11 @@
               continue
             fi
 
-            method=--merge
-            if [ "$repo" = LEGO/agentic-engineering-community ]; then
-              method=--squash
+            if [ -z "$method" ]; then
+              method="$(merge_method "$repo")"
+            fi
+            if [ "$method" = none ]; then
+              continue
             fi
             if [ -n "''${PR_AUTOMERGE_DRY_RUN:-}" ]; then
               log "$repo#$n: would merge $sha ($method)"

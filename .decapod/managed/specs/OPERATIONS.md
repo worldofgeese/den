@@ -74,8 +74,11 @@ The agent runs every 120 s. It merges a PR only when all of these hold:
 - The description has no "Before you merge" steps. The bump/signet PR asks for
   a restore drill first, so it stays manual, and so does any PR like it.
 
-It runs `gh pr merge --match-head-commit <sha> --delete-branch`, with
-`--squash` for LEGO/agentic-engineering-community and `--merge` elsewhere. A
+It runs `gh pr merge --match-head-commit <sha> --delete-branch`. The method
+comes from the repo's settings, read once per pass: a merge commit where the
+repo allows one, else squash, else rebase. LEGO/agentic-engineering-community
+always squashes. On 2026-10-09 a fixed `--merge` failed on
+LEGO/conference-dashboard, which allows only squash and rebase. A
 failed merge is remembered per head SHA in `~/.local/state/pr-reviewer-automerge`
 and is tried again only after a new push.
 

@@ -223,12 +223,29 @@ Manager profile at run time.")
   (kernel linux-cachyos-bore)
   (initrd microcode-initrd)
   ;; PSR disabled -- causes GNOME Shell compositor to spin at 15% CPU on this panel.
-  ;; ASPM stays enabled because it did not cause the QCA6174 failures. The card
-  ;; failed during PCI probe after a warm reboot from D3cold. Runtime-PM rules
-  ;; prevent a running system from putting the card back into D3cold. This
-  ;; kernel parameter also requests the ath10k warm-only reset mode. Test it on
-  ;; the next planned boot; it is not a proven fix.
-  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y ath10k_pci.reset_mode=1 snd_hda_intel.power_save=1 mce=dont_log_ce" %default-kernel-arguments))
+  ;; ASPM stays enabled because it did not cause the QCA6174 failures; note that
+  ;; pcie_port_pm below is a different knob -- it controls PCIe PORT runtime PM,
+  ;; not the ASPM link policy.
+  ;;
+  ;; Runtime-PM rules keep the card out of D3cold while the system runs; the
+  ;; card's udev rule is verified live (power/control=on, runtime_status=active,
+  ;; power_state=D0) and the parent port is covered by pcie_port_pm=off.
+  ;;
+  ;; pcie_port_pm=off is the current trial for the BOOT-TIME failure: on
+  ;; 2026-10-13 20:03:32 the card was already in D3cold when the kernel probed
+  ;; it and probe failed with error -5. A card-only udev rule cannot prevent
+  ;; that, because it runs at ACTION=="add", after probe. Port runtime PM is
+  ;; what parks the link in D3cold, so disabling it for ports is the targeted
+  ;; way to keep the parent bridge (00:1c.6) at D0 and stop a warm reboot from
+  ;; inheriting D3cold. Unproven -- verify over the next boots.
+  ;;
+  ;; ath10k_pci.reset_mode=1 (warm-only reset) was that trial's companion and is
+  ;; refuted: it was active in the 2026-10-13 20:03:32 boot that failed with
+  ;; "Unable to change power state from D3cold to D0, device inaccessible" and
+  ;; then "failed to reset chip: -5". A warm-only reset cannot revive a chip
+  ;; whose power was removed. Removed so the driver keeps its default
+  ;; cold-capable reset path.
+  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y pcie_port_pm=off snd_hda_intel.power_save=1 mce=dont_log_ce" %default-kernel-arguments))
   (firmware (list linux-firmware))
   (locale "en_US.utf8")
   (timezone "Europe/Copenhagen")
@@ -438,9 +455,10 @@ root ALL=(ALL) ALL
               ;; into D3cold while the system is RUNNING, which is the state a
               ;; subsequent warm reboot then inherits. If failures continue
               ;; after a cold power-off, the remaining suspect is firmware
-              ;; leaving it powered down. The kernel argument now requests the
-              ;; driver's warm-only reset mode. Verify it on the next planned
-              ;; boot; do not treat the parameter as a confirmed fix.
+              ;; leaving it powered down. The warm-only reset trial has since
+              ;; been refuted on the 2026-10-13 20:03:32 boot and reverted; the
+              ;; current trial is pcie_port_pm=off. See the kernel-arguments
+              ;; comment in the operating-system record.
               (runtime-pm-driver-blacklist '("radeon" "nouveau" "ath10k_pci"))
               (sata-linkpwr-on-ac "med_power_with_dipm")
               (sata-linkpwr-on-bat "med_power_with_dipm")))

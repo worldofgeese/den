@@ -665,10 +665,24 @@
       # Omarchy's own icon font needs nothing: it travels inside the package at
       # share/fonts/truetype/omarchy.ttf, and fonts.conf already lists the
       # profile's share/fonts as a <dir>, so `fc-list` finds it (verified).
+      #
+      # perl is a runtime dependency Omarchy's runtimeDeps list does not carry,
+      # and its absence is silent until a menu needs it: omarchy-menu-select
+      # builds its JSON payload with perl and dies at "perl: command not found"
+      # (line 75), so every menu routed through it fails with no menu and no
+      # visible error. Four Omarchy scripts shell out to perl --
+      # omarchy-menu-select, omarchy-menu-input, omarchy-theme-bg-current and
+      # omarchy-games-retro-install -- and none of their features work without
+      # it. Not in passthru.runtimeDeps (verified: no bin/perl lands in the
+      # profile otherwise), so listing it here cannot conflict. Confirmed
+      # 2026-10-13: with perl on PATH, `omarchy-menu-keybindings` opens
+      # omarchy.menu and waits for a selection; without it the process exits
+      # before any panel opens (SUPER+K on the keybindings menu).
       home.packages = with pkgs; [
         gsettings-desktop-schemas
         gnome-themes-extra
         nerd-fonts.jetbrains-mono
+        perl
       ];
     };
   };

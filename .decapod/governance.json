@@ -29,11 +29,10 @@
   "checkpoints": [
     {
       "id": "code_01m4xs9erm9veeb5",
-      "summary": "Decapod plan, trajectory and refreshed spec manifest for the token-chain change",
-      "input_digest": "sha256:db0452b3d5b4f26acd00eeb0c091828722be464ab3e600f2af5716c32222088d",
+      "summary": "Plan: move the Caveman runtime item from unknowns to a deferred question (upstream JuliusBrussee/caveman#1279)",
+      "input_digest": "sha256:4a8efebbc9af755bca4d27dec79c0e8c0245ea90d5127d4468f0721cccc3f348",
       "proof_refs": [
-        "decapod govern plan approve (exit 0)",
-        "decapod govern trajectory record: completion_proof supported"
+        "decapod govern plan approve (exit 0)"
       ]
     }
   ],
@@ -63,7 +62,9 @@
         "file_touch_budget": 30,
         "forbidden_paths": []
       },
-      "deferred_questions": [],
+      "deferred_questions": [
+        "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it."
+      ],
       "human_questions": [],
       "intent": "Turn on every token-saving feature that measures as effective on M-02877, delete the parts that cost more than they save, and record the evidence in the specs.",
       "phases": [],
@@ -81,11 +82,9 @@
       "todo_ids": [
         "code_01m4xs9erm9veeb5"
       ],
-      "unknowns": [
-        "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade (JuliusBrussee/caveman#1279)."
-      ],
+      "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792004474Z"
+      "updated_at": "1792004610Z"
     },
     "trajectory": {
       "active_boundaries": [

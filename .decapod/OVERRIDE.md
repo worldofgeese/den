@@ -54,6 +54,7 @@ Repository updates and deployments run through the `Justfile`, never the underly
 - `just update` updates all flake inputs. `decapod` comes from its upstream flake and `rtk` from nixpkgs, so both track through `flake.lock`.
 - `just update-input <input>` updates one flake input only, e.g. `just update-input decapod`.
 - `just check` evaluates the NixOS, Home Manager, nix-darwin, and nix-on-droid entrypoints explicitly to avoid known-noise custom-output warnings from `nix flake check`.
+- `just decapod-refresh` regenerates the Decapod entrypoint projections after a Decapod upgrade and keeps `.decapod/config.toml`.
 - `just deploy-mahakala` updates and deploys Guix System, Guix Home, and Home Manager for mahakala.
 - `just deploy-mahakala-hm` updates and applies only the mahakala Home Manager profile.
 - `just deploy-mahakala-guix` applies only Guix Home for mahakala.
@@ -214,4 +215,4 @@ Repository updates and deployments run through the `Justfile`, never the underly
 
 - `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, and `CODEX.md` are Decapod-generated projections carrying `decapod-release` and `decapod-fingerprint` headers. Do not hand-edit them for project-specific policy.
 - Repository-specific governance and operating instructions belong in this file.
-- Regenerate projections with `decapod init with --all --force --no-specs --no-ci` after a Decapod upgrade, or whenever external tooling injects managed blocks into an entrypoint file.
+- Regenerate projections with `just decapod-refresh` after a Decapod upgrade, or whenever external tooling injects managed blocks into an entrypoint file. The recipe runs `decapod init with --all --force --no-specs --no-ci` and keeps `.decapod/config.toml`, because init resets `external_tracker` and `[tracker] provider`.

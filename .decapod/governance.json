@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "32e1a026466704f6eec00aaf0b98fcb568467113",
+    "accepted_commit": "0843c4da3aa2bfc57e3c80636d9c34e773a484dc",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -22,12 +22,12 @@
     }
   },
   "change": {
-    "id": "change_01M4XNCF9ND8B4WCFVV0VTCR8J",
-    "base_commit": "32e1a026466704f6eec00aaf0b98fcb568467113",
+    "id": "change_01M4XSVJN7TWDXKQF949617V28",
+    "base_commit": "0843c4da3aa2bfc57e3c80636d9c34e773a484dc",
     "target_base": "origin/main"
   },
   "intents": {
-    "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J": {
+    "intent:change_01M4XSVJN7TWDXKQF949617V28": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -37,11 +37,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+      "id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "cask preflight: block only on casks that brew bundle upgrades; land topgrade flake.lock",
-      "refined_intent": "cask preflight: block only on casks that brew bundle upgrades; land topgrade flake.lock",
+      "raw_intent": "decapod 0.111.6: safe upgrade recipe, record readiness gap, land topgrade flake.lock",
+      "refined_intent": "decapod 0.111.6: safe upgrade recipe, record readiness gap, land topgrade flake.lock",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -54,46 +54,43 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "topgrade deploys M-02877 without a false stop: the root-owned check applies only to outdated casks (the non-greedy set that brew bundle upgrades), and the flake.lock from topgrade lands on main after a complete deploy",
+      "intent": "A Decapod upgrade regenerates the projections without resetting .decapod/config.toml; the specs record why local readiness cannot pass under 0.111.6 and what the merge gate is; the deploy-proven flake.lock lands",
       "phases": [],
       "proof_hooks": [
-        "shellcheck passes on scripts/cask-app-preflight.sh",
-        "stub brew: root-owned app of a current cask exits 0; of an outdated cask exits 1 with the chown fix",
-        "real preflight exits 0 with the Jamf-updated root-owned Visual Studio Code.app",
-        "just deploy-darwin from the workspace completes, including brew bundle and Home Manager activation",
-        "decapod validate passes in the container workspace"
+        "just decapod-refresh keeps .decapod/config.toml, also when init fails",
+        "full topgrade --yes on main with this flake.lock passed",
+        "CI validate passes",
+        "decapod validate in the container workspace fails only on READINESS_PROFILE_REQUIRED"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [
-        "deploy needs admin rights (pkg cask upgrade): the human grants SAP Privileges; the agent never elevates"
-      ],
-      "title": "M-02877: cask preflight blocks only on casks that brew bundle upgrades; land topgrade flake.lock",
+      "stop_conditions": [],
+      "title": "decapod 0.111.6: safe upgrade recipe, record readiness gap, land topgrade flake.lock",
       "todo_ids": [
-        "code_01m4xnbq0fmx85yc"
+        "cicd_01m4xstxwc8x5cm8"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1791998683Z"
+      "updated_at": "1792001682Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:2a3126cef5a6a08a185d2277bcccfbd67ef6f882313a2c51640510eaa7383064",
+      "artifact_hash": "sha256:697fb63f465153753c704323a84908adfdb398bc57d72337bc8716c75add0b1f",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+            "intent_id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+            "intent_id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
             "kind": "refined",
             "sequence": 3
           }
@@ -107,7 +104,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+      "intent_id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -115,10 +112,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M4XNCFCHBGEMWY6N3JGD14EK",
+      "run_id": "branch_01M4XSVJQVBT8FK7EB3W293ZTP",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m4xnbq0fmx85yc",
+      "task_id": "cicd_01m4xstxwc8x5cm8",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

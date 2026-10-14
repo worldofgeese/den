@@ -49,7 +49,7 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 20,
+        "file_touch_budget": 25,
         "forbidden_paths": []
       },
       "deferred_questions": [],
@@ -74,7 +74,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1791998325Z"
+      "updated_at": "1791998683Z"
     },
     "trajectory": {
       "active_boundaries": [

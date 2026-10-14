@@ -1,14 +1,5 @@
 # Intent
 
-<!-- decapod:declared-capabilities:start -->
-
-## Declared Capability Surfaces
-
-- `infrastructure-management`
-- `secrets-handling`
-
-<!-- decapod:declared-capabilities:end -->
-
 ## Product Outcome
 - To quickly bring up my Home Manager config first install Nix then
 - In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
@@ -158,6 +149,17 @@ Homebrew leaves that app alone.
 |---|---|---|---|
 | Which interfaces are versioned at launch? | TBD | YYYY-MM-DD | |
 | Which non-functional target is hardest to hit? | TBD | YYYY-MM-DD | |
+
+<!-- decapod:declared-capabilities:start -->
+
+## Declared Capability Surfaces
+
+These declarations select authoring and proof obligations; they do not attest implemented runtime guarantees.
+
+- `infrastructure-management`
+- `secrets-handling`
+
+<!-- decapod:declared-capabilities:end -->
 
 <!-- decapod:codebase-attestation:start -->
 

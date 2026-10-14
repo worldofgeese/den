@@ -43,11 +43,9 @@ state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/cask-app-preflight"
 # Refresh the API first: activation's `brew bundle` updates before it
 # upgrades, so a stale view here would miss the upgrades that do the damage.
 brew update --quiet >/dev/null 2>&1 || true
-# This list is the set of casks that `brew bundle` upgrades. No Brewfile entry
-# sets `greedy`, so `brew bundle` and this command both use the non-greedy test.
-# That test marks an auto_updates cask outdated only when the version in its app
-# is older than the tap version. Thus chatgpt is in the list after a release.
-# Visual Studio Code is not in the list after Jamf updates it.
+# The casks that `brew bundle` upgrades. No Brewfile entry sets `greedy`, so it
+# uses this non-greedy test, which compares an auto_updates cask's app version
+# with the tap. An app that Jamf updated is therefore not outdated.
 # If a Brewfile entry sets `greedy`, add `--greedy` here.
 outdated="$(brew outdated --cask --quiet 2>/dev/null || true)"
 is_outdated() { grep -qxF "$1" <<<"$outdated"; }

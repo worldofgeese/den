@@ -274,6 +274,23 @@ around the install. The old copy goes to the Trash when the appdir is writable
 at that moment; otherwise it is left intact and an optional admin `rm -rf` is
 printed. If the reinstall fails, the record and symlinks are restored and the
 deploy stops. Each cask migrates once, so the check retires itself.
+Copies outside the recorded appdir are ignored: the Jamf device management on
+M-02877 installs its own SIP-protected `/Applications/Claude.app`, which even root
+cannot `chown`, alongside the Homebrew `claude` cask in `~/Applications`.
+A cask that installs a macOS package (a `pkg` artifact), such as `dotnet-sdk`,
+upgrades through `sudo -E`: Homebrew deletes the old package files, forgets the
+receipt, and runs `installer`. Activation's `brew bundle` has no password, so
+`security.sudo.extraConfig` in `modules/M-02877/darwin.nix` grants those exact
+commands with `NOPASSWD: SETENV:`, as it grants `darwin-rebuild switch`. The
+list covers the pkgutil, delete and launchctl uninstall stanzas of the installed
+`pkg` casks. Activation writes `/etc/sudoers.d` before `brew bundle` runs, so a
+changed rule applies in the same deploy. Without the rules, the upgrade failed
+and activation stopped halfway: `/etc` and launchd changed, but Home Manager did
+not activate.
+`/etc/homebrew/brew.env` (`modules/M-02877/homebrew-env.nix`) turns off Homebrew's
+env hints and the sudo service-domain warning. It is the only place those
+settings reach activation's `brew bundle`, which runs through
+`sudo --preserve-env=PATH`.
 
 ### Flake Update Cost on M-02877
 Microsoft Defender inspects every file open by `nix` and `nix-daemon` on
@@ -303,14 +320,7 @@ any process running as the user can read these without a dialog.
 `flake.nix` carries no `nixConfig`: a declined flake config warns on every nix
 command. M-02877 declares its caches in `modules/M-02877/darwin.nix`;
 mahakala's Home Manager switch passes the numtide, nixarchy and Hyprland caches
-with their keys through `NIX_CONFIG` in `deploy-mahakala-hm-only`. `pkg` casks are out of scope; they need an admin installer.
-`/etc/homebrew/brew.env` (`modules/M-02877/homebrew-env.nix`) turns off Homebrew's
-env hints and the sudo service-domain warning. It is the only place those
-settings reach activation's `brew bundle`, which runs through
-`sudo --preserve-env=PATH`.
-Copies outside the recorded appdir are ignored: the Jamf device management on
-M-02877 installs its own SIP-protected `/Applications/Claude.app`, which even root
-cannot `chown`, alongside the Homebrew `claude` cask in `~/Applications`.
+with their keys through `NIX_CONFIG` in `deploy-mahakala-hm-only`.
 
 ## Change Propagation Checklist
 - [ ] Component ownership remains singular and explicit.

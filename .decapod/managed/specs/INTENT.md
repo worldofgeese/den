@@ -114,7 +114,9 @@ need admin rights are one command the user runs, and they change ownership only
 or delete an unused old copy. The guard stops a deploy only for a cask that
 `brew bundle` upgrades. An app that device management updates in place, such as
 Visual Studio Code under Jamf App Installers, must not stop a deploy when
-Homebrew leaves that app alone.
+Homebrew leaves that app alone. A cask that installs a macOS package must
+upgrade during an unattended deploy. A deploy must not stop halfway, with `/etc`
+changed and Home Manager not activated.
 
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.

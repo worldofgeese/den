@@ -38,7 +38,17 @@ flowchart LR
 ## Authorization
 - Role model:
 - Resource-level policy:
-- Privilege escalation controls:
+- Privilege escalation controls: on M-02877 the user is an admin only while SAP
+  Privileges grants it. `security.sudo.extraConfig` in `modules/M-02877/darwin.nix`
+  grants `darwin-rebuild switch *` and the exact `sudo -E` commands of Homebrew's
+  `pkg` cask upgrades without a password. These rules let any process that runs
+  as the user act as root: `darwin-rebuild` can switch to any flake, and the
+  Homebrew rules can delete any file or install any package. The `pkg` rules add
+  no capability that the `darwin-rebuild` rule does not already give. Make sure a
+  changed rule passes `visudo -c -f` on the built
+  `etc/sudoers.d/10-nix-darwin-extra-config` before a deploy. A sudoers parse
+  error stops `sudo`, and without admin only an `osascript` admin dialog can
+  repair it.
 
 ## Data Classification
 | Data Class | Examples | Storage Rules | Access Rules |

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "b7d1932109359d77ea10fe96d29734ef19fa78d9",
+    "accepted_commit": "374702c6f650753d725987043dc1d9d6e4b9741a",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -22,102 +22,23 @@
     }
   },
   "change": {
-    "id": "change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
-    "base_commit": "b7d1932109359d77ea10fe96d29734ef19fa78d9",
-    "target_base": "origin/main"
+    "id": "code_01m4xs9erm9veeb5",
+    "base_commit": "374702c6f650753d725987043dc1d9d6e4b9741a",
+    "target_base": "main"
   },
-  "intents": {
-    "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS": {
-      "acceptance_criteria": [],
-      "assumptions": [],
-      "boundaries": [
-        "Current claimed task and isolated work branch"
-      ],
-      "constraints": [
-        "root"
-      ],
-      "created_sequence": 1,
-      "id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
-      "out_of_scope": [],
-      "proof_requirements": [],
-      "raw_intent": "beads: track cfg_dir in .beads/dolt-server-config.yaml; link Decapod readiness issue",
-      "refined_intent": "beads: track cfg_dir in .beads/dolt-server-config.yaml; link Decapod readiness issue",
-      "status": "refined",
-      "updated_sequence": 3
+  "checkpoints": [
+    {
+      "id": "code_01m4xs9erm9veeb5",
+      "summary": "pi lego-claude goes straight to the gateway /anthropic endpoint; pi models get registry cost and promptCache; Caveman 4.0.1 notes; local-model-proxy and Phoenix deleted; specs and docs describe the new path",
+      "input_digest": "sha256:4b041bcab225d4ed40820710b12ae3f16711514171596c0b4ad8920f6df6a631",
+      "proof_refs": [
+        "https://github.com/headroomlabs-ai/headroom/issues/4213",
+        "nix build home.activationPackage -> /nix/store/m6y3jlk1j5rdzdsjbl6pcpmif592n8ag-home-manager-generation",
+        "nix eval .#darwinConfigurations.M-02877.system.drvPath (exit 0)",
+        "pi RPC A/B 2026-10-14: direct path full prefix hits across prompts; cache_warm during 330 s tool run"
+      ]
     }
-  },
-  "sections": {
-    "plan": {
-      "constraints": {
-        "file_touch_budget": 15,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "The bd-written cfg_dir line is committed and documented; VALIDATION.md links DecapodLabs/decapod#1431",
-      "phases": [],
-      "proof_hooks": [
-        "CI validate passes",
-        "decapod validate in the container workspace fails only on READINESS_PROFILE_REQUIRED"
-      ],
-      "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "beads: track cfg_dir in .beads/dolt-server-config.yaml; link Decapod readiness issue",
-      "todo_ids": [
-        "bugs_01m4xtpk1h46dmt4"
-      ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1792002502Z"
-    },
-    "trajectory": {
-      "active_boundaries": [
-        "Current claimed task and isolated work branch"
-      ],
-      "artifact_hash": "sha256:834945f2db6ad4a758b9e4e28221555117b6a419a505a9a0dedeb7f27f4bebb0",
-      "checks": [],
-      "current_phase": "intent",
-      "custody": {
-        "events": [
-          {
-            "event_id": "event:2",
-            "intent_id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
-            "kind": "created",
-            "sequence": 2
-          },
-          {
-            "event_id": "event:3",
-            "intent_id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
-            "kind": "refined",
-            "sequence": 3
-          }
-        ],
-        "knowledge_candidates": [],
-        "next_sequence": 3,
-        "schema_version": "1.0.0",
-        "trajectories": {}
-      },
-      "declared_commands": [],
-      "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
-      "modified_files": [],
-      "next_transitions": [
-        "Refine plan and declare falsifiable checks"
-      ],
-      "repo_scope": [
-        "root"
-      ],
-      "run_id": "branch_01M4XTQ8ZNW34SECMG711KMHEN",
-      "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
-      "task_id": "bugs_01m4xtpk1h46dmt4",
-      "tool_calls": [],
-      "unresolved_assumptions": []
-    }
-  },
+  ],
   "legacy_digests": {
     ".decapod/governance/claims.json": "sha256:e8844b1145f540fc8570eb603f30d3ecae0f1044f8dbdc61cafa13ed23a0abfd",
     ".decapod/governance/plan.json": "sha256:b123d3936c418f01e3b372185457b0b453ae2b63a32976119cf2d8b94ddd408f",

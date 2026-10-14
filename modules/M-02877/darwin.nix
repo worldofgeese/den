@@ -498,27 +498,6 @@
                 COOLDOWN=/tmp/headroom-watchdog.cooldown
                 THRESHOLD=3
 
-                # Drift check, on every run, before the health probe. headroom
-                # gets a new IP each time it restarts, whatever the cause: a
-                # crash and KeepAlive relaunch, a new :latest image, a manual
-                # restart. local-model-proxy reads that IP only when it starts,
-                # and the recovery below recycles it only when this watchdog did
-                # the restarting. On 2026-10-07 headroom restarted by itself and
-                # every pi request returned 500 against the old address, while
-                # /readyz stayed green. So compare the proxy's target with
-                # headroom's address and recycle the proxy when they differ.
-                # Either side missing means one is mid-start: do nothing.
-                C=/opt/homebrew/bin/container
-                HR_IP=$($C inspect headroom 2>/dev/null | /usr/bin/python3 -c "import sys,json; print(json.load(sys.stdin)[0]['status']['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null)
-                LMP_URL=$($C inspect local-model-proxy 2>/dev/null | /usr/bin/python3 -c "import sys,json; env=json.load(sys.stdin)[0]['configuration']['initProcess']['environment']; print(next((e.split('=',1)[1] for e in env if e.startswith('MPS_BASE_URL=')), str()))" 2>/dev/null)
-                if [ -n "$HR_IP" ] && [ -n "$LMP_URL" ] && [ "$LMP_URL" != "http://$HR_IP:8787" ]; then
-                  LMP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && $0 ~ /--uuid local-model-proxy( |$)/ {print $1; exit}')
-                  if [ -n "$LMP" ]; then
-                    echo "$(/bin/date -Iseconds) drift: local-model-proxy targets $LMP_URL but headroom is at $HR_IP; recycling VM helper pid $LMP"
-                    kill -9 "$LMP" 2>/dev/null || true
-                  fi
-                fi
-
                 if /usr/bin/curl -sf -o /dev/null -m 10 "$URL"; then
                   rm -f "$STATE"
                   exit 0
@@ -547,8 +526,7 @@
                 # which is /bin/sh for this agent and /usr/bin/awk for the
                 # search. Match `--uuid headroom` as a whole word: a substring
                 # match on the name also hit a container named headroom-test on
-                # 2026-10-06 and killed it. phoenix and local-model-proxy cannot
-                # match either.
+                # 2026-10-06 and killed it.
                 HELPER=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && $0 ~ /--uuid headroom( |$)/ {print $1; exit}')
                 if [ -n "$HELPER" ]; then
                   echo "$(/bin/date -Iseconds) recovering: killing wedged headroom VM helper pid $HELPER"
@@ -564,148 +542,15 @@
                   kill -9 "$SUP" 2>/dev/null || true
                 fi
 
-                # The new headroom gets a new IP, and local-model-proxy resolves
-                # it only when it starts, so it would 502 every request against
-                # the old one. Recycle it the same way; its start gates on the new
-                # headroom answering /livez.
-                LMP=$(/bin/ps -Ao pid=,command= | /usr/bin/awk '$2 ~ /container-runtime-linux$/ && $0 ~ /--uuid local-model-proxy( |$)/ {print $1; exit}')
-                if [ -n "$LMP" ]; then
-                  echo "$(/bin/date -Iseconds) recycling local-model-proxy VM helper pid $LMP for the new headroom IP"
-                  kill -9 "$LMP" 2>/dev/null || true
-                fi
-
                 echo "$NOW" > "$COOLDOWN"
                 rm -f "$STATE"
-                echo "$(/bin/date -Iseconds) recovery done; KeepAlive will recreate headroom and local-model-proxy"
+                echo "$(/bin/date -Iseconds) recovery done; KeepAlive will recreate headroom"
               ''
             ];
             RunAtLoad = true;
             StartInterval = 60;
             StandardOutPath = "/tmp/headroom-watchdog.log";
             StandardErrorPath = "/tmp/headroom-watchdog.err";
-          };
-        };
-
-        phoenix = {
-          serviceConfig = {
-            Label = "com.phoenix";
-            ProgramArguments = [
-              "/bin/sh"
-              "-c"
-              ''
-                C=/opt/homebrew/bin/container
-                $C system start >/dev/null 2>&1 || true
-                until $C system status >/dev/null 2>&1; do sleep 2; done
-                $C network create proxy-chain 2>/dev/null || true
-                $C stop phoenix 2>/dev/null || true
-                $C rm phoenix 2>/dev/null || true
-                ${pullOrCached gateway.phoenix.image}
-                exec $C run --rm --name phoenix --network proxy-chain -p ${gateway.phoenix.publishSpec entity} -e PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30 -e PHOENIX_PROJECT_NAME=local-model-proxy ${gateway.phoenix.image}
-              ''
-            ];
-            RunAtLoad = true;
-            KeepAlive = true;
-            StandardOutPath = "/tmp/phoenix.log";
-            StandardErrorPath = "/tmp/phoenix.err";
-          };
-        };
-
-        local-model-proxy = {
-          serviceConfig = {
-            Label = "com.local-model-proxy";
-            ProgramArguments = [
-              "/bin/sh"
-              "-c"
-              # Apple's container tool provides no inter-container DNS, and container
-              # IPs are reassigned on every restart -- headroom coming back on a new
-              # IP left a stale MPS_BASE_URL here, 502ing every request while launchd
-              # still reported both services healthy.
-              #
-              # Reaching headroom and phoenix through their published host ports on
-              # the network gateway used to solve that, because the gateway outlives
-              # individual containers. It stopped working: measured 2026-09-18, the
-              # forwarder accepts a TCP connection on *:18787 (so `nc -z` passes) but
-              # only *answers* requests that arrive via loopback. Everything else --
-              # the host reaching its own vmnet address, and any sibling container --
-              # gets the connection closed with no reply (curl exit 52 /
-              # RemoteDisconnected). That wedged this job for 1046 KeepAlive restarts:
-              # the gate below could never pass, so nothing ever listened on 18788.
-              #
-              # Container IPs answer from both the host and a sibling container, so
-              # resolve them at every start. This reinstates the stale-IP exposure the
-              # first paragraph describes -- see the ceiling note on container_ip.
-              ''
-                C=/opt/homebrew/bin/container
-                $C system start >/dev/null 2>&1 || true
-                until $C system status >/dev/null 2>&1; do sleep 2; done
-                $C network create proxy-chain 2>/dev/null
-                $C stop local-model-proxy 2>/dev/null
-                $C rm local-model-proxy 2>/dev/null
-
-                # ponytail: resolved at start only. A headroom restart alone hands it a
-                # new IP and this job keeps the old one until KeepAlive cycles it. The
-                # headroom watchdog's drift check compares the two every minute and
-                # kicks this job when they differ, whatever restarted headroom. Revert
-                # to a stable published-port address if Apple ever forwards
-                # non-loopback.
-                container_ip() {
-                  for i in $(seq 1 30); do
-                    # status.networks, not configuration.networks: the latter
-                    # records only the network name and hostname, no address. An
-                    # earlier version of this read a bare [0]['networks'] and
-                    # KeyError'd on every start, so the proxy never came up.
-                    ip=$($C inspect "$1" 2>/dev/null \
-                      | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['status']['networks'][0]['ipv4Address'].split('/')[0])" 2>/dev/null)
-                    [ -n "$ip" ] && { printf '%s' "$ip"; return 0; }
-                    sleep 2
-                  done
-                  return 1
-                }
-
-                HEADROOM_IP=$(container_ip headroom) || {
-                  echo "FATAL: could not resolve headroom container IP; exiting for KeepAlive relaunch" >&2
-                  exit 1
-                }
-
-                # Telemetry is not worth failing a start over: an unreachable exporter
-                # drops spans quietly, which is what happened for the whole time the
-                # gateway-IP address was broken anyway.
-                PHOENIX_IP=$(container_ip phoenix) || {
-                  echo "WARN: could not resolve phoenix container IP; traces will drop" >&2
-                  PHOENIX_IP=127.0.0.1
-                }
-
-                # Gate on /livez, not /health: /health also probes upstream and hangs
-                # when headroom's connection pool wedges, which would block startup
-                # even while headroom is otherwise serving.
-                HEADROOM_READY=false
-                for i in $(seq 1 30); do
-                  if /usr/bin/curl -sf -m 2 http://''${HEADROOM_IP}:${toString gateway.headroom.containerPort}/livez >/dev/null 2>&1; then
-                    HEADROOM_READY=true
-                    break
-                  fi
-                  sleep 2
-                done
-                if [ "$HEADROOM_READY" != true ]; then
-                  echo "FATAL: headroom did not become live; exiting for KeepAlive relaunch" >&2
-                  exit 1
-                fi
-
-                ${pullOrCached gateway.proxy.image}
-                exec $C run --rm --name local-model-proxy --network proxy-chain -p ${gateway.proxy.publishSpec entity} \
-                  -e PROXY_HOST=0.0.0.0 -e PROXY_PORT=${toString gateway.proxy.containerPort} \
-                  -e MPS_BASE_URL="http://''${HEADROOM_IP}:${toString gateway.headroom.containerPort}" \
-                  -e LOG_LEVEL=INFO -e PRICING_PLAN=lego \
-                  -e OTEL_PROJECT_NAME=local-model-proxy \
-                  -e OTEL_SERVICE_NAME=local-model-proxy \
-                  -e OTEL_EXPORTER_OTLP_ENDPOINT="http://''${PHOENIX_IP}:${toString gateway.phoenix.containerPort}" \
-                  ${gateway.proxy.image}
-              ''
-            ];
-            RunAtLoad = true;
-            KeepAlive = true;
-            StandardOutPath = "/tmp/local-model-proxy.log";
-            StandardErrorPath = "/tmp/local-model-proxy.err";
           };
         };
 

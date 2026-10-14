@@ -12,21 +12,23 @@
     "profile": "secretspec.toml"
   },
 
-  "_models": "Addressing's other half: which ids exist, and the ceilings a harness must respect to hold them. Was duplicated across pi's models.json on M-02877 and Caveman Code's on mahakala, and the two disagreed (home-manager-8vh). Slot names are roles a harness asks for; ids are what the gateway publishes. contextWindow and maxTokens are the gateway's own enforced ceilings, measured 2026-09-19: it names its limit in the 400 body, both for max_tokens ('N > M, which is the maximum allowed number of output tokens') and for an oversized prompt ('prompt is too long: N tokens > M maximum'). GET /v1/models is not served (404), so a probe is the only first-hand source; re-measure rather than edit from memory.",
+  "_models": "Addressing's other half: which ids exist, and the ceilings a harness must respect to hold them. Was duplicated across pi's models.json on M-02877 and Caveman Code's on mahakala, and the two disagreed (home-manager-8vh). Slot names are roles a harness asks for; ids are what the gateway publishes. contextWindow and maxTokens are the gateway's own enforced ceilings, measured 2026-09-19: it names its limit in the 400 body, both for max_tokens ('N > M, which is the maximum allowed number of output tokens') and for an oversized prompt ('prompt is too long: N tokens > M maximum'). GET /v1/models is not served (404), so a probe is the only first-hand source; re-measure rather than edit from memory. cost is the registry rate in USD per million tokens (data-zone band), from GET https://app.genai.thelegogroup.com/models, read 2026-10-14. That API takes an Entra token: az account get-access-token --scope api://917243ee-d114-44a7-bb10-09ae72bf100d/.default. Opus 5.5 cache reads cost 5% of input, and cache writes cost 25 times a read, so a lost prompt cache is the largest cost.",
   "models": {
     "opus": {
       "id": "eu.anthropic.claude-opus-5-5",
       "name": "Opus 5.5 (LEGO)",
       "reasoning": true,
       "contextWindow": 1000000,
-      "maxTokens": 128000
+      "maxTokens": 128000,
+      "cost": {"input": 4.4, "output": 22, "cacheRead": 0.22, "cacheWrite": 5.5}
     },
     "sonnet": {
       "id": "eu.anthropic.claude-sonnet-5-5",
       "name": "Sonnet 5.5 (LEGO)",
       "reasoning": true,
       "contextWindow": 1000000,
-      "maxTokens": 128000
+      "maxTokens": 128000,
+      "cost": {"input": 2.2, "output": 11, "cacheRead": 0.11, "cacheWrite": 2.75}
     },
     "haiku": {
       "_reasoning": "Stays false: a configured thinking level on Haiku 4.5 trips 'adaptive thinking is not supported on this model' (LEGO/ai-model-gateway-client, src/features/docs/pages/PiPage.tsx).",
@@ -34,9 +36,13 @@
       "name": "Haiku 4.5 (LEGO)",
       "reasoning": false,
       "contextWindow": 200000,
-      "maxTokens": 64000
+      "maxTokens": 64000,
+      "cost": {"input": 1.1, "output": 5.5, "cacheRead": 0.11, "cacheWrite": 1.375}
     }
   },
+
+  "_promptCache": "The provider's prompt-cache lifetime in seconds, for every Claude model above: the 5-minute ephemeral cache. pi keeps a cache warm during a long tool run only when the model has a lifetime and a cost (pi docs/settings.md, cacheWarming).",
+  "promptCache": {"short": 300},
 
   "headroom": {
     "image": "ghcr.io/headroomlabs-ai/headroom:latest",
@@ -51,27 +57,11 @@
     "noMemoryTools": "1",
     "_excludeTools": "Headroom 0.40.0 lossy-compresses caveman_retrieve output, so the original Caveman recovers arrives rewritten (headroomlabs-ai/headroom#4010, fix in #4014). Excluded tools still get lossless cleanup, so indented JSON arrives minified. Drop it once a release has #4014.",
     "excludeTools": "caveman_retrieve",
-    "_allowUnauthenticatedBind": "Headroom images from 2026-10 refuse to bind 0.0.0.0 unless HEADROOM_PROXY_TOKEN is set, because their /v1/* routes would relay the caller's gateway credential to anyone who can reach the port. A token does not fit here: local-model-proxy and the harnesses already send the gateway key as the Authorization bearer, so a second bearer would collide with it. The image's documented alternative is this acknowledgement. It is honest only while every host publishes the port on loopback (published.*.host); on the container network, only our own sibling containers can reach it. Measured 2026-10-06: without it headroom exits at start, and local-model-proxy then loops on 'could not resolve headroom container IP'.",
+    "_allowUnauthenticatedBind": "Headroom images from 2026-10 refuse to bind 0.0.0.0 unless HEADROOM_PROXY_TOKEN is set, because their /v1/* routes would relay the caller's gateway credential to anyone who can reach the port. A token does not fit here: the harnesses already send the gateway key as the Authorization bearer, so a second bearer would collide with it. The image's documented alternative is this acknowledgement. It is honest only while every host publishes the port on loopback (published.*.host); on the container network, only our own sibling containers can reach it. Measured 2026-10-06: without it headroom exits at start.",
     "allowUnauthenticatedBind": "1",
     "published": {
       "M-02877": {"host": "127.0.0.1", "port": 18787},
       "mahakala": {"host": "127.0.0.1", "port": 8787}
-    }
-  },
-
-  "proxy": {
-    "image": "ghcr.io/lego/local-model-proxy:latest",
-    "containerPort": 8788,
-    "published": {
-      "M-02877": {"host": "127.0.0.1", "port": 18788}
-    }
-  },
-
-  "phoenix": {
-    "image": "docker.io/arizephoenix/phoenix:latest",
-    "containerPort": 6006,
-    "published": {
-      "M-02877": {"host": "127.0.0.1", "port": 16006}
     }
   }
 }

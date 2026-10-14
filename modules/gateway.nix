@@ -80,9 +80,11 @@ in {
     # ANTHROPIC_DEFAULT_*_MODEL, agent-shell's elisp substitutions).
     modelIds = builtins.mapAttrs (_: model: model.id) facts.models;
 
+    # The provider's prompt-cache lifetime in seconds, in pi's `promptCache`
+    # shape. pi warms a cache only for a model that declares it.
+    promptCache = lib.filterAttrs (name: _: !lib.hasPrefix "_" name) facts.promptCache;
+
     headroom = service "headroom";
-    proxy = service "proxy";
-    phoenix = service "phoenix";
 
     # One secret for every consumer, deliberately: per-harness virtual keys
     # were considered and rejected on 2026-08-01 (recorded in

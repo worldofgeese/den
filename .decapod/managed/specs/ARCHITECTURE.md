@@ -319,7 +319,7 @@ Homebrew rebuilds. secretspec on M-02877 reads only `secretspec.age` (no
 `keyring` fallback in `secretspec.toml`), and Homebrew's GitHub API token comes
 from `gh auth token` (gh reaches the keychain through Apple's stable
 `/usr/bin/security`). Apple container's `ghcr.io` credential, read on every
-headroom and local-model-proxy start, is gh's token stored by `just
+headroom start, is gh's token stored by `just
 ghcr-login` with an any-app ACL. The accepted trade-off matches the age store:
 any process running as the user can read these without a dialog.
 

@@ -260,94 +260,158 @@ get-caller-identity` before anything else.
 
 ### Token proxy chain (M-02877)
 
-Three launchd agents run Apple `container` images on the `proxy-chain`
-network, in the order a request passes them: local-model-proxy
-(`127.0.0.1:18788`), Headroom (`127.0.0.1:18787`) and the LEGO gateway's
-`/claude` endpoint. Phoenix (`127.0.0.1:16006`) receives local-model-proxy's
-traces. `com.headroom.watchdog` probes Headroom's `/readyz` every minute.
-Logs: `/tmp/{headroom,local-model-proxy,phoenix,headroom-watchdog}.{log,err}`.
+One launchd agent runs Headroom in an Apple `container` image on the
+`proxy-chain` network, at `127.0.0.1:18787`. Headroom forwards to the LEGO
+gateway's `/claude` endpoint. `com.headroom.watchdog` probes Headroom's
+`/readyz` every minute and recovers a wedged container. Logs:
+`/tmp/{headroom,headroom-watchdog}.{log,err}`.
+
+We deleted local-model-proxy and Phoenix on 2026-10-14. local-model-proxy
+forwarded each request byte for byte. It only counted tokens and sent traces
+to Phoenix. The gateway records the same data with billed costs (see "Measure
+the chain"). local-model-proxy kept Headroom's container IP from its own start,
+so it returned 502 after each Headroom restart. The watchdog recycled it 30
+times. If the two containers still run after the deploy, stop them with
+`container stop local-model-proxy phoenix`.
 
 The chain was down on 2026-10-06 for two independent reasons:
 - Every start pulled `:latest` first and ran the container only if the pull
   succeeded. One pull hung for over 21 minutes while the image was already
   cached. Pulls are now bounded at 300 s, and a cached image starts when the
   pull fails or times out.
-- The new Headroom image refuses to bind `0.0.0.0` without a proxy token and
-  exited at start, so local-model-proxy looped on "could not resolve headroom
-  container IP". A token would collide with the gateway bearer that the
-  harnesses already send, so every host now publishes all three ports on
-  loopback only and sets `HEADROOM_ALLOW_UNAUTHENTICATED_BIND`
-  (`gateway.json` holds the reasoning). mahakala's Guix config reads the same
-  value.
+- The new Headroom image refuses to bind `0.0.0.0` without a proxy token, and
+  it exited at start. A token collides with the gateway bearer that the
+  harnesses already send. So every host publishes the port on loopback only
+  and sets `HEADROOM_ALLOW_UNAUTHENTICATED_BIND` (`gateway.json` holds the
+  reasoning). mahakala's Guix config reads the same value.
 
-The watchdog's recovery now also recycles local-model-proxy, which otherwise
-keeps the old Headroom IP and returns 502 for every request. Its process
-matchers use the exact container name (`--uuid headroom`): a substring match
-killed a test container named `headroom-test` on 2026-10-06.
+The watchdog matches its process with the exact container name
+(`--uuid headroom`). A substring match killed a test container named
+`headroom-test` on 2026-10-06.
 
-pi uses the chain through the den-owned `lego-claude` provider
-(`modules/M-02877/token-toolchain.nix`, after the community guide
-`setup-token-saving-toolchain.md`). The provider's `baseUrl` is
-local-model-proxy (`127.0.0.1:18788`), its real first hop, so model traffic
-does not pass Caveman's proxy (`com.dktaohan.caveman-proxy`,
-`127.0.0.1:8787`). That proxy still serves the Caveman pi extension's
-tool-output shrinking, and its `~/.caveman/caveman.yaml` points its
-Anthropic upstream at the same local-model-proxy. New sessions
-start on `lego-claude`. Running sessions keep the provider they started
-with, and `/model anthropic-proxy/...` goes straight to the gateway if the
-chain is down. pi also loads RTK's and Caveman's extensions, ponytail and
-context-mode (packages), Caveman's skills, and the context-mode, CodeGraph
-and Headroom MCP servers.
+pi does not use the chain. The den-owned `lego-claude` provider
+(`modules/M-02877/token-toolchain.nix`) goes straight to the gateway's
+`/anthropic` endpoint. That is the gateway's documented endpoint for pi, and
+it caches like `/claude` in an A/B test. We measured the reason on 2026-10-14
+from the gateway's request log:
+- Headroom 0.40.0 in `cache` mode loses its prefix lineage when the previous
+  request ended in a one-shot message. Signet's pi extension adds such a
+  message to the first request of each prompt.
+- Headroom then forwards the original bytes of turns that it compressed
+  before. The provider writes the conversation to the cache again.
+- One session lost about 945k cache-write tokens in this way, and up to 274k
+  tokens for one prompt (headroomlabs-ai/headroom#4213). Headroom saved 0.6%
+  of input tokens in the same period.
+- A controlled A/B test in pi RPC mode showed the same difference.
+
+Claude Code, omp and Caveman Code still use Headroom as their first hop
+(`modules/agent-providers.nix`). pi sessions that started before the profile of
+2026-10-14 18:19Z keep the old base URL, `127.0.0.1:18788`, until they restart.
+Restart them before the deploy that deletes local-model-proxy. If you do not,
+they get "connection refused". New sessions start on `lego-claude`.
+`/model anthropic-proxy/...` also goes straight to the gateway.
+
+#### Prompt cache
+
+Cache writes are the largest cost. In the 7 days to 2026-10-14, the gateway's
+`/usage` for all visible accounts shows these parts of the estimated cost:
+cache writes 59%, cache reads 27%, output 13% and input 1%. An Opus 5.5 cache
+read costs 5% of an input token. A cache write costs 25 times a read. So a
+change that breaks the prompt cache costs more than any compression saves.
+
+`gateway.json` gives pi's models a `cost` block and `promptCache.short = 300`.
+With both, pi keeps the cache warm during a long tool run and shows the
+session cost. `cacheWarming` stays at its default, `streaming`. We measured
+this on 2026-10-14 with a 330 s tool call on Sonnet 5.5:
+- With the two keys, pi sent one `cache_warm` request. The next request read
+  49,779 tokens from the cache and wrote 132.
+- Without them, the cache expired. The next request wrote 25,621 tokens.
+
+`cacheWarming: "idle"` also warms the cache between prompts. We do not set it,
+because pi does not document when it stops for an abandoned session.
+
+#### Measure the chain
+
+The gateway's app API at `https://app.genai.thelegogroup.com` records every
+request with billed usage. It takes an Entra token, not the gateway key:
+`az account get-access-token --scope api://917243ee-d114-44a7-bb10-09ae72bf100d/.default`.
+- `GET /usage?start=…&end=…&interval=day&group_by=model` returns token and
+  cost buckets, with cache reads and writes. `interval=5m` and
+  `group_by=account` also work.
+- `GET /logs?window=last_24h&account=<id>` lists sessions.
+  `GET /logs/<session>` lists the turns and their usage.
+- `GET /logs/<session>/requests/<request>` returns the stored request body.
+
+The gateway starts a new session when a request does not extend the previous
+one, so one pi session can show as several sessions. The stored `tools` list
+of a request holds only the tools that the conversation called. pi's session
+files record the usage and cost of each request.
+
+#### Caveman
+
+We install Caveman 4.0.1 (`@caveman-ai/cli` 4.0.1, `bin-v4.0.1`) by hand:
+1. Run `npm install -g @caveman-ai/cli@4.0.1`, then `caveman setup --install`.
+2. Run `caveman setup --yes --agents none --skip routing,scripts`. This writes
+   the module state to `~/.caveman/cloud.json`.
+3. Restart the proxy with
+   `launchctl kickstart -k gui/$UID/com.dktaohan.caveman-proxy`. The proxy is
+   not in a model path.
+
+Do not use `--agents pi`. It writes `~/.pi/agent/extensions/caveman-native.js`,
+and pi then loads the extension a second time beside den's shim. The `routing`
+module sends requests to Caveman Cloud. The `scripts` module installs Caveman
+Blocks hooks in Claude Code and Codex.
 
 Caveman behaviours that shape this design:
 - Without `caveman.yaml`, Caveman sends Anthropic-format requests to
-  `api.anthropic.com`, which would hand the LEGO gateway key to Anthropic
-  (measured 2026-10-06).
-- pi sends the key as the bearer and as `x-api-key`. Caveman's proxy
-  forwards only `x-api-key` when both arrive, and the gateway accepts only
-  the bearer, so a session routed through Caveman gets 401. An empty
-  `x-api-key` made Caveman 1.x forward the bearer, which is why the provider
-  used to point at Caveman itself (`/w/pi`), with a shim no-oping the
-  extension's provider re-registration (which dropped `authHeader`).
-- Caveman 2.x (`@caveman-ai/cli` 2.0.1, `bin-v2.0.2`, measured 2026-10-07)
-  routes with `pi.setModel` and keeps `authHeader`, but refuses to route a
-  provider whose `x-api-key` is empty ("keep the provider direct"), and its
-  proxy still forwards `x-api-key` over the bearer (401 with both). So the
-  provider goes direct, and the empty `x-api-key` stays: it is what keeps
-  the extension from rerouting `lego-claude` into that 401. Each new session
-  warns "Caveman: pass-through for lego-claude/...; no compression"; that is
-  expected. Request compression through Caveman saved ~0 tokens before
-  (201 tokens over 440 requests), and tool-output shrinking does not use
-  this route. The shim (`~/.pi/agent/extensions/caveman.js`) now only loads
-  the npm-installed extension.
+  `api.anthropic.com`. That hands the LEGO gateway key to Anthropic (measured
+  2026-10-06). The file sets the gateway's `/claude` endpoint as the upstream.
+  No model traffic uses it now.
+- pi sends the key as the bearer and as `x-api-key`. On its built-in
+  `anthropic` upstream, the `bin-v4.0.1` proxy forwards only `x-api-key`. The
+  gateway accepts only the bearer, so it returns 401 (measured 2026-10-14).
+  The fix for JuliusBrussee/caveman#1215 keeps the bearer only on a named
+  compat mount. Request compression through Caveman saved about 0 tokens
+  (`caveman stats`: -0.0% over 1,327 requests). So `lego-claude` stays direct.
+- The empty `x-api-key` on the provider is load-bearing. The 4.0.1 pi
+  extension refuses to route a provider whose `x-api-key` is empty ("keep the
+  provider direct"). Each new session warns "Caveman: pass-through for
+  lego-claude/..."; that is expected.
+- Caveman's tool-output shrinking does not work here. After the upgrade from
+  2.0.1, the native runtime on `~/.caveman/run/native.sock` closes every
+  request with an empty reply (JuliusBrussee/caveman#1279). The pi extension
+  then passes tool output through unchanged. The `ccr` markers in earlier pi
+  sessions came from Headroom, not from Caveman.
+- Since 4.0.1, the extension does not shrink tool output in a session that
+  cannot call `caveman_retrieve` (#1211). So the den-generated `techwriter`
+  agent does not name `caveman_retrieve` in its `tools:`.
 
-Caveman's extension also shrinks tool output and returns a `ccr://` handle
-for `caveman_retrieve`. Small outputs are shrunk too, which costs extra
-retrieve turns. Watch for this before treating the setup as a net saving.
-A handle is only recoverable while the session can call `caveman_retrieve`:
-a pi subagent with its own `tools:` list replaces the active set, so the
-den-generated `techwriter` agent names `caveman_retrieve` until Caveman ships
-the fix for JuliusBrussee/caveman#1211 (PR #1196). Caveman binaries before
-`bin-v1.1.7` also lose every handle (#1008, fixed by #1015); upgrade, then restart the proxy
-from a plain terminal, never from an agent session that talks through it.
+The shim (`~/.pi/agent/extensions/caveman.js`) only loads the npm-installed
+extension (`dist/caveman-pi-extension.mjs`).
+
+#### Headroom workarounds
 
 Headroom 0.40.0 runs with two workarounds from `gateway.json`:
-`HEADROOM_NO_MEMORY_TOOLS=1` stops it injecting its memory tools, whose
-server-side continuation 400s when the model also called a client tool in
-the same turn (headroomlabs-ai/headroom#4009, fix #4013), while memory
-storage and `--learn` stay on; `HEADROOM_EXCLUDE_TOOLS=caveman_retrieve`
-stops it lossy-compressing recovered Caveman output (#4010, fix #4014).
-Drop each once a Headroom release carries its fix. On 2026-10-08 both fixes
-were merged to main but unreleased; release PR headroomlabs-ai/headroom#4002
-(0.41.0) carries them, and `:latest` is still 0.40.0. Changing them restarts
-the Headroom container, which is in every session's model path, so apply
-from a plain terminal.
+- `HEADROOM_NO_MEMORY_TOOLS=1` stops it injecting its memory tools. Their
+  server-side continuation returned 400 when the model also called a client
+  tool in the same turn (headroomlabs-ai/headroom#4009, fix #4013). Memory
+  storage and `--learn` stay on.
+- `HEADROOM_EXCLUDE_TOOLS=caveman_retrieve` stops it lossy-compressing
+  recovered Caveman output (#4010, fix #4014).
 
-When testing by hand, use container names that do not start with `headroom`,
-and spare loopback ports (28787 and 28788 were used). Verify the chain with
-`curl -s 127.0.0.1:18787/readyz` and `curl -s 127.0.0.1:18788/health`, then a
-`/v1/messages` call that sends the gateway key as `Authorization: Bearer`. The
-gateway rejects the key when it arrives only as `x-api-key`.
+Delete each workaround when a Headroom release carries its fix (den#41). On
+2026-10-14 both fixes were on main but not released. Release PR
+headroomlabs-ai/headroom#4002 (0.41.0) carries them, and `:latest` is still
+0.40.0. Kompress also deletes keywords from a fenced code block inside a mixed
+tool result (headroomlabs-ai/headroom#4214). A change to these settings
+restarts the Headroom container, which is in the model path of the other
+harnesses. Apply it from a plain terminal.
+
+When you test by hand, use container names that do not start with `headroom`,
+and spare loopback ports (28787 and 28788 were used). Verify Headroom with
+`curl -s 127.0.0.1:18787/readyz`. Then send a `/v1/messages` call with the
+gateway key as `Authorization: Bearer`. The gateway rejects the key when it
+arrives only as `x-api-key`.
 
 ### Server auto-upgrade and human SSH keys (paphos, oracle)
 

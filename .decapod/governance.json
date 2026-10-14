@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "baseline": {
+    "accepted_commit": "32e1a026466704f6eec00aaf0b98fcb568467113",
+    "policy": {
+      "change_control": {
+        "requires_human_review": true,
+        "requires_issue": true,
+        "requires_validation": true
+      },
+      "new_capability_rule": "Every new capability must map to an existing claim or introduce a new falsifiable claim before it is treated as research-relevant.",
+      "review_policy": "Reviewers must check that every claim remains falsifiable, evidence status is bounded by observed evidence, proof references resolve, and schema compatibility is preserved."
+    },
+    "unresolved": {
+      "claim:replace-template-claim:question:project-specific-claim": {
+        "decision_impact": "Determines the first repository-specific research claim and its required proof.",
+        "id": "project-specific-claim",
+        "owner": "Project maintainers",
+        "question": "Which project capability should replace this template claim first?",
+        "status": "open"
+      }
+    }
+  },
+  "change": {
+    "id": "change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+    "base_commit": "32e1a026466704f6eec00aaf0b98fcb568467113",
+    "target_base": "origin/main"
+  },
+  "intents": {
+    "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J": {
+      "acceptance_criteria": [],
+      "assumptions": [],
+      "boundaries": [
+        "Current claimed task and isolated work branch"
+      ],
+      "constraints": [
+        "root"
+      ],
+      "created_sequence": 1,
+      "id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+      "out_of_scope": [],
+      "proof_requirements": [],
+      "raw_intent": "cask preflight: block only on casks that brew bundle upgrades; land topgrade flake.lock",
+      "refined_intent": "cask preflight: block only on casks that brew bundle upgrades; land topgrade flake.lock",
+      "status": "refined",
+      "updated_sequence": 3
+    }
+  },
+  "sections": {
+    "plan": {
+      "constraints": {
+        "file_touch_budget": 25,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "topgrade deploys M-02877 without a false stop: the root-owned check applies only to outdated casks (the non-greedy set that brew bundle upgrades), and the flake.lock from topgrade lands on main after a complete deploy",
+      "phases": [],
+      "proof_hooks": [
+        "shellcheck passes on scripts/cask-app-preflight.sh",
+        "stub brew: root-owned app of a current cask exits 0; of an outdated cask exits 1 with the chown fix",
+        "real preflight exits 0 with the Jamf-updated root-owned Visual Studio Code.app",
+        "just deploy-darwin from the workspace completes, including brew bundle and Home Manager activation",
+        "decapod validate passes in the container workspace"
+      ],
+      "schema_version": "1.1.0",
+      "state": "APPROVED",
+      "stop_conditions": [
+        "deploy needs admin rights (pkg cask upgrade): the human grants SAP Privileges; the agent never elevates"
+      ],
+      "title": "M-02877: cask preflight blocks only on casks that brew bundle upgrades; land topgrade flake.lock",
+      "todo_ids": [
+        "code_01m4xnbq0fmx85yc"
+      ],
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1791998683Z"
+    },
+    "trajectory": {
+      "active_boundaries": [
+        "Current claimed task and isolated work branch"
+      ],
+      "artifact_hash": "sha256:2a3126cef5a6a08a185d2277bcccfbd67ef6f882313a2c51640510eaa7383064",
+      "checks": [],
+      "current_phase": "intent",
+      "custody": {
+        "events": [
+          {
+            "event_id": "event:2",
+            "intent_id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+            "kind": "created",
+            "sequence": 2
+          },
+          {
+            "event_id": "event:3",
+            "intent_id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+            "kind": "refined",
+            "sequence": 3
+          }
+        ],
+        "knowledge_candidates": [],
+        "next_sequence": 3,
+        "schema_version": "1.0.0",
+        "trajectories": {}
+      },
+      "declared_commands": [],
+      "destination": "pull request",
+      "evidence": [],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M4XNCF9ND8B4WCFVV0VTCR8J",
+      "modified_files": [],
+      "next_transitions": [
+        "Refine plan and declare falsifiable checks"
+      ],
+      "repo_scope": [
+        "root"
+      ],
+      "run_id": "branch_01M4XNCFCHBGEMWY6N3JGD14EK",
+      "schema_version": "1.1.0",
+      "shortcut_risk_signals": [],
+      "task_id": "code_01m4xnbq0fmx85yc",
+      "tool_calls": [],
+      "unresolved_assumptions": []
+    }
+  },
+  "legacy_digests": {
+    ".decapod/governance/claims.json": "sha256:e8844b1145f540fc8570eb603f30d3ecae0f1044f8dbdc61cafa13ed23a0abfd",
+    ".decapod/governance/plan.json": "sha256:b123d3936c418f01e3b372185457b0b453ae2b63a32976119cf2d8b94ddd408f",
+    ".decapod/governance/trajectory.json": "sha256:0fcf64cdf624e1a3f45d371d1c4cac4bf058fa844e7b1dad589c7a33750c68f5",
+    ".decapod/governance/validation.json": "sha256:f99566205d00521b4d94835e561cff8ff18886e411f15cb3689e1d580fcd1bc8"
+  }
+}

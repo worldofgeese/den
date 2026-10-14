@@ -1,14 +1,5 @@
 # Intent
 
-<!-- decapod:declared-capabilities:start -->
-
-## Declared Capability Surfaces
-
-- `infrastructure-management`
-- `secrets-handling`
-
-<!-- decapod:declared-capabilities:end -->
-
 ## Product Outcome
 - To quickly bring up my Home Manager config first install Nix then
 - In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
@@ -120,7 +111,12 @@ ChatGPT.app, or empty, as happened to ChatGPT.app again once the user lost
 admin-group membership and `/Applications` became read-only to them. Casks the
 user cannot upgrade in place move to `~/Applications` automatically. Fixes that
 need admin rights are one command the user runs, and they change ownership only
-or delete an unused old copy.
+or delete an unused old copy. The guard stops a deploy only for a cask that
+`brew bundle` upgrades. An app that device management updates in place, such as
+Visual Studio Code under Jamf App Installers, must not stop a deploy when
+Homebrew leaves that app alone. A cask that installs a macOS package must
+upgrade during an unattended deploy. A deploy must not stop halfway, with `/etc`
+changed and Home Manager not activated.
 
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
@@ -156,11 +152,22 @@ or delete an unused old copy.
 | Which interfaces are versioned at launch? | TBD | YYYY-MM-DD | |
 | Which non-functional target is hardest to hit? | TBD | YYYY-MM-DD | |
 
+<!-- decapod:declared-capabilities:start -->
+
+## Declared Capability Surfaces
+
+These declarations select authoring and proof obligations; they do not attest implemented runtime guarantees.
+
+- `infrastructure-management`
+- `secrets-handling`
+
+<!-- decapod:declared-capabilities:end -->
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e`
-- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
-- Refreshed from the current codebase by `decapod specs.refresh`
+- Repository signal fingerprint: `2758b2391db7ef1bd2a4bf29226f0e08be54c479b189037e5da2efa26e7e0a05`
+- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

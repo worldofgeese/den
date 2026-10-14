@@ -38,7 +38,17 @@ flowchart LR
 ## Authorization
 - Role model:
 - Resource-level policy:
-- Privilege escalation controls:
+- Privilege escalation controls: on M-02877 the user is an admin only while SAP
+  Privileges grants it. `security.sudo.extraConfig` in `modules/M-02877/darwin.nix`
+  grants `darwin-rebuild switch *` and the exact `sudo -E` commands of Homebrew's
+  `pkg` cask upgrades without a password. These rules let any process that runs
+  as the user act as root: `darwin-rebuild` can switch to any flake, and the
+  Homebrew rules can delete any file or install any package. The `pkg` rules add
+  no capability that the `darwin-rebuild` rule does not already give. Make sure a
+  changed rule passes `visudo -c -f` on the built
+  `etc/sudoers.d/10-nix-darwin-extra-config` before a deploy. A sudoers parse
+  error stops `sudo`, and without admin only an `osascript` admin dialog can
+  repair it.
 
 ## Data Classification
 | Data Class | Examples | Storage Rules | Access Rules |
@@ -157,7 +167,7 @@ Describe the security primitives and security controls implemented in this repos
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e`
-- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
-- Refreshed from the current codebase by `decapod specs.refresh`
+- Repository signal fingerprint: `2758b2391db7ef1bd2a4bf29226f0e08be54c479b189037e5da2efa26e7e0a05`
+- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

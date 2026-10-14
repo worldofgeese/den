@@ -982,6 +982,19 @@
       security.sudo.extraConfig = ''
         Defaults env_keep += "HOMEBREW_GITHUB_API_TOKEN"
         dktaohan ALL=(root) NOPASSWD: /run/current-system/sw/bin/darwin-rebuild switch *
+        # Activation's `brew bundle` upgrades casks that install a macOS package
+        # (pkg), such as dotnet-sdk. Homebrew runs these exact commands through
+        # `sudo -E`, so they need SETENV. Source: Homebrew's cask/pkg.rb,
+        # cask/artifact/pkg.rb and the pkgutil, delete and launchctl stanzas in
+        # cask/artifact/abstract_uninstall.rb.
+        dktaohan ALL=(root) NOPASSWD: SETENV: /usr/sbin/installer -pkg *, \
+          /usr/sbin/pkgutil --forget *, \
+          /usr/bin/xargs -0 -- /bin/rm --, \
+          /usr/bin/xargs -0 -- /bin/rm -r -f --, \
+          /usr/bin/xargs -0 -- /opt/homebrew/Library/Homebrew/cask/utils/rmdir.sh, \
+          /bin/launchctl print *, /bin/launchctl list *, \
+          /bin/launchctl remove *, /bin/launchctl unload -w -- *, \
+          /bin/rm -f -- *
       '';
 
       system.stateVersion = 5;

@@ -242,22 +242,32 @@ fleet SSH aliases in `modules/ssh.nix` (now including `mahakala`) depend on it.
 ### Homebrew Cask Upgrade Guard
 Activation's `brew bundle` upgrades casks, including self-updating ones. The
 self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)
-can leave root-owned files. This user has `sudo` only while SAP Privileges
+can leave root-owned files. Jamf App Installers also leaves root-owned files.
+It updates Visual Studio Code in place as root, in `~/Applications` too, and a
+managed preference turns off the VS Code updater. This user has `sudo` only while SAP Privileges
 grants admin, so Homebrew then can't move the app aside, and the failed upgrade
 can delete part of the bundle first.
 `just deploy-darwin` therefore runs `scripts/cask-app-preflight.sh` before
 `darwin-rebuild`. It moves leftover Caskroom backups of failed upgrades to the
 Trash, and stops the deploy if a casked app, in the appdir Homebrew recorded for
-that cask, has files not owned by the user,
-printing one `osascript` admin command that changes ownership only.
+that cask, has files not owned by the user and the cask is outdated. It prints
+one `osascript` admin command that changes ownership only.
+The preflight uses one outdated list for all checks: `brew outdated --cask`
+without `--greedy`, after a `brew update`. This list is the set of casks that
+`brew bundle` upgrades, because no Brewfile entry sets `greedy`. For an
+`auto_updates` cask, the non-greedy test compares the version in the app bundle
+with the tap version. After Jamf updates Visual Studio Code, the cask is not
+outdated, so `brew bundle` does not touch the root-owned app and the deploy
+continues. If Homebrew publishes a release before Jamf installs it, the cask is
+outdated and the deploy stops for the `chown` command.
 SAP Privileges (Jamf-managed) makes the user an admin for 10 minutes at a time
 and revokes it on screen lock, so `/Applications` (root:admin, 775) is writable
 only intermittently, and a deploy outlasts a grant. Casks recorded there are
 upgraded after the grant lapses: the bundle is emptied, the directory cannot be
 removed, `sudo` is refused, and an empty app remains. For each cask whose
 recorded appdir is not owned by the user (ownership, not momentary
-writability, decides) and that is outdated (`brew outdated --cask --greedy`, after a
-`brew update`) or already an empty shell, the preflight parks its Caskroom
+writability, decides) and that is outdated (the same non-greedy list) or
+already an empty shell, the preflight parks its Caskroom
 record and reinstalls it into `~/Applications`, the configured
 `homebrew.caskArgs.appdir`, parking and restoring the cask's CLI symlinks
 around the install. The old copy goes to the Trash when the appdir is writable
@@ -355,7 +365,7 @@ because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e`
-- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
-- Refreshed from the current codebase by `decapod specs.refresh`
+- Repository signal fingerprint: `99f1aae7688e0eaf38f62f518d6622e02be48bdfa484729ad7641679ba3d9e54`
+- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

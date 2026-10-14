@@ -120,7 +120,10 @@ ChatGPT.app, or empty, as happened to ChatGPT.app again once the user lost
 admin-group membership and `/Applications` became read-only to them. Casks the
 user cannot upgrade in place move to `~/Applications` automatically. Fixes that
 need admin rights are one command the user runs, and they change ownership only
-or delete an unused old copy.
+or delete an unused old copy. The guard stops a deploy only for a cask that
+`brew bundle` upgrades. An app that device management updates in place, such as
+Visual Studio Code under Jamf App Installers, must not stop a deploy when
+Homebrew leaves that app alone.
 
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
@@ -160,7 +163,7 @@ or delete an unused old copy.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `0e05719cad3ab88e6d446097561a1ff22afe40a70b25362f791f6f983727d72e`
-- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `terraform/` (1 files)
-- Refreshed from the current codebase by `decapod specs.refresh`
+- Repository signal fingerprint: `99f1aae7688e0eaf38f62f518d6622e02be48bdfa484729ad7641679ba3d9e54`
+- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

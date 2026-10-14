@@ -72,7 +72,6 @@ result/
 
 # Cave agent worktrees and session scratch.
 .cave/
-.decapod/governance/workunits/
 
 # Graphiq knowledge-graph index (1.3M SQLite, regenerated on demand).
 .graphiq/

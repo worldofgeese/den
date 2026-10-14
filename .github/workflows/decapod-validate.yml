@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Decapod compares the event's base and head, so it needs the history
+          # and the origin/main ref.
+          fetch-depth: 0
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cache cargo-binstall and Decapod
@@ -33,6 +37,10 @@ jobs:
           # Post-merge: tree-local binary fingerprints lag the last published pin.
           # PRs still enforce release-bound pins + drift.
           DECAPOD_VALIDATE_SKIP_FINGERPRINT_GATES: ${{ github.event_name == 'push' && '1' || '' }}
+          # Decapod 0.111 requires the immutable change range of the event.
+          CHANGE_EVENT: ${{ github.event_name }}
+          CHANGE_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          CHANGE_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           if [ ! -d .decapod ]; then
             decapod init --proof
@@ -52,7 +60,7 @@ jobs:
               sed -i "s/\"generated_at\": \"[^\"]*\"/\"generated_at\": \"${OLD}\"/" "${MANIFEST}"
             fi
           fi
-          if ! git diff --exit-code -- . ':!.decapod/governance/'; then
+          if ! git diff --exit-code -- . ':!.decapod/governance/' ':!.decapod/governance.json'; then
             echo "::error::Release-bound or living-spec drift after validate --refresh-specs."
             echo "Commit regenerated entrypoints and .decapod/managed/specs from the evaluating binary."
             exit 1

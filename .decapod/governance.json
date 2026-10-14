@@ -29,10 +29,10 @@
   "checkpoints": [
     {
       "id": "code_01m4xs9erm9veeb5",
-      "summary": "OPERATIONS.md: Caveman shrink status is per extension version; 2.0.1 sessions still shrink, 4.0.1 sessions do not",
-      "input_digest": "sha256:8d1bbef3dd79010d78b04f53029a309eb1a427de31eca1acff21145850f13303",
+      "summary": "Refresh the spec manifest after the OPERATIONS.md correction",
+      "input_digest": "sha256:130b3914633f0fdd01998162c339c61986bc1f5343ed6d2f68a30494d066c39e",
       "proof_refs": [
-        "https://github.com/JuliusBrussee/caveman/issues/1279#issuecomment-6176263457"
+        "decapod validate --refresh-specs (container)"
       ]
     }
   ],

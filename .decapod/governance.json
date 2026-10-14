@@ -29,16 +29,206 @@
   "checkpoints": [
     {
       "id": "code_01m4xs9erm9veeb5",
-      "summary": "pi lego-claude goes straight to the gateway /anthropic endpoint; pi models get registry cost and promptCache; Caveman 4.0.1 notes; local-model-proxy and Phoenix deleted; specs and docs describe the new path",
-      "input_digest": "sha256:4b041bcab225d4ed40820710b12ae3f16711514171596c0b4ad8920f6df6a631",
+      "summary": "Decapod plan, trajectory and refreshed spec manifest for the token-chain change",
+      "input_digest": "sha256:db0452b3d5b4f26acd00eeb0c091828722be464ab3e600f2af5716c32222088d",
       "proof_refs": [
-        "https://github.com/headroomlabs-ai/headroom/issues/4213",
-        "nix build home.activationPackage -> /nix/store/m6y3jlk1j5rdzdsjbl6pcpmif592n8ag-home-manager-generation",
-        "nix eval .#darwinConfigurations.M-02877.system.drvPath (exit 0)",
-        "pi RPC A/B 2026-10-14: direct path full prefix hits across prompts; cache_warm during 330 s tool run"
+        "decapod govern plan approve (exit 0)",
+        "decapod govern trajectory record: completion_proof supported"
       ]
     }
   ],
+  "intents": {
+    "intent:code_01m4xs9erm9veeb5": {
+      "acceptance_criteria": [],
+      "assumptions": [],
+      "boundaries": [
+        "No darwin deploy or Headroom restart from an agent session"
+      ],
+      "constraints": [
+        "gateway.json, modules/gateway.nix, modules/agent-providers.nix, modules/M-02877, Justfile, specs, CONTEXT.md, docs/solutions"
+      ],
+      "created_sequence": 1,
+      "id": "intent:code_01m4xs9erm9veeb5",
+      "out_of_scope": [],
+      "proof_requirements": [],
+      "raw_intent": "Enable all the features we can and validate they are all effective before updating relevant docs in this repo/den/devrel-infra: token-saving chain-maxxing",
+      "refined_intent": "Send pi straight to the gateway, give pi's models registry cost and promptCache, upgrade Caveman to 4.0.1, delete local-model-proxy and Phoenix, and record the measurements in the specs.",
+      "status": "refined",
+      "updated_sequence": 3
+    }
+  },
+  "sections": {
+    "plan": {
+      "constraints": {
+        "file_touch_budget": 30,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "Turn on every token-saving feature that measures as effective on M-02877, delete the parts that cost more than they save, and record the evidence in the specs.",
+      "phases": [],
+      "proof_hooks": [
+        "nix eval .#darwinConfigurations.M-02877.system.drvPath",
+        "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage",
+        "just check-fmt"
+      ],
+      "schema_version": "1.1.0",
+      "state": "APPROVED",
+      "stop_conditions": [
+        "The darwin part takes effect only at the user's just deploy-darwin. No agent session deploys darwin or restarts Headroom."
+      ],
+      "title": "M-02877 token chain: pi direct to gateway, cache warming, Caveman 4.0.1, drop local-model-proxy and Phoenix",
+      "todo_ids": [
+        "code_01m4xs9erm9veeb5"
+      ],
+      "unknowns": [
+        "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade (JuliusBrussee/caveman#1279)."
+      ],
+      "unresolved_contradictions": [],
+      "updated_at": "1792004474Z"
+    },
+    "trajectory": {
+      "active_boundaries": [
+        "No darwin deploy or Headroom restart from an agent session"
+      ],
+      "artifact_hash": "sha256:63c8bb33c5883a2cf7782215c8a946bf97999c4921e76a26a399ead8b28c764b",
+      "checks": [
+        {
+          "name": "hm-activation-build",
+          "status": "passed"
+        },
+        {
+          "name": "nix-eval-darwin",
+          "status": "passed"
+        },
+        {
+          "name": "pi-cache-warming-test",
+          "status": "passed"
+        },
+        {
+          "name": "pi-rpc-cache-ab",
+          "status": "passed"
+        },
+        {
+          "name": "pre-commit-just-checks",
+          "status": "passed"
+        }
+      ],
+      "custody": {
+        "events": [
+          {
+            "event_id": "event:2",
+            "intent_id": "intent:code_01m4xs9erm9veeb5",
+            "kind": "created",
+            "sequence": 2
+          },
+          {
+            "event_id": "event:3",
+            "intent_id": "intent:code_01m4xs9erm9veeb5",
+            "kind": "refined",
+            "sequence": 3
+          },
+          {
+            "detail": "trajectory:code_01m4xs9erm9veeb5",
+            "event_id": "event:4",
+            "intent_id": "intent:code_01m4xs9erm9veeb5",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
+          }
+        ],
+        "knowledge_candidates": [],
+        "next_sequence": 4,
+        "schema_version": "1.0.0",
+        "trajectories": {
+          "code_01m4xs9erm9veeb5": {
+            "evidence_only": true,
+            "id": "code_01m4xs9erm9veeb5",
+            "intent_id": "intent:code_01m4xs9erm9veeb5",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "command": "nix eval .#darwinConfigurations.M-02877.system.drvPath",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/agent-providers.nix",
+                  "modules/gateway.nix",
+                  "modules/M-02877/darwin.nix",
+                  "guix/home-configuration.scm",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/governance.json",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "CONTEXT.md",
+                  "Justfile",
+                  "docs/solutions/proxy-chain-and-harness-auth.md",
+                  "gateway.json",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/darwin.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/agent-providers.nix",
+                  "modules/gateway.nix",
+                  "Justfile"
+                ],
+                "proof_refs": [
+                  "nix-eval-darwin",
+                  "hm-activation-build",
+                  "pre-commit-just-checks",
+                  "pi-rpc-cache-ab",
+                  "pi-cache-warming-test"
+                ],
+                "scope": [
+                  "gateway.json, modules/gateway.nix, modules/agent-providers.nix, modules/M-02877, Justfile, specs, CONTEXT.md, docs/solutions"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
+      },
+      "declared_commands": [
+        "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage",
+        "nix eval .#darwinConfigurations.M-02877.system.drvPath"
+      ],
+      "destination": "PR to main",
+      "evidence": [],
+      "inspected_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "guix/home-configuration.scm",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/agent-providers.nix",
+        "modules/gateway.nix"
+      ],
+      "intent_id": "intent:code_01m4xs9erm9veeb5",
+      "modified_files": [
+        ".decapod/governance.json",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "CONTEXT.md",
+        "Justfile",
+        "docs/solutions/proxy-chain-and-harness-auth.md",
+        "gateway.json",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/agent-providers.nix",
+        "modules/gateway.nix"
+      ],
+      "repo_scope": [
+        "gateway.json, modules/gateway.nix, modules/agent-providers.nix, modules/M-02877, Justfile, specs, CONTEXT.md, docs/solutions"
+      ],
+      "run_id": "code_01m4xs9erm9veeb5",
+      "schema_version": "1.1.0",
+      "shortcut_risk_signals": [],
+      "task_id": "code_01m4xs9erm9veeb5",
+      "tool_calls": [],
+      "unresolved_assumptions": []
+    }
+  },
   "legacy_digests": {
     ".decapod/governance/claims.json": "sha256:e8844b1145f540fc8570eb603f30d3ecae0f1044f8dbdc61cafa13ed23a0abfd",
     ".decapod/governance/plan.json": "sha256:b123d3936c418f01e3b372185457b0b453ae2b63a32976119cf2d8b94ddd408f",

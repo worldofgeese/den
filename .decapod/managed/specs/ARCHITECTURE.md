@@ -51,6 +51,13 @@ flowchart LR
   C --> R[(Read Store)]
 ```
 
+`bd` keeps the bead tracker in a local Dolt SQL server. The repository tracks
+`.beads/dolt-server-config.yaml`; the database under `.beads/dolt/` stays
+ignored. bd 1.1.0 writes `cfg_dir` into the config: the absolute path of
+`.beads/dolt/.doltcfg`, which holds the server's `privileges.db`. The value is
+the path of the M-02877 checkout. If bd runs from a checkout at another path,
+compare that line before you commit it.
+
 ## Happy Path Sequence
 ```text
 Client request -> API validation -> domain execution -> persistence -> response with trace id

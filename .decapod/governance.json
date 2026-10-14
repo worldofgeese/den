@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "0843c4da3aa2bfc57e3c80636d9c34e773a484dc",
+    "accepted_commit": "b7d1932109359d77ea10fe96d29734ef19fa78d9",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -22,12 +22,12 @@
     }
   },
   "change": {
-    "id": "change_01M4XSVJN7TWDXKQF949617V28",
-    "base_commit": "0843c4da3aa2bfc57e3c80636d9c34e773a484dc",
+    "id": "change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
+    "base_commit": "b7d1932109359d77ea10fe96d29734ef19fa78d9",
     "target_base": "origin/main"
   },
   "intents": {
-    "intent:change_01M4XSVJN7TWDXKQF949617V28": {
+    "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -37,11 +37,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
+      "id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "decapod 0.111.6: safe upgrade recipe, record readiness gap, land topgrade flake.lock",
-      "refined_intent": "decapod 0.111.6: safe upgrade recipe, record readiness gap, land topgrade flake.lock",
+      "raw_intent": "beads: track cfg_dir in .beads/dolt-server-config.yaml; link Decapod readiness issue",
+      "refined_intent": "beads: track cfg_dir in .beads/dolt-server-config.yaml; link Decapod readiness issue",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -49,48 +49,46 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 25,
+        "file_touch_budget": 15,
         "forbidden_paths": []
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "A Decapod upgrade regenerates the projections without resetting .decapod/config.toml; the specs record why local readiness cannot pass under 0.111.6 and what the merge gate is; the deploy-proven flake.lock lands",
+      "intent": "The bd-written cfg_dir line is committed and documented; VALIDATION.md links DecapodLabs/decapod#1431",
       "phases": [],
       "proof_hooks": [
-        "just decapod-refresh keeps .decapod/config.toml, also when init fails",
-        "full topgrade --yes on main with this flake.lock passed",
         "CI validate passes",
         "decapod validate in the container workspace fails only on READINESS_PROFILE_REQUIRED"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "decapod 0.111.6: safe upgrade recipe, record readiness gap, land topgrade flake.lock",
+      "title": "beads: track cfg_dir in .beads/dolt-server-config.yaml; link Decapod readiness issue",
       "todo_ids": [
-        "cicd_01m4xstxwc8x5cm8"
+        "bugs_01m4xtpk1h46dmt4"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792001682Z"
+      "updated_at": "1792002502Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:697fb63f465153753c704323a84908adfdb398bc57d72337bc8716c75add0b1f",
+      "artifact_hash": "sha256:834945f2db6ad4a758b9e4e28221555117b6a419a505a9a0dedeb7f27f4bebb0",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
+            "intent_id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
+            "intent_id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
             "kind": "refined",
             "sequence": 3
           }
@@ -104,7 +102,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M4XSVJN7TWDXKQF949617V28",
+      "intent_id": "intent:change_01M4XTQ8X2AKRS2QCXMP0DTHMS",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -112,10 +110,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M4XSVJQVBT8FK7EB3W293ZTP",
+      "run_id": "branch_01M4XTQ8ZNW34SECMG711KMHEN",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m4xstxwc8x5cm8",
+      "task_id": "bugs_01m4xtpk1h46dmt4",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -409,6 +409,14 @@ key is pinned in paphos' `known_hosts`. Both keys are defined once in
 `modules/_host-keys.nix`. If either host is reinstalled, update that file and
 rekey the agenix secrets for paphos.
 
+### Beads Dolt server (M-02877)
+`bd` keeps the bead tracker in a local Dolt SQL server. The repository tracks
+`.beads/dolt-server-config.yaml`; the database under `.beads/dolt/` stays
+ignored. bd 1.1.0 writes `cfg_dir` into the config: the absolute path of
+`.beads/dolt/.doltcfg`, which holds the server's `privileges.db`. The value is
+the path of the M-02877 checkout. If bd runs from a checkout at another path,
+compare that line before you commit it.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

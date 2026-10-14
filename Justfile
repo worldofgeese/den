@@ -272,6 +272,20 @@ check-decapod-overrides:
     fi
     echo "check-decapod-overrides: $applied override(s) applied"
 
+# Regenerate the Decapod entrypoint projections after a Decapod upgrade.
+# `decapod init with --force` resets `external_tracker` and `[tracker] provider`
+# in .decapod/config.toml on every run, so the recipe puts the current file back,
+# also when init fails. It deletes the `.bak` copies of the old projections; git
+# keeps them.
+decapod-refresh:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    keep="$(mktemp)"
+    cp .decapod/config.toml "$keep"
+    trap 'cp "$keep" .decapod/config.toml; rm -f "$keep"' EXIT
+    decapod init with --all --force --no-specs --no-ci
+    rm -f AGENTS.md.bak CLAUDE.md.bak GEMINI.md.bak CODEX.md.bak
+
 # Syntax- and load-check the Guix modules. Skips cleanly where guix is absent:
 # it only exists on mahakala, and a check that fails on darwin for a missing
 # interpreter is worse than no check. Loading each file evaluates the record it

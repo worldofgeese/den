@@ -80,8 +80,9 @@ profile is `decapod.pr-readiness.v1`, and its ID is fixed in the binary. That
 profile describes the CI of the Decapod repository and its Buildkite proof. Thus
 local `decapod validate` and `decapod todo done --validated` fail here with
 `READINESS_PROFILE_REQUIRED`. Do not declare that profile, because it does not
-describe this repository. Until Decapod supports a profile for this repository,
-the merge gate is the CI `validate` check plus the deploy proof of each changed
+describe this repository. https://github.com/DecapodLabs/decapod/issues/1431
+asks upstream for a repository-defined profile. Until Decapod supports a
+profile for this repository, the merge gate is the CI `validate` check plus the deploy proof of each changed
 deploy target. Close the bead on that evidence, and release the work unit with
 `decapod todo release`.
 

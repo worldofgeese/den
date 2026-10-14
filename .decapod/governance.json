@@ -29,10 +29,10 @@
   "checkpoints": [
     {
       "id": "code_01m4xs9erm9veeb5",
-      "summary": "Plan: move the Caveman runtime item from unknowns to a deferred question (upstream JuliusBrussee/caveman#1279)",
-      "input_digest": "sha256:4a8efebbc9af755bca4d27dec79c0e8c0245ea90d5127d4468f0721cccc3f348",
+      "summary": "OPERATIONS.md: Caveman shrink status is per extension version; 2.0.1 sessions still shrink, 4.0.1 sessions do not",
+      "input_digest": "sha256:8d1bbef3dd79010d78b04f53029a309eb1a427de31eca1acff21145850f13303",
       "proof_refs": [
-        "decapod govern plan approve (exit 0)"
+        "https://github.com/JuliusBrussee/caveman/issues/1279#issuecomment-6176263457"
       ]
     }
   ],

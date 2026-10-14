@@ -377,11 +377,12 @@ Caveman behaviours that shape this design:
   extension refuses to route a provider whose `x-api-key` is empty ("keep the
   provider direct"). Each new session warns "Caveman: pass-through for
   lego-claude/..."; that is expected.
-- Caveman's tool-output shrinking does not work here. After the upgrade from
-  2.0.1, the native runtime on `~/.caveman/run/native.sock` closes every
-  request with an empty reply (JuliusBrussee/caveman#1279). The pi extension
-  then passes tool output through unchanged. The `ccr` markers in earlier pi
-  sessions came from Headroom, not from Caveman.
+- New pi sessions with the 4.0.1 extension do not shrink tool output. In our
+  test, a 37 KB tool output stayed unchanged. `caveman native-hook pi
+  PostToolUse` returned nothing, and the native runtime on
+  `~/.caveman/run/native.sock` closed our test requests with an empty reply
+  (JuliusBrussee/caveman#1279). Sessions that started with the 2.0.1
+  extension still return `ccr://` handles.
 - Since 4.0.1, the extension does not shrink tool output in a session that
   cannot call `caveman_retrieve` (#1211). So the den-generated `techwriter`
   agent does not name `caveman_retrieve` in its `tools:`.

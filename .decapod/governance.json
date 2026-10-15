@@ -29,11 +29,10 @@
   "checkpoints": [
     {
       "id": "code_01m4xs9erm9veeb5",
-      "summary": "OPERATIONS.md: scripts module on (Blocks for Claude Code and Codex); routing stays off, with the reasons",
-      "input_digest": "sha256:1ad0973242f175ac4a4f00fcb7194399cdfaeb4a37e72528d9ac5083540b28ea",
+      "summary": "Refresh the spec manifest after the Caveman modules update",
+      "input_digest": "sha256:bf04b6a4bbc243279b230d37797af27d0d246296bceef79ce8bc6cabafb12df7",
       "proof_refs": [
-        "caveman on scripts: modules scripts=true; caveman-blocks hooks status: claude-code and codex installed",
-        "https://github.com/JuliusBrussee/caveman/issues/1286"
+        "decapod validate --refresh-specs (container): only READINESS_PROFILE_REQUIRED"
       ]
     }
   ],

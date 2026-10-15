@@ -351,16 +351,29 @@ files record the usage and cost of each request.
 
 We install Caveman 4.0.1 (`@caveman-ai/cli` 4.0.1, `bin-v4.0.1`) by hand:
 1. Run `npm install -g @caveman-ai/cli@4.0.1`, then `caveman setup --install`.
-2. Run `caveman setup --yes --agents none --skip routing,scripts`. This writes
-   the module state to `~/.caveman/cloud.json`.
-3. Restart the proxy with
+2. Run `caveman setup --yes --agents none --skip routing`. This writes the
+   module state to `~/.caveman/cloud.json`.
+3. Run `caveman on scripts`. This installs Caveman Blocks (0.1.0-rc.5) and its
+   hooks in `~/.claude/settings.json` and `~/.codex/hooks.json`. Codex asks
+   once: open `/hooks` in Codex and approve the `caveman-blocks` hook.
+4. Restart the proxy with
    `launchctl kickstart -k gui/$UID/com.dktaohan.caveman-proxy`. The proxy is
    not in a model path.
 
 Do not use `--agents pi`. It writes `~/.pi/agent/extensions/caveman-native.js`,
-and pi then loads the extension a second time beside den's shim. The `routing`
-module sends requests to Caveman Cloud. The `scripts` module installs Caveman
-Blocks hooks in Claude Code and Codex.
+and pi then loads the extension a second time beside den's shim.
+
+The modules and pi, measured on 2026-10-15:
+- `output`, `input`, `waste-fixes` and `browse` are on.
+- `scripts` (Caveman Blocks) is on for Claude Code and Codex. Blocks has no pi
+  harness yet (caveman-ai/blocks#11). Its Codex entry runs `--harness claude`,
+  which we asked about in caveman-ai/blocks#12. Blocks sends usage counts under
+  the Caveman telemetry decision in `cloud.json`, which is on.
+- `routing` is off. Auto (`caveman-auto`) reaches only the Claude Code and
+  OpenCode model pickers, not pi (JuliusBrussee/caveman#1286). It also needs a
+  Caveman Cloud sign-in, and each routed request sends the latest prompt (up
+  to 128 KiB), the prompt before it and the last reply to Caveman Cloud. Only
+  the user can decide to send that content off the machine.
 
 Caveman behaviours that shape this design:
 - Without `caveman.yaml`, Caveman sends Anthropic-format requests to

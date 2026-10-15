@@ -37,7 +37,10 @@ Generated interface specs should include:
 - Source-of-truth tables/collections: `gateway.json` is the single owner of how
   an agent reaches a model -- addresses, published ports, the secret's *name*,
   and (since the agent-provider work) the model catalogue: slot -> id plus the
-  `contextWindow` and `maxTokens` ceilings the gateway enforces.
+  `contextWindow` and `maxTokens` ceilings the gateway enforces. Each model also
+  has a `cost` block with the registry rates (USD per million tokens, read from
+  the gateway's `GET /models` on 2026-10-14). The top-level `promptCache` is
+  the provider's prompt-cache lifetime in seconds.
 - Cross-boundary read models: two readers, one per substrate, because
   `guix/home-configuration.scm` is Scheme and cannot import Nix (ADR 0001).
   Nix reads it in `modules/gateway.nix` and republishes derived values as the
@@ -58,6 +61,13 @@ are taken from the gateway's own setup docs, published as React pages in
 | pi | `~/.pi/agent/models.json` | `lego-claude` | `apiKey: "!<cmd>"` |
 | Caveman Code | `~/.cave/agent/models.json` | `lego-claude` | `apiKey: "!<cmd>"` |
 | Claude Code | none; wrapper-supplied environment | n/a | `ANTHROPIC_AUTH_TOKEN` exported at process start |
+
+pi's models get `cost` and `promptCache`. pi keeps a prompt cache warm during a
+long tool run only for a model that has both, and it shows a session cost only
+when `cost` is set. omp gets no `cost`, because one unknown key disables every
+custom provider in omp. On M-02877, pi's `lego-claude` goes straight to the
+gateway's `/anthropic` endpoint (`agentProviders.pi.baseUrl`). The other
+harnesses keep Headroom as their first hop.
 
 The credential is never a value in this repository. It crosses as a *command*
 that prints it when an agent process starts, so it reaches neither the store nor

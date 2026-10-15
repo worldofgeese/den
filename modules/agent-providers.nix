@@ -66,11 +66,18 @@
     # `thinkingLevelMap` must not appear there. omp's equivalent is a
     # `thinking.mode` of "anthropic-adaptive" (verified against its embedded
     # ModelThinkingSchema / ApiCompatSchema).
+    #
+    # pi gets `cost` from gateway.json and the prompt-cache lifetime. pi keeps a
+    # prompt cache warm during a long tool run only for a model that has both,
+    # and it shows session cost only when `cost` is set.
     piModel = slot: let
       model = models.${slot};
     in
       model
-      // {inherit compat;}
+      // {
+        inherit compat;
+        inherit (gateway) promptCache;
+      }
       // lib.optionalAttrs model.reasoning {
         thinkingLevelMap = {
           xhigh = "xhigh";
@@ -79,8 +86,10 @@
         compat = compat // {forceAdaptiveThinking = true;};
       };
 
+    # omp gets no `cost`: its strict schema is not verified for that key, and
+    # one unknown key disables every custom provider.
     ompModel = slot: let
-      model = models.${slot};
+      model = builtins.removeAttrs models.${slot} ["cost"];
     in
       model
       // {inherit compat;}

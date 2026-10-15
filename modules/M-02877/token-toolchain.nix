@@ -8,13 +8,12 @@
   #   4 Signet      already team Signet (agent-integrations.nix)
   #   5 context-mode pi package + MCP server
   #   6 CodeGraph   MCP server
-  #   8.5 Headroom  MCP server (container exec)
   #
-  # A pi request goes pi -> local-model-proxy (127.0.0.1:18788, traces to
-  # Phoenix) -> Headroom (127.0.0.1:18787) -> gateway /claude. Caveman's
-  # proxy (127.0.0.1:8787) is not in that path (see agentProviders.pi); it
-  # serves the pi extension's tool-output shrinking. The chain itself is in
-  # darwin.nix.
+  # A pi request goes straight to the gateway's /anthropic endpoint (see
+  # agentProviders.pi). Headroom, local-model-proxy and Phoenix are not in
+  # pi's path. Caveman's proxy (127.0.0.1:8787) is not in that path either; it
+  # serves the pi extension's tool-output recovery. Headroom stays in
+  # darwin.nix for the other harnesses.
   den.aspects.dktaohan.homeManager = {
     pkgs,
     lib,
@@ -22,9 +21,6 @@
     ...
   }: let
     home = config.home.homeDirectory;
-    entity = "M-02877";
-    proxyUrl = gateway.proxy.loopbackUrl entity;
-    proxyHostPort = lib.removePrefix "http://" proxyUrl;
 
     # Caveman's local proxy. Its port is the CLI's and the pi extension's
     # default gateway; headroom's 8787 is container-internal on this host,
@@ -33,6 +29,10 @@
 
     # The Caveman CLI and its native binaries come from npm
     # (@caveman-ai/cli, `caveman setup --install`), not Nix: ~/.caveman/bin.
+    # Caveman 4 also has `caveman setup` modules (~/.caveman/cloud.json). Run it
+    # with `--agents none`: `--agents pi` writes
+    # ~/.pi/agent/extensions/caveman-native.js, which loads the extension a
+    # second time beside the shim below.
     cavemanCli = "${home}/.local/bin/caveman";
     cavemanExtension = "${home}/.local/lib/node_modules/@caveman-ai/cli/dist/caveman-pi-extension.mjs";
 
@@ -52,31 +52,33 @@
         #   for pi: the extension registers caveman_retrieve itself.
         # - CAVE_ENGINE_TOON re-encodes uniform JSON as TOON when that is
         #   smaller, as `caveman <agent>` does.
-        # - The SSRF guard blocks loopback upstreams unless they are listed.
+        # - CAVEMAN_LISTEN also stops `caveman setup` from moving the
+        #   runtime to another port.
         export CAVEMAN_LISTEN=${cavemanListen}
         export CAVEMAN_PROXY_OWNER=start
         export CAVEMAN_MODE=compress
         export CAVEMAN_RECOVERY=mcp
         export CAVE_ENGINE_TOON=best-of
-        export CAVE_SSRF_ALLOWLIST=${proxyHostPort}
         exec "$bin" serve
       '';
     };
 
     # Without this file the proxy's anthropic upstream is api.anthropic.com,
-    # which would send the LEGO gateway key to Anthropic's public API.
+    # which would send the LEGO gateway key to Anthropic's public API. No model
+    # traffic uses this upstream now; it must only be safe. The /claude
+    # endpoint is the one that Claude Code uses.
     cavemanConfig = ''
       # Managed by den (modules/M-02877/token-toolchain.nix).
       providers:
         anthropic:
-          base_url: ${proxyUrl}
+          base_url: ${gateway.claudeUrl}
     '';
 
     # Loads the npm-installed extension, and degrades to nothing when it is
     # not installed. Caveman 1.x re-registered the provider to route it,
-    # which dropped authHeader (401), and this shim used to no-op that; 2.x
-    # routes with pi.setModel instead, and does not route lego-claude at all
-    # (see agentProviders.pi).
+    # which dropped authHeader (401), and this shim used to no-op that; 2.x and
+    # 4.0.1 route with pi.setModel instead, and do not route lego-claude at all
+    # (see agentProviders.pi). 4.0.1 still ships dist/caveman-pi-extension.mjs.
     cavemanShim = ''
       // Managed by den (modules/M-02877/token-toolchain.nix). Edits are overwritten.
       import { existsSync } from "node:fs";
@@ -106,25 +108,36 @@
     cavemanSkills = ["caveman" "caveman-commit" "caveman-compress" "caveman-help" "caveman-review" "caveman-stats"];
   in {
     agentProviders.pi = {
-      # Direct to the real first hop, not through Caveman's proxy, so pi
-      # works while that proxy is down. Measured 2026-10-07 on Caveman
-      # 2.0.1/bin-v2.0.2, the proxy cannot route lego-claude anyway: pi sends
-      # the key as the bearer and as x-api-key, the proxy forwards only
-      # x-api-key when both arrive, and the gateway accepts only the bearer
-      # (401). Its request compression saved ~0 tokens here, and tool-output
-      # shrinking does not depend on this route.
-      baseUrl = proxyUrl;
+      # Straight to the gateway, with no proxy in between. Measured
+      # 2026-10-14 from the gateway's request log: Headroom 0.40.0 in cache
+      # mode loses its prefix lineage at each new pi prompt, then forwards the
+      # original bytes of turns that it compressed before. The provider writes
+      # the conversation to the cache again, up to 274k tokens for one prompt
+      # (headroomlabs-ai/headroom#4213). Headroom saved 0.6% of input tokens.
+      # /anthropic is the gateway's documented endpoint for pi, and it caches
+      # like /claude in an A/B test.
+      #
+      # Caveman's proxy stays out of the path too. pi sends the key as the
+      # bearer and as x-api-key. On its built-in anthropic upstream, the
+      # bin-v4.0.1 proxy forwards only x-api-key, and the gateway accepts only
+      # the bearer (401, measured 2026-10-14). The 4.0.1 fix for
+      # JuliusBrussee/caveman#1215 keeps the bearer only on a named compat
+      # mount (compat.<name> in caveman.yaml). That route can work, but request
+      # compression through Caveman saved ~0 tokens (`caveman stats`: -0.0% over
+      # 1,327 requests), and a proxy that rewrites requests can break the prompt
+      # cache. Tool-output shrinking does not use this route.
+      baseUrl = gateway.anthropicUrl;
       # Load-bearing: Caveman's pi extension refuses to route a provider whose
       # x-api-key is empty ("keep the provider direct"), and that refusal is
       # what keeps it from rerouting this provider into the 401 above. The
-      # gateway ignores the empty header.
+      # gateway ignores the empty header. Same check in 4.0.1.
       headers."x-api-key" = "";
     };
 
     piAgent = {
       packages = [
         # Not npm:ponytail, which is an unrelated package.
-        "npm:@dietrichgebert/ponytail@4.13.0"
+        "npm:@dietrichgebert/ponytail@5.2.0"
         "npm:context-mode@1.0.169"
       ];
       mcpServers = {
@@ -137,12 +150,8 @@
           args = ["serve" "--mcp"];
           description = "CodeGraph: symbol-level codebase index";
         };
-        # Inside the container, headroom listens on its container port.
-        headroom = {
-          command = "/opt/homebrew/bin/container";
-          args = ["exec" "-i" "headroom" "headroom" "mcp" "serve" "--proxy-url" "http://127.0.0.1:${toString gateway.headroom.containerPort}"];
-          description = "Headroom compression stats and controls";
-        };
+        # No Headroom server: pi requests do not pass Headroom, so pi has no
+        # Headroom hashes to retrieve.
       };
     };
 

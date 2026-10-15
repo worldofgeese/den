@@ -12,24 +12,11 @@ to connect a harness to the chain.
 
 The chain is **not** the same on both machines, and that is deliberate.
 
-### M-02877 (darwin) — the full chain
+### M-02877 (darwin) — headroom, and pi direct
 
 ```
-Claude Code
-    │  ANTHROPIC_BASE_URL=http://127.0.0.1:18788
-    ▼
-┌──────────────────────────────────────────────────────────┐
-│  local-model-proxy   (host 18788 → container 8788)       │
-│  • forwards every header as-is; adds no auth             │
-│  • tees SSE streams to extract token counts              │
-│  • emits OpenTelemetry spans to Phoenix                  │
-│  • strips only RFC 7230 hop-by-hop headers               │
-└──────────────────────────────────────────────────────────┘
-    │  MPS_BASE_URL=http://<proxy-chain gateway IP>:18787
-    │  (Apple's container tool has no inter-container DNS and
-    │   reassigns container IPs on restart, so headroom is
-    │   reached through the network gateway's published host
-    │   port, which outlives individual containers)
+Claude Code, omp, Caveman Code
+    │  base URL http://127.0.0.1:18787 (modules/agent-providers.nix)
     ▼
 ┌──────────────────────────────────────────────────────────┐
 │  headroom            (host 18787 → container 8787)       │
@@ -43,21 +30,27 @@ Claude Code
     │  ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude
     ▼
   LEGO AI Model Gateway ──► upstream model vendor
+    ▲
+    │  https://api.genai.thelegogroup.com/anthropic
+pi (lego-claude, modules/M-02877/token-toolchain.nix)
 ```
 
-Phoenix runs alongside on host `16006` → container `6006`.
+We deleted local-model-proxy and Phoenix on 2026-10-14. local-model-proxy only
+counted tokens and sent traces to Phoenix. The gateway request log records the
+same data with billed costs (see Reference: observability).
 
-**pi does not use this chain.** pi talks straight to
-`https://api.genai.thelegogroup.com/anthropic` through the built-in
-`anthropic-messages` API declared in `~/.pi/agent/models.json`, which is
-hand-maintained outside this repo (see Reference: model IDs). The chain is for
-Claude Code.
+**pi does not use headroom.** Since 2026-10-14, den's `lego-claude` provider
+goes straight to `/anthropic`. headroom's `cache` mode wrote pi's whole
+conversation to the prompt cache again at every new prompt
+(headroomlabs-ai/headroom#4213). `.decapod/managed/specs/OPERATIONS.md`, section
+"Token proxy chain (M-02877)", has the measurements.
 
 ### mahakala (Guix System + Guix Home) — headroom only
 
 headroom runs as a Guix Home OCI service under rootless podman
-(`guix/home-configuration.scm`), published on `127.0.0.1:8787`. There is **no
-local-model-proxy and no Phoenix** on mahakala, so there is no telemetry there.
+(`guix/home-configuration.scm`), published on `127.0.0.1:8787`. mahakala runs
+no local-model-proxy and no Phoenix either. The gateway request log covers both
+machines.
 Its consumer is agent-shell inside Doom Emacs
 (`modules/doom.d/modules/tools/agent-shell/config.el`), which points
 `ANTHROPIC_BASE_URL` at `http://127.0.0.1:8787`.
@@ -73,7 +66,6 @@ mahakala ran headroom **uncapped** until `"memory": "4g"` was added to
 
 | layer | buys you | skippable? |
 |---|---|---|
-| local-model-proxy | token counts and Phoenix traces | yes — point at headroom directly, lose telemetry |
 | headroom | context compression and prefix-cache stability | yes — point at the gateway directly, lose savings |
 | gateway | model access, quota, billing | no |
 
@@ -150,15 +142,14 @@ Declarative Pi and its extensions are no longer managed by this repository.
 
 ## How-To: connect another harness
 
-1. **Base URL** — `http://127.0.0.1:18788` on M-02877 for the full chain,
-   `http://127.0.0.1:18787` to skip telemetry, or
+1. **Base URL** — `http://127.0.0.1:18787` (headroom) on M-02877, or
    `https://api.genai.thelegogroup.com/anthropic` to go direct. On mahakala,
    `http://127.0.0.1:8787`.
 2. **Key** — resolve `LEGO_GATEWAY_API_KEY` through `secretspec get`, as a
    command, not a pasted value.
 3. **Model IDs** — copy from the table above for the harness you are matching.
 
-Example, Anthropic Python SDK against the full chain on M-02877:
+Example, Anthropic Python SDK through headroom on M-02877:
 
 ```python
 import os, subprocess
@@ -169,7 +160,7 @@ key = subprocess.check_output(
      os.path.expanduser("~/.config/home-manager/secretspec.toml"),
      "LEGO_GATEWAY_API_KEY"], text=True).strip()
 
-client = Anthropic(api_key=key, base_url="http://127.0.0.1:18788")
+client = Anthropic(api_key=key, base_url="http://127.0.0.1:18787")
 ```
 
 ## How-To: verify a Guix-side change without mahakala
@@ -249,9 +240,9 @@ which rootless podman would silently ignore `-m`.
 | `secretspec` error `Accessing secrets requires a reason` | `require_reason` policy added to `secretspec.toml`/keyring after every `secretspec get`/`run` call in this repo was written | every embedded call needs `--reason "<why>"`; see `modules/gateway.nix` `keyCommand`, `modules/M-02877/{darwin,dktaohan}.nix` token lookups, and `Justfile`'s `cachix-push` |
 | `400 Malformed Authorization header` | the auth value is a literal variable name rather than a resolved key, **or** the request hit a colliding port | ensure the key comes from a `!command` / `call-process`; confirm the base URL is the Apple-container host port, not another runtime |
 | `406 Not found any available model` | model ID not in the gateway's list | use an ID from the model table above |
-| connection refused on `:18788` | chain containers not running | `container ls`; restart the launchd agents if headroom / phoenix / local-model-proxy are missing |
-| intermittent `400` from a working config | **host-port collision** — another runtime bound the same port, and `localhost` resolves IPv6-first | the chain is pinned to distinct host ports and consumers use `127.0.0.1`; verify with `lsof -nP -iTCP:18788 -sTCP:LISTEN` |
-| `502` on every request, all containers `running` | headroom restarted onto a new container IP and local-model-proxy holds the old one | handled in `darwin.nix` by targeting the network gateway; for a hand-run container, restart local-model-proxy **after** headroom |
+| connection refused on `:18788` | a pi session that started before 2026-10-14 18:19Z still uses the deleted local-model-proxy | restart the pi session |
+| connection refused on `:18787` | headroom is not running | `container ls`; restart the `com.headroom.proxy` launchd agent |
+| intermittent `400` from a working config | **host-port collision** — another runtime bound the same port, and `localhost` resolves IPv6-first | the chain is pinned to distinct host ports and consumers use `127.0.0.1`; verify with `lsof -nP -iTCP:18787 -sTCP:LISTEN` |
 | requests hang for minutes | headroom's upstream connection pool wedged (seen after ~2 days uptime, sockets in `CLOSE_WAIT`); `/livez` still returns 200 | compare `/livez` (fast) against `/readyz` (hangs). **Do not use `container stop`** — see the row below. Kill the `container-runtime-linux` helper and let launchd `KeepAlive` relaunch it. `HEADROOM_HTTP2=off` is the permanent fix for the GOAWAY variant |
 | **every** endpoint times out — `/livez` too — but `container list` still says `running` and `KeepAlive` never fires | the gateway speaks HTTP/2 and its LB recycled the shared connection with a GOAWAY (`ConnectionTerminated error_code:0` in `/tmp/headroom.err`). `error_code:0` is `NO_ERROR`, a routine recycle. Uvicorn runs a **single worker**, so stalled upstream calls saturate the only event loop | fixed by `"http2": "off"` in `gateway.json`, wired on both substrates. Confirm the trigger with `grep ConnectionTerminated /tmp/headroom.err` and `curl -s -o /dev/null -w '%{http_version}'` against the gateway (returns `2`) |
 | headroom dies and restarts on its own; launchd records **exit code 137**; the log stops mid-request with no traceback | kernel OOM kill. headroom measures ~950 MB resident with `--memory --learn`, and Apple `container` caps containers at **1024 MB by default** — measured 967 MB against 1024 MB, 94.5% and climbing, with `SwapTotal 0`. `SIGKILL` gives Python no chance to log, so it looks like a wedge rather than a crash. Unlike the row above, `grep ConnectionTerminated` finds nothing | fixed by `"memory": "4g"` in `gateway.json`. Verify with `container exec headroom sh -c 'cat /sys/fs/cgroup/memory.current /sys/fs/cgroup/memory.max'`; sustained >90% is the cause. `memory.events` has an `oom_kill` counter but it **resets when the container is recreated**, so a fresh `0` does not rule this out |
@@ -280,9 +271,12 @@ recovered the chain in ~2.5 minutes.
 
 ## Reference: observability
 
-Full chain on M-02877 only:
-
-- **Phoenix UI** — <http://localhost:16006>, per-request token counts and cost
+- **Gateway request log** — `https://app.genai.thelegogroup.com` `/logs` and
+  `/usage`, with an Entra token from `az account get-access-token --scope
+  api://917243ee-d114-44a7-bb10-09ae72bf100d/.default`. Billed usage and cost
+  per request, session and day, with cache reads and writes. The LEGO
+  `genai-menu-app` shows the same data in the menu bar.
+- **pi** — `/session`, and the usage of each request in the session file
 - **headroom stats** — <http://localhost:18787/stats>, compression savings
 - **RTK** — `rtk gain`, CLI output compression, unrelated to the chain
 

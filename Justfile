@@ -427,7 +427,7 @@ update:
 # by any app without a dialog. `container registry login` creates the item with
 # an ACL trusting only the running build, and Homebrew's `container` is ad-hoc
 # signed (no team ID), so every `brew upgrade container` turned each image pull
-# (headroom and local-model-proxy pull on every start) into a keychain password
+# (headroom pulls on every start) into a keychain password
 # dialog. gh's token has read:packages. Re-run after `gh auth login` or after
 # anything runs `container registry login ghcr.io`. The attributes match what
 # container itself writes; without the security domain it does not find it.

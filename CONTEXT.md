@@ -32,9 +32,10 @@ Owner of every fact below: **`gateway.json`** at the repo root, read by
 |---|---|
 | **gateway** | The LEGO AI Model Gateway at `api.genai.thelegogroup.com` — the only route to a model. Not a proxy we run. Exposes `/claude` (Claude Code / native Anthropic shape) and `/anthropic` (SDK shape). |
 | **headroom** | A token-efficiency proxy we run locally, in front of the gateway. Compresses and freezes prior turns. Container-internal port is always 8787. |
-| **proxy chain** | headroom → local-model-proxy → phoenix, wired together on the `proxy-chain` container network. **M-02877 only.** mahakala runs headroom alone. |
-| **local-model-proxy** | Transparent proxy that tees SSE streams for token counting and emits OpenTelemetry spans. Adds no auth. |
-| **phoenix** | Arize Phoenix, the OpenTelemetry sink the chain reports to. |
+| **proxy chain** | headroom on the `proxy-chain` container network, in front of the gateway. Both M-02877 and mahakala run headroom alone. pi on M-02877 does not use it: its `lego-claude` provider goes straight to `/anthropic`. |
+| **local-model-proxy** | Deleted on 2026-10-14. A transparent proxy that counted tokens and sent OpenTelemetry spans to Phoenix. The gateway's own request log replaces it. |
+| **phoenix** | Deleted on 2026-10-14 with local-model-proxy. It was the OpenTelemetry sink of the chain. |
+| **gateway request log** | The gateway's app API at `app.genai.thelegogroup.com` (`/logs`, `/usage`). It records every request with billed usage and cost. It takes an Entra token, not the gateway key. |
 | **published port** | The host port an entity exposes a container-internal port on. Keyed by entity in `gateway.json`, because 8787 is internal-only on M-02877 (published as 18787) but is also the host port on mahakala. |
 | **keyRef** | How a consumer obtains the gateway key: a *command string* that prints it, never a value. Resolved when an agent process starts, so the key never enters the Nix store or the tree. |
 

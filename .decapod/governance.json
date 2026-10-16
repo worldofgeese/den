@@ -66,6 +66,14 @@
       "id": "cp-plan-approved",
       "summary": "Plan approved: intent given explicitly by the operator",
       "input_digest": "sha256:ba26db6848237d08935ba05693250bfbd947ac2b3d0093d86bbdcec857bbb858"
+    },
+    {
+      "id": "cp-pr-reviewer-review-fixes",
+      "summary": "Update the pr-reviewer patch to NicholaiVogel/pr-reviewer#32 at aabec23: outdated threads hide nothing, rebases never resolve findings",
+      "input_digest": "sha256:17a51b20d62543853e28073b18188261fc8c95ca3c8dd3ab282f3edea2ee43d5",
+      "proof_refs": [
+        "nix build of the patched derivation; cargo test 212 passed"
+      ]
     }
   ],
   "intents": {

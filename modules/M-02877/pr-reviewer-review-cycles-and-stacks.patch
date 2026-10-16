@@ -1,5 +1,5 @@
 diff --git a/AGENTS.md b/AGENTS.md
-index 7ff06c9..4b67d15 100644
+index 7ff06c9..4ad1f40 100644
 --- a/AGENTS.md
 +++ b/AGENTS.md
 @@ -33,7 +33,10 @@ src/
@@ -22,15 +22,15 @@ index 7ff06c9..4b67d15 100644
 +
 +- A push whose change fingerprint (`stack::change_fingerprint`: paths, added/removed lines and the context line on each side of every change group; no line numbers) equals `pr_state.last_reviewed_diff_hash` completes as `skipped:unchanged-diff`. Rebases and stack cascades land here. The fingerprint, and the ledger, are written only after the review reached GitHub.
 +- The round is the number of commits the bot reviewed before (reviews carrying `policy::REVIEW_METADATA_MARKER`), plus one. If the review list or the bot's own login cannot be read, the review fails rather than counting zero. Past `max_review_cycles`, `decide_disposition` turns new findings into follow-up notes (ledger status `noted`, inactive), except critical ones on changed lines.
-+- Every "is this the same finding" question goes through `policy::same_finding` (same path; disjoint backticked identifiers never match; token containment >= 0.6, or >= 0.45 within 15 lines). Hiding a finding behind an open or resolved thread uses `same_finding_near`. Do not add another token-overlap rule: shared-token counts cannot tell findings apart. (The one remaining overlap rule is for free-text "out of scope" boundaries from the PR conversation, which are topics, not findings; evidenced findings bypass it.)
++- Every "is this the same finding" question goes through `policy::same_finding` (same path; disjoint backticked identifiers never match; token containment >= 0.6, or >= 0.45 within 15 lines). Hiding a finding behind an open or resolved thread uses `same_finding_near`, which needs both lines known (outdated threads fall back to `original_line`; no line means no match). Do not add another token-overlap rule: shared-token counts cannot tell findings apart. (The one remaining overlap rule is for free-text "out of scope" boundaries from the PR conversation, which are topics, not findings; evidenced findings bypass it.)
 +- Ancestor dedupe applies only to findings on lines the PR does not change, and never to critical findings.
-+- The ledger marks an unre-emitted finding fixed only if the PR's own change to its file differs from the last review (`ChangeFingerprint::changed_files`) or the file left the diff.
++- The ledger marks an unre-emitted finding fixed only if the PR's own change to its file differs from the last review (`ChangeFingerprint::changed_files`, from `pr_state.last_reviewed_file_hashes`) or the file left the diff. Never derive "changed" from the compare API: after a rebase its three-dot diff lists every file of the PR. Unknown keeps findings open.
 +
  ### Confidence (parser.rs)
  
  Simple `Confidence { level: ConfidenceLevel, justification: String }` where level is High/Medium/Low. Displayed as a single line in the review body: `**Confidence:** {level} - {justification}`. No numeric scoring or dimensional breakdown.
 diff --git a/docs/configuration.md b/docs/configuration.md
-index 325aecb..927727f 100644
+index 325aecb..bebb894 100644
 --- a/docs/configuration.md
 +++ b/docs/configuration.md
 @@ -126,6 +126,11 @@ max_prompt_bytes = 204800
@@ -74,9 +74,9 @@ index 325aecb..927727f 100644
 +- If a new finding matches one of its threads that is still open, the bot does not post it again. The finding stays open, and a blocking one still counts as blocking. If that is all the bot has to say, it posts no review: the thread and the earlier change request still stand.
 +- If a human resolved the thread, the finding is dropped. A critical finding opens it again only when this PR's change to that file is different from the last review.
 +- A follow-up note is not repeated in later rounds.
-+- A stored finding is marked fixed only when this PR's change to its file is different from the last review, or the file left the diff. A push that leaves the file's change as it was cannot fix it.
++- A stored finding is marked fixed only when this PR's change to its file is different from the last review, or the file left the diff. A push that leaves the file's change as it was cannot fix it. If that is unknown, for example on the first review after an upgrade, the finding stays open. A human who resolves its thread closes it.
 +
-+Two findings match when they are in the same file and share most of their meaningful words. If both quote code identifiers in backticks, they must share one, so the same sentence about `delete_user` and about `update_user` stays two findings. To hide a new finding as "still open" or "resolved", the match must also be within 15 lines. The same rule decides which findings a reply in a review thread, such as "this is intentional", covers, so the reply does not hide unrelated findings in the same file. A comment in the PR conversation that puts a topic out of scope ("not in this PR") is broader: it hides findings on that topic in any file, unless the finding has an `evidence_note`. Critical findings always have one, so they are never hidden this way.
++Two findings match when they are in the same file and share most of their meaningful words. If both quote code identifiers in backticks, they must share one, so the same sentence about `delete_user` and about `update_user` stays two findings. To hide a new finding as "still open" or "resolved", the match must also be within 15 lines. For a thread whose lines a later push changed, GitHub reports no current line; the bot then uses the line the comment was first posted on, and a thread with no known line hides nothing. The same rule decides which findings a reply in a review thread, such as "this is intentional", covers, so the reply does not hide unrelated findings in the same file. A comment in the PR conversation that puts a topic out of scope ("not in this PR") is broader: it hides findings on that topic in any file, unless the finding has an `evidence_note`. Critical findings always have one, so they are never hidden this way.
 +
 +The bot never approves a PR. So its `REQUEST_CHANGES` review would stay on the PR after the findings are fixed. With `dismiss_stale_change_requests`, the bot dismisses its own earlier change requests when no blocking finding is open in its records, after a posted review or after a review with nothing new. If it has no records for the PR, it leaves the change request alone.
 +
@@ -94,7 +94,7 @@ index 325aecb..927727f 100644
 +- the retarget to the default branch after the parent PR merges,
 +- a merge of the base branch into the PR branch.
 +
-+Any change to the PR's own added or removed lines makes the bot review it again. So does moving an added line past an unchanged one, such as a guard moved after the call it guards. A diff with a file that has no text hunks (a binary file, a mode change, a file too large for a patch) has no fingerprint, so it is always reviewed. Use `pr-reviewer review owner/repo#N --force` to review an unchanged diff anyway.
++Any change to the PR's own added or removed lines makes the bot review it again. So does moving an added line past an unchanged one, such as a guard moved after the call it guards. A diff with a file that has no text hunks (a binary file, a mode change, a file too large for a patch) cannot be compared, so it is always reviewed. The bot still records the per-file fingerprints of its text files. Use `pr-reviewer review owner/repo#N --force` to review an unchanged diff anyway.
 +
 +With `stack_aware`, pr-reviewer finds the PR's place in its stack:
 +
@@ -739,7 +739,7 @@ index 01e9e55..864a3ce 100644
 +    }
  }
 diff --git a/src/github/types.rs b/src/github/types.rs
-index 0ad80f4..17b2b65 100644
+index 0ad80f4..ab5db30 100644
 --- a/src/github/types.rs
 +++ b/src/github/types.rs
 @@ -20,6 +20,8 @@ pub struct RepoRef {
@@ -782,6 +782,18 @@ index 0ad80f4..17b2b65 100644
  }
  
  #[derive(Debug, Clone, Deserialize)]
+@@ -70,7 +96,11 @@ pub struct ReviewComment {
+     pub id: u64,
+     pub body: String,
+     pub path: String,
++    /// `None` once a push changed the lines under the comment (an outdated
++    /// thread); `original_line` still has where it was posted.
+     pub line: Option<u32>,
++    #[serde(default)]
++    pub original_line: Option<u32>,
+     pub user: User,
+     pub in_reply_to_id: Option<u64>,
+     pub created_at: String,
 diff --git a/src/main.rs b/src/main.rs
 index 7cfcc74..d8aa514 100644
 --- a/src/main.rs
@@ -813,7 +825,7 @@ index 7cfcc74..d8aa514 100644
  
          if cfg
 diff --git a/src/review/engine.rs b/src/review/engine.rs
-index 98f3870..50dc3fa 100644
+index 98f3870..0587de2 100644
 --- a/src/review/engine.rs
 +++ b/src/review/engine.rs
 @@ -1,4 +1,4 @@
@@ -848,7 +860,15 @@ index 98f3870..50dc3fa 100644
      DismissedByHuman,
      RejectedWithRationale,
      OutOfScopeForPr,
-@@ -58,6 +69,24 @@ struct FindingRecord {
+@@ -50,7 +61,6 @@ enum FindingStatus {
+ 
+ #[derive(Debug, Clone)]
+ struct FindingRecord {
+-    key: String,
+     path: String,
+     line: Option<u32>,
+     body: String,
+@@ -58,6 +68,24 @@ struct FindingRecord {
      status: FindingStatus,
  }
  
@@ -873,7 +893,7 @@ index 98f3870..50dc3fa 100644
  #[derive(Debug, Clone, Default)]
  struct ReviewMemory {
      findings: Vec<FindingRecord>,
-@@ -75,6 +104,17 @@ struct PendingFinding {
+@@ -75,6 +103,17 @@ struct PendingFinding {
      evidence_note: Option<String>,
      severity: CommentSeverity,
      finding_kind: FindingKind,
@@ -891,7 +911,7 @@ index 98f3870..50dc3fa 100644
  }
  
  #[derive(Debug, Clone, Default)]
-@@ -85,6 +125,14 @@ struct FindingDelta {
+@@ -85,6 +124,14 @@ struct FindingDelta {
      rebutted_or_scoped: usize,
  }
  
@@ -906,7 +926,7 @@ index 98f3870..50dc3fa 100644
  #[derive(Debug, Clone, Default)]
  pub struct ReviewOptions {
      pub dry_run: bool,
-@@ -103,6 +151,9 @@ pub struct ReviewRunResult {
+@@ -103,6 +150,9 @@ pub struct ReviewRunResult {
      pub status: String,
      pub verdict: Option<ReviewVerdict>,
      pub comments_posted: usize,
@@ -916,7 +936,7 @@ index 98f3870..50dc3fa 100644
  }
  
  #[derive(Clone)]
-@@ -161,6 +212,7 @@ impl ReviewEngine {
+@@ -161,6 +211,7 @@ impl ReviewEngine {
                  status: "skipped:draft".to_string(),
                  verdict: None,
                  comments_posted: 0,
@@ -924,7 +944,7 @@ index 98f3870..50dc3fa 100644
              });
          }
  
-@@ -173,6 +225,7 @@ impl ReviewEngine {
+@@ -173,6 +224,7 @@ impl ReviewEngine {
                  status: format!("skipped:{reason}"),
                  verdict: None,
                  comments_posted: 0,
@@ -932,7 +952,7 @@ index 98f3870..50dc3fa 100644
              });
          }
  
-@@ -254,6 +307,7 @@ impl ReviewEngine {
+@@ -254,6 +306,7 @@ impl ReviewEngine {
                  status: "skipped:duplicate".to_string(),
                  verdict: None,
                  comments_posted: 0,
@@ -940,7 +960,7 @@ index 98f3870..50dc3fa 100644
              });
          }
  
-@@ -270,14 +324,29 @@ impl ReviewEngine {
+@@ -270,14 +323,29 @@ impl ReviewEngine {
  
          // Fetch existing reviews once — used for both in-progress guard and duplicate check
          // inside run_review_pipeline, avoiding a redundant API call.
@@ -977,32 +997,26 @@ index 98f3870..50dc3fa 100644
  
          // Check if we already posted a review for this SHA before posting in-progress comment,
          // to avoid orphaned "started reviewing" comments when the already-posted guard fires.
-@@ -362,6 +431,24 @@ impl ReviewEngine {
+@@ -362,6 +430,18 @@ impl ReviewEngine {
                          None,
                      )
                      .await?;
-+                // A reviewed head without a fingerprint (a non-text file in
-+                // the diff) clears the old one, so it is never compared
-+                // against a review the ledger has moved past.
-+                let fingerprint_json = result
-+                    .fingerprint
-+                    .as_ref()
-+                    .map(|fingerprint| serde_json::to_string(&fingerprint.files))
-+                    .transpose()?;
-+                if result.fingerprint.is_some() || result.status == "completed" {
++                // Recorded only for a review that reached GitHub (or found the
++                // change unchanged), so it always matches the ledger.
++                if let Some(fingerprint) = result.fingerprint.as_ref() {
 +                    self.db
 +                        .set_last_reviewed_fingerprint(
 +                            &repo_name,
 +                            pr_data.number as i64,
-+                            result.fingerprint.as_ref().map(|fp| fp.overall.as_str()),
-+                            fingerprint_json.as_deref(),
++                            fingerprint.overall.as_deref(),
++                            Some(&serde_json::to_string(&fingerprint.files)?),
 +                        )
 +                        .await?;
 +                }
                  result.sha = pr_data.head.sha.clone();
                  Ok(result)
              }
-@@ -512,10 +599,18 @@ impl ReviewEngine {
+@@ -512,10 +592,18 @@ impl ReviewEngine {
              dry_run,
          );
  
@@ -1021,7 +1035,7 @@ index 98f3870..50dc3fa 100644
          let prior_sha = prior_state
              .and_then(|s| s.last_reviewed_sha)
              .filter(|sha| sha != &pr_data.head.sha);
-@@ -541,6 +636,46 @@ impl ReviewEngine {
+@@ -541,6 +629,46 @@ impl ReviewEngine {
              })
              .collect();
  
@@ -1032,8 +1046,8 @@ index 98f3870..50dc3fa 100644
 +        if policy.skip_unchanged_diff
 +            && !force
 +            && prior_sha.is_some()
-+            && prior_diff_hash.is_some()
-+            && fingerprint.as_ref().map(|fp| fp.overall.as_str()) == prior_diff_hash.as_deref()
++            && fingerprint.overall.is_some()
++            && fingerprint.overall == prior_diff_hash
 +        {
 +            tracing::info!(
 +                repo = %repo_name,
@@ -1061,14 +1075,14 @@ index 98f3870..50dc3fa 100644
 +                status: "skipped:unchanged-diff".to_string(),
 +                verdict: None,
 +                comments_posted: 0,
-+                fingerprint,
++                fingerprint: Some(fingerprint),
 +            });
 +        }
 +
          // Skip docs-only or trivial diffs to avoid wasting compute
          if let Some(skip_reason) = should_skip_review(&changed_files, &self.config.defaults) {
              tracing::info!(
-@@ -570,6 +705,7 @@ impl ReviewEngine {
+@@ -570,6 +698,7 @@ impl ReviewEngine {
                  status: format!("skipped:{skip_reason}"),
                  verdict: None,
                  comments_posted: 0,
@@ -1076,7 +1090,7 @@ index 98f3870..50dc3fa 100644
              });
          }
  
-@@ -683,6 +819,38 @@ impl ReviewEngine {
+@@ -683,6 +812,38 @@ impl ReviewEngine {
              ),
          );
  
@@ -1115,7 +1129,7 @@ index 98f3870..50dc3fa 100644
          let mut context_with_history = assembled.text.clone();
          let stored_findings = self
              .db
-@@ -702,16 +870,17 @@ impl ReviewEngine {
+@@ -702,16 +863,17 @@ impl ReviewEngine {
              &review_comments,
              &issue_comments,
              self.config.defaults.bot_name.as_str(),
@@ -1135,7 +1149,7 @@ index 98f3870..50dc3fa 100644
              pr_data.head.sha.as_str(),
          );
          if !prior_reviews_context.is_empty() {
-@@ -724,7 +893,8 @@ impl ReviewEngine {
+@@ -724,7 +886,8 @@ impl ReviewEngine {
              &review_comments,
              &parsed_diff,
              self.config.defaults.bot_name.as_str(),
@@ -1145,37 +1159,20 @@ index 98f3870..50dc3fa 100644
          );
          if !addressed_findings.is_empty() {
              context_with_history.push_str("\n## Previously Flagged Items\n");
-@@ -744,6 +914,7 @@ impl ReviewEngine {
+@@ -744,6 +907,12 @@ impl ReviewEngine {
              context_with_history.push('\n');
          }
  
-+        let mut changed_since_last: Option<HashSet<String>> = None;
++        // Which files this PR's own change touched since the last review comes
++        // from the per-file fingerprints only. The compare diff below also
++        // lists every file a rebase moved, so it would mark findings fixed.
++        let changed_since_last: Option<HashSet<String>> = prior_file_hashes
++            .as_ref()
++            .map(|previous| fingerprint.changed_files(previous));
          if let Some(previous_sha) = prior_sha.as_deref() {
              if let Ok(delta_diff) = self
                  .github
-@@ -761,8 +932,21 @@ impl ReviewEngine {
-                 ));
-                 context_with_history.push_str(&truncate_lines(&delta_diff, 400));
-                 context_with_history.push_str("\n```\n");
-+                changed_since_last = parse_unified_diff(&delta_diff).ok().map(|delta| {
-+                    delta
-+                        .files
-+                        .iter()
-+                        .flat_map(|file| [file.old_path.clone(), file.new_path.clone()])
-+                        .collect()
-+                });
-             }
-         }
-+        // The PR's own change per file is exact; the compare diff above also
-+        // lists files a rebase brought in from the base. Prefer the former.
-+        if let (Some(current), Some(previous)) = (fingerprint.as_ref(), prior_file_hashes.as_ref())
-+        {
-+            changed_since_last = Some(current.changed_files(previous));
-+        }
- 
-         let context_original_bytes = context_with_history.len();
-         if context_with_history.len() > self.config.defaults.max_prompt_bytes {
-@@ -789,6 +973,49 @@ impl ReviewEngine {
+@@ -789,6 +958,49 @@ impl ReviewEngine {
                  None
              };
  
@@ -1225,7 +1222,7 @@ index 98f3870..50dc3fa 100644
          let prompt = build_review_prompt(
              repo_cfg,
              pr_data,
-@@ -797,6 +1024,9 @@ impl ReviewEngine {
+@@ -797,6 +1009,9 @@ impl ReviewEngine {
              repo_conventions.as_deref(),
              has_prior_reviews,
              ui_files_for_prompt.as_deref(),
@@ -1235,7 +1232,7 @@ index 98f3870..50dc3fa 100644
          );
  
          tracing::info!(
-@@ -838,6 +1068,8 @@ impl ReviewEngine {
+@@ -838,6 +1053,8 @@ impl ReviewEngine {
          let mut inline_comments: Vec<CreateReviewComment> = Vec::new();
          let mut unmapped_comments: Vec<String> = Vec::new();
          let mut pending_findings: Vec<PendingFinding> = Vec::new();
@@ -1244,7 +1241,7 @@ index 98f3870..50dc3fa 100644
          let has_structured_findings: bool;
  
          // Keep provenance available without putting review mechanics above the finding.
-@@ -892,17 +1124,45 @@ impl ReviewEngine {
+@@ -892,17 +1109,45 @@ impl ReviewEngine {
                      surviving_comments.push(comment);
                  }
  
@@ -1299,7 +1296,7 @@ index 98f3870..50dc3fa 100644
                          fingerprint: finding_key(&path, Some(comment.line), &comment.body),
                          path: path.clone(),
                          line: Some(comment.line),
-@@ -910,7 +1170,34 @@ impl ReviewEngine {
+@@ -910,7 +1155,34 @@ impl ReviewEngine {
                          evidence_note: comment.evidence_note.clone(),
                          severity: comment.severity,
                          finding_kind: comment.finding_kind,
@@ -1335,7 +1332,7 @@ index 98f3870..50dc3fa 100644
                      let right = parsed_diff.position_for(&path, comment.line, DiffSide::Right);
                      let left = parsed_diff.position_for(&path, comment.line, DiffSide::Left);
  
-@@ -929,8 +1216,10 @@ impl ReviewEngine {
+@@ -929,8 +1201,10 @@ impl ReviewEngine {
                              .push(format!("- {}:{} - {}", path, comment.line, comment.body));
                      }
                  }
@@ -1348,7 +1345,7 @@ index 98f3870..50dc3fa 100644
              }
              ParseOutcome::RawSummary(raw) => {
                  if looks_like_harness_transport_output(&raw) {
-@@ -954,8 +1243,17 @@ impl ReviewEngine {
+@@ -954,8 +1228,17 @@ impl ReviewEngine {
                  body.push('\n');
              }
          }
@@ -1367,7 +1364,7 @@ index 98f3870..50dc3fa 100644
              &repo_name,
              pr_data.number as i64,
              &pr_data.head.sha,
-@@ -963,10 +1261,9 @@ impl ReviewEngine {
+@@ -963,10 +1246,9 @@ impl ReviewEngine {
              &stored_findings,
              &pending_findings,
              &review_memory,
@@ -1380,7 +1377,7 @@ index 98f3870..50dc3fa 100644
          let finding_delta_summary = if stored_findings.is_empty() {
              None
          } else {
-@@ -981,6 +1278,17 @@ impl ReviewEngine {
+@@ -981,6 +1263,17 @@ impl ReviewEngine {
          let body = truncate_github_comment_body(&body);
  
          if dry_run {
@@ -1398,7 +1395,7 @@ index 98f3870..50dc3fa 100644
              self.db
                  .complete_review(
                      &dedupe,
-@@ -1002,6 +1310,7 @@ impl ReviewEngine {
+@@ -1002,6 +1295,7 @@ impl ReviewEngine {
                  status: "completed:dry-run".to_string(),
                  verdict: Some(verdict),
                  comments_posted: inline_comments.len(),
@@ -1406,7 +1403,7 @@ index 98f3870..50dc3fa 100644
              });
          }
  
-@@ -1011,9 +1320,27 @@ impl ReviewEngine {
+@@ -1011,9 +1305,27 @@ impl ReviewEngine {
              && inline_comments.is_empty()
              && unmapped_comments.is_empty()
              && !screenshot_note_added
@@ -1435,15 +1432,15 @@ index 98f3870..50dc3fa 100644
              self.db
                  .complete_review(
                      &dedupe,
-@@ -1035,6 +1362,7 @@ impl ReviewEngine {
+@@ -1035,6 +1347,7 @@ impl ReviewEngine {
                  status: "skipped:no-novel-findings".to_string(),
                  verdict: Some(ReviewVerdict::Comment),
                  comments_posted: 0,
-+                fingerprint: fingerprint.clone(),
++                fingerprint: Some(fingerprint.clone()),
              });
          }
  
-@@ -1044,10 +1372,15 @@ impl ReviewEngine {
+@@ -1044,10 +1357,15 @@ impl ReviewEngine {
                      && login_matches_bot(
                          &r.user.login,
                          self.config.defaults.bot_name.as_str(),
@@ -1460,15 +1457,15 @@ index 98f3870..50dc3fa 100644
              self.db
                  .complete_review(
                      &dedupe,
-@@ -1069,6 +1402,7 @@ impl ReviewEngine {
+@@ -1069,6 +1387,7 @@ impl ReviewEngine {
                  status: "skipped:already-posted".to_string(),
                  verdict: Some(ReviewVerdict::Comment),
                  comments_posted: 0,
-+                fingerprint: fingerprint.clone(),
++                fingerprint: Some(fingerprint.clone()),
              });
          }
  
-@@ -1190,6 +1524,10 @@ impl ReviewEngine {
+@@ -1190,6 +1509,10 @@ impl ReviewEngine {
          }
  
          if findings_visible_to_github {
@@ -1479,7 +1476,7 @@ index 98f3870..50dc3fa 100644
              self.db
                  .mark_review_findings_posted(
                      &repo_name,
-@@ -1197,10 +1535,23 @@ impl ReviewEngine {
+@@ -1197,10 +1520,23 @@ impl ReviewEngine {
                      &pr_data.head.sha,
                      pending_findings
                          .iter()
@@ -1504,17 +1501,13 @@ index 98f3870..50dc3fa 100644
          }
  
          self.db
-@@ -1238,9 +1589,105 @@ impl ReviewEngine {
+@@ -1238,9 +1574,101 @@ impl ReviewEngine {
              status: "completed".to_string(),
              verdict: Some(verdict),
              comments_posted: if used_retry { 0 } else { inline_comments.len() },
 +            // Record the change as reviewed only once the review reached
 +            // GitHub; otherwise the next push with the same change re-reviews.
-+            fingerprint: if findings_visible_to_github {
-+                fingerprint
-+            } else {
-+                None
-+            },
++            fingerprint: findings_visible_to_github.then_some(fingerprint),
          })
      }
  
@@ -1610,7 +1603,7 @@ index 98f3870..50dc3fa 100644
      pub async fn finalize_closed_pr_review(
          &self,
          repo_cfg: &RepoConfig,
-@@ -1604,6 +2051,7 @@ impl ReviewEngine {
+@@ -1604,6 +2032,7 @@ impl ReviewEngine {
              self.authenticated_user.as_deref(),
              pr_data.head.sha.as_str(),
              None,
@@ -1618,7 +1611,7 @@ index 98f3870..50dc3fa 100644
          );
  
          if let Some(reply) = build_direct_pushback_reply(
-@@ -1892,16 +2340,6 @@ fn has_rationale_rejection_signal(text: &str) -> bool {
+@@ -1892,16 +2321,6 @@ fn has_rationale_rejection_signal(text: &str) -> bool {
          .any(|signal| lower.contains(&normalize_text(signal)))
  }
  
@@ -1635,7 +1628,7 @@ index 98f3870..50dc3fa 100644
  fn finding_key(path: &str, line: Option<u32>, body: &str) -> String {
      format!(
          "{}|{}|{}",
-@@ -1912,27 +2350,12 @@ fn finding_key(path: &str, line: Option<u32>, body: &str) -> String {
+@@ -1912,27 +2331,12 @@ fn finding_key(path: &str, line: Option<u32>, body: &str) -> String {
      )
  }
  
@@ -1665,7 +1658,7 @@ index 98f3870..50dc3fa 100644
  fn build_review_memory(
      reviews: &[PullRequestReview],
      review_comments: &[ReviewComment],
-@@ -1941,6 +2364,7 @@ fn build_review_memory(
+@@ -1941,6 +2345,7 @@ fn build_review_memory(
      bot_alias: Option<&str>,
      current_sha: &str,
      changed_files: Option<&[String]>,
@@ -1673,7 +1666,7 @@ index 98f3870..50dc3fa 100644
  ) -> ReviewMemory {
      let parent_map: HashMap<u64, Option<u64>> = review_comments
          .iter()
-@@ -1962,8 +2386,9 @@ fn build_review_memory(
+@@ -1962,8 +2367,9 @@ fn build_review_memory(
      }
  
      let findings = threads
@@ -1685,7 +1678,7 @@ index 98f3870..50dc3fa 100644
              let mut sorted = comments;
              sorted.sort_by(|a, b| a.created_at.cmp(&b.created_at));
              let finding = sorted
-@@ -1981,6 +2406,9 @@ fn build_review_memory(
+@@ -1981,10 +2387,12 @@ fn build_review_memory(
                          status = FindingStatus::LikelyAddressed;
                      }
                  }
@@ -1693,9 +1686,14 @@ index 98f3870..50dc3fa 100644
 +                    status = FindingStatus::ResolvedByHuman;
 +                }
                  return Some(FindingRecord {
-                     key: finding_key(&finding.path, finding.line, &finding.body),
+-                    key: finding_key(&finding.path, finding.line, &finding.body),
                      path: finding.path.clone(),
-@@ -2012,6 +2440,11 @@ fn build_review_memory(
+-                    line: finding.line,
++                    line: finding.line.or(finding.original_line),
+                     body: finding.body.clone(),
+                     token_set: token_set(&finding.body),
+                     status,
+@@ -2012,11 +2420,15 @@ fn build_review_memory(
                      }
                  }
              }
@@ -1706,8 +1704,14 @@ index 98f3870..50dc3fa 100644
 +            }
  
              Some(FindingRecord {
-                 key: finding_key(&finding.path, finding.line, &finding.body),
-@@ -2068,9 +2501,10 @@ fn status_precedence(status: &FindingStatus) -> usize {
+-                key: finding_key(&finding.path, finding.line, &finding.body),
+                 path: finding.path.clone(),
+-                line: finding.line,
++                line: finding.line.or(finding.original_line),
+                 body: finding.body.clone(),
+                 token_set: token_set(&finding.body),
+                 status,
+@@ -2068,9 +2480,10 @@ fn status_precedence(status: &FindingStatus) -> usize {
      match status {
          FindingStatus::Open => 0,
          FindingStatus::LikelyAddressed => 1,
@@ -1721,7 +1725,7 @@ index 98f3870..50dc3fa 100644
      }
  }
  
-@@ -2218,6 +2652,7 @@ fn build_addressed_findings(
+@@ -2218,6 +2631,7 @@ fn build_addressed_findings(
      parsed_diff: &crate::context::diff_parser::ParsedDiff,
      bot_name: &str,
      bot_alias: Option<&str>,
@@ -1729,7 +1733,7 @@ index 98f3870..50dc3fa 100644
  ) -> String {
      if review_comments.is_empty() {
          return String::new();
-@@ -2245,6 +2680,7 @@ fn build_addressed_findings(
+@@ -2245,6 +2659,7 @@ fn build_addressed_findings(
          bot_alias,
          "",
          Some(&changed_files),
@@ -1737,7 +1741,7 @@ index 98f3870..50dc3fa 100644
      );
  
      let mut out = String::new();
-@@ -2255,6 +2691,7 @@ fn build_addressed_findings(
+@@ -2255,6 +2670,7 @@ fn build_addressed_findings(
              FindingStatus::DismissedByHuman => "[dismissed by human]",
              FindingStatus::RejectedWithRationale => "[rejected with rationale]",
              FindingStatus::OutOfScopeForPr => "[out of scope for this pr]",
@@ -1745,7 +1749,7 @@ index 98f3870..50dc3fa 100644
              FindingStatus::Open if !file_in_diff => "[likely addressed]",
              FindingStatus::Open | FindingStatus::LikelyAddressed => "[potentially addressed]",
          };
-@@ -2279,6 +2716,7 @@ fn build_review_state_context(memory: &ReviewMemory) -> String {
+@@ -2279,6 +2695,7 @@ fn build_review_state_context(memory: &ReviewMemory) -> String {
          let status = match finding.status {
              FindingStatus::Open => "open",
              FindingStatus::LikelyAddressed => "likely addressed",
@@ -1753,7 +1757,7 @@ index 98f3870..50dc3fa 100644
              FindingStatus::DismissedByHuman => "dismissed by human",
              FindingStatus::RejectedWithRationale => "rejected with rationale",
              FindingStatus::OutOfScopeForPr => "out of scope for this pr",
-@@ -2334,6 +2772,18 @@ fn build_stored_findings_context(findings: &[ReviewFindingRecord]) -> String {
+@@ -2334,6 +2751,18 @@ fn build_stored_findings_context(findings: &[ReviewFindingRecord]) -> String {
      out
  }
  
@@ -1772,7 +1776,7 @@ index 98f3870..50dc3fa 100644
  fn reconcile_finding_ledger(
      repo: &str,
      pr_number: i64,
-@@ -2342,38 +2792,84 @@ fn reconcile_finding_ledger(
+@@ -2342,38 +2771,84 @@ fn reconcile_finding_ledger(
      stored_findings: &[ReviewFindingRecord],
      current_findings: &[PendingFinding],
      review_memory: &ReviewMemory,
@@ -1870,7 +1874,7 @@ index 98f3870..50dc3fa 100644
              recurrence_fingerprint: Some(recurring_finding_fingerprint(&finding.body)),
              sha: sha.to_string(),
              status: status.to_string(),
-@@ -2383,7 +2879,7 @@ fn reconcile_finding_ledger(
+@@ -2383,7 +2858,7 @@ fn reconcile_finding_ledger(
              line: finding.line.map(i64::from),
              body: finding.body.clone(),
              evidence_note: finding.evidence_note.clone(),
@@ -1879,7 +1883,7 @@ index 98f3870..50dc3fa 100644
              resolved_by_sha: None,
              resolution_reason: None,
          });
-@@ -2391,12 +2887,32 @@ fn reconcile_finding_ledger(
+@@ -2391,12 +2866,32 @@ fn reconcile_finding_ledger(
  
      for stored in stored_findings {
          if !finding_status_is_active(&stored.status)
@@ -1914,7 +1918,7 @@ index 98f3870..50dc3fa 100644
              Some(FindingStatus::DismissedByHuman) | Some(FindingStatus::RejectedWithRationale) => {
                  delta.rebutted_or_scoped += 1;
                  ("rebutted", "human rebuttal or rationale")
-@@ -2405,13 +2921,17 @@ fn reconcile_finding_ledger(
+@@ -2405,13 +2900,17 @@ fn reconcile_finding_ledger(
                  delta.rebutted_or_scoped += 1;
                  ("out_of_scope", "human marked out of scope")
              }
@@ -1933,7 +1937,7 @@ index 98f3870..50dc3fa 100644
              }
          };
  
-@@ -2435,20 +2955,17 @@ fn reconcile_finding_ledger(
+@@ -2435,20 +2934,17 @@ fn reconcile_finding_ledger(
          });
      }
  
@@ -1956,7 +1960,7 @@ index 98f3870..50dc3fa 100644
          .map(|finding| finding.status)
          .max_by_key(status_precedence)
  }
-@@ -2539,18 +3056,23 @@ fn can_reopen_rebutted_finding(
+@@ -2539,18 +3035,23 @@ fn can_reopen_rebutted_finding(
          })
  }
  
@@ -1984,7 +1988,7 @@ index 98f3870..50dc3fa 100644
              continue;
          }
  
-@@ -2563,7 +3085,7 @@ fn should_suppress_finding(
+@@ -2563,7 +3064,7 @@ fn should_suppress_finding(
                  }
              }
              FindingStatus::LikelyAddressed => return true,
@@ -1993,7 +1997,7 @@ index 98f3870..50dc3fa 100644
          }
      }
  
-@@ -3395,9 +3917,32 @@ fn build_retry_review_body(body: &str, inline_comments: &[CreateReviewComment])
+@@ -3395,9 +3896,32 @@ fn build_retry_review_body(body: &str, inline_comments: &[CreateReviewComment])
      retry_body
  }
  
@@ -2027,7 +2031,7 @@ index 98f3870..50dc3fa 100644
          pr_reviewer_project_url(),
      )
  }
-@@ -3862,6 +4407,8 @@ fn verdict_label(verdict: ReviewVerdict) -> &'static str {
+@@ -3862,6 +4386,8 @@ fn verdict_label(verdict: ReviewVerdict) -> &'static str {
  
  #[cfg(test)]
  mod tests {
@@ -2036,7 +2040,7 @@ index 98f3870..50dc3fa 100644
      use crate::github::types::{
          CreateReviewComment, IssueComment, PullRequest, PullRequestBase, PullRequestHead,
          PullRequestReview, RepoRef, ReviewComment, User,
-@@ -3907,6 +4454,7 @@ mod tests {
+@@ -3907,6 +4433,7 @@ mod tests {
              full_name: full_name.to_string(),
              fork: false,
              owner: test_user(owner),
@@ -2044,7 +2048,7 @@ index 98f3870..50dc3fa 100644
          }
      }
  
-@@ -3931,6 +4479,7 @@ mod tests {
+@@ -3931,6 +4458,7 @@ mod tests {
              updated_at: Some("2026-04-13T00:00:00Z".to_string()),
              closed_at: Some("2026-04-13T01:00:00Z".to_string()),
              merged_at: Some("2026-04-13T01:00:00Z".to_string()),
@@ -2052,7 +2056,31 @@ index 98f3870..50dc3fa 100644
          }
      }
  
-@@ -4417,6 +4966,7 @@ Reviewed the archive flow.
+@@ -3947,6 +4475,7 @@ mod tests {
+             body: body.to_string(),
+             path: path.to_string(),
+             line,
++            original_line: None,
+             user: test_user(login),
+             in_reply_to_id: in_reply_to,
+             created_at: format!("2026-03-30T00:{:02}:00Z", id),
+@@ -4394,6 +4923,7 @@ Reviewed the archive flow.
+                 body: "Blocking: task ownership is wrong here".to_string(),
+                 path: "src/task.rs".to_string(),
+                 line: Some(42),
++                original_line: None,
+                 user: test_user("pr-reviewer"),
+                 in_reply_to_id: None,
+                 created_at: "2026-03-30T00:00:00Z".to_string(),
+@@ -4403,6 +4933,7 @@ Reviewed the archive flow.
+                 body: "not taking further task ownership feedback in this PR".to_string(),
+                 path: "src/task.rs".to_string(),
+                 line: Some(42),
++                original_line: None,
+                 user: test_user("NicholaiVogel"),
+                 in_reply_to_id: Some(10),
+                 created_at: "2026-03-30T00:01:00Z".to_string(),
+@@ -4417,6 +4948,7 @@ Reviewed the archive flow.
              None,
              "head",
              None,
@@ -2060,7 +2088,15 @@ index 98f3870..50dc3fa 100644
          );
          assert_eq!(memory.findings.len(), 1);
          assert_eq!(memory.findings[0].status, FindingStatus::OutOfScopeForPr);
-@@ -4443,6 +4993,7 @@ Reviewed the archive flow.
+@@ -4430,6 +4962,7 @@ Reviewed the archive flow.
+             body: "Potential blocking issue in task cleanup".to_string(),
+             path: "src/task.rs".to_string(),
+             line: Some(42),
++            original_line: None,
+             user: test_user("pr-reviewer"),
+             in_reply_to_id: None,
+             created_at: "2026-03-30T00:00:00Z".to_string(),
+@@ -4443,6 +4976,7 @@ Reviewed the archive flow.
              None,
              "head",
              Some(&["src/other.rs".to_string()]),
@@ -2068,7 +2104,27 @@ index 98f3870..50dc3fa 100644
          );
  
          assert_eq!(memory.findings[0].status, FindingStatus::LikelyAddressed);
-@@ -4574,10 +5125,11 @@ Reviewed the archive flow.
+@@ -4452,11 +4986,6 @@ Reviewed the archive flow.
+     fn suppresses_repeated_out_of_scope_finding_without_new_evidence() {
+         let memory = ReviewMemory {
+             findings: vec![super::FindingRecord {
+-                key: finding_key(
+-                    "src/task.rs",
+-                    Some(42),
+-                    "Blocking: task ownership is wrong here",
+-                ),
+                 path: "src/task.rs".to_string(),
+                 line: Some(42),
+                 body: "Blocking: task ownership is wrong here".to_string(),
+@@ -4486,7 +5015,6 @@ Reviewed the archive flow.
+     fn allows_reopening_rebutted_finding_with_evidence_note() {
+         let memory = ReviewMemory {
+             findings: vec![super::FindingRecord {
+-                key: finding_key("src/task.rs", Some(42), "task ownership is wrong here"),
+                 path: "src/task.rs".to_string(),
+                 line: Some(42),
+                 body: "task ownership is wrong here".to_string(),
+@@ -4574,10 +5102,11 @@ Reviewed the archive flow.
              evidence_note: None,
              severity: CommentSeverity::Blocking,
              finding_kind: FindingKind::Correctness,
@@ -2081,7 +2137,7 @@ index 98f3870..50dc3fa 100644
              "owner/repo",
              15,
              "sha-2",
-@@ -4585,6 +5137,8 @@ Reviewed the archive flow.
+@@ -4585,6 +5114,8 @@ Reviewed the archive flow.
              &stored,
              &current,
              &memory,
@@ -2090,7 +2146,7 @@ index 98f3870..50dc3fa 100644
          );
  
          assert_eq!(updates.len(), 1);
-@@ -4600,8 +5154,17 @@ Reviewed the archive flow.
+@@ -4600,8 +5131,17 @@ Reviewed the archive flow.
          let stored = vec![stored_finding("open", "blocking", "fp-1")];
          let memory = ReviewMemory::default();
  
@@ -2110,7 +2166,7 @@ index 98f3870..50dc3fa 100644
  
          assert_eq!(updates.len(), 1);
          assert_eq!(updates[0].status, "likely_fixed");
-@@ -4848,6 +5411,7 @@ Reviewed the archive flow.
+@@ -4848,6 +5388,7 @@ Reviewed the archive flow.
              None,
              "head-sha",
              Some(&["src/task.rs".to_string()]),
@@ -2118,7 +2174,7 @@ index 98f3870..50dc3fa 100644
          );
  
          assert_eq!(memory.findings.len(), 1);
-@@ -4879,6 +5443,7 @@ Reviewed the archive flow.
+@@ -4879,6 +5420,7 @@ Reviewed the archive flow.
              None,
              "new-sha",
              Some(&["src/new.rs".to_string()]),
@@ -2126,7 +2182,39 @@ index 98f3870..50dc3fa 100644
          );
  
          assert_eq!(memory.findings.len(), 1);
-@@ -5082,6 +5647,7 @@ Reviewed the archive flow.
+@@ -4889,7 +5431,6 @@ Reviewed the archive flow.
+     fn likely_addressed_finding_is_suppressed() {
+         let memory = ReviewMemory {
+             findings: vec![super::FindingRecord {
+-                key: finding_key("src/old.rs", Some(10), "Bug found here"),
+                 path: "src/old.rs".to_string(),
+                 line: Some(10),
+                 body: "Bug found here".to_string(),
+@@ -4995,6 +5536,7 @@ Reviewed the archive flow.
+                 body: "Bug: wrong logic here".to_string(),
+                 path: "src/task.rs".to_string(),
+                 line: Some(10),
++                original_line: None,
+                 user: test_bot_user("BusyBee3333"),
+                 in_reply_to_id: None,
+                 created_at: "2026-03-30T04:16:00Z".to_string(),
+@@ -5004,6 +5546,7 @@ Reviewed the archive flow.
+                 body: "I disagree, this is intentional".to_string(),
+                 path: "src/task.rs".to_string(),
+                 line: Some(10),
++                original_line: None,
+                 user: test_user("NicholaiVogel"),
+                 in_reply_to_id: Some(1),
+                 created_at: "2026-03-30T04:17:00Z".to_string(),
+@@ -5068,6 +5611,7 @@ Reviewed the archive flow.
+                 body: "fine, this looks acceptable".to_string(),
+                 path: "src/task.rs".to_string(),
+                 line: Some(10),
++                original_line: None,
+                 user: test_bot_user("BusyBee3333"),
+                 in_reply_to_id: Some(1),
+                 created_at: "2026-03-30T00:02:00Z".to_string(),
+@@ -5082,6 +5626,7 @@ Reviewed the archive flow.
              None,
              "head-sha",
              Some(&["src/task.rs".to_string()]),
@@ -2134,7 +2222,7 @@ index 98f3870..50dc3fa 100644
          );
  
          // Currently other bots ARE treated as human. This test documents
-@@ -5118,4 +5684,399 @@ Reviewed the archive flow.
+@@ -5118,4 +5663,399 @@ Reviewed the archive flow.
          assert!(reply.is_some(), "human dismissal should still be detected");
          assert!(reply.unwrap().contains("treating that as intentional"));
      }
@@ -2305,7 +2393,7 @@ index 98f3870..50dc3fa 100644
 +
 +    #[test]
 +    fn lifecycle_stack_rebase_does_not_resolve_findings_in_untouched_files() {
-+        // A cascade rebase brings only the parent's file into the compare diff.
++        // Per-file fingerprints show that only the parent's file changed.
 +        let stored = vec![ReviewFindingRecord {
 +            path: "src/child.rs".to_string(),
 +            ..stored_finding("open", "blocking", "child|1|x")
@@ -2549,10 +2637,10 @@ index f7a6df8..04b3488 100644
 +pub mod stack;
 diff --git a/src/review/pipeline_tests.rs b/src/review/pipeline_tests.rs
 new file mode 100644
-index 0000000..603622c
+index 0000000..3041fcd
 --- /dev/null
 +++ b/src/review/pipeline_tests.rs
-@@ -0,0 +1,812 @@
+@@ -0,0 +1,908 @@
 +//! End-to-end review lifecycle tests: `ReviewEngine::review_pr` against a
 +//! mock GitHub (one httptest server per round, holding that round's GitHub
 +//! state), a stub `claude` harness on PATH, and one SQLite database carried
@@ -3365,12 +3453,108 @@ index 0000000..603622c
 +    assert!(blocker < nit, "possible blockers are listed first: {body}");
 +    assert!(body.contains("possible blocker"), "{body}");
 +}
++
++#[tokio::test]
++async fn an_outdated_thread_does_not_hide_a_different_finding_elsewhere_in_the_file() {
++    let run = Run::new("outdated-thread");
++    let config = config(&run);
++    let db_dir = tempfile::tempdir().unwrap();
++    let db = Database::new(db_dir.path().join("state.db")).await.unwrap();
++    // Shares 6 of 12 meaningful words with BLOCKER (containment 0.5), and the
++    // `fetch_all` identifier, but it is a different bug 300 lines away.
++    const RATE: &str = "`fetch_all` never checks the rate limit header before retrying, so a revoked token keeps sending requests until GitHub blocks the whole app.";
++    run.respond(
++        1,
++        review_json(
++            "request_changes",
++            json!([{"file": "src/fetch.rs", "line": 300, "body": RATE, "severity": "blocking",
++                    "finding_kind": "security", "evidence_note": "New line 300 retries without reading the header."}]),
++        ),
++    );
++    let diff = "diff --git a/src/fetch.rs b/src/fetch.rs\n--- a/src/fetch.rs\n+++ b/src/fetch.rs\n@@ -298,2 +298,3 @@\n fn retry(client: &Client) {\n+    client.send_again();\n }\n".replace("@@ -298,2 +298,3 @@\n fn", "@@ -299,2 +299,3 @@\n fn");
++    let mut state = GitHubState::new(pr_json(7, "s2", "feat/fetch", "main"), diff);
++    state.reviews = vec![bot_review(100, "s1", "COMMENTED")];
++    // A push changed the lines under the old thread: GitHub reports no line.
++    let mut outdated = bot_comment(201, 2, BLOCKER);
++    outdated["line"] = Value::Null;
++    outdated["original_line"] = json!(2);
++    state.review_comments = vec![outdated];
++    let gh = mock_github(state);
++    let result = review_round(&config, &db, &gh, 7).await;
++    assert_eq!(result.status, "completed");
++    let posted = gh.posted_reviews.lock().unwrap().clone();
++    let comments = posted[0]["comments"]
++        .as_array()
++        .cloned()
++        .unwrap_or_default();
++    assert_eq!(
++        comments.len(),
++        1,
++        "the new finding is posted, not held back: {posted:?}"
++    );
++    assert_eq!(comments[0]["body"], RATE);
++    assert_eq!(posted[0]["event"], "REQUEST_CHANGES");
++}
++
++#[tokio::test]
++async fn a_rebase_of_a_pr_with_a_binary_file_keeps_its_findings_open() {
++    let run = Run::new("binary-rebase");
++    let config = config(&run);
++    let db_dir = tempfile::tempdir().unwrap();
++    let db = Database::new(db_dir.path().join("state.db")).await.unwrap();
++    let binary = "diff --git a/logo.png b/logo.png\nindex 1111111..2222222 100644\nBinary files a/logo.png and b/logo.png differ\n";
++    run.respond(
++        1,
++        review_json(
++            "request_changes",
++            json!([{"file": "src/fetch.rs", "line": 2, "body": BLOCKER, "severity": "blocking",
++                    "finding_kind": "correctness", "evidence_note": "Line 2."}]),
++        ),
++    );
++    run.respond(2, review_json("comment", json!([])));
++
++    let gh = mock_github(GitHubState::new(
++        pr_json(7, "s1", "feat/fetch", "main"),
++        format!("{}{binary}", simple_diff("retry_forever();")),
++    ));
++    assert_eq!(review_round(&config, &db, &gh, 7).await.status, "completed");
++
++    // Rebase: same change, new line numbers. GitHub's three-dot compare of the
++    // old and new head lists every file of the PR after a rebase.
++    let rebased = format!(
++        "{}{binary}",
++        simple_diff("retry_forever();").replace("@@ -1,3 +1,4 @@", "@@ -20,3 +20,4 @@")
++    );
++    let mut state = GitHubState::new(pr_json(7, "s2", "feat/fetch", "main"), rebased.clone());
++    state.reviews = vec![bot_review(100, "s1", "CHANGES_REQUESTED")];
++    state.review_comments = vec![bot_comment(201, 2, BLOCKER)];
++    state.compare = Some(("s1".into(), "s2".into(), rebased));
++    let gh = mock_github(state);
++    let result = review_round(&config, &db, &gh, 7).await;
++    assert_eq!(
++        run.reviews_run(),
++        2,
++        "a diff with a binary file is always reviewed"
++    );
++    assert_eq!(result.status, "skipped:no-novel-findings");
++    let ledger = db.list_review_findings("o/r", 7).await.unwrap();
++    assert_eq!(ledger.len(), 1);
++    assert!(
++        matches!(ledger[0].status.as_str(), "open" | "still_blocking"),
++        "a rebase does not fix a finding: {}",
++        ledger[0].status
++    );
++    assert!(
++        gh.dismissed.lock().unwrap().is_empty(),
++        "the change request stays"
++    );
++}
 diff --git a/src/review/policy.rs b/src/review/policy.rs
 new file mode 100644
-index 0000000..03e153c
+index 0000000..3727fc3
 --- /dev/null
 +++ b/src/review/policy.rs
-@@ -0,0 +1,870 @@
+@@ -0,0 +1,914 @@
 +//! Review-cycle policy: which round a review is, what happens to each
 +//! finding in that round, and when the bot's own change requests are stale.
 +//!
@@ -3581,10 +3765,12 @@ index 0000000..03e153c
 +    out
 +}
 +
++/// An unknown line is never near: a thread whose line GitHub no longer
++/// knows must not hide findings anywhere in its file.
 +fn lines_are_near(a: FindingRef<'_>, b: FindingRef<'_>) -> bool {
 +    match (a.line, b.line) {
 +        (Some(x), Some(y)) => x.abs_diff(y) <= NEAR_LINE_DISTANCE,
-+        _ => true,
++        _ => false,
 +    }
 +}
 +
@@ -3775,6 +3961,25 @@ index 0000000..03e153c
 +                plural(self.still_open),
 +                if self.still_open == 1 { "its" } else { "their" },
 +                if self.still_open == 1 { "it" } else { "them" },
++            ));
++        }
++        if self.resolved > 0 {
++            lines.push(format!(
++                "- {} {} a thread a human resolved, so I did not post {} again.",
++                self.resolved,
++                if self.resolved == 1 {
++                    "finding matches"
++                } else {
++                    "findings match"
++                },
++                if self.resolved == 1 { "it" } else { "them" },
++            ));
++        }
++        if self.already_noted > 0 {
++            lines.push(format!(
++                "- {} {} already in an earlier follow-up note.",
++                self.already_noted,
++                plural(self.already_noted),
 +            ));
 +        }
 +        for (pr, count) in &self.on_ancestors {
@@ -4240,6 +4445,29 @@ index 0000000..03e153c
 +            }
 +        ));
 +    }
++
++    #[test]
++    fn an_unknown_line_is_never_near() {
++        let thread = FindingRef {
++            path: "src/fetch.rs",
++            line: None,
++            body: "The retry loop in `fetch_all` never sleeps, so a 429 from GitHub spins the CPU and burns the whole rate limit in seconds.",
++        };
++        let other = FindingRef {
++            path: "src/fetch.rs",
++            line: Some(300),
++            body: "`fetch_all` never checks the rate limit header before retrying, so a revoked token keeps sending requests until GitHub blocks the whole app.",
++        };
++        assert!(!same_finding_near(thread, other));
++        assert!(
++            !same_finding(thread, other),
++            "0.5 containment needs a known nearby line"
++        );
++        assert!(
++            !same_finding_near(thread, thread),
++            "without a line nothing is hidden, even the same text"
++        );
++    }
 +}
 diff --git a/src/review/prompt.rs b/src/review/prompt.rs
 index f0c1744..6504899 100644
@@ -4412,10 +4640,10 @@ index f0c1744..6504899 100644
  }
 diff --git a/src/review/stack.rs b/src/review/stack.rs
 new file mode 100644
-index 0000000..06191c7
+index 0000000..7620481
 --- /dev/null
 +++ b/src/review/stack.rs
-@@ -0,0 +1,703 @@
+@@ -0,0 +1,719 @@
 +//! Stacked pull requests.
 +//!
 +//! A stacked PR targets the head branch of another PR instead of the trunk.
@@ -4444,9 +4672,13 @@ index 0000000..06191c7
 +/// Fingerprint of a PR's own change, overall and per file.
 +#[derive(Debug, Clone, Eq, PartialEq)]
 +pub struct ChangeFingerprint {
-+    pub overall: String,
-+    /// Per-file hashes, keyed by the file's path in the PR head (old path
-+    /// for deleted files). Used to tell which files changed between reviews.
++    /// Key for skipping an unchanged push. `None` when some file in the diff
++    /// has no text hunks (binary, mode-only, too large for a patch): such a
++    /// change cannot be compared, so the push is always reviewed.
++    pub overall: Option<String>,
++    /// Per-file hashes of the files with text hunks, keyed by the file's path
++    /// in the PR head (old path for deleted files). They tell which files
++    /// this PR changed between reviews, also when `overall` is `None`.
 +    pub files: BTreeMap<String, String>,
 +}
 +
@@ -4482,15 +4714,18 @@ index 0000000..06191c7
 +/// call it guards). A lower PR that edits a line directly next to this
 +/// PR's change also alters it, which costs one extra review.
 +///
-+/// Returns `None` when the diff has no text hunks to compare, such as a
++/// `overall` is `None` when a file has no text hunks to compare, such as a
 +/// binary or mode-only change, or a file too large for a patch: those
-+/// pushes are always reviewed.
-+pub fn change_fingerprint(diff: &ParsedDiff) -> Option<ChangeFingerprint> {
-+    if diff.files.is_empty() || diff.files.iter().any(|file| file.hunks.is_empty()) {
-+        return None;
-+    }
++/// pushes are always reviewed. The per-file hashes of the other files are
++/// still computed.
++pub fn change_fingerprint(diff: &ParsedDiff) -> ChangeFingerprint {
 +    let mut files = BTreeMap::new();
++    let mut comparable = !diff.files.is_empty();
 +    for file in &diff.files {
++        if file.hunks.is_empty() {
++            comparable = false;
++            continue;
++        }
 +        let mut hasher = Sha256::new();
 +        hasher.update(file.old_path.as_bytes());
 +        hasher.update(b"\0");
@@ -4506,17 +4741,17 @@ index 0000000..06191c7
 +        };
 +        files.insert(key, format!("{:x}", hasher.finalize()));
 +    }
-+    let mut overall = Sha256::new();
-+    for (path, hash) in &files {
-+        overall.update(path.as_bytes());
-+        overall.update(b"\0");
-+        overall.update(hash.as_bytes());
-+        overall.update(b"\n");
-+    }
-+    Some(ChangeFingerprint {
-+        overall: format!("{:x}", overall.finalize()),
-+        files,
-+    })
++    let overall = comparable.then(|| {
++        let mut overall = Sha256::new();
++        for (path, hash) in &files {
++            overall.update(path.as_bytes());
++            overall.update(b"\0");
++            overall.update(hash.as_bytes());
++            overall.update(b"\n");
++        }
++        format!("{:x}", overall.finalize())
++    });
++    ChangeFingerprint { overall, files }
 +}
 +
 +fn hash_change_groups(hasher: &mut Sha256, lines: &[DiffLine]) {
@@ -4858,8 +5093,8 @@ index 0000000..06191c7
 +
 +    fn fingerprint(diff: &str) -> String {
 +        change_fingerprint(&parse_unified_diff(diff).unwrap())
-+            .expect("text diff has a fingerprint")
 +            .overall
++            .expect("a text diff has a fingerprint")
 +    }
 +
 +    #[test]
@@ -5094,23 +5329,32 @@ index 0000000..06191c7
 +        let binary = format!(
 +            "{CHILD_DIFF}diff --git a/logo.png b/logo.png\nindex 1..2 100644\nBinary files a/logo.png and b/logo.png differ\n"
 +        );
-+        assert!(change_fingerprint(&parse_unified_diff(&binary).unwrap()).is_none());
-+        assert!(change_fingerprint(&parse_unified_diff("").unwrap()).is_none());
++        let with_binary = change_fingerprint(&parse_unified_diff(&binary).unwrap());
++        assert!(
++            with_binary.overall.is_none(),
++            "a push with a binary file is always reviewed"
++        );
++        let text_only = change_fingerprint(&parse_unified_diff(CHILD_DIFF).unwrap());
++        assert_eq!(
++            with_binary.files, text_only.files,
++            "the text files still get per-file hashes"
++        );
++        assert!(change_fingerprint(&parse_unified_diff("").unwrap())
++            .overall
++            .is_none());
 +    }
 +
 +    #[test]
 +    fn changed_files_reports_edited_added_and_dropped_files() {
 +        let second = "diff --git a/README.md b/README.md\n--- a/README.md\n+++ b/README.md\n@@ -1,1 +1,1 @@\n-old\n+new\n";
 +        let before =
-+            change_fingerprint(&parse_unified_diff(&format!("{CHILD_DIFF}{second}")).unwrap())
-+                .unwrap();
++            change_fingerprint(&parse_unified_diff(&format!("{CHILD_DIFF}{second}")).unwrap());
 +        let rebased = change_fingerprint(
 +            &parse_unified_diff(&format!("{CHILD_DIFF_REBASED}{second}")).unwrap(),
-+        )
-+        .unwrap();
++        );
 +        assert!(rebased.changed_files(&before.files).is_empty());
 +
-+        let edited = change_fingerprint(&parse_unified_diff(CHILD_DIFF_EDITED).unwrap()).unwrap();
++        let edited = change_fingerprint(&parse_unified_diff(CHILD_DIFF_EDITED).unwrap());
 +        let changed = edited.changed_files(&before.files);
 +        assert_eq!(
 +            changed,

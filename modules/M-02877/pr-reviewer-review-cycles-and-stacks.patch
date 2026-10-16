@@ -1,5 +1,5 @@
 diff --git a/AGENTS.md b/AGENTS.md
-index 7ff06c9..4ad1f40 100644
+index 7ff06c9..d0d8552 100644
 --- a/AGENTS.md
 +++ b/AGENTS.md
 @@ -33,7 +33,10 @@ src/
@@ -20,7 +20,7 @@ index 7ff06c9..4ad1f40 100644
  
 +### Review cycles and stacks (policy.rs, stack.rs)
 +
-+- A push whose change fingerprint (`stack::change_fingerprint`: paths, added/removed lines and the context line on each side of every change group; no line numbers) equals `pr_state.last_reviewed_diff_hash` completes as `skipped:unchanged-diff`. Rebases and stack cascades land here. The fingerprint, and the ledger, are written only after the review reached GitHub.
++- A push whose change fingerprint (`stack::change_fingerprint`: paths, added/removed lines and the context line on each side of every change group; no line numbers) equals `pr_state.last_reviewed_diff_hash` completes as `skipped:unchanged-diff`. Rebases and stack cascades land here. The ledger is written only after a review reached GitHub. The fingerprint is written then too, and on the paths that post nothing because the reviewed state is already on GitHub (`skipped:unchanged-diff`, `skipped:no-novel-findings`, `skipped:already-posted`); never after a failed post.
 +- The round is the number of commits the bot reviewed before (reviews carrying `policy::REVIEW_METADATA_MARKER`), plus one. If the review list or the bot's own login cannot be read, the review fails rather than counting zero. Past `max_review_cycles`, `decide_disposition` turns new findings into follow-up notes (ledger status `noted`, inactive), except critical ones on changed lines.
 +- Every "is this the same finding" question goes through `policy::same_finding` (same path; disjoint backticked identifiers never match; token containment >= 0.6, or >= 0.45 within 15 lines). Hiding a finding behind an open or resolved thread uses `same_finding_near`, which needs both lines known (outdated threads fall back to `original_line`; no line means no match). Do not add another token-overlap rule: shared-token counts cannot tell findings apart. (The one remaining overlap rule is for free-text "out of scope" boundaries from the PR conversation, which are topics, not findings; evidenced findings bypass it.)
 +- Ancestor dedupe applies only to findings on lines the PR does not change, and never to critical findings.
@@ -825,7 +825,7 @@ index 7cfcc74..d8aa514 100644
  
          if cfg
 diff --git a/src/review/engine.rs b/src/review/engine.rs
-index 98f3870..0587de2 100644
+index 98f3870..498988a 100644
 --- a/src/review/engine.rs
 +++ b/src/review/engine.rs
 @@ -1,4 +1,4 @@
@@ -2222,7 +2222,7 @@ index 98f3870..0587de2 100644
          );
  
          // Currently other bots ARE treated as human. This test documents
-@@ -5118,4 +5663,399 @@ Reviewed the archive flow.
+@@ -5118,4 +5663,425 @@ Reviewed the archive flow.
          assert!(reply.is_some(), "human dismissal should still be detected");
          assert!(reply.unwrap().contains("treating that as intentional"));
      }
@@ -2620,6 +2620,32 @@ index 98f3870..0587de2 100644
 +        assert_ne!(fingerprints[0], fingerprints[1]);
 +        assert_eq!(delta.still_blocking, 1);
 +        assert_eq!(delta.newly_found, 1);
++    }
++
++    #[test]
++    fn outdated_threads_keep_the_line_they_were_posted_on() {
++        let mut outdated = review_comment(1, None, "pr-reviewer", "src/fetch.rs", None, BLOCKER);
++        outdated.original_line = Some(40);
++        let memory = build_review_memory(
++            &[],
++            &[outdated],
++            &[],
++            "pr-reviewer",
++            None,
++            "head",
++            Some(&["src/fetch.rs".to_string()]),
++            &HashMap::new(),
++        );
++        assert_eq!(memory.findings[0].line, Some(40));
++        let near = crate::review::policy::FindingRef {
++            path: "src/fetch.rs",
++            line: Some(44),
++            body: BLOCKER_REWORDED,
++        };
++        assert!(
++            crate::review::policy::same_finding_near(memory.findings[0].as_ref(), near),
++            "a re-raise near the original line is still recognised as the open thread"
++        );
 +    }
  }
 diff --git a/src/review/mod.rs b/src/review/mod.rs

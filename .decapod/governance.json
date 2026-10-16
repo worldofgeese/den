@@ -74,6 +74,14 @@
       "proof_refs": [
         "nix build of the patched derivation; cargo test 212 passed"
       ]
+    },
+    {
+      "id": "cp-pr-reviewer-7dfed90",
+      "summary": "Sync the pr-reviewer patch to NicholaiVogel/pr-reviewer#32 at 7dfed90 (test and doc follow-up)",
+      "input_digest": "sha256:cf490a80e7e0f176faa7292c36c0fa69a785d00f3972c0b438c1f3267671c9e5",
+      "proof_refs": [
+        "nix build of the patched derivation; cargo test 213 passed"
+      ]
     }
   ],
   "intents": {

@@ -61,6 +61,11 @@
       "proof_refs": [
         "nix build of the patched derivation"
       ]
+    },
+    {
+      "id": "cp-plan-approved",
+      "summary": "Plan approved: intent given explicitly by the operator",
+      "input_digest": "sha256:ba26db6848237d08935ba05693250bfbd947ac2b3d0093d86bbdcec857bbb858"
     }
   ],
   "intents": {
@@ -99,7 +104,7 @@
         "automerge jq filter skips a PR based on another PR's branch"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
       "stop_conditions": [
         "decapod validate fails for a reason that needs a human decision"
       ],
@@ -109,7 +114,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792168867Z"
+      "updated_at": "1792169147Z"
     },
     "trajectory": {
       "active_boundaries": [

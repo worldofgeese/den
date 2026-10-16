@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "374702c6f650753d725987043dc1d9d6e4b9741a",
+    "accepted_commit": "8dc66af42bb9450046f191fde556452693e1e770",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -18,40 +18,67 @@
         "owner": "Project maintainers",
         "question": "Which project capability should replace this template claim first?",
         "status": "open"
-      }
+      },
+      "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it."
     }
   },
   "change": {
-    "id": "code_01m4xs9erm9veeb5",
-    "base_commit": "374702c6f650753d725987043dc1d9d6e4b9741a",
-    "target_base": "main"
+    "id": "change_01M52S9GQHXKSRJ77299XE1JGX",
+    "base_commit": "8dc66af42bb9450046f191fde556452693e1e770",
+    "target_base": "origin/main"
+  },
+  "claims": {
+    "claim-automerge-skips-stacked": {
+      "statement": "pr-reviewer-automerge does not merge a PR whose baseRefName differs from the repository default branch.",
+      "falsifier": "automergeFilter returns an empty reason for a PR with baseRefName != trunk",
+      "status": "supported",
+      "proof_refs": [
+        "modules/M-02877/pr-reviewer.nix automergeFilter"
+      ]
+    },
+    "claim-pr-reviewer-review-rounds": {
+      "statement": "With the patch, a review after max_review_cycles posts new non-critical findings only as non-blocking notes (no inline threads, no REQUEST_CHANGES), while a critical finding on a changed line still posts inline.",
+      "falsifier": "pr-reviewer pipeline test review_lifecycle_caps_rounds_skips_rebases_and_escalates_critical_findings fails, or a follow-up round posts a non-critical inline comment",
+      "status": "supported",
+      "proof_refs": [
+        "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs"
+      ]
+    },
+    "claim-pr-reviewer-stack-skip": {
+      "statement": "A push that leaves a PR's own change unchanged (rebase, stack cascade, retarget) is completed as skipped:unchanged-diff without a review.",
+      "falsifier": "the pipeline test round 3 posts a review or runs the harness",
+      "status": "supported",
+      "proof_refs": [
+        "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "code_01m4xs9erm9veeb5",
-      "summary": "Refresh the spec manifest after the Caveman modules update",
-      "input_digest": "sha256:bf04b6a4bbc243279b230d37797af27d0d246296bceef79ce8bc6cabafb12df7",
+      "id": "cp-pr-reviewer-cycles-stacks",
+      "summary": "Add the NicholaiVogel/pr-reviewer#32 patch to the pinned pr-reviewer build, skip stacked PRs in automerge, and document both in OPERATIONS.md",
+      "input_digest": "sha256:89998e725596494ffe8a2d075ec00c59d6cc32248120775c5070b4df7afcbdad",
       "proof_refs": [
-        "decapod validate --refresh-specs (container): only READINESS_PROFILE_REQUIRED"
+        "nix build of the patched derivation"
       ]
     }
   ],
   "intents": {
-    "intent:code_01m4xs9erm9veeb5": {
+    "intent:change_01M52S9GQHXKSRJ77299XE1JGX": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "No darwin deploy or Headroom restart from an agent session"
+        "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "gateway.json, modules/gateway.nix, modules/agent-providers.nix, modules/M-02877, Justfile, specs, CONTEXT.md, docs/solutions"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:code_01m4xs9erm9veeb5",
+      "id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Enable all the features we can and validate they are all effective before updating relevant docs in this repo/den/devrel-infra: token-saving chain-maxxing",
-      "refined_intent": "Send pi straight to the gateway, give pi's models registry cost and promptCache, upgrade Caveman to 4.0.1, delete local-model-proxy and Phoenix, and record the measurements in the specs.",
+      "raw_intent": "pr-reviewer: deploy review-cycle limits and stack-aware reviews (upstream NicholaiVogel/pr-reviewer#32); guard automerge against stacked PRs",
+      "refined_intent": "pr-reviewer: deploy review-cycle limits and stack-aware reviews (upstream NicholaiVogel/pr-reviewer#32); guard automerge against stacked PRs",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -59,171 +86,74 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 30,
+        "file_touch_budget": null,
         "forbidden_paths": []
       },
-      "deferred_questions": [
-        "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it."
-      ],
+      "deferred_questions": [],
       "human_questions": [],
-      "intent": "Turn on every token-saving feature that measures as effective on M-02877, delete the parts that cost more than they save, and record the evidence in the specs.",
+      "intent": "Deploy NicholaiVogel/pr-reviewer#32 as a second local patch on the pinned pr-reviewer build, so the M-02877 review daemon stops adding new blocking threads after max_review_cycles rounds, does not re-review rebase-only pushes of stacked PRs, and dismisses its own stale change requests; and make the automerge agent skip PRs whose base is not the default branch.",
       "phases": [],
       "proof_hooks": [
-        "nix eval .#darwinConfigurations.M-02877.system.drvPath",
-        "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage",
-        "just check-fmt"
+        "nix build of the patched pr-reviewer derivation succeeds",
+        "cargo test in the patched source passes (209 tests)",
+        "automerge jq filter skips a PR based on another PR's branch"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
+      "state": "DRAFT",
       "stop_conditions": [
-        "The darwin part takes effect only at the user's just deploy-darwin. No agent session deploys darwin or restarts Headroom."
+        "decapod validate fails for a reason that needs a human decision"
       ],
-      "title": "M-02877 token chain: pi direct to gateway, cache warming, Caveman 4.0.1, drop local-model-proxy and Phoenix",
+      "title": "pr-reviewer: bounded review rounds and stack-aware reviews",
       "todo_ids": [
-        "code_01m4xs9erm9veeb5"
+        "cicd_01m52s8t5deh1mhq"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792004610Z"
+      "updated_at": "1792168867Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "No darwin deploy or Headroom restart from an agent session"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:63c8bb33c5883a2cf7782215c8a946bf97999c4921e76a26a399ead8b28c764b",
-      "checks": [
-        {
-          "name": "hm-activation-build",
-          "status": "passed"
-        },
-        {
-          "name": "nix-eval-darwin",
-          "status": "passed"
-        },
-        {
-          "name": "pi-cache-warming-test",
-          "status": "passed"
-        },
-        {
-          "name": "pi-rpc-cache-ab",
-          "status": "passed"
-        },
-        {
-          "name": "pre-commit-just-checks",
-          "status": "passed"
-        }
-      ],
+      "artifact_hash": "sha256:cd9bf97805eb809269656404da84c4931a69bac9833736eed01f17dade417abc",
+      "checks": [],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:code_01m4xs9erm9veeb5",
+            "intent_id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:code_01m4xs9erm9veeb5",
+            "intent_id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:code_01m4xs9erm9veeb5",
-            "event_id": "event:4",
-            "intent_id": "intent:code_01m4xs9erm9veeb5",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 3,
         "schema_version": "1.0.0",
-        "trajectories": {
-          "code_01m4xs9erm9veeb5": {
-            "evidence_only": true,
-            "id": "code_01m4xs9erm9veeb5",
-            "intent_id": "intent:code_01m4xs9erm9veeb5",
-            "steps": [
-              {
-                "action": "trajectory.record",
-                "command": "nix eval .#darwinConfigurations.M-02877.system.drvPath",
-                "custody_event_id": "event:4",
-                "observations": [
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/agent-providers.nix",
-                  "modules/gateway.nix",
-                  "modules/M-02877/darwin.nix",
-                  "guix/home-configuration.scm",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/governance.json",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "CONTEXT.md",
-                  "Justfile",
-                  "docs/solutions/proxy-chain-and-harness-auth.md",
-                  "gateway.json",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/darwin.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/agent-providers.nix",
-                  "modules/gateway.nix",
-                  "Justfile"
-                ],
-                "proof_refs": [
-                  "nix-eval-darwin",
-                  "hm-activation-build",
-                  "pre-commit-just-checks",
-                  "pi-rpc-cache-ab",
-                  "pi-cache-warming-test"
-                ],
-                "scope": [
-                  "gateway.json, modules/gateway.nix, modules/agent-providers.nix, modules/M-02877, Justfile, specs, CONTEXT.md, docs/solutions"
-                ],
-                "sequence": 4,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
-      "declared_commands": [
-        "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage",
-        "nix eval .#darwinConfigurations.M-02877.system.drvPath"
-      ],
-      "destination": "PR to main",
+      "declared_commands": [],
+      "destination": "pull request",
       "evidence": [],
-      "inspected_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "guix/home-configuration.scm",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/agent-providers.nix",
-        "modules/gateway.nix"
-      ],
-      "intent_id": "intent:code_01m4xs9erm9veeb5",
-      "modified_files": [
-        ".decapod/governance.json",
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/OPERATIONS.md",
-        "CONTEXT.md",
-        "Justfile",
-        "docs/solutions/proxy-chain-and-harness-auth.md",
-        "gateway.json",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/agent-providers.nix",
-        "modules/gateway.nix"
+      "inspected_files": [],
+      "intent_id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
+      "modified_files": [],
+      "next_transitions": [
+        "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "gateway.json, modules/gateway.nix, modules/agent-providers.nix, modules/M-02877, Justfile, specs, CONTEXT.md, docs/solutions"
+        "root"
       ],
-      "run_id": "code_01m4xs9erm9veeb5",
+      "run_id": "branch_01M52S9GSBHBK8DZ21B5NVCT75",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m4xs9erm9veeb5",
+      "task_id": "cicd_01m52s8t5deh1mhq",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -30,7 +30,7 @@ index 7ff06c9..d0d8552 100644
  
  Simple `Confidence { level: ConfidenceLevel, justification: String }` where level is High/Medium/Low. Displayed as a single line in the review body: `**Confidence:** {level} - {justification}`. No numeric scoring or dimensional breakdown.
 diff --git a/docs/configuration.md b/docs/configuration.md
-index 325aecb..bebb894 100644
+index 325aecb..fe8e4a4 100644
 --- a/docs/configuration.md
 +++ b/docs/configuration.md
 @@ -126,6 +126,11 @@ max_prompt_bytes = 204800
@@ -45,7 +45,7 @@ index 325aecb..bebb894 100644
  
  ### Tuning context limits
  
-@@ -148,6 +153,69 @@ pr-reviewer config set defaults.max_prompt_bytes 307200   # 300KB
+@@ -148,6 +153,71 @@ pr-reviewer config set defaults.max_prompt_bytes 307200   # 300KB
  
  ---
  
@@ -79,6 +79,8 @@ index 325aecb..bebb894 100644
 +Two findings match when they are in the same file and share most of their meaningful words. If both quote code identifiers in backticks, they must share one, so the same sentence about `delete_user` and about `update_user` stays two findings. To hide a new finding as "still open" or "resolved", the match must also be within 15 lines. For a thread whose lines a later push changed, GitHub reports no current line; the bot then uses the line the comment was first posted on, and a thread with no known line hides nothing. The same rule decides which findings a reply in a review thread, such as "this is intentional", covers, so the reply does not hide unrelated findings in the same file. A comment in the PR conversation that puts a topic out of scope ("not in this PR") is broader: it hides findings on that topic in any file, unless the finding has an `evidence_note`. Critical findings always have one, so they are never hidden this way.
 +
 +The bot never approves a PR. So its `REQUEST_CHANGES` review would stay on the PR after the findings are fixed. With `dismiss_stale_change_requests`, the bot dismisses its own earlier change requests when no blocking finding is open in its records, after a posted review or after a review with nothing new. If it has no records for the PR, it leaves the change request alone.
++
++A fix can land in a file other than the one the finding is on, for example when the author regenerates code. The finding then stays open, because its own file did not change. To close it, resolve its thread, or answer that it is intentional or out of scope. Resolving a thread does not trigger a review, so while a reviewed PR has a blocking finding open, the daemon reads its review threads at most every 2 minutes. When a human answered every open blocking finding, the daemon records the answers and dismisses the change request. It does not run a review to do this. While the head is not yet reviewed, the daemon leaves the threads to the next review.
 +
 +Set `max_review_cycles = 0` to keep the old behavior: every round posts every finding inline.
 +
@@ -115,7 +117,7 @@ index 325aecb..bebb894 100644
  ## `[instruction_prs]`
  
  Controls whether pr-reviewer turns repeated review findings into AGENTS.md guardrail PRs. This is disabled by default.
-@@ -211,6 +279,13 @@ max_repairs_per_head = 1
+@@ -211,6 +281,13 @@ max_repairs_per_head = 1
  | `ignore_paths` | Glob patterns for files to exclude from context |
  | `custom_instructions` | Free-text hints appended to the review prompt |
  | `gitnexus` | Whether to include GitNexus impact analysis in context. Default: `true` (best-effort; gracefully skipped if unavailable) |
@@ -460,6 +462,110 @@ index ac12cef..aeadfdf 100644
 +        assert!(!diff.is_changed_line("b.rs", 2));
 +    }
  }
+diff --git a/src/daemon.rs b/src/daemon.rs
+index 09d7059..f65a3d4 100644
+--- a/src/daemon.rs
++++ b/src/daemon.rs
+@@ -1,10 +1,10 @@
+-use std::collections::HashSet;
++use std::collections::{HashMap, HashSet};
+ use std::fmt::Write;
+ use std::path::PathBuf;
+ use std::process::Stdio;
+ use std::sync::atomic::{AtomicBool, Ordering};
+ use std::sync::Arc;
+-use std::time::{Duration, SystemTime, UNIX_EPOCH};
++use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+ 
+ use anyhow::{anyhow, Context, Result};
+ use nix::sys::signal::{kill, Signal};
+@@ -25,6 +25,8 @@ const RATE_LIMIT_TOTAL: u32 = 5000;
+ const WORK_KIND_REVIEW_PR: &str = "review_pr";
+ const WORK_KIND_RESPOND_TO_COMMAND: &str = "respond_to_command";
+ const WORK_KIND_REPAIR_PR: &str = "repair_pr";
++/// How often to read the review threads of a reviewed PR for human answers.
++const HUMAN_ANSWER_CHECK_INTERVAL: Duration = Duration::from_secs(120);
+ 
+ pub async fn start(
+     config: AppConfig,
+@@ -83,6 +85,12 @@ pub async fn start(
+     let finalization_detected = Arc::new(AtomicBool::new(false));
+     let auto_fix_detected = Arc::new(AtomicBool::new(false));
+ 
++    // The open PRs of each repo from its last full listing. GitHub answers
++    // 304 for an unchanged PR list, and resolving a review thread does not
++    // change it, so the thread check below needs its own copy.
++    let mut open_prs: HashMap<String, Vec<PullRequest>> = HashMap::new();
++    let mut human_answers_checked: HashMap<(String, u64), Instant> = HashMap::new();
++
+     loop {
+         while workers.try_join_next().is_some() {}
+ 
+@@ -157,7 +165,13 @@ pub async fn start(
+                 }
+             }
+ 
+-            let etag = db.get_repo_etag(&repo_name).await?;
++            // List in full once after start: the stored etag would answer 304
++            // and leave `open_prs` empty until the PR list changes.
++            let etag = if open_prs.contains_key(&repo_name) {
++                db.get_repo_etag(&repo_name).await?
++            } else {
++                None
++            };
+             let pulls = github
+                 .list_open_prs(&repo_cfg.owner, &repo_cfg.name, etag.as_deref())
+                 .await;
+@@ -186,6 +200,10 @@ pub async fn start(
+                     // hit the safety cap, stay conservative and ask GitHub for the
+                     // current state before archiving anything missing from the set.
+                     let can_trust_open_set = complete;
++                    human_answers_checked.retain(|(repo, number), _| {
++                        repo != &repo_name || open_pr_numbers.contains(number)
++                    });
++                    open_prs.insert(repo_name.clone(), prs.clone());
+                     for pr in prs {
+                         let state = db.get_pr_state(&repo_name, pr.number as i64).await?;
+                         let already = state.as_ref().and_then(|s| s.last_reviewed_sha.clone());
+@@ -430,6 +448,38 @@ pub async fn start(
+                     }
+                 }
+             }
++
++            // A human who resolves or rebuts the bot's thread changes neither
++            // the head nor the PR list, so no review runs. Apply the answer
++            // here, so the bot's change request does not block until a push.
++            for pr in open_prs.get(&repo_name).into_iter().flatten() {
++                let key = (repo_name.clone(), pr.number);
++                if human_answers_checked
++                    .get(&key)
++                    .is_some_and(|at| at.elapsed() < HUMAN_ANSWER_CHECK_INTERVAL)
++                {
++                    continue;
++                }
++                let reviewed = db
++                    .get_pr_state(&repo_name, pr.number as i64)
++                    .await?
++                    .and_then(|state| state.last_reviewed_sha)
++                    .is_some_and(|sha| sha == pr.head.sha);
++                if !reviewed {
++                    // A review is due; it applies the answers itself.
++                    continue;
++                }
++                human_answers_checked.insert(key, Instant::now());
++                match engine.sync_human_answers(&repo_cfg, pr).await {
++                    Ok(changed) => changes_detected |= changed,
++                    Err(err) => tracing::warn!(
++                        repo = %repo_name,
++                        pr = pr.number,
++                        error = %err,
++                        "failed to check review threads for human answers"
++                    ),
++                }
++            }
+         }
+ 
+         spawn_pending_work_items(
 diff --git a/src/github/client.rs b/src/github/client.rs
 index 01e9e55..864a3ce 100644
 --- a/src/github/client.rs
@@ -825,7 +931,7 @@ index 7cfcc74..d8aa514 100644
  
          if cfg
 diff --git a/src/review/engine.rs b/src/review/engine.rs
-index 98f3870..498988a 100644
+index 98f3870..7da7696 100644
 --- a/src/review/engine.rs
 +++ b/src/review/engine.rs
 @@ -1,4 +1,4 @@
@@ -1501,7 +1607,7 @@ index 98f3870..498988a 100644
          }
  
          self.db
-@@ -1238,9 +1574,101 @@ impl ReviewEngine {
+@@ -1238,9 +1574,196 @@ impl ReviewEngine {
              status: "completed".to_string(),
              verdict: Some(verdict),
              comments_posted: if used_retry { 0 } else { inline_comments.len() },
@@ -1511,6 +1617,101 @@ index 98f3870..498988a 100644
          })
      }
  
++    /// Apply human answers on the bot's threads (resolved, rebutted, out of
++    /// scope) to the finding ledger without a new review, then dismiss the
++    /// bot's change request when nothing blocks any more. Resolving a thread
++    /// changes neither the head nor the PR list, so no review would run to
++    /// notice it, and the PR would stay blocked until the next push.
++    ///
++    /// Call it only for a head that was already reviewed. Returns whether the
++    /// ledger changed.
++    pub async fn sync_human_answers(
++        &self,
++        repo_cfg: &RepoConfig,
++        pr_data: &PullRequest,
++    ) -> Result<bool> {
++        if !repo_cfg
++            .resolved_review_policy(&self.config)
++            .dismiss_stale_change_requests
++        {
++            return Ok(false);
++        }
++        let repo_name = repo_cfg.full_name();
++        let stored = self
++            .db
++            .list_review_findings(&repo_name, pr_data.number as i64)
++            .await?;
++        if !stored.iter().any(|finding| {
++            finding_status_is_active(&finding.status) && finding.severity == "blocking"
++        }) {
++            return Ok(false);
++        }
++
++        let bot_name = self.config.defaults.bot_name.as_str();
++        let bot_alias_owned = match self.authenticated_user.clone() {
++            Some(login) => login,
++            None => self.github.get_authenticated_user().await?,
++        };
++        let bot_alias = Some(bot_alias_owned.as_str());
++        let (owner, name, number) = (&repo_cfg.owner, &repo_cfg.name, pr_data.number);
++        let reviews = comments::get_existing_reviews(&self.github, owner, name, number).await?;
++        if stale_change_requests(&reviews, bot_name, bot_alias, "COMMENT", false).is_empty() {
++            return Ok(false);
++        }
++        let (review_comments, issue_comments, resolved_threads) = tokio::try_join!(
++            comments::get_review_comments(&self.github, owner, name, number, None),
++            comments::get_issue_comments(&self.github, owner, name, number),
++            self.github
++                .get_review_thread_resolution(owner, name, number),
++        )?;
++        let review_memory = build_review_memory(
++            &reviews,
++            &review_comments,
++            &issue_comments,
++            bot_name,
++            bot_alias,
++            pr_data.head.sha.as_str(),
++            None,
++            &resolved_threads,
++        );
++
++        // No new findings, and nothing changed since the last review: only
++        // findings a human answered change status, as they would in a review.
++        let stored_paths: HashSet<String> =
++            stored.iter().map(|finding| finding.path.clone()).collect();
++        let (updates, _, _) = reconcile_finding_ledger(
++            &repo_name,
++            pr_data.number as i64,
++            &pr_data.head.sha,
++            &pr_data.user.login,
++            &stored,
++            &[],
++            &review_memory,
++            &stored_paths,
++            Some(&HashSet::new()),
++        );
++        if updates.is_empty() {
++            return Ok(false);
++        }
++        tracing::info!(
++            repo = %repo_name,
++            pr = pr_data.number,
++            findings = updates.len(),
++            "recording human answers on review threads"
++        );
++        self.db.upsert_review_findings(updates).await?;
++        self.dismiss_stale_change_requests(
++            repo_cfg,
++            pr_data,
++            &reviews,
++            bot_alias,
++            &review_memory,
++            "COMMENT",
++        )
++        .await;
++        Ok(true)
++    }
++
 +    /// Dismiss the bot's earlier REQUEST_CHANGES reviews when this review does
 +    /// not request changes and no blocking finding is open. The bot never
 +    /// approves, so an earlier change request would otherwise keep blocking
@@ -1603,7 +1804,7 @@ index 98f3870..498988a 100644
      pub async fn finalize_closed_pr_review(
          &self,
          repo_cfg: &RepoConfig,
-@@ -1604,6 +2032,7 @@ impl ReviewEngine {
+@@ -1604,6 +2127,7 @@ impl ReviewEngine {
              self.authenticated_user.as_deref(),
              pr_data.head.sha.as_str(),
              None,
@@ -1611,7 +1812,7 @@ index 98f3870..498988a 100644
          );
  
          if let Some(reply) = build_direct_pushback_reply(
-@@ -1892,16 +2321,6 @@ fn has_rationale_rejection_signal(text: &str) -> bool {
+@@ -1892,16 +2416,6 @@ fn has_rationale_rejection_signal(text: &str) -> bool {
          .any(|signal| lower.contains(&normalize_text(signal)))
  }
  
@@ -1628,7 +1829,7 @@ index 98f3870..498988a 100644
  fn finding_key(path: &str, line: Option<u32>, body: &str) -> String {
      format!(
          "{}|{}|{}",
-@@ -1912,27 +2331,12 @@ fn finding_key(path: &str, line: Option<u32>, body: &str) -> String {
+@@ -1912,27 +2426,12 @@ fn finding_key(path: &str, line: Option<u32>, body: &str) -> String {
      )
  }
  
@@ -1658,7 +1859,7 @@ index 98f3870..498988a 100644
  fn build_review_memory(
      reviews: &[PullRequestReview],
      review_comments: &[ReviewComment],
-@@ -1941,6 +2345,7 @@ fn build_review_memory(
+@@ -1941,6 +2440,7 @@ fn build_review_memory(
      bot_alias: Option<&str>,
      current_sha: &str,
      changed_files: Option<&[String]>,
@@ -1666,7 +1867,7 @@ index 98f3870..498988a 100644
  ) -> ReviewMemory {
      let parent_map: HashMap<u64, Option<u64>> = review_comments
          .iter()
-@@ -1962,8 +2367,9 @@ fn build_review_memory(
+@@ -1962,8 +2462,9 @@ fn build_review_memory(
      }
  
      let findings = threads
@@ -1678,7 +1879,7 @@ index 98f3870..498988a 100644
              let mut sorted = comments;
              sorted.sort_by(|a, b| a.created_at.cmp(&b.created_at));
              let finding = sorted
-@@ -1981,10 +2387,12 @@ fn build_review_memory(
+@@ -1981,10 +2482,12 @@ fn build_review_memory(
                          status = FindingStatus::LikelyAddressed;
                      }
                  }
@@ -1693,7 +1894,7 @@ index 98f3870..498988a 100644
                      body: finding.body.clone(),
                      token_set: token_set(&finding.body),
                      status,
-@@ -2012,11 +2420,15 @@ fn build_review_memory(
+@@ -2012,11 +2515,15 @@ fn build_review_memory(
                      }
                  }
              }
@@ -1711,7 +1912,7 @@ index 98f3870..498988a 100644
                  body: finding.body.clone(),
                  token_set: token_set(&finding.body),
                  status,
-@@ -2068,9 +2480,10 @@ fn status_precedence(status: &FindingStatus) -> usize {
+@@ -2068,9 +2575,10 @@ fn status_precedence(status: &FindingStatus) -> usize {
      match status {
          FindingStatus::Open => 0,
          FindingStatus::LikelyAddressed => 1,
@@ -1725,7 +1926,7 @@ index 98f3870..498988a 100644
      }
  }
  
-@@ -2218,6 +2631,7 @@ fn build_addressed_findings(
+@@ -2218,6 +2726,7 @@ fn build_addressed_findings(
      parsed_diff: &crate::context::diff_parser::ParsedDiff,
      bot_name: &str,
      bot_alias: Option<&str>,
@@ -1733,7 +1934,7 @@ index 98f3870..498988a 100644
  ) -> String {
      if review_comments.is_empty() {
          return String::new();
-@@ -2245,6 +2659,7 @@ fn build_addressed_findings(
+@@ -2245,6 +2754,7 @@ fn build_addressed_findings(
          bot_alias,
          "",
          Some(&changed_files),
@@ -1741,7 +1942,7 @@ index 98f3870..498988a 100644
      );
  
      let mut out = String::new();
-@@ -2255,6 +2670,7 @@ fn build_addressed_findings(
+@@ -2255,6 +2765,7 @@ fn build_addressed_findings(
              FindingStatus::DismissedByHuman => "[dismissed by human]",
              FindingStatus::RejectedWithRationale => "[rejected with rationale]",
              FindingStatus::OutOfScopeForPr => "[out of scope for this pr]",
@@ -1749,7 +1950,7 @@ index 98f3870..498988a 100644
              FindingStatus::Open if !file_in_diff => "[likely addressed]",
              FindingStatus::Open | FindingStatus::LikelyAddressed => "[potentially addressed]",
          };
-@@ -2279,6 +2695,7 @@ fn build_review_state_context(memory: &ReviewMemory) -> String {
+@@ -2279,6 +2790,7 @@ fn build_review_state_context(memory: &ReviewMemory) -> String {
          let status = match finding.status {
              FindingStatus::Open => "open",
              FindingStatus::LikelyAddressed => "likely addressed",
@@ -1757,7 +1958,7 @@ index 98f3870..498988a 100644
              FindingStatus::DismissedByHuman => "dismissed by human",
              FindingStatus::RejectedWithRationale => "rejected with rationale",
              FindingStatus::OutOfScopeForPr => "out of scope for this pr",
-@@ -2334,6 +2751,18 @@ fn build_stored_findings_context(findings: &[ReviewFindingRecord]) -> String {
+@@ -2334,6 +2846,18 @@ fn build_stored_findings_context(findings: &[ReviewFindingRecord]) -> String {
      out
  }
  
@@ -1776,7 +1977,7 @@ index 98f3870..498988a 100644
  fn reconcile_finding_ledger(
      repo: &str,
      pr_number: i64,
-@@ -2342,38 +2771,84 @@ fn reconcile_finding_ledger(
+@@ -2342,38 +2866,84 @@ fn reconcile_finding_ledger(
      stored_findings: &[ReviewFindingRecord],
      current_findings: &[PendingFinding],
      review_memory: &ReviewMemory,
@@ -1874,7 +2075,7 @@ index 98f3870..498988a 100644
              recurrence_fingerprint: Some(recurring_finding_fingerprint(&finding.body)),
              sha: sha.to_string(),
              status: status.to_string(),
-@@ -2383,7 +2858,7 @@ fn reconcile_finding_ledger(
+@@ -2383,7 +2953,7 @@ fn reconcile_finding_ledger(
              line: finding.line.map(i64::from),
              body: finding.body.clone(),
              evidence_note: finding.evidence_note.clone(),
@@ -1883,7 +2084,7 @@ index 98f3870..498988a 100644
              resolved_by_sha: None,
              resolution_reason: None,
          });
-@@ -2391,12 +2866,32 @@ fn reconcile_finding_ledger(
+@@ -2391,12 +2961,32 @@ fn reconcile_finding_ledger(
  
      for stored in stored_findings {
          if !finding_status_is_active(&stored.status)
@@ -1918,7 +2119,7 @@ index 98f3870..498988a 100644
              Some(FindingStatus::DismissedByHuman) | Some(FindingStatus::RejectedWithRationale) => {
                  delta.rebutted_or_scoped += 1;
                  ("rebutted", "human rebuttal or rationale")
-@@ -2405,13 +2900,17 @@ fn reconcile_finding_ledger(
+@@ -2405,13 +2995,17 @@ fn reconcile_finding_ledger(
                  delta.rebutted_or_scoped += 1;
                  ("out_of_scope", "human marked out of scope")
              }
@@ -1937,7 +2138,7 @@ index 98f3870..498988a 100644
              }
          };
  
-@@ -2435,20 +2934,17 @@ fn reconcile_finding_ledger(
+@@ -2435,20 +3029,17 @@ fn reconcile_finding_ledger(
          });
      }
  
@@ -1960,7 +2161,7 @@ index 98f3870..498988a 100644
          .map(|finding| finding.status)
          .max_by_key(status_precedence)
  }
-@@ -2539,18 +3035,23 @@ fn can_reopen_rebutted_finding(
+@@ -2539,18 +3130,23 @@ fn can_reopen_rebutted_finding(
          })
  }
  
@@ -1988,7 +2189,7 @@ index 98f3870..498988a 100644
              continue;
          }
  
-@@ -2563,7 +3064,7 @@ fn should_suppress_finding(
+@@ -2563,7 +3159,7 @@ fn should_suppress_finding(
                  }
              }
              FindingStatus::LikelyAddressed => return true,
@@ -1997,7 +2198,7 @@ index 98f3870..498988a 100644
          }
      }
  
-@@ -3395,9 +3896,32 @@ fn build_retry_review_body(body: &str, inline_comments: &[CreateReviewComment])
+@@ -3395,9 +3991,32 @@ fn build_retry_review_body(body: &str, inline_comments: &[CreateReviewComment])
      retry_body
  }
  
@@ -2031,7 +2232,7 @@ index 98f3870..498988a 100644
          pr_reviewer_project_url(),
      )
  }
-@@ -3862,6 +4386,8 @@ fn verdict_label(verdict: ReviewVerdict) -> &'static str {
+@@ -3862,6 +4481,8 @@ fn verdict_label(verdict: ReviewVerdict) -> &'static str {
  
  #[cfg(test)]
  mod tests {
@@ -2040,7 +2241,7 @@ index 98f3870..498988a 100644
      use crate::github::types::{
          CreateReviewComment, IssueComment, PullRequest, PullRequestBase, PullRequestHead,
          PullRequestReview, RepoRef, ReviewComment, User,
-@@ -3907,6 +4433,7 @@ mod tests {
+@@ -3907,6 +4528,7 @@ mod tests {
              full_name: full_name.to_string(),
              fork: false,
              owner: test_user(owner),
@@ -2048,7 +2249,7 @@ index 98f3870..498988a 100644
          }
      }
  
-@@ -3931,6 +4458,7 @@ mod tests {
+@@ -3931,6 +4553,7 @@ mod tests {
              updated_at: Some("2026-04-13T00:00:00Z".to_string()),
              closed_at: Some("2026-04-13T01:00:00Z".to_string()),
              merged_at: Some("2026-04-13T01:00:00Z".to_string()),
@@ -2056,7 +2257,7 @@ index 98f3870..498988a 100644
          }
      }
  
-@@ -3947,6 +4475,7 @@ mod tests {
+@@ -3947,6 +4570,7 @@ mod tests {
              body: body.to_string(),
              path: path.to_string(),
              line,
@@ -2064,7 +2265,7 @@ index 98f3870..498988a 100644
              user: test_user(login),
              in_reply_to_id: in_reply_to,
              created_at: format!("2026-03-30T00:{:02}:00Z", id),
-@@ -4394,6 +4923,7 @@ Reviewed the archive flow.
+@@ -4394,6 +5018,7 @@ Reviewed the archive flow.
                  body: "Blocking: task ownership is wrong here".to_string(),
                  path: "src/task.rs".to_string(),
                  line: Some(42),
@@ -2072,7 +2273,7 @@ index 98f3870..498988a 100644
                  user: test_user("pr-reviewer"),
                  in_reply_to_id: None,
                  created_at: "2026-03-30T00:00:00Z".to_string(),
-@@ -4403,6 +4933,7 @@ Reviewed the archive flow.
+@@ -4403,6 +5028,7 @@ Reviewed the archive flow.
                  body: "not taking further task ownership feedback in this PR".to_string(),
                  path: "src/task.rs".to_string(),
                  line: Some(42),
@@ -2080,7 +2281,7 @@ index 98f3870..498988a 100644
                  user: test_user("NicholaiVogel"),
                  in_reply_to_id: Some(10),
                  created_at: "2026-03-30T00:01:00Z".to_string(),
-@@ -4417,6 +4948,7 @@ Reviewed the archive flow.
+@@ -4417,6 +5043,7 @@ Reviewed the archive flow.
              None,
              "head",
              None,
@@ -2088,7 +2289,7 @@ index 98f3870..498988a 100644
          );
          assert_eq!(memory.findings.len(), 1);
          assert_eq!(memory.findings[0].status, FindingStatus::OutOfScopeForPr);
-@@ -4430,6 +4962,7 @@ Reviewed the archive flow.
+@@ -4430,6 +5057,7 @@ Reviewed the archive flow.
              body: "Potential blocking issue in task cleanup".to_string(),
              path: "src/task.rs".to_string(),
              line: Some(42),
@@ -2096,7 +2297,7 @@ index 98f3870..498988a 100644
              user: test_user("pr-reviewer"),
              in_reply_to_id: None,
              created_at: "2026-03-30T00:00:00Z".to_string(),
-@@ -4443,6 +4976,7 @@ Reviewed the archive flow.
+@@ -4443,6 +5071,7 @@ Reviewed the archive flow.
              None,
              "head",
              Some(&["src/other.rs".to_string()]),
@@ -2104,7 +2305,7 @@ index 98f3870..498988a 100644
          );
  
          assert_eq!(memory.findings[0].status, FindingStatus::LikelyAddressed);
-@@ -4452,11 +4986,6 @@ Reviewed the archive flow.
+@@ -4452,11 +5081,6 @@ Reviewed the archive flow.
      fn suppresses_repeated_out_of_scope_finding_without_new_evidence() {
          let memory = ReviewMemory {
              findings: vec![super::FindingRecord {
@@ -2116,7 +2317,7 @@ index 98f3870..498988a 100644
                  path: "src/task.rs".to_string(),
                  line: Some(42),
                  body: "Blocking: task ownership is wrong here".to_string(),
-@@ -4486,7 +5015,6 @@ Reviewed the archive flow.
+@@ -4486,7 +5110,6 @@ Reviewed the archive flow.
      fn allows_reopening_rebutted_finding_with_evidence_note() {
          let memory = ReviewMemory {
              findings: vec![super::FindingRecord {
@@ -2124,7 +2325,7 @@ index 98f3870..498988a 100644
                  path: "src/task.rs".to_string(),
                  line: Some(42),
                  body: "task ownership is wrong here".to_string(),
-@@ -4574,10 +5102,11 @@ Reviewed the archive flow.
+@@ -4574,10 +5197,11 @@ Reviewed the archive flow.
              evidence_note: None,
              severity: CommentSeverity::Blocking,
              finding_kind: FindingKind::Correctness,
@@ -2137,7 +2338,7 @@ index 98f3870..498988a 100644
              "owner/repo",
              15,
              "sha-2",
-@@ -4585,6 +5114,8 @@ Reviewed the archive flow.
+@@ -4585,6 +5209,8 @@ Reviewed the archive flow.
              &stored,
              &current,
              &memory,
@@ -2146,7 +2347,7 @@ index 98f3870..498988a 100644
          );
  
          assert_eq!(updates.len(), 1);
-@@ -4600,8 +5131,17 @@ Reviewed the archive flow.
+@@ -4600,8 +5226,17 @@ Reviewed the archive flow.
          let stored = vec![stored_finding("open", "blocking", "fp-1")];
          let memory = ReviewMemory::default();
  
@@ -2166,7 +2367,7 @@ index 98f3870..498988a 100644
  
          assert_eq!(updates.len(), 1);
          assert_eq!(updates[0].status, "likely_fixed");
-@@ -4848,6 +5388,7 @@ Reviewed the archive flow.
+@@ -4848,6 +5483,7 @@ Reviewed the archive flow.
              None,
              "head-sha",
              Some(&["src/task.rs".to_string()]),
@@ -2174,7 +2375,7 @@ index 98f3870..498988a 100644
          );
  
          assert_eq!(memory.findings.len(), 1);
-@@ -4879,6 +5420,7 @@ Reviewed the archive flow.
+@@ -4879,6 +5515,7 @@ Reviewed the archive flow.
              None,
              "new-sha",
              Some(&["src/new.rs".to_string()]),
@@ -2182,7 +2383,7 @@ index 98f3870..498988a 100644
          );
  
          assert_eq!(memory.findings.len(), 1);
-@@ -4889,7 +5431,6 @@ Reviewed the archive flow.
+@@ -4889,7 +5526,6 @@ Reviewed the archive flow.
      fn likely_addressed_finding_is_suppressed() {
          let memory = ReviewMemory {
              findings: vec![super::FindingRecord {
@@ -2190,7 +2391,7 @@ index 98f3870..498988a 100644
                  path: "src/old.rs".to_string(),
                  line: Some(10),
                  body: "Bug found here".to_string(),
-@@ -4995,6 +5536,7 @@ Reviewed the archive flow.
+@@ -4995,6 +5631,7 @@ Reviewed the archive flow.
                  body: "Bug: wrong logic here".to_string(),
                  path: "src/task.rs".to_string(),
                  line: Some(10),
@@ -2198,7 +2399,7 @@ index 98f3870..498988a 100644
                  user: test_bot_user("BusyBee3333"),
                  in_reply_to_id: None,
                  created_at: "2026-03-30T04:16:00Z".to_string(),
-@@ -5004,6 +5546,7 @@ Reviewed the archive flow.
+@@ -5004,6 +5641,7 @@ Reviewed the archive flow.
                  body: "I disagree, this is intentional".to_string(),
                  path: "src/task.rs".to_string(),
                  line: Some(10),
@@ -2206,7 +2407,7 @@ index 98f3870..498988a 100644
                  user: test_user("NicholaiVogel"),
                  in_reply_to_id: Some(1),
                  created_at: "2026-03-30T04:17:00Z".to_string(),
-@@ -5068,6 +5611,7 @@ Reviewed the archive flow.
+@@ -5068,6 +5706,7 @@ Reviewed the archive flow.
                  body: "fine, this looks acceptable".to_string(),
                  path: "src/task.rs".to_string(),
                  line: Some(10),
@@ -2214,7 +2415,7 @@ index 98f3870..498988a 100644
                  user: test_bot_user("BusyBee3333"),
                  in_reply_to_id: Some(1),
                  created_at: "2026-03-30T00:02:00Z".to_string(),
-@@ -5082,6 +5626,7 @@ Reviewed the archive flow.
+@@ -5082,6 +5721,7 @@ Reviewed the archive flow.
              None,
              "head-sha",
              Some(&["src/task.rs".to_string()]),
@@ -2222,7 +2423,7 @@ index 98f3870..498988a 100644
          );
  
          // Currently other bots ARE treated as human. This test documents
-@@ -5118,4 +5663,425 @@ Reviewed the archive flow.
+@@ -5118,4 +5758,473 @@ Reviewed the archive flow.
          assert!(reply.is_some(), "human dismissal should still be detected");
          assert!(reply.unwrap().contains("treating that as intentional"));
      }
@@ -2479,6 +2680,54 @@ index 98f3870..498988a 100644
 +    }
 +
 +    #[test]
++    fn human_answers_close_findings_without_a_new_review() {
++        // What sync_human_answers asks for: no new findings and nothing
++        // changed since the last review, so only a human answer counts.
++        let comments = vec![
++            review_comment(1, None, "pr-reviewer", "src/fetch.rs", Some(40), BLOCKER),
++            review_comment(2, None, "pr-reviewer", "src/cache.rs", Some(12), WARNING),
++        ];
++        let resolved = HashMap::from([(1, true), (2, false)]);
++        let memory = build_review_memory(
++            &[],
++            &comments,
++            &[],
++            "pr-reviewer",
++            None,
++            "head",
++            None,
++            &resolved,
++        );
++        let stored_at = |path: &str, line: u32, body: &str, severity: &str| ReviewFindingRecord {
++            path: path.to_string(),
++            line: Some(i64::from(line)),
++            body: body.to_string(),
++            ..stored_finding("open", severity, &finding_key(path, Some(line), body))
++        };
++        let stored = vec![
++            stored_at("src/fetch.rs", 40, BLOCKER, "blocking"),
++            stored_at("src/cache.rs", 12, WARNING, "warning"),
++        ];
++
++        let (updates, _, _) = reconcile_finding_ledger(
++            "owner/repo",
++            15,
++            "head",
++            "alice",
++            &stored,
++            &[],
++            &memory,
++            &paths(&["src/fetch.rs", "src/cache.rs"]),
++            Some(&HashSet::new()),
++        );
++
++        assert_eq!(updates.len(), 1, "an unanswered finding stays as it is");
++        assert_eq!(updates[0].path, "src/fetch.rs");
++        assert_eq!(updates[0].status, "resolved");
++        assert_eq!(updates[0].resolved_by_sha.as_deref(), Some("head"));
++    }
++
++    #[test]
 +    fn dismissed_finding_no_longer_hides_unrelated_findings_in_the_same_file() {
 +        let comments = vec![
 +            review_comment(1, None, "pr-reviewer", "src/fetch.rs", Some(40), BLOCKER),
@@ -2663,10 +2912,10 @@ index f7a6df8..04b3488 100644
 +pub mod stack;
 diff --git a/src/review/pipeline_tests.rs b/src/review/pipeline_tests.rs
 new file mode 100644
-index 0000000..3041fcd
+index 0000000..55f3948
 --- /dev/null
 +++ b/src/review/pipeline_tests.rs
-@@ -0,0 +1,908 @@
+@@ -0,0 +1,997 @@
 +//! End-to-end review lifecycle tests: `ReviewEngine::review_pr` against a
 +//! mock GitHub (one httptest server per round, holding that round's GitHub
 +//! state), a stub `claude` harness on PATH, and one SQLite database carried
@@ -2829,6 +3078,8 @@ index 0000000..3041fcd
 +    /// Status for `GET .../reviews` and `POST .../reviews` (200 = works).
 +    list_reviews_status: u16,
 +    post_review_status: u16,
++    /// Root comment ids of the review threads a human resolved.
++    resolved: Vec<u64>,
 +}
 +
 +impl GitHubState {
@@ -2842,6 +3093,7 @@ index 0000000..3041fcd
 +            heads: vec![],
 +            list_reviews_status: 200,
 +            post_review_status: 200,
++            resolved: vec![],
 +        }
 +    }
 +}
@@ -2910,7 +3162,10 @@ index 0000000..3041fcd
 +    let threads: Vec<Value> = state
 +        .review_comments
 +        .iter()
-+        .map(|c| json!({"isResolved": false, "comments": {"nodes": [{"databaseId": c["id"]}]}}))
++        .map(|c| {
++            let resolved = state.resolved.contains(&c["id"].as_u64().unwrap());
++            json!({"isResolved": resolved, "comments": {"nodes": [{"databaseId": c["id"]}]}})
++        })
 +        .collect();
 +    server.expect(
 +        Expectation::matching(request::method_path("POST", "/graphql"))
@@ -3083,6 +3338,7 @@ index 0000000..3041fcd
 +        heads: vec![],
 +        list_reviews_status: 200,
 +        post_review_status: 200,
++        resolved: vec![],
 +    });
 +    let result = review_round(&config, &db, &gh, 7).await;
 +    assert_eq!(result.status, "completed");
@@ -3135,6 +3391,7 @@ index 0000000..3041fcd
 +        heads: vec![],
 +        list_reviews_status: 200,
 +        post_review_status: 200,
++        resolved: vec![],
 +    });
 +    let result = review_round(&config, &db, &gh, 7).await;
 +    assert_eq!(result.status, "completed");
@@ -3196,6 +3453,7 @@ index 0000000..3041fcd
 +        heads: vec![],
 +        list_reviews_status: 200,
 +        post_review_status: 200,
++        resolved: vec![],
 +    });
 +    let result = review_round(&config, &db, &gh, 7).await;
 +    assert_eq!(result.status, "skipped:unchanged-diff");
@@ -3246,6 +3504,7 @@ index 0000000..3041fcd
 +        heads: vec![],
 +        list_reviews_status: 200,
 +        post_review_status: 200,
++        resolved: vec![],
 +    });
 +    let result = review_round(&config, &db, &gh, 7).await;
 +    assert_eq!(result.status, "completed");
@@ -3335,6 +3594,7 @@ index 0000000..3041fcd
 +        )],
 +        list_reviews_status: 200,
 +        post_review_status: 200,
++        resolved: vec![],
 +    });
 +    let result = review_round(&config, &db, &gh, 8).await;
 +    assert_eq!(result.status, "completed");
@@ -3574,6 +3834,84 @@ index 0000000..3041fcd
 +        gh.dismissed.lock().unwrap().is_empty(),
 +        "the change request stays"
 +    );
++}
++
++#[tokio::test]
++async fn resolving_the_blocking_thread_dismisses_the_change_request_without_a_review() {
++    let run = Run::new("human-answers");
++    let config = config(&run);
++    let db_dir = tempfile::tempdir().unwrap();
++    let db = Database::new(db_dir.path().join("state.db")).await.unwrap();
++
++    // Round 1 requests changes for a blocker.
++    let diff = fetch_diff(
++        "@@ -1,3 +1,4 @@",
++        &[
++            " pub fn fetch_all(client: &Client) -> Vec<Page> {",
++            "+    let pages = loop_without_sleep(client);",
++            "     pages",
++            " }",
++        ],
++    );
++    run.respond(
++        1,
++        review_json(
++            "request_changes",
++            json!([{"file": "src/fetch.rs", "line": 2, "body": BLOCKER, "severity": "blocking",
++                    "finding_kind": "correctness",
++                    "evidence_note": "Line 2 calls loop_without_sleep."}]),
++        ),
++    );
++    let gh = mock_github(GitHubState::new(
++        pr_json(7, "s1", "feat/fetch", "main"),
++        diff.clone(),
++    ));
++    review_round(&config, &db, &gh, 7).await;
++    assert_eq!(
++        gh.posted_reviews.lock().unwrap()[0]["event"],
++        "REQUEST_CHANGES"
++    );
++
++    // The author fixes it elsewhere and nobody pushes to this file. While the
++    // thread is open, the change request stays.
++    let sync = |resolved: Vec<u64>| {
++        let mut state = GitHubState::new(pr_json(7, "s1", "feat/fetch", "main"), diff.clone());
++        state.reviews = vec![bot_review(100, "s1", "CHANGES_REQUESTED")];
++        state.review_comments = vec![bot_comment(201, 2, BLOCKER)];
++        state.resolved = resolved;
++        let gh = mock_github(state);
++        let config = config.clone();
++        let db = db.clone();
++        async move {
++            let client =
++                GitHubClient::new_with_base("test-token".into(), &gh.server.url_str("")).unwrap();
++            let mut engine = ReviewEngine::new(config.clone(), client, db);
++            engine.init().await;
++            let pr: crate::github::types::PullRequest =
++                serde_json::from_value(pr_json(7, "s1", "feat/fetch", "main")).unwrap();
++            let changed = engine
++                .sync_human_answers(&config.repos[0], &pr)
++                .await
++                .unwrap();
++            let dismissed = gh.dismissed.lock().unwrap().clone();
++            assert!(gh.posted_reviews.lock().unwrap().is_empty());
++            (changed, dismissed)
++        }
++    };
++    assert_eq!(sync(vec![]).await, (false, vec![]));
++
++    // A human resolves the thread: the bot dismisses its change request,
++    // and no review runs.
++    assert_eq!(
++        sync(vec![201]).await,
++        (
++            true,
++            vec!["/repos/o/r/pulls/7/reviews/100/dismissals".to_string()]
++        )
++    );
++    assert_eq!(run.reviews_run(), 1);
++    let ledger = db.list_review_findings("o/r", 7).await.unwrap();
++    assert_eq!(ledger[0].status, "resolved");
 +}
 diff --git a/src/review/policy.rs b/src/review/policy.rs
 new file mode 100644

@@ -51,6 +51,14 @@
       "proof_refs": [
         "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs"
       ]
+    },
+    "claim-pr-reviewer-human-answers": {
+      "statement": "With the patch, when a human resolves or answers the bot's thread on a reviewed PR's last open blocking finding, the daemon records the answer and dismisses the bot's REQUEST_CHANGES without running a review.",
+      "falsifier": "sync_human_answers leaves the change request in place after the blocking thread is resolved, or dismisses it while the thread is open",
+      "status": "supported",
+      "proof_refs": [
+        "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs resolving_the_blocking_thread_dismisses_the_change_request_without_a_review"
+      ]
     }
   },
   "checkpoints": [

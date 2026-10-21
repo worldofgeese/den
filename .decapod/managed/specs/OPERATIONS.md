@@ -30,7 +30,10 @@ merge.
   `evidence_note`, and sit on an added or removed line. A finding whose
   thread is still open is not posted again. When no blocking finding is
   open, the bot dismisses its own earlier `REQUEST_CHANGES`, because it never
-  approves. The settings live in `[defaults]` of the runtime config.toml, and
+  approves. A fix made in another file than the finding's (regenerated code,
+  say) leaves the finding open: resolve its thread, and within 2 minutes the
+  daemon records that and dismisses the change request, with no new review.
+  The settings live in `[defaults]` of the runtime config.toml, and
   a repo can override them in `[repos.review_policy]`. Set
   `max_review_cycles = 0` for the old unlimited behavior.
 - **Stacked PRs.** A push that leaves the PR's own change as it was is not

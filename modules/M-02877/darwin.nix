@@ -285,13 +285,21 @@
         # fails to build. Mach-O has no executable-stack notion, so dropping it
         # here loses nothing. The guard keys on the flag itself: once upstream
         # makes it Linux-only, this override stops matching and does nothing.
+        #
+        # Separately, common-lix.nix passes `-Dmimalloc=disabled` to every Lix
+        # version, but Lix 2.95.4's meson.options has no `mimalloc` option, so
+        # configure dies with 'Unknown option: "mimalloc"'. Disabled is the
+        # absent option's behaviour anyway; the filter is a no-op once fixed.
         (final: prev: {
           lixPackageSets =
             prev.lixPackageSets
             // {
               latest = prev.lixPackageSets.latest.overrideScope (_: lp: {
                 lix = lp.lix.overrideAttrs (o:
-                  prev.lib.optionalAttrs (prev.lib.hasPrefix "-z" (o.env.NIX_LDFLAGS or "")) {
+                  {
+                    mesonFlags = builtins.filter (f: f != "-Dmimalloc=disabled") (o.mesonFlags or []);
+                  }
+                  // prev.lib.optionalAttrs (prev.lib.hasPrefix "-z" (o.env.NIX_LDFLAGS or "")) {
                     env = o.env // {NIX_LDFLAGS = "";};
                   });
               });

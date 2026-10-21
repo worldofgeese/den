@@ -11,6 +11,23 @@
 ## Deployment Model
 Describe the operational runtime model, scheduling, and system deployment architecture.
 
+### Deploy only committed inputs (M-02877)
+
+`just deploy-darwin` builds the working tree, including uncommitted edits.
+Generation 341 (2026-10-16) was built from an uncommitted flake.lock update
+(nixpkgs 319e4ceb and ten other inputs) with two build fixes, and `main`
+lagged it for five days: a deploy from a clean `main` would have downgraded
+the machine. Commit a flake update and its fixes before or right after the
+deploy that uses them. Before a deploy, `git status` in the checkout must be
+clean, or the dirty files must be the change under review.
+
+The two fixes from that update, both no-ops once upstream changes:
+- Lix: `common-lix.nix` passes `-Dmimalloc=disabled`, which Lix 2.95.4's
+  `meson.options` no longer has, so configure stops with 'Unknown option'.
+  `modules/M-02877/darwin.nix` filters the flag out.
+- atuin 18.23.0: its PTY end-to-end suites time out in the Darwin build
+  sandbox. `modules/overlays.nix` skips checks on Darwin only.
+
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of upstream

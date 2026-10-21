@@ -58,7 +58,19 @@
       # never clone anything, and every managed clone so far was made by hand
       # over SSH. The patch sends HTTP Basic with the token as the password,
       # for both clone and the authenticated fetch/push helper.
-      patches = [./pr-reviewer-git-basic-auth.patch];
+      #
+      # The second patch is upstream PR NicholaiVogel/pr-reviewer#32 (issues
+      # #30, #31): a limit on review rounds after which new findings are
+      # non-blocking notes, one matcher for "same finding", no re-posting of
+      # open threads, dismissal of the bot's own stale change requests, and
+      # stack awareness (rebase-only pushes are not reviewed again; the parent
+      # PR is named in the prompt). Drop it when the pin moves past the merge.
+      # The settings it adds (`max_review_cycles` = 2 and others, see its
+      # docs/configuration.md) default on, so config.toml needs no change.
+      patches = [
+        ./pr-reviewer-git-basic-auth.patch
+        ./pr-reviewer-review-cycles-and-stacks.patch
+      ];
 
       cargoHash = "sha256-XpFZLDgppAkIPmj95ihi5hkd+k5pgnKDa3c74xUJBuQ=";
       doCheck = false;
@@ -160,6 +172,10 @@
         | "\(.name // .context) (\(.workflowName // "status")) \(.conclusion // .state // .status) at \(.completedAt // .startedAt // "?")"]
         as $stale
       | (if $p.isDraft then "draft"
+        # A stacked PR targets another PR's branch: merging it here would land
+        # it in that branch, and GitHub's legacy merge API cannot merge a
+        # native stack. Stacks are merged by hand, from the bottom PR.
+        elif $p.baseRefName != $trunk then "stacked on \($p.baseRefName); merge the stack from its bottom PR"
         elif any($labels[]; . == "hold" or . == "do-not-merge") then "labelled hold or do-not-merge"
         elif ($p.author.login | IN("worldofgeese", "app/github-actions", "app/dependabot") | not)
         then "author \($p.author.login) is merged by hand"
@@ -241,8 +257,12 @@
         for repo in ${lib.escapeShellArgs repos}; do
           key="''${repo//\//_}"
           method=""
+          if ! trunk="$(gh repo view "$repo" --json defaultBranchRef --jq .defaultBranchRef.name 2>&1)" || [ -z "$trunk" ]; then
+            log "$repo: could not read its default branch: $(brief "$trunk")"
+            continue
+          fi
           if ! prs="$(gh pr list -R "$repo" --state open --limit 100 \
-              --json number,headRefOid,isDraft,author,labels,mergeable,statusCheckRollup,reviewDecision,body 2>&1)"; then
+              --json number,headRefOid,baseRefName,isDraft,author,labels,mergeable,statusCheckRollup,reviewDecision,body 2>&1)"; then
             log "$repo: gh pr list failed: $(brief "$prs")"
             continue
           fi
@@ -250,7 +270,7 @@
             log "$repo: pr-reviewer queue list failed: $(brief "$reviewed")"
             continue
           fi
-          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
+          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" --arg trunk "$trunk" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
             log "$repo: could not evaluate its PRs: $(brief "$verdicts")"
             continue
           fi

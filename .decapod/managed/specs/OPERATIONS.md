@@ -14,8 +14,36 @@ Describe the operational runtime model, scheduling, and system deployment archit
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of upstream
-`NicholaiVogel/pr-reviewer` carrying a local patch (git HTTPS auth sent as
-Basic, not Bearer, which GitHub's git endpoint rejects).
+`NicholaiVogel/pr-reviewer` carrying two local patches. The first sends git
+HTTPS auth as Basic, not Bearer, which GitHub's git endpoint rejects. The
+second is upstream PR NicholaiVogel/pr-reviewer#32, review rounds and stacked
+PRs, described below. Drop each patch when the pin moves past its upstream
+merge.
+
+- **Review rounds.** Each posted review is one round. Round 1 is a full
+  review. Rounds 2 and 3 to `max_review_cycles` (default 2) check earlier
+  findings first. After the limit, new findings go into a "Follow-up notes
+  (non-blocking)" section of the review body. They open no thread and do not
+  request changes. Only a critical finding still posts inline and can block:
+  it must be `blocking`, of a kind in `critical_finding_kinds` (default:
+  security, secret_exposure, data_integrity, correctness), carry an
+  `evidence_note`, and sit on an added or removed line. A finding whose
+  thread is still open is not posted again. When no blocking finding is
+  open, the bot dismisses its own earlier `REQUEST_CHANGES`, because it never
+  approves. A fix made in another file than the finding's (regenerated code,
+  say) leaves the finding open: resolve its thread, and within 2 minutes the
+  daemon records that and dismisses the change request, with no new review.
+  The settings live in `[defaults]` of the runtime config.toml, and
+  a repo can override them in `[repos.review_policy]`. Set
+  `max_review_cycles = 0` for the old unlimited behavior.
+- **Stacked PRs.** A push that leaves the PR's own change as it was is not
+  reviewed again. That covers rebases, `gh stack` cascades, and the retarget
+  after a parent merges; `pr-reviewer logs` shows them as
+  `skipped:unchanged-diff`. For a PR based on another PR's branch, the prompt
+  names the parent and the lower PRs' open findings, and a finding the
+  parent already tracks is not repeated on the child. The automerge agent
+  skips a PR whose base is not the repo's default branch: a stack is merged
+  by hand from its bottom PR.
 
 - **Which repos are reviewed** is the `repos` list in that file. The agent's
   start wrapper runs `pr-reviewer add` for every declared repo missing from

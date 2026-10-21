@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "8dc66af42bb9450046f191fde556452693e1e770",
+    "accepted_commit": "b425d875c906e3c4c6a511a457c488fb3e8e0e0d",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -23,9 +23,106 @@
     }
   },
   "change": {
-    "id": "change_01M52S9GQHXKSRJ77299XE1JGX",
-    "base_commit": "8dc66af42bb9450046f191fde556452693e1e770",
+    "id": "change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+    "base_commit": "b425d875c906e3c4c6a511a457c488fb3e8e0e0d",
     "target_base": "origin/main"
+  },
+  "intents": {
+    "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ": {
+      "acceptance_criteria": [],
+      "assumptions": [],
+      "boundaries": [
+        "Current claimed task and isolated work branch"
+      ],
+      "constraints": [
+        "root"
+      ],
+      "created_sequence": 1,
+      "id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+      "out_of_scope": [],
+      "proof_requirements": [],
+      "raw_intent": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "refined_intent": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "status": "refined",
+      "updated_sequence": 3
+    }
+  },
+  "sections": {
+    "plan": {
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "phases": [],
+      "proof_hooks": [
+        "decapod validate"
+      ],
+      "schema_version": "1.1.0",
+      "state": "APPROVED",
+      "stop_conditions": [],
+      "title": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "todo_ids": [
+        "bugs_01m5f29pxf6vwk05"
+      ],
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1792580890Z"
+    },
+    "trajectory": {
+      "active_boundaries": [
+        "Current claimed task and isolated work branch"
+      ],
+      "artifact_hash": "sha256:8124487f9b9089982f1252ce0bc10e83122e8e12520bc230b994202b0c033a5c",
+      "checks": [],
+      "current_phase": "intent",
+      "custody": {
+        "events": [
+          {
+            "event_id": "event:2",
+            "intent_id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+            "kind": "created",
+            "sequence": 2
+          },
+          {
+            "event_id": "event:3",
+            "intent_id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+            "kind": "refined",
+            "sequence": 3
+          }
+        ],
+        "knowledge_candidates": [],
+        "next_sequence": 3,
+        "schema_version": "1.0.0",
+        "trajectories": {}
+      },
+      "declared_commands": [],
+      "destination": "pull request",
+      "evidence": [],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+      "modified_files": [],
+      "next_transitions": [
+        "Refine plan and declare falsifiable checks"
+      ],
+      "repo_scope": [
+        "root"
+      ],
+      "run_id": "branch_01M5F2A6ZXSG1Q5WE1YZQQ916T",
+      "schema_version": "1.1.0",
+      "shortcut_risk_signals": [],
+      "task_id": "bugs_01m5f29pxf6vwk05",
+      "tool_calls": [],
+      "unresolved_assumptions": []
+    }
+  },
+  "legacy_digests": {
+    ".decapod/governance/claims.json": "sha256:e8844b1145f540fc8570eb603f30d3ecae0f1044f8dbdc61cafa13ed23a0abfd",
+    ".decapod/governance/plan.json": "sha256:b123d3936c418f01e3b372185457b0b453ae2b63a32976119cf2d8b94ddd408f",
+    ".decapod/governance/trajectory.json": "sha256:0fcf64cdf624e1a3f45d371d1c4cac4bf058fa844e7b1dad589c7a33750c68f5",
+    ".decapod/governance/validation.json": "sha256:f99566205d00521b4d94835e561cff8ff18886e411f15cb3689e1d580fcd1bc8"
   },
   "claims": {
     "claim-automerge-skips-stacked": {
@@ -60,137 +157,5 @@
         "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs resolving_the_blocking_thread_dismisses_the_change_request_without_a_review"
       ]
     }
-  },
-  "checkpoints": [
-    {
-      "id": "cp-pr-reviewer-cycles-stacks",
-      "summary": "Add the NicholaiVogel/pr-reviewer#32 patch to the pinned pr-reviewer build, skip stacked PRs in automerge, and document both in OPERATIONS.md",
-      "input_digest": "sha256:89998e725596494ffe8a2d075ec00c59d6cc32248120775c5070b4df7afcbdad",
-      "proof_refs": [
-        "nix build of the patched derivation"
-      ]
-    },
-    {
-      "id": "cp-plan-approved",
-      "summary": "Plan approved: intent given explicitly by the operator",
-      "input_digest": "sha256:ba26db6848237d08935ba05693250bfbd947ac2b3d0093d86bbdcec857bbb858"
-    },
-    {
-      "id": "cp-pr-reviewer-review-fixes",
-      "summary": "Update the pr-reviewer patch to NicholaiVogel/pr-reviewer#32 at aabec23: outdated threads hide nothing, rebases never resolve findings",
-      "input_digest": "sha256:17a51b20d62543853e28073b18188261fc8c95ca3c8dd3ab282f3edea2ee43d5",
-      "proof_refs": [
-        "nix build of the patched derivation; cargo test 212 passed"
-      ]
-    },
-    {
-      "id": "cp-pr-reviewer-7dfed90",
-      "summary": "Sync the pr-reviewer patch to NicholaiVogel/pr-reviewer#32 at 7dfed90 (test and doc follow-up)",
-      "input_digest": "sha256:cf490a80e7e0f176faa7292c36c0fa69a785d00f3972c0b438c1f3267671c9e5",
-      "proof_refs": [
-        "nix build of the patched derivation; cargo test 213 passed"
-      ]
-    }
-  ],
-  "intents": {
-    "intent:change_01M52S9GQHXKSRJ77299XE1JGX": {
-      "acceptance_criteria": [],
-      "assumptions": [],
-      "boundaries": [
-        "Current claimed task and isolated work branch"
-      ],
-      "constraints": [
-        "root"
-      ],
-      "created_sequence": 1,
-      "id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
-      "out_of_scope": [],
-      "proof_requirements": [],
-      "raw_intent": "pr-reviewer: deploy review-cycle limits and stack-aware reviews (upstream NicholaiVogel/pr-reviewer#32); guard automerge against stacked PRs",
-      "refined_intent": "pr-reviewer: deploy review-cycle limits and stack-aware reviews (upstream NicholaiVogel/pr-reviewer#32); guard automerge against stacked PRs",
-      "status": "refined",
-      "updated_sequence": 3
-    }
-  },
-  "sections": {
-    "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Deploy NicholaiVogel/pr-reviewer#32 as a second local patch on the pinned pr-reviewer build, so the M-02877 review daemon stops adding new blocking threads after max_review_cycles rounds, does not re-review rebase-only pushes of stacked PRs, and dismisses its own stale change requests; and make the automerge agent skip PRs whose base is not the default branch.",
-      "phases": [],
-      "proof_hooks": [
-        "nix build of the patched pr-reviewer derivation succeeds",
-        "cargo test in the patched source passes (209 tests)",
-        "automerge jq filter skips a PR based on another PR's branch"
-      ],
-      "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [
-        "decapod validate fails for a reason that needs a human decision"
-      ],
-      "title": "pr-reviewer: bounded review rounds and stack-aware reviews",
-      "todo_ids": [
-        "cicd_01m52s8t5deh1mhq"
-      ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1792169147Z"
-    },
-    "trajectory": {
-      "active_boundaries": [
-        "Current claimed task and isolated work branch"
-      ],
-      "artifact_hash": "sha256:cd9bf97805eb809269656404da84c4931a69bac9833736eed01f17dade417abc",
-      "checks": [],
-      "current_phase": "intent",
-      "custody": {
-        "events": [
-          {
-            "event_id": "event:2",
-            "intent_id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
-            "kind": "created",
-            "sequence": 2
-          },
-          {
-            "event_id": "event:3",
-            "intent_id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
-            "kind": "refined",
-            "sequence": 3
-          }
-        ],
-        "knowledge_candidates": [],
-        "next_sequence": 3,
-        "schema_version": "1.0.0",
-        "trajectories": {}
-      },
-      "declared_commands": [],
-      "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M52S9GQHXKSRJ77299XE1JGX",
-      "modified_files": [],
-      "next_transitions": [
-        "Refine plan and declare falsifiable checks"
-      ],
-      "repo_scope": [
-        "root"
-      ],
-      "run_id": "branch_01M52S9GSBHBK8DZ21B5NVCT75",
-      "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
-      "task_id": "cicd_01m52s8t5deh1mhq",
-      "tool_calls": [],
-      "unresolved_assumptions": []
-    }
-  },
-  "legacy_digests": {
-    ".decapod/governance/claims.json": "sha256:e8844b1145f540fc8570eb603f30d3ecae0f1044f8dbdc61cafa13ed23a0abfd",
-    ".decapod/governance/plan.json": "sha256:b123d3936c418f01e3b372185457b0b453ae2b63a32976119cf2d8b94ddd408f",
-    ".decapod/governance/trajectory.json": "sha256:0fcf64cdf624e1a3f45d371d1c4cac4bf058fa844e7b1dad589c7a33750c68f5",
-    ".decapod/governance/validation.json": "sha256:f99566205d00521b4d94835e561cff8ff18886e411f15cb3689e1d580fcd1bc8"
   }
 }

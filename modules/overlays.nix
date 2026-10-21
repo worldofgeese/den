@@ -187,6 +187,16 @@
         };
       })
       (final: prev: {
+        # atuin 18.23.0's PTY end-to-end suites (tests/e2e_capture.rs,
+        # tests/e2e_pty.rs) time out in the Darwin build sandbox: the shell
+        # never draws the expected screen ("captured: []", "waiting for
+        # \": exit\" on screen"). Many cases fail, not one, so skip checks on
+        # Darwin. Linux still runs them. Drop this once nixpkgs fixes it.
+        atuin = prev.atuin.overrideAttrs {
+          doCheck = !final.stdenv.hostPlatform.isDarwin;
+        };
+      })
+      (final: prev: {
         python313Packages = prev.python313Packages.overrideScope (pyFinal: pyPrev: {
           fastmcp = pyPrev.fastmcp.overridePythonAttrs {doCheck = false;};
         });

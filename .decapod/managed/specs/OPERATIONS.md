@@ -400,16 +400,30 @@ files record the usage and cost of each request.
 
 #### Caveman
 
-We install Caveman 4.0.1 (`@caveman-ai/cli` 4.0.1, `bin-v4.0.1`) by hand:
+Caveman runs at full strength in pi, without its cloud features. We install it
+by hand:
 1. Run `npm install -g @caveman-ai/cli@4.0.1`, then `caveman setup --install`.
 2. Run `caveman setup --yes --agents none --skip routing`. This writes the
    module state to `~/.caveman/cloud.json`.
-3. Run `caveman on scripts`. This installs Caveman Blocks (0.1.0-rc.5) and its
+3. Run `caveman telemetry off`. Telemetry was on by default (opt-out) and sends
+   command and token counts to Caveman. den also sets `DO_NOT_TRACK=1` for the
+   proxy and for the hook CLI that pi starts.
+4. Run `caveman on scripts`. This installs Caveman Blocks (0.1.0-rc.5) and its
    hooks in `~/.claude/settings.json` and `~/.codex/hooks.json`. Codex asks
    once: open `/hooks` in Codex and approve the `caveman-blocks` hook.
-4. Restart the proxy with
-   `launchctl kickstart -k gui/$UID/com.dktaohan.caveman-proxy`. The proxy is
-   not in a model path.
+5. Replace the seven binaries in `~/.caveman/bin` with the `bin-v4.0.2`
+   release assets. CLI 4.0.1 installs `bin-v4.0.1`, whose native runtime
+   answers nothing (JuliusBrussee/caveman#1279, #1366). Check each asset
+   against `checksums.txt`, and check `checksums.txt` against the release's
+   signature, before you install it.
+6. Replace `dist/caveman-pi-extension.mjs` in the npm-installed CLI with the
+   pi extension built from JuliusBrussee/caveman#1376 (`packages/pi-extension`,
+   `npm run build`, `dist/index.mjs`). The released extension puts per-prompt
+   context in the system prompt, so the provider re-writes its prompt cache at
+   every prompt (#1364). Undo steps 5 and 6 when a CLI release ships
+   `bin-v4.0.2` and #1376.
+7. Restart the proxy with
+   `launchctl kickstart -k gui/$UID/com.dktaohan.caveman-proxy`.
 
 Do not use `--agents pi`. It writes `~/.pi/agent/extensions/caveman-native.js`,
 and pi then loads the extension a second time beside den's shim.
@@ -418,35 +432,46 @@ The modules and pi, measured on 2026-10-15:
 - `output`, `input`, `waste-fixes` and `browse` are on.
 - `scripts` (Caveman Blocks) is on for Claude Code and Codex. Blocks has no pi
   harness yet (caveman-ai/blocks#11). Its Codex entry runs `--harness claude`,
-  which we asked about in caveman-ai/blocks#12. Blocks sends usage counts under
-  the Caveman telemetry decision in `cloud.json`, which is on.
+  which we asked about in caveman-ai/blocks#12. Blocks follows the Caveman
+  telemetry decision in `cloud.json`, which is off since 2026-10-23.
 - `routing` is off. Auto (`caveman-auto`) reaches only the Claude Code and
   OpenCode model pickers, not pi (JuliusBrussee/caveman#1286). It also needs a
   Caveman Cloud sign-in, and each routed request sends the latest prompt (up
-  to 128 KiB), the prompt before it and the last reply to Caveman Cloud. Only
-  the user can decide to send that content off the machine.
+  to 128 KiB), the prompt before it and the last reply to Caveman Cloud. That
+  is a cloud feature, and we do not use cloud features.
+
+What one pi session costs with Caveman, measured on 2026-10-23 (pi 1.4.0,
+Claude Haiku 4.5, the same 8 prompts per run, `~/.cache/chain-test/cave-max.sh`):
+
+| Run | Cache-write tokens | Cost |
+|---|---:|---:|
+| No Caveman extension | 38,685 | $0.107 |
+| Released extension, `bin-v4.0.2` runtime | 131,658 | $0.234 |
+| Extension from #1376, `bin-v4.0.2` runtime | 35,975 | $0.112 |
+| No extension, requests through a `bin-v4.0.2` compat mount | 40,089 | $0.112 |
 
 Caveman behaviours that shape this design:
 - Without `caveman.yaml`, Caveman sends Anthropic-format requests to
   `api.anthropic.com`. That hands the LEGO gateway key to Anthropic (measured
   2026-10-06). The file sets the gateway's `/claude` endpoint as the upstream.
   No model traffic uses it now.
-- pi sends the key as the bearer and as `x-api-key`. On its built-in
-  `anthropic` upstream, the `bin-v4.0.1` proxy forwards only `x-api-key`. The
-  gateway accepts only the bearer, so it returns 401 (measured 2026-10-14).
-  The fix for JuliusBrussee/caveman#1215 keeps the bearer only on a named
-  compat mount. Request compression through Caveman saved about 0 tokens
-  (`caveman stats`: -0.0% over 1,327 requests). So `lego-claude` stays direct.
-- The empty `x-api-key` on the provider is load-bearing. The 4.0.1 pi
-  extension refuses to route a provider whose `x-api-key` is empty ("keep the
-  provider direct"). Each new session warns "Caveman: pass-through for
-  lego-claude/..."; that is expected.
-- New pi sessions with the 4.0.1 extension do not shrink tool output. In our
-  test, a 37 KB tool output stayed unchanged. `caveman native-hook pi
-  PostToolUse` returned nothing, and the native runtime on
-  `~/.caveman/run/native.sock` closed our test requests with an empty reply
-  (JuliusBrussee/caveman#1279). Sessions that started with the 2.0.1
-  extension still return `ccr://` handles.
+- pi sends the key as the bearer and as `x-api-key`. The gateway accepts only
+  the bearer. A `bin-v4.0.2` compat mount with `wire_dialect: anthropic`
+  forwards the bearer and compresses Anthropic requests. It compressed a JSON
+  and log tool result from 29,956 to 867 tokens. It does not compress prose:
+  pi's markdown tool outputs, already trimmed by RTK and context-mode, came
+  through unchanged, and the run cost the same as the direct one. So
+  `lego-claude` stays direct, and Caveman works in pi through its extension.
+- The empty `x-api-key` on the provider is load-bearing. The extension refuses
+  to route a provider whose `x-api-key` is empty ("keep the provider direct").
+  Each new session warns "Caveman: pass-through for lego-claude/..."; that is
+  expected.
+- In the long-lived `~/.caveman`, the `bin-v4.0.2` runtime under launchd can
+  answer every `native.sock` request with an empty reply while the proxy uses
+  50% to 85% CPU. A fresh home answers. The extension then fails open: no
+  shrinking and no runtime context, and no error. We reported it on
+  JuliusBrussee/caveman#1279. To check: send `session.start` on
+  `~/.caveman/run/native.sock` and expect a JSON reply.
 - Since 4.0.1, the extension does not shrink tool output in a session that
   cannot call `caveman_retrieve` (#1211). So the den-generated `techwriter`
   agent does not name `caveman_retrieve` in its `tools:`.
@@ -482,6 +507,19 @@ and spare loopback ports (28787 and 28788 were used). Verify Headroom with
 `curl -s 127.0.0.1:18787/readyz`. Then send a `/v1/messages` call with the
 gateway key as `Authorization: Bearer`. The gateway rejects the key when it
 arrives only as `x-api-key`.
+
+#### Headroom state and CodeGraph in pi
+
+The Headroom container keeps all of its state on the `headroom-data` volume:
+`HEADROOM_WORKSPACE_DIR=/data` and `HEADROOM_MEMORY_DB_PATH=/data/memory.db`.
+Before 2026-10-23 only `proxy_savings.json` was on the volume. The memory,
+`--learn`, the CCR store and the `headroom savings` ledger reset at each
+restart (den#62, headroomlabs-ai/headroom#4443). `HEADROOM_STORE_URL` is gone,
+because the proxy never read it.
+
+pi offers CodeGraph's one tool, `codegraph_explore`, to the model directly
+(`exposure = "direct"`). With the default `codemode` exposure, the model made
+0 calls in 60 sessions (den#63).
 
 ### Server auto-upgrade and human SSH keys (paphos, oracle)
 

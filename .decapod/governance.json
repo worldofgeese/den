@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "b425d875c906e3c4c6a511a457c488fb3e8e0e0d",
+    "accepted_commit": "b8248a6273dc59205823630c1378dc1421825b14",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -23,12 +23,24 @@
     }
   },
   "change": {
-    "id": "change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
-    "base_commit": "b425d875c906e3c4c6a511a457c488fb3e8e0e0d",
+    "id": "change_01M5M6VY2NHXMDGT5VXSASKP0P",
+    "base_commit": "b8248a6273dc59205823630c1378dc1421825b14",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "wildnova-pin-bumps-1",
+      "summary": "Move ponytail to 5.3.2, Chorus (CLI and chorus-pi) to 0.23.0 and the personal Signet image to 0.237.14; record the pins in INTERFACES.md",
+      "input_digest": "sha256:1b83a801bd4f4a8d376343c51b93003602357bf8d60d55f857a764a3ca52b205",
+      "proof_refs": [
+        "ghcr.io/signet-ai/signet tags: 0.237.14 is latest (2026-10-18)",
+        "npm view @chorus-aidlc/chorus version = 0.23.0; devrel-infra#483 deployed Chorus 0.23.0",
+        "npm view @dietrichgebert/ponytail version = 5.3.2"
+      ]
+    }
+  ],
   "intents": {
-    "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ": {
+    "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -38,11 +50,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+      "id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
-      "refined_intent": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "raw_intent": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
+      "refined_intent": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -55,7 +67,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "intent": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -63,57 +75,121 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "flake: commit the deployed 2026-10-16 input update with its Lix and atuin build fixes",
+      "title": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
       "todo_ids": [
-        "bugs_01m5f29pxf6vwk05"
+        "test_01m5m6tfed92k699"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792580890Z"
+      "updated_at": "1792753526Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:8124487f9b9089982f1252ce0bc10e83122e8e12520bc230b994202b0c033a5c",
-      "checks": [],
+      "artifact_hash": "sha256:6de9c2364e7fdc4d1e4a3fe67f3af3a8160083ada44159eca658d42d2e715811",
+      "checks": [
+        {
+          "name": "ghcr_latest_signet_0.237.14",
+          "status": "passed"
+        },
+        {
+          "name": "npm_latest_chorus_0.23.0",
+          "status": "passed"
+        },
+        {
+          "name": "npm_latest_ponytail_5.3.2",
+          "status": "passed"
+        }
+      ],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
+            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M5M6VY5B524KXZEY6RMWX2JS",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M5M6VY5B524KXZEY6RMWX2JS": {
+            "evidence_only": true,
+            "id": "branch_01M5M6VY5B524KXZEY6RMWX2JS",
+            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/pi.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/darwin.nix",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/darwin.nix",
+                  ".decapod/managed/specs/INTERFACES.md"
+                ],
+                "proof_refs": [
+                  "npm_latest_ponytail_5.3.2",
+                  "npm_latest_chorus_0.23.0",
+                  "ghcr_latest_signet_0.237.14"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M5F2A6XNSFKCSKR6X8C0P3PJ",
-      "modified_files": [],
+      "inspected_files": [
+        ".decapod/managed/specs/INTERFACES.md",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix"
+      ],
+      "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+      "modified_files": [
+        ".decapod/managed/specs/INTERFACES.md",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M5F2A6ZXSG1Q5WE1YZQQ916T",
+      "run_id": "branch_01M5M6VY5B524KXZEY6RMWX2JS",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bugs_01m5f29pxf6vwk05",
+      "task_id": "test_01m5m6tfed92k699",
       "tool_calls": [],
       "unresolved_assumptions": []
     }
@@ -123,39 +199,5 @@
     ".decapod/governance/plan.json": "sha256:b123d3936c418f01e3b372185457b0b453ae2b63a32976119cf2d8b94ddd408f",
     ".decapod/governance/trajectory.json": "sha256:0fcf64cdf624e1a3f45d371d1c4cac4bf058fa844e7b1dad589c7a33750c68f5",
     ".decapod/governance/validation.json": "sha256:f99566205d00521b4d94835e561cff8ff18886e411f15cb3689e1d580fcd1bc8"
-  },
-  "claims": {
-    "claim-automerge-skips-stacked": {
-      "statement": "pr-reviewer-automerge does not merge a PR whose baseRefName differs from the repository default branch.",
-      "falsifier": "automergeFilter returns an empty reason for a PR with baseRefName != trunk",
-      "status": "supported",
-      "proof_refs": [
-        "modules/M-02877/pr-reviewer.nix automergeFilter"
-      ]
-    },
-    "claim-pr-reviewer-review-rounds": {
-      "statement": "With the patch, a review after max_review_cycles posts new non-critical findings only as non-blocking notes (no inline threads, no REQUEST_CHANGES), while a critical finding on a changed line still posts inline.",
-      "falsifier": "pr-reviewer pipeline test review_lifecycle_caps_rounds_skips_rebases_and_escalates_critical_findings fails, or a follow-up round posts a non-critical inline comment",
-      "status": "supported",
-      "proof_refs": [
-        "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs"
-      ]
-    },
-    "claim-pr-reviewer-stack-skip": {
-      "statement": "A push that leaves a PR's own change unchanged (rebase, stack cascade, retarget) is completed as skipped:unchanged-diff without a review.",
-      "falsifier": "the pipeline test round 3 posts a review or runs the harness",
-      "status": "supported",
-      "proof_refs": [
-        "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs"
-      ]
-    },
-    "claim-pr-reviewer-human-answers": {
-      "statement": "With the patch, when a human resolves or answers the bot's thread on a reviewed PR's last open blocking finding, the daemon records the answer and dismisses the bot's REQUEST_CHANGES without running a review.",
-      "falsifier": "sync_human_answers leaves the change request in place after the blocking thread is resolved, or dismisses it while the thread is open",
-      "status": "supported",
-      "proof_refs": [
-        "NicholaiVogel/pr-reviewer#32 src/review/pipeline_tests.rs resolving_the_blocking_thread_dismisses_the_change_request_without_a_review"
-      ]
-    }
   }
 }

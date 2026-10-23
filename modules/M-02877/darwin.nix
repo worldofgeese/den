@@ -637,7 +637,7 @@
                 podman container exists signet ||
                   DBX_CONTAINER_MANAGER=podman "$bin/distrobox" create --yes --no-entry --unshare-netns \
                     --name signet \
-                    --image ghcr.io/signet-ai/signet:0.237.9 \
+                    --image ghcr.io/signet-ai/signet:0.237.14 \
                     --volume "$home/.agents:/data/agents" \
                     --volume /var/folders:/var/folders \
                     --additional-flags "--publish 127.0.0.1:3850:3850 --env SIGNET_DAEMON_ENTRYPOINT=0 --env SIGNET_PATH=/data/agents --env SIGNET_BIND=0.0.0.0 --env SIGNET_PORT=3850"

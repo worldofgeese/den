@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "b8248a6273dc59205823630c1378dc1421825b14",
+    "accepted_commit": "f81c430339b462aec35d7b5241c90bf697997eee",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -23,24 +23,24 @@
     }
   },
   "change": {
-    "id": "change_01M5M6VY2NHXMDGT5VXSASKP0P",
-    "base_commit": "b8248a6273dc59205823630c1378dc1421825b14",
+    "id": "change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+    "base_commit": "f81c430339b462aec35d7b5241c90bf697997eee",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "wildnova-pin-bumps-1",
-      "summary": "Move ponytail to 5.3.2, Chorus (CLI and chorus-pi) to 0.23.0 and the personal Signet image to 0.237.14; record the pins in INTERFACES.md",
-      "input_digest": "sha256:1b83a801bd4f4a8d376343c51b93003602357bf8d60d55f857a764a3ca52b205",
+      "id": "louddragon-flake-lock-1",
+      "summary": "Commit the flake.lock that system generation 343 was built from (topgrade, 2026-10-23)",
+      "input_digest": "sha256:419e18313c76df2b62496e6a8b78336377dda7a046145a29c006e31abdcb36b5",
       "proof_refs": [
-        "ghcr.io/signet-ai/signet tags: 0.237.14 is latest (2026-10-18)",
-        "npm view @chorus-aidlc/chorus version = 0.23.0; devrel-infra#483 deployed Chorus 0.23.0",
-        "npm view @dietrichgebert/ponytail version = 5.3.2"
+        "/nix/var/nix/profiles/system-343-link -> zlr51b6v (darwin-system-26.11.1d92c56)",
+        "/run/current-system/darwin-version.json: darwinRevision 1d92c561, nixpkgsRevision 5adc5083, both as in this lock",
+        "cmp: flake.lock is byte-identical to the root checkout's lock (mtime 09:30, before deploy-darwin started at 09:42)"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P": {
+    "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -50,11 +50,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+      "id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
-      "refined_intent": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
+      "raw_intent": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
+      "refined_intent": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -67,7 +67,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
+      "intent": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -75,30 +75,26 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Move den's agent tool pins to the latest releases (ponytail 5.3.2, Chorus 0.23.0, personal Signet 0.237.14)",
+      "title": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
       "todo_ids": [
-        "test_01m5m6tfed92k699"
+        "cicd_01m5m8dt5nb6ea11"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792753526Z"
+      "updated_at": "1792755086Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:6de9c2364e7fdc4d1e4a3fe67f3af3a8160083ada44159eca658d42d2e715811",
+      "artifact_hash": "sha256:af79a268b8bdfdf6f423f680aee739baa1737709d5695b3a2a6efbf147981584",
       "checks": [
         {
-          "name": "ghcr_latest_signet_0.237.14",
+          "name": "root_checkout_flake_lock_byte_identical",
           "status": "passed"
         },
         {
-          "name": "npm_latest_chorus_0.23.0",
-          "status": "passed"
-        },
-        {
-          "name": "npm_latest_ponytail_5.3.2",
+          "name": "system_generation_343_deployed",
           "status": "passed"
         }
       ],
@@ -107,20 +103,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M5M6VY5B524KXZEY6RMWX2JS",
+            "detail": "trajectory:branch_01M5M8EBCSKNKC4478B3ERNEXQ",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -129,29 +125,21 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M5M6VY5B524KXZEY6RMWX2JS": {
+          "branch_01M5M8EBCSKNKC4478B3ERNEXQ": {
             "evidence_only": true,
-            "id": "branch_01M5M6VY5B524KXZEY6RMWX2JS",
-            "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+            "id": "branch_01M5M8EBCSKNKC4478B3ERNEXQ",
+            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
             "steps": [
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/pi.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/darwin.nix",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/darwin.nix",
-                  ".decapod/managed/specs/INTERFACES.md"
+                  "flake.lock",
+                  "flake.lock"
                 ],
                 "proof_refs": [
-                  "npm_latest_ponytail_5.3.2",
-                  "npm_latest_chorus_0.23.0",
-                  "ghcr_latest_signet_0.237.14"
+                  "root_checkout_flake_lock_byte_identical",
+                  "system_generation_343_deployed"
                 ],
                 "scope": [
                   "root"
@@ -167,18 +155,11 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [
-        ".decapod/managed/specs/INTERFACES.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix"
+        "flake.lock"
       ],
-      "intent_id": "intent:change_01M5M6VY2NHXMDGT5VXSASKP0P",
+      "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix"
+        "flake.lock"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -186,10 +167,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M5M6VY5B524KXZEY6RMWX2JS",
+      "run_id": "branch_01M5M8EBCSKNKC4478B3ERNEXQ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "test_01m5m6tfed92k699",
+      "task_id": "cicd_01m5m8dt5nb6ea11",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

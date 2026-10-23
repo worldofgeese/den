@@ -59,6 +59,10 @@
         export CAVEMAN_MODE=compress
         export CAVEMAN_RECOVERY=mcp
         export CAVE_ENGINE_TOON=best-of
+        # No Caveman cloud features here, telemetry included: `caveman
+        # telemetry off` records the choice in ~/.caveman/cloud.json, and
+        # DO_NOT_TRACK keeps it off if that file is ever reset.
+        export DO_NOT_TRACK=1
         exec "$bin" serve
       '';
     };
@@ -86,6 +90,8 @@
 
       const upstream = ${builtins.toJSON cavemanExtension};
       process.env.CAVEMAN_PI_HOOK_CMD ??= JSON.stringify([${builtins.toJSON cavemanCli}]);
+      // The hook CLI runs as a child of pi: no Caveman telemetry (no cloud features).
+      process.env.DO_NOT_TRACK ??= "1";
 
       export default async function (pi) {
         if (!existsSync(upstream)) {
@@ -149,6 +155,9 @@
           command = "/opt/homebrew/bin/codegraph";
           args = ["serve" "--mcp"];
           description = "CodeGraph: symbol-level codebase index";
+          # One tool, codegraph_explore. Under pi's default `codemode` exposure
+          # the model is never offered it: 0 calls in 60 sessions (den#63).
+          exposure = "direct";
         };
         # No Headroom server: pi requests do not pass Headroom, so pi has no
         # Headroom hashes to retrieve.

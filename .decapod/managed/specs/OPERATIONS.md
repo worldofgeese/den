@@ -454,21 +454,26 @@ Caveman behaviours that shape this design:
 The shim (`~/.pi/agent/extensions/caveman.js`) only loads the npm-installed
 extension (`dist/caveman-pi-extension.mjs`).
 
-#### Headroom workarounds
+#### Headroom 0.41.0 fixes
 
-Headroom 0.40.0 runs with two workarounds from `gateway.json`:
-- `HEADROOM_NO_MEMORY_TOOLS=1` stops it injecting its memory tools. Their
-  server-side continuation returned 400 when the model also called a client
-  tool in the same turn (headroomlabs-ai/headroom#4009, fix #4013). Memory
-  storage and `--learn` stay on.
-- `HEADROOM_EXCLUDE_TOOLS=caveman_retrieve` stops it lossy-compressing
-  recovered Caveman output (#4010, fix #4014).
+Headroom 0.41.0 (released 2026-10-14, `:latest` since then) carries the fixes
+for the two bugs that `gateway.json` worked around with 0.40.0. So the
+container runs without `HEADROOM_NO_MEMORY_TOOLS` and `HEADROOM_EXCLUDE_TOOLS`
+(den#41):
+- headroomlabs-ai/headroom#4009, fix #4013. When the model calls a Headroom
+  memory tool and a client tool in the same turn, Headroom gives the turn back
+  to the client. It no longer sends a continuation that the provider rejects
+  with a 400. Headroom injects its `memory_save` and `memory_search` tools
+  again.
+- #4010, fix #4014. `caveman_retrieve` is in Headroom's built-in
+  `DEFAULT_EXCLUDE_TOOLS` and `DEFAULT_VERBATIM_EXCLUDE_TOOLS`. Its output
+  passes through byte for byte. The old `HEADROOM_EXCLUDE_TOOLS` entry only
+  stopped the lossy step, so indented JSON still arrived minified.
 
-Delete each workaround when a Headroom release carries its fix (den#41). On
-2026-10-14 both fixes were on main but not released. Release PR
-headroomlabs-ai/headroom#4002 (0.41.0) carries them, and `:latest` is still
-0.40.0. Kompress also deletes keywords from a fenced code block inside a mixed
-tool result (headroomlabs-ai/headroom#4214). A change to these settings
+We checked both on 2026-10-23 in the running 0.41.0 image: the two sets in
+`headroom.config`, and the guard in `headroom/proxy/handlers/anthropic.py`.
+Kompress still deletes keywords from a fenced code block inside a mixed tool
+result (headroomlabs-ai/headroom#4214). A change to Headroom's settings
 restarts the Headroom container, which is in the model path of the other
 harnesses. Apply it from a plain terminal.
 

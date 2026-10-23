@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "f81c430339b462aec35d7b5241c90bf697997eee",
+    "accepted_commit": "b8248a6273dc59205823630c1378dc1421825b14",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -23,32 +23,42 @@
     }
   },
   "change": {
-    "id": "change_01M5M8EBAW9HAGGV7HZANZDY0Q",
-    "base_commit": "f81c430339b462aec35d7b5241c90bf697997eee",
+    "id": "change_01M5KVJJMMJ8D56PCBNPZD8PQY",
+    "base_commit": "b8248a6273dc59205823630c1378dc1421825b14",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "claim-headroom-0410-defaults": {
+      "statement": "Headroom 0.41.0 excludes caveman_retrieve from lossy and verbatim-affecting compression by default, and returns a mixed memory/client tool turn to the client, so HEADROOM_EXCLUDE_TOOLS and HEADROOM_NO_MEMORY_TOOLS are no longer needed.",
+      "falsifier": "In the 0.41.0 image, caveman_retrieve is missing from headroom.config DEFAULT_EXCLUDE_TOOLS or DEFAULT_VERBATIM_EXCLUDE_TOOLS, or anthropic.py lacks the unanswered-client-tool guard (#4009).",
+      "status": "supported",
+      "proof_refs": [
+        "headroom 0.41.0 image sha256:b4173591 headroom.config",
+        "headroom/proxy/handlers/anthropic.py lines 4697-4730"
+      ]
+    },
+    "claim-headroom-plist-no-workarounds": {
+      "statement": "The evaluated com.headroom.proxy launchd agent no longer passes HEADROOM_NO_MEMORY_TOOLS or HEADROOM_EXCLUDE_TOOLS and keeps every other flag.",
+      "falsifier": "nix eval of darwinConfigurations.M-02877 launchd.user.agents.headroom-proxy ProgramArguments contains either variable.",
+      "status": "supported",
+      "proof_refs": [
+        "nix eval .#darwinConfigurations.M-02877.config.launchd.user.agents.headroom-proxy.serviceConfig.ProgramArguments"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "louddragon-flake-lock-1",
-      "summary": "Commit the flake.lock that system generation 343 was built from (topgrade, 2026-10-23)",
-      "input_digest": "sha256:419e18313c76df2b62496e6a8b78336377dda7a046145a29c006e31abdcb36b5",
+      "id": "ckpt-headroom-0410-1",
+      "summary": "Drop HEADROOM_NO_MEMORY_TOOLS and HEADROOM_EXCLUDE_TOOLS (den#41): Headroom 0.41.0 carries #4013 and #4014",
+      "input_digest": "sha256:b223b4b1f1b586095b335a9e43a84c5269bd390210e2227c32d8f808a06c8a2e",
       "proof_refs": [
-        "/nix/var/nix/profiles/system-343-link -> zlr51b6v (darwin-system-26.11.1d92c56)",
-        "/run/current-system/darwin-version.json: darwinRevision 1d92c561, nixpkgsRevision 5adc5083, both as in this lock",
-        "cmp: flake.lock is byte-identical to the root checkout's lock (mtime 09:30, before deploy-darwin started at 09:42)"
-      ]
-    },
-    {
-      "id": "louddragon-flake-lock-2",
-      "summary": "Record in OPERATIONS.md that each topgrade run deploys an uncommitted flake.lock, and that the lock must be committed after the deploy",
-      "input_digest": "sha256:62bb2e64ce76fa9405bb0aa9534fcbc8c4cb7e6e6a2e779579cc21814d1ea220",
-      "proof_refs": [
-        "modules/M-02877/dktaohan.nix: topgrade commands 'Flake inputs' (just update-darwin) then 'Nix-Darwin via Justfile' (just deploy-darwin)"
+        "just check (pass)",
+        "nix eval headroom-proxy ProgramArguments"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q": {
+    "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -58,11 +68,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+      "id": "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
-      "refined_intent": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
+      "raw_intent": "Drop the Headroom 0.40.0 workarounds now that 0.41.0 ships (den#41)",
+      "refined_intent": "Drop the Headroom 0.40.0 workarounds now that 0.41.0 ships (den#41)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -75,7 +85,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
+      "intent": "Drop the Headroom 0.40.0 workarounds now that 0.41.0 ships (den#41)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -83,124 +93,129 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Commit the deployed flake.lock (topgrade, 2026-10-23, system generation 343)",
+      "title": "Drop the Headroom 0.40.0 workarounds now that 0.41.0 ships (den#41)",
       "todo_ids": [
-        "cicd_01m5m8dt5nb6ea11"
+        "code_01m5kv8pn284znxq"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792755086Z"
+      "updated_at": "1792742649Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        ".decapod/managed/specs/OPERATIONS.md",
+        "Current claimed task and isolated work branch",
+        "gateway.json",
+        "modules/M-02877/darwin.nix"
       ],
-      "artifact_hash": "sha256:ce8ff625a5656717140c819fc9f7e7f9dd2b14bc75ebaccc37e217dc953e8431",
+      "artifact_hash": "sha256:8c4beb4e333f8e80a0388eafe5aad177288f5ec9f4e2d1b2addf20621a24d1e2",
       "checks": [
         {
-          "name": "ci_validate_fingerprint_only_specs",
-          "status": "failed"
-        },
-        {
-          "name": "root_checkout_flake_lock_byte_identical",
+          "name": "headroom_0410_defaults_inspected",
           "status": "passed"
         },
         {
-          "name": "system_generation_343_deployed",
+          "name": "headroom_plist_eval_no_workaround_env",
+          "status": "passed"
+        },
+        {
+          "name": "just_check_after_change",
+          "status": "passed"
+        },
+        {
+          "name": "just_check_baseline",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+            "intent_id": "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+            "intent_id": "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M5M8EBCSKNKC4478B3ERNEXQ",
+            "detail": "trajectory:branch_01M5KVJJQ1TVE0KTDQ6JZS9YYC",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+            "intent_id": "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M5M8EBCSKNKC4478B3ERNEXQ",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M5M8EBCSKNKC4478B3ERNEXQ": {
+          "branch_01M5KVJJQ1TVE0KTDQ6JZS9YYC": {
             "evidence_only": true,
-            "id": "branch_01M5M8EBCSKNKC4478B3ERNEXQ",
-            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+            "id": "branch_01M5KVJJQ1TVE0KTDQ6JZS9YYC",
+            "intent_id": "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY",
             "steps": [
               {
-                "action": "trajectory.record",
+                "action": "validation",
+                "command": "just check",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "flake.lock",
-                  "flake.lock"
+                  "gateway.json",
+                  "modules/M-02877/darwin.nix",
+                  "modules/gateway.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "guix/home-configuration.scm",
+                  "gateway.json",
+                  "modules/M-02877/darwin.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "baseline just check 5m03s pass (guix skipped on Darwin); after-change just check 4m30s pass",
+                  "running headroom image 0.41.0 (sha256:b4173591): DEFAULT_EXCLUDE_TOOLS and DEFAULT_VERBATIM_EXCLUDE_TOOLS include caveman_retrieve; anthropic.py returns a mixed memory+client tool turn to the client (#4009)",
+                  "evaluated ProgramArguments: HEADROOM_HOST, ALLOW_UNAUTHENTICATED_BIND, MODE=cache, HTTP2=off, STORE_URL, SAVINGS_PATH, TELEMETRY=off; no NO_MEMORY_TOOLS or EXCLUDE_TOOLS"
                 ],
                 "proof_refs": [
-                  "root_checkout_flake_lock_byte_identical",
-                  "system_generation_343_deployed"
+                  "just_check_baseline",
+                  "just_check_after_change",
+                  "headroom_plist_eval_no_workaround_env",
+                  "headroom_0410_defaults_inspected"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "Justfile",
-                  "modules/M-02877/dktaohan.nix",
-                  ".decapod/managed/specs/OPERATIONS.md"
-                ],
-                "proof_refs": [
-                  "ci_validate_fingerprint_only_specs"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
+                "validation_findings": [
+                  "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent"
+                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "just check",
+        "nix eval .#darwinConfigurations.M-02877.config.launchd.user.agents.headroom-proxy.serviceConfig.ProgramArguments"
+      ],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "baseline just check 5m03s pass (guix skipped on Darwin); after-change just check 4m30s pass",
+        "evaluated ProgramArguments: HEADROOM_HOST, ALLOW_UNAUTHENTICATED_BIND, MODE=cache, HTTP2=off, STORE_URL, SAVINGS_PATH, TELEMETRY=off; no NO_MEMORY_TOOLS or EXCLUDE_TOOLS",
+        "running headroom image 0.41.0 (sha256:b4173591): DEFAULT_EXCLUDE_TOOLS and DEFAULT_VERBATIM_EXCLUDE_TOOLS include caveman_retrieve; anthropic.py returns a mixed memory+client tool turn to the client (#4009)"
+      ],
       "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "Justfile",
-        "flake.lock",
-        "modules/M-02877/dktaohan.nix"
+        "gateway.json",
+        "guix/home-configuration.scm",
+        "modules/M-02877/darwin.nix",
+        "modules/gateway.nix"
       ],
-      "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+      "intent_id": "intent:change_01M5KVJJMMJ8D56PCBNPZD8PQY",
       "modified_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "flake.lock"
+        "gateway.json",
+        "modules/M-02877/darwin.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -208,12 +223,14 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M5M8EBCSKNKC4478B3ERNEXQ",
+      "run_id": "branch_01M5KVJJQ1TVE0KTDQ6JZS9YYC",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m5m8dt5nb6ea11",
+      "task_id": "code_01m5kv8pn284znxq",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent"
+      ]
     }
   },
   "legacy_digests": {

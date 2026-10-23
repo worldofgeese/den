@@ -37,6 +37,14 @@
         "/run/current-system/darwin-version.json: darwinRevision 1d92c561, nixpkgsRevision 5adc5083, both as in this lock",
         "cmp: flake.lock is byte-identical to the root checkout's lock (mtime 09:30, before deploy-darwin started at 09:42)"
       ]
+    },
+    {
+      "id": "louddragon-flake-lock-2",
+      "summary": "Record in OPERATIONS.md that each topgrade run deploys an uncommitted flake.lock, and that the lock must be committed after the deploy",
+      "input_digest": "sha256:62bb2e64ce76fa9405bb0aa9534fcbc8c4cb7e6e6a2e779579cc21814d1ea220",
+      "proof_refs": [
+        "modules/M-02877/dktaohan.nix: topgrade commands 'Flake inputs' (just update-darwin) then 'Nix-Darwin via Justfile' (just deploy-darwin)"
+      ]
     }
   ],
   "intents": {
@@ -87,8 +95,12 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:af79a268b8bdfdf6f423f680aee739baa1737709d5695b3a2a6efbf147981584",
+      "artifact_hash": "sha256:ce8ff625a5656717140c819fc9f7e7f9dd2b14bc75ebaccc37e217dc953e8431",
       "checks": [
+        {
+          "name": "ci_validate_fingerprint_only_specs",
+          "status": "failed"
+        },
         {
           "name": "root_checkout_flake_lock_byte_identical",
           "status": "passed"
@@ -119,10 +131,17 @@
             "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M5M8EBCSKNKC4478B3ERNEXQ",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M5M8EBCSKNKC4478B3ERNEXQ": {
@@ -146,6 +165,24 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "Justfile",
+                  "modules/M-02877/dktaohan.nix",
+                  ".decapod/managed/specs/OPERATIONS.md"
+                ],
+                "proof_refs": [
+                  "ci_validate_fingerprint_only_specs"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -155,10 +192,14 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [
-        "flake.lock"
+        ".decapod/managed/specs/OPERATIONS.md",
+        "Justfile",
+        "flake.lock",
+        "modules/M-02877/dktaohan.nix"
       ],
       "intent_id": "intent:change_01M5M8EBAW9HAGGV7HZANZDY0Q",
       "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
         "flake.lock"
       ],
       "next_transitions": [

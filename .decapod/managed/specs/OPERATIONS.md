@@ -21,6 +21,12 @@ the machine. Commit a flake update and its fixes before or right after the
 deploy that uses them. Before a deploy, `git status` in the checkout must be
 clean, or the dirty files must be the change under review.
 
+Each topgrade run does the same. Its "Flake inputs" step runs
+`just update-darwin`, and its next step runs `just deploy-darwin` on the
+updated lock. Generation 343 (2026-10-23, nixpkgs 5adc5083) came from such a
+run. After a topgrade run changes `flake.lock`, commit the lock in its own PR
+from a workspace, when the deploy succeeds.
+
 The two fixes from that update, both no-ops once upstream changes:
 - Lix: `common-lix.nix` passes `-Dmimalloc=disabled`, which Lix 2.95.4's
   `meson.options` no longer has, so configure stops with 'Unknown option'.

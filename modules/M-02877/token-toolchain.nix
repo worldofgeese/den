@@ -137,7 +137,7 @@
     piAgent = {
       packages = [
         # Not npm:ponytail, which is an unrelated package.
-        "npm:@dietrichgebert/ponytail@5.2.0"
+        "npm:@dietrichgebert/ponytail@5.3.2"
         "npm:context-mode@1.0.169"
       ];
       mcpServers = {

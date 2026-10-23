@@ -14,12 +14,12 @@
     # chorus-team-tunnel launchd agent (darwin.nix) on 3870. Since
     # devrel-infra#280 it has no load balancer or DNS name; its NEXTAUTH_URL is
     # http://127.0.0.1:3870, so the web login works only on this port. Server,
-    # client and chorus-pi are all Chorus 0.21.1 (server since devrel-infra#291,
-    # 2026-10-07); 0.21.1 is the first release with pi's built-in MCP (Chorus
+    # client and chorus-pi are all Chorus 0.23.0 (server since devrel-infra#483,
+    # 2026-10-22). 0.21.1 was the first release with pi's built-in MCP (Chorus
     # #597, #598). devrel-infra's nightly release job proposes server upgrades;
     # move chorusVersion with them.
     chorusUrl = "http://127.0.0.1:3870";
-    chorusVersion = "0.21.1";
+    chorusVersion = "0.23.0";
 
     # Team Signet: LEGO/devrel-infra projects/aws-signet, reached through the
     # signet-team-tunnel launchd agent (darwin.nix) on 3860. The key is the one

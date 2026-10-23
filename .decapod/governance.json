@@ -55,6 +55,14 @@
         "just check (pass)",
         "nix eval headroom-proxy ProgramArguments"
       ]
+    },
+    {
+      "id": "ckpt-headroom-0410-2",
+      "summary": "Refresh the living-spec manifest for the OPERATIONS.md change",
+      "input_digest": "sha256:24e876896533f15bd9583dbe726f6d8691f4b1328ea7aaa27460d39c0003bdc6",
+      "proof_refs": [
+        "decapod validate (186 pass; only READINESS_PROFILE_REQUIRED, local-only)"
+      ]
     }
   ],
   "intents": {

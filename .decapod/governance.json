@@ -88,18 +88,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Max the token chain: CodeGraph direct in pi, Caveman telemetry off, Headroom state on /data\n\nden#62, den#63, Caveman max (telemetry off, 4.0.2 runtime, pi extension fix caveman#1376)",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Max the token chain: CodeGraph direct in pi, Caveman telemetry off, Headroom state on /data",
       "todo_ids": [
         "code_01m5ms3r2jbrtx0s"
       ],
-      "updated_at": "1792772571Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1792773082Z"
     },
     "trajectory": {
       "active_boundaries": [

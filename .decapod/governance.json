@@ -83,6 +83,14 @@
       "proof_refs": [
         "trajectory firmware-auto-apply-r2"
       ]
+    },
+    {
+      "id": "firmware-auto-apply-6",
+      "summary": "Record the local PROOF_HOOK blocker for the den#70 todo (DecapodLabs/decapod#1470)",
+      "input_digest": "sha256:c7418d2143b97012e09b216d412a160af13be6a3a79ffa7a11a23b1d6dd730c0",
+      "proof_refs": [
+        "trajectory firmware-auto-apply-r2"
+      ]
     }
   ],
   "intents": {
@@ -162,7 +170,7 @@
         "No flake.lock change",
         "paphos reboots only inside 05:00-06:30"
       ],
-      "artifact_hash": "sha256:a50fb42635fa56e53ee9965e89d5ca0bb467743e36d96951f359848a1948a064",
+      "artifact_hash": "sha256:0a77c552b48dfa393fe8ad7bb43374ac62c5bbf9e96fd7ce873fa3ed9943de8f",
       "checks": [
         {
           "name": "eval_paphos_locked",
@@ -205,10 +213,17 @@
             "intent_id": "intent:firmware-auto-apply-r2",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:firmware-auto-apply-r2",
+            "event_id": "event:5",
+            "intent_id": "intent:firmware-auto-apply-r2",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "firmware-auto-apply-r2": {
@@ -248,6 +263,27 @@
                 "validation_findings": [
                   "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy."
                 ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "local decapod govern project-check: pass=184 fail=1 — PROOF_HOOK_FAILED: 1 done TODO(s) are CLAIMED but not VERIFIED: feat_01m66jjt2vm7nkwx (den#70, merged as b79c9a5).",
+                  "decapod qa verify regen feat_01m66jjt2vm7nkwx -> 'decapod validate did not pass; completion verification failed'; decapod qa verify recover -> 'cannot recover verification baselines from a failing validation snapshot'. Local validate on macOS stops at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470).",
+                  "The todo exists only in the untracked local store (.decapod/data/decapod.db); no committed file references it, so CI's validate on a fresh checkout does not see it."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "guix/system.scm",
+                  "modules/paphos/ops.nix",
+                  "modules/paphos/system.nix"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux."
+                ]
               }
             ]
           }
@@ -256,6 +292,9 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
+        "The todo exists only in the untracked local store (.decapod/data/decapod.db); no committed file references it, so CI's validate on a fresh checkout does not see it.",
+        "decapod qa verify regen feat_01m66jjt2vm7nkwx -> 'decapod validate did not pass; completion verification failed'; decapod qa verify recover -> 'cannot recover verification baselines from a failing validation snapshot'. Local validate on macOS stops at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470).",
+        "local decapod govern project-check: pass=184 fail=1 — PROOF_HOOK_FAILED: 1 done TODO(s) are CLAIMED but not VERIFIED: feat_01m66jjt2vm7nkwx (den#70, merged as b79c9a5).",
         "mahakala: guix system build --dry-run with the new system.scm evaluated, no errors",
         "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv; at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
         "paphos config: autoUpgrade.dates=05:00 randomizedDelaySec=20min; services.fwupd.enable=true; paphos-firmware-update 04:30; paphos-firmware-reboot 06:00 with ConditionPathExists=/run/paphos-firmware-reboot",
@@ -283,6 +322,7 @@
       "task_id": "secu_01m67bgz0fj54b9m",
       "tool_calls": [],
       "unresolved_assumptions": [
+        "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux.",
         "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy."
       ]
     }

@@ -116,6 +116,14 @@
       "proof_refs": [
         "trajectory black-october-den-r3; pre-commit just check"
       ]
+    },
+    {
+      "id": "black-october-den-11",
+      "summary": "Record trajectory run black-october-den-r4 after the rebase onto 0dec639",
+      "input_digest": "sha256:8ba336f336d92609fd596abbe50510727ed9e8b67d5b994dd08ce43eeb5c850f",
+      "proof_refs": [
+        "trajectory black-october-den-r4"
+      ]
     }
   ],
   "intents": {
@@ -124,7 +132,7 @@
       "assumptions": [],
       "boundaries": [
         "Never reboot loving-kypris",
-        "No flake.lock change; MintRaven owns it (merged in #69)",
+        "No flake.lock or readiness-digest change; main's digests match this tree",
         "Passphrase unlock over initrd SSH on port 2222 stays available"
       ],
       "constraints": [
@@ -134,15 +142,14 @@
         "modules/paphos/ops.nix",
         "modules/oracle/system.nix",
         ".decapod/managed/specs/OPERATIONS.md",
-        ".decapod/managed/specs/SECURITY.md",
-        ".decapod/config.toml (reviewed_sources_digest)"
+        ".decapod/managed/specs/SECURITY.md"
       ],
       "created_sequence": 1,
       "id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
       "out_of_scope": [],
       "proof_requirements": [],
       "raw_intent": "Handle everything except rebooting loving-kypris; durable: every host auto-updates to the absolute latest on a schedule and reboots unattended, except loving-kypris.",
-      "refined_intent": "paphos and oracle upgrade daily with nixpkgs overridden to the nixos-unstable head; paphos reboots unattended in 05:00-06:30 with Tang network-bound LUKS unlock and initrd SSH as fallback; Forgejo listens on loopback; oracle LLMNR off; health-check alerts for a pending reboot and stale nixpkgs; readiness inventory re-reviewed after #69's flake.lock.",
+      "refined_intent": "paphos and oracle upgrade daily with nixpkgs overridden to the nixos-unstable head; paphos reboots unattended in 05:00-06:30 with Tang network-bound LUKS unlock and initrd SSH as fallback; Forgejo listens on loopback; oracle LLMNR off; health-check alerts for a pending reboot and stale nixpkgs.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -244,13 +251,13 @@
     "trajectory": {
       "active_boundaries": [
         "Never reboot loving-kypris",
-        "No flake.lock change; MintRaven owns it (merged in #69)",
+        "No flake.lock or readiness-digest change; main's digests match this tree",
         "Passphrase unlock over initrd SSH on port 2222 stays available"
       ],
-      "artifact_hash": "sha256:caa50fba55858a14effa671c9bf46a92ea413ac060a5ec46edee2350e8845ed1",
+      "artifact_hash": "sha256:ff0b76f69dbfc390916488ce24511ac7a2e0481fc69a9c9e81055c3cbea65d04",
       "checks": [
         {
-          "name": "decapod validate",
+          "name": "dagger_check",
           "status": "passed"
         },
         {
@@ -278,7 +285,7 @@
           "status": "passed"
         },
         {
-          "name": "readiness_inventory_rereviewed",
+          "name": "readiness_digests_match_main",
           "status": "passed"
         },
         {
@@ -286,7 +293,6 @@
           "status": "passed"
         }
       ],
-      "current_phase": "validation",
       "custody": {
         "events": [
           {
@@ -302,32 +308,25 @@
             "sequence": 3
           },
           {
-            "detail": "trajectory:black-october-den-r3",
+            "detail": "trajectory:black-october-den-r4",
             "event_id": "event:4",
             "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:black-october-den-r3",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "black-october-den-r3": {
+          "black-october-den-r4": {
             "evidence_only": true,
-            "id": "black-october-den-r3",
+            "id": "black-october-den-r4",
             "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
             "steps": [
               {
                 "action": "trajectory.record",
-                "command": "nix eval --raw path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath",
+                "command": "just dagger-check",
                 "custody_event_id": "event:4",
                 "observations": [
                   "modules/paphos/system.nix",
@@ -335,10 +334,8 @@
                   "modules/paphos/forgejo.nix",
                   "modules/paphos/ops.nix",
                   "modules/oracle/system.nix",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/VALIDATION.md",
                   ".decapod/config.toml",
+                  "Justfile",
                   "modules/paphos/system.nix",
                   "modules/paphos/hardware.nix",
                   "modules/paphos/forgejo.nix",
@@ -346,29 +343,26 @@
                   "modules/oracle/system.nix",
                   ".decapod/managed/specs/OPERATIONS.md",
                   ".decapod/managed/specs/SECURITY.md",
-                  ".decapod/config.toml",
-                  "rebased onto main 3216bee (#69, flake.lock nixpkgs e62746b); evaluated after the rebase",
-                  "paphos at locked nixpkgs e62746b: hrhdlg9pv80ci4wxad38ksfrcn59j69m-nixos-system-paphos-26.11.20261028.e62746b.drv",
-                  "paphos at nixos-unstable 31ecbac: 2wx9b2zhczazb10qpzlygdb3w5nykhcc-nixos-system-paphos-26.11.20261027.31ecbac.drv",
-                  "oracle at locked nixpkgs e62746b: 5j9a6srq2ksd8ira0x41ph2g92ypihdx-nixos-system-oracle-oci-26.11.20261028.e62746b.drv",
-                  "oracle at nixos-unstable 31ecbac: 0dx9s2bpq1n64cmnqb3md4qx8wlrl2lb-nixos-system-oracle-oci-26.11.20261027.31ecbac.drv; services.resolved.settings.Resolve.LLMNR evaluates to false with no rename warning",
-                  "paphos-health-check logic run live on paphos: build_date=20261020 age=10d; result reboot-pending-2d (booted kernel 7.0.3, current 7.3)",
-                  "curl from paphos to http://192.168.99.200:7500/adv returns the Tang advertisement",
-                  "readiness inventory: only flake.lock changed (#69); inventory_digest 33307daf -> 79c4f4b3; command_contract_digest ba340c52 unchanged; pinned alejandra-4.1.0 and shellcheck-0.11.0 store paths exist",
-                  "pre-commit hook (scripts/check-drvpaths.sh, just check-doom-darwin) passed on commit 4e42fad"
+                  "rebased onto main 0dec639 (#71); #69..#71 changed no file under modules/ and flake.lock is unchanged since 3216bee, so the drvPath evidence below still applies",
+                  "just dagger-check on 5bcf995: 6 passed (ci/decapod-overrides, ci/fmt, ci/nix-eval, ci/shellcheck, go-sdk/generate/stale, ci/decapod-validate)",
+                  "pre-commit hook passed on 5bcf995",
+                  "paphos at locked nixpkgs e62746b: hrhdlg9pv80ci4wxad38ksfrcn59j69m-nixos-system-paphos-26.11.20261028.e62746b.drv; at nixos-unstable 31ecbac: 2wx9b2zhczazb10qpzlygdb3w5nykhcc-nixos-system-paphos-26.11.20261027.31ecbac.drv",
+                  "oracle at locked nixpkgs e62746b: 5j9a6srq2ksd8ira0x41ph2g92ypihdx-nixos-system-oracle-oci-26.11.20261028.e62746b.drv; at nixos-unstable 31ecbac: 0dx9s2bpq1n64cmnqb3md4qx8wlrl2lb-nixos-system-oracle-oci-26.11.20261027.31ecbac.drv",
+                  "agent.init on this tree: inventory_digest ac54c222, command_contract_digest b02e5cca, equal to main's declared values",
+                  "paphos-health-check logic run live on paphos: result reboot-pending-2d (booted kernel 7.0.3, current 7.3); curl from paphos to http://192.168.99.200:7500/adv returns the Tang advertisement"
                 ],
                 "proof_refs": [
+                  "dagger_check",
+                  "pre_commit_just_check",
                   "eval_paphos_locked",
                   "eval_oracle_locked",
                   "eval_paphos_nixos_unstable",
                   "eval_oracle_nixos_unstable",
                   "health_check_logic_on_paphos",
                   "tang_reachable_from_paphos",
-                  "readiness_inventory_rereviewed",
-                  "pre_commit_just_check"
+                  "readiness_digests_match_main"
                 ],
                 "scope": [
-                  ".decapod/config.toml (reviewed_sources_digest)",
                   ".decapod/managed/specs/OPERATIONS.md",
                   ".decapod/managed/specs/SECURITY.md",
                   "modules/oracle/system.nix",
@@ -379,64 +373,33 @@
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the next paphos upgrade build. Without root.jwe that build fails and alerts nixos-upgrade-failed; the running system stays unchanged.",
+                  "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the merge. Without root.jwe the paphos upgrade build fails and alerts nixos-upgrade-failed; the running system stays unchanged.",
                   "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
                   "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md)."
                 ]
-              },
-              {
-                "action": "validation",
-                "command": "decapod validate",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".decapod/governance.json",
-                  ".decapod/governance.json",
-                  "validation epoch ve_8a676961d6d1a6fb completed with zero failures"
-                ],
-                "proof_refs": [
-                  "decapod validate"
-                ],
-                "scope": [
-                  ".decapod/config.toml (reviewed_sources_digest)",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/SECURITY.md",
-                  "modules/oracle/system.nix",
-                  "modules/paphos/forgejo.nix",
-                  "modules/paphos/hardware.nix",
-                  "modules/paphos/ops.nix",
-                  "modules/paphos/system.nix"
-                ],
-                "sequence": 5,
-                "validation_findings": []
               }
             ]
           }
         }
       },
       "declared_commands": [
-        "decapod rpc --op agent.init (inventory_digest, command_contract_digest)",
-        "decapod validate",
-        "nix eval --raw --override-input nixpkgs github:NixOS/nixpkgs/nixos-unstable path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath",
-        "nix eval --raw path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath"
+        "decapod rpc --op agent.init",
+        "just dagger-check",
+        "nix eval --raw [--override-input nixpkgs github:NixOS/nixpkgs/nixos-unstable] path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath"
       ],
       "destination": "pull request",
       "evidence": [
-        "curl from paphos to http://192.168.99.200:7500/adv returns the Tang advertisement",
-        "oracle at locked nixpkgs e62746b: 5j9a6srq2ksd8ira0x41ph2g92ypihdx-nixos-system-oracle-oci-26.11.20261028.e62746b.drv",
-        "oracle at nixos-unstable 31ecbac: 0dx9s2bpq1n64cmnqb3md4qx8wlrl2lb-nixos-system-oracle-oci-26.11.20261027.31ecbac.drv; services.resolved.settings.Resolve.LLMNR evaluates to false with no rename warning",
-        "paphos at locked nixpkgs e62746b: hrhdlg9pv80ci4wxad38ksfrcn59j69m-nixos-system-paphos-26.11.20261028.e62746b.drv",
-        "paphos at nixos-unstable 31ecbac: 2wx9b2zhczazb10qpzlygdb3w5nykhcc-nixos-system-paphos-26.11.20261027.31ecbac.drv",
-        "paphos-health-check logic run live on paphos: build_date=20261020 age=10d; result reboot-pending-2d (booted kernel 7.0.3, current 7.3)",
-        "pre-commit hook (scripts/check-drvpaths.sh, just check-doom-darwin) passed on commit 4e42fad",
-        "readiness inventory: only flake.lock changed (#69); inventory_digest 33307daf -> 79c4f4b3; command_contract_digest ba340c52 unchanged; pinned alejandra-4.1.0 and shellcheck-0.11.0 store paths exist",
-        "rebased onto main 3216bee (#69, flake.lock nixpkgs e62746b); evaluated after the rebase",
-        "validation epoch ve_8a676961d6d1a6fb completed with zero failures"
+        "agent.init on this tree: inventory_digest ac54c222, command_contract_digest b02e5cca, equal to main's declared values",
+        "just dagger-check on 5bcf995: 6 passed (ci/decapod-overrides, ci/fmt, ci/nix-eval, ci/shellcheck, go-sdk/generate/stale, ci/decapod-validate)",
+        "oracle at locked nixpkgs e62746b: 5j9a6srq2ksd8ira0x41ph2g92ypihdx-nixos-system-oracle-oci-26.11.20261028.e62746b.drv; at nixos-unstable 31ecbac: 0dx9s2bpq1n64cmnqb3md4qx8wlrl2lb-nixos-system-oracle-oci-26.11.20261027.31ecbac.drv",
+        "paphos at locked nixpkgs e62746b: hrhdlg9pv80ci4wxad38ksfrcn59j69m-nixos-system-paphos-26.11.20261028.e62746b.drv; at nixos-unstable 31ecbac: 2wx9b2zhczazb10qpzlygdb3w5nykhcc-nixos-system-paphos-26.11.20261027.31ecbac.drv",
+        "paphos-health-check logic run live on paphos: result reboot-pending-2d (booted kernel 7.0.3, current 7.3); curl from paphos to http://192.168.99.200:7500/adv returns the Tang advertisement",
+        "pre-commit hook passed on 5bcf995",
+        "rebased onto main 0dec639 (#71); #69..#71 changed no file under modules/ and flake.lock is unchanged since 3216bee, so the drvPath evidence below still applies"
       ],
       "inspected_files": [
         ".decapod/config.toml",
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/VALIDATION.md",
+        "Justfile",
         "modules/oracle/system.nix",
         "modules/paphos/forgejo.nix",
         "modules/paphos/hardware.nix",
@@ -445,8 +408,6 @@
       ],
       "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
       "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/governance.json",
         ".decapod/managed/specs/OPERATIONS.md",
         ".decapod/managed/specs/SECURITY.md",
         "modules/oracle/system.nix",
@@ -454,12 +415,8 @@
         "modules/paphos/hardware.nix",
         "modules/paphos/ops.nix",
         "modules/paphos/system.nix"
-      ],
-      "next_transitions": [
-        "publish"
       ],
       "repo_scope": [
-        ".decapod/config.toml (reviewed_sources_digest)",
         ".decapod/managed/specs/OPERATIONS.md",
         ".decapod/managed/specs/SECURITY.md",
         "modules/oracle/system.nix",
@@ -468,14 +425,14 @@
         "modules/paphos/ops.nix",
         "modules/paphos/system.nix"
       ],
-      "run_id": "black-october-den-r3",
+      "run_id": "black-october-den-r4",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "feat_01m66jjt2vm7nkwx",
       "tool_calls": [],
       "unresolved_assumptions": [
         "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
-        "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the next paphos upgrade build. Without root.jwe that build fails and alerts nixos-upgrade-failed; the running system stays unchanged.",
+        "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the merge. Without root.jwe the paphos upgrade build fails and alerts nixos-upgrade-failed; the running system stays unchanged.",
         "The unattended Tang unlock stays unproven until paphos reboots after enrollment."
       ]
     },

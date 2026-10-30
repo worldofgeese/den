@@ -4,6 +4,7 @@
              (gnu services linux)
              (gnu services sysctl)
              (gnu services firmware)
+             (gnu services mcron)
              (gnu system accounts)
              (nongnu packages linux)
              (nongnu packages firmware)
@@ -381,7 +382,16 @@ root ALL=(ALL) ALL
       (list `("fwupd/remotes.d/lvfs.conf"
               ,(plain-file "lvfs.conf"
                 "[fwupd Remote]\nEnabled=true\nTitle=Linux Vendor Firmware Service\nMetadataURI=https://cdn.fwupd.org/downloads/firmware.xml.xz\nReportURI=\nAutomaticReports=false\nAutomaticSecurityReports=false\nApprovalRequired=false\n"))))
-    (service nix-service-type
+;; LVFS firmware (BIOS, Thunderbolt, dbx) every six hours, so a laptop that
+    ;; sleeps at night still gets it. Capsules install on the next boot.
+    (simple-service 'fwupd-auto-apply mcron-service-type
+                    (list #~(job "30 */6 * * *"
+                                 (string-append
+                                  #$(file-append fwupd-nonfree "/bin/fwupdmgr")
+                                  " refresh --force >/dev/null 2>&1; "
+                                  #$(file-append fwupd-nonfree "/bin/fwupdmgr")
+                                  " update --assume-yes --no-reboot-check"))))
+        (service nix-service-type
              (nix-configuration
               (extra-config
                (list "trusted-users = root worldofgeese\n"

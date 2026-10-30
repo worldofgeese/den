@@ -588,7 +588,7 @@ pi offers CodeGraph's one tool, `codegraph_explore`, to the model directly
 
 ### Server auto-upgrade and human SSH keys (paphos, oracle)
 
-paphos (daily `03:30` local, reboots `05:00`-`06:30`) and oracle (daily
+paphos (daily `05:00` local, up to 20 minutes late, reboots `05:00`-`06:30`) and oracle (daily
 `04:00` UTC, reboots `04:00`-`05:00`) run `nixos-upgrade.service` against the
 published flake `github:worldofgeese/den`, not a local checkout. They build
 whatever is on `main`, with one exception: nixpkgs. Each run passes
@@ -634,7 +634,21 @@ Without `root.jwe` the upgrade build fails and alerts as
 `nixos-upgrade-failed`.
 
 The reboot window opens after mother's Monday `04:00` DSM auto-update, so
-Tang is up when paphos boots.
+Tang is up when paphos boots. The run starts inside the window because NixOS
+checks the window when the build finishes. Outside it, the run skips the
+reboot and, when the kernel changed, the switch too. Until 2026-10-30 paphos
+started at `03:30`, so it skipped every reboot.
+
+Firmware: paphos runs fwupd. `paphos-firmware-update` (daily `04:30`) applies
+what LVFS offers, such as UEFI dbx updates. A capsule installs on the next
+boot, so `paphos-firmware-reboot` (daily `06:00`, inside the window) reboots
+when an update is pending (fwupd `UpdateState` 1 or 4), unless
+`nixos-upgrade.service` is still running. mahakala applies LVFS firmware every
+six hours through an mcron job in `guix/system.scm`; a laptop is often asleep
+at night, and its capsules install at the next reboot. loving-kypris is not
+managed by den: it runs the same fwupd check daily at `04:00` from local units,
+and bootc (`bootc-fetch-apply-updates.timer`, daily `04:30`) applies its uCore
+image updates.
 
 Invariant: evaluating a server configuration MUST NOT depend on mutable remote
 content. A hash-pinned fetch of a URL whose content can change (for example

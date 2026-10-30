@@ -32,22 +32,53 @@
     }
   },
   "change": {
-    "id": "change_01M67BGR1QW0C11KY96FY6YJVF",
+    "id": "change_01M67C3VTYQ7PSAGRVZFFAYDMW",
     "base_commit": "ff3a3a63fc37cc781eb6c72371bc2a76f2a6afe7",
     "target_base": "origin/main"
   },
+  "claims": {
+    "paphos-firmware-cycle": {
+      "statement": "paphos applies LVFS firmware at 04:30 and reboots for a pending capsule at 06:00 inside its window, and its upgrade reboots land inside 05:00-06:30.",
+      "falsifier": "After deploy, a staged kernel or pending capsule is not booted within a day, or the journal shows 'Outside of configured reboot window, skipping.' at a 05:00 run.",
+      "status": "open"
+    },
+    "paphos-mahakala-evaluate": {
+      "statement": "paphos evaluates at the locked nixpkgs and nixos-unstable, and mahakala's system.scm evaluates, with the firmware jobs and the 05:00 upgrade time.",
+      "falsifier": "Either nix eval of paphos' toplevel or guix system build --dry-run on mahakala fails.",
+      "status": "supported",
+      "proof_refs": [
+        "trajectory branch_01M67C3VXMGFZTJAE201MSYKPJ"
+      ]
+    }
+  },
   "checkpoints": [
     {
-      "id": "ckpt-beads-config-1",
-      "summary": "Untrack bd's Dolt server config; desktop ssh user taoha",
-      "input_digest": "sha256:4ff8606088161ff18e23effe25a341088e600b55926372001947961dc5e9d60d",
+      "id": "firmware-auto-apply-1",
+      "summary": "Auto-apply LVFS firmware on paphos and mahakala; start paphos upgrades inside the reboot window",
+      "input_digest": "sha256:cc5476def7a9e8789394742a00ee3329e3407ac9f2eb7902b488115f0e49b936",
       "proof_refs": [
-        "beads doltserver.go writes the config at each start; bd doctor's gitignore lists it"
+        "trajectory branch_01M67C3VXMGFZTJAE201MSYKPJ"
+      ]
+    },
+    {
+      "id": "firmware-auto-apply-2",
+      "summary": "Record the project-check receipt",
+      "input_digest": "sha256:669a042c037af74261b706da0da33336ababeb3c7390912d49aa9cedbb7ceb00",
+      "proof_refs": [
+        "decapod govern project-check"
+      ]
+    },
+    {
+      "id": "firmware-auto-apply-3",
+      "summary": "Auto-apply LVFS firmware on paphos and mahakala; start paphos upgrades inside the reboot window; rebased onto main f7cabf2",
+      "input_digest": "sha256:9a34c0b807242f040678d5d3e19a88c76c60b212d5ab173da63378cb2f4677b0",
+      "proof_refs": [
+        "trajectory branch_01M67C3VXMGFZTJAE201MSYKPJ"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M67BGR1QW0C11KY96FY6YJVF": {
+    "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -57,11 +88,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
+      "id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Untrack the bd Dolt server config and fix the desktop ssh user",
-      "refined_intent": "Untrack the bd Dolt server config and fix the desktop ssh user",
+      "raw_intent": "Auto-apply LVFS firmware updates on paphos (NixOS) and mahakala (Guix)",
+      "refined_intent": "Auto-apply LVFS firmware updates on paphos (NixOS) and mahakala (Guix)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -74,56 +105,94 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Stop tracking .beads/dolt-server-config.yaml, which bd 1.1.0 rewrites at each server start with a host-specific cfg_dir, and set the desktop ssh user to the Windows account taoha",
+      "intent": "Auto-apply LVFS firmware updates on paphos (NixOS) and mahakala (Guix)",
       "phases": [],
       "proof_hooks": [
-        "just check"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "Component boundaries are unchanged: fwupd already runs on mahakala and the upgrade units already exist; OPERATIONS.md and SECURITY.md describe the new jobs.",
+          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
+          "spec_material_hash": "cbfa311d7f1d39c4791bdad1a943e38f818de0dafb851667c1fd42c49c554457"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "No command, recipe, module option or flake output changes: the change adds systemd units on paphos, an mcron job on mahakala, and moves paphos' upgrade time.",
+          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
+          "spec_material_hash": "85748df9d438e5a75a2f2a3e0a5bb82aae826129722baabc6580678b408dc1bd"
+        },
+        {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "Adds the trust-boundary row for paphos and mahakala applying LVFS firmware unattended (signed metadata, vendor-signed capsules).",
+          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
+          "spec_material_hash": "6bcfbab32fb6ebd61480b20d221401cad5fbc074a29958c214f03e7d0326841e"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Untrack the bd Dolt server config and fix the desktop ssh user",
+      "title": "Auto-apply LVFS firmware updates on paphos (NixOS) and mahakala (Guix)",
       "todo_ids": [
-        "bugs_01m67bg58tf9dtrm"
+        "secu_01m67bgz0fj54b9m"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793395893Z"
+      "updated_at": "1793396550Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "No flake.lock change",
+        "loving-kypris is outside den (local units)",
+        "paphos reboots only inside 05:00-06:30, after mother's Monday DSM update window"
       ],
-      "artifact_hash": "sha256:3e054a2d726600b868f10aaa9b3dd28e10cf7511ad09bd1a2bb49aba3ee70c0f",
+      "artifact_hash": "sha256:724b18ee5d4c49852382af59e6e7f8744a57b107ee99be58e88e4f803bcc7def",
       "checks": [
         {
-          "name": "bd-writes-config-at-start",
+          "name": "eval_paphos_locked",
           "status": "passed"
         },
         {
-          "name": "check-ignore",
+          "name": "eval_paphos_nixos_unstable",
+          "status": "passed"
+        },
+        {
+          "name": "guix_dry_run_mahakala",
+          "status": "passed"
+        },
+        {
+          "name": "loving_kypris_fwupd_check_detects_pending",
+          "status": "passed"
+        },
+        {
+          "name": "paphos_schedule_attrs",
           "status": "passed"
         }
       ],
-      "current_phase": "validation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
+            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
+            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M67BGR3S2KZ0VJTDND91PDT8",
+            "detail": "trajectory:branch_01M67C3VXMGFZTJAE201MSYKPJ",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
+            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -132,63 +201,99 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M67BGR3S2KZ0VJTDND91PDT8": {
+          "branch_01M67C3VXMGFZTJAE201MSYKPJ": {
             "evidence_only": true,
-            "id": "branch_01M67BGR3S2KZ0VJTDND91PDT8",
-            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
+            "id": "branch_01M67C3VXMGFZTJAE201MSYKPJ",
+            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
             "steps": [
               {
-                "action": "validation",
+                "action": "trajectory.record",
+                "command": "nix eval paphos toplevel drvPath (locked and --override-input nixpkgs nixos-unstable)",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".beads/.gitignore",
-                  ".beads/dolt-server-config.yaml",
-                  "modules/ssh.nix",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  "gastownhall/beads internal/doltserver/doltserver.go renders the config with the absolute cfgDir at each server start; cmd/bd/doctor/gitignore.go ignores dolt-server-config.yaml",
-                  "QuickGrove: mahakala needs /home/worldofgeese/..., whoami on desktop: desktop-6071t21\\taoha; paphos sshd log: invalid user taoha from the Windows host"
+                  "modules/paphos/system.nix",
+                  "modules/paphos/ops.nix",
+                  "guix/system.scm",
+                  "modules/oracle/system.nix",
+                  "modules/paphos/system.nix",
+                  "modules/paphos/ops.nix",
+                  "guix/system.scm",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv",
+                  "paphos at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
+                  "paphos config: autoUpgrade.dates=05:00 randomizedDelaySec=20min; services.fwupd.enable=true; paphos-firmware-update 04:30; paphos-firmware-reboot 06:00 with ConditionPathExists=/run/paphos-firmware-reboot",
+                  "mahakala: guix system build --dry-run with the new system.scm evaluated (533.4 MB would be downloaded), no errors",
+                  "the same UpdateState 1/4 check on loving-kypris flagged the pending UEFI dbx update, and the next reboot applied it",
+                  "bug found: paphos nixos-upgrade at 03:30 vs rebootWindow 05:00-06:30 logged 'Outside of configured reboot window, skipping.' on 2026-10-30"
                 ],
                 "proof_refs": [
-                  "bd-writes-config-at-start",
-                  "check-ignore"
+                  "eval_paphos_locked",
+                  "eval_paphos_nixos_unstable",
+                  "paphos_schedule_attrs",
+                  "guix_dry_run_mahakala",
+                  "loving_kypris_fwupd_check_detects_pending"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
+                "validation_findings": [
+                  "LVFS currently offers nothing for paphos' CompuLab fitlet (BIOS 2015); fwupd still applies UEFI dbx and any future vendor uploads.",
+                  "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy."
+                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "guix system build --dry-run -L guix-packages guix/system.scm (root channels guix nonguix rosenthal, on mahakala)",
+        "nix eval paphos toplevel drvPath (locked and --override-input nixpkgs nixos-unstable)"
+      ],
       "destination": "pull request",
       "evidence": [
-        "QuickGrove: mahakala needs /home/worldofgeese/..., whoami on desktop: desktop-6071t21\\taoha; paphos sshd log: invalid user taoha from the Windows host",
-        "gastownhall/beads internal/doltserver/doltserver.go renders the config with the absolute cfgDir at each server start; cmd/bd/doctor/gitignore.go ignores dolt-server-config.yaml"
+        "bug found: paphos nixos-upgrade at 03:30 vs rebootWindow 05:00-06:30 logged 'Outside of configured reboot window, skipping.' on 2026-10-30",
+        "mahakala: guix system build --dry-run with the new system.scm evaluated (533.4 MB would be downloaded), no errors",
+        "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv",
+        "paphos at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
+        "paphos config: autoUpgrade.dates=05:00 randomizedDelaySec=20min; services.fwupd.enable=true; paphos-firmware-update 04:30; paphos-firmware-reboot 06:00 with ConditionPathExists=/run/paphos-firmware-reboot",
+        "the same UpdateState 1/4 check on loving-kypris flagged the pending UEFI dbx update, and the next reboot applied it"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
+      "inspected_files": [
+        "guix/system.scm",
+        "modules/oracle/system.nix",
+        "modules/paphos/ops.nix",
+        "modules/paphos/system.nix"
+      ],
+      "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
       "modified_files": [
-        ".beads/.gitignore",
-        ".beads/dolt-server-config.yaml",
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        "modules/ssh.nix"
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "guix/system.scm",
+        "modules/paphos/ops.nix",
+        "modules/paphos/system.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".beads/.gitignore, .beads/dolt-server-config.yaml, modules/ssh.nix, ARCHITECTURE.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "guix/system.scm",
+        "modules/paphos/ops.nix",
+        "modules/paphos/system.nix",
         "root"
       ],
-      "run_id": "branch_01M67BGR3S2KZ0VJTDND91PDT8",
+      "run_id": "branch_01M67C3VXMGFZTJAE201MSYKPJ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bugs_01m67bg58tf9dtrm",
+      "task_id": "secu_01m67bgz0fj54b9m",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "LVFS currently offers nothing for paphos' CompuLab fitlet (BIOS 2015); fwupd still applies UEFI dbx and any future vendor uploads.",
+        "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy."
+      ]
     }
   },
   "legacy_digests": {

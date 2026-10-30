@@ -75,6 +75,8 @@ type prSnapshot struct {
 	ChangedFiles int
 	// ChecksIncomplete: GitHub has more check contexts than the query read.
 	ChecksIncomplete bool
+	// LabelsIncomplete: a replay did not read the whole label history.
+	LabelsIncomplete bool
 	Unresolved       int
 }
 
@@ -106,6 +108,9 @@ var mergeRules = []mergeRule{
 		return ""
 	}},
 	{"labels", false, func(s *prSnapshot, _ mergePolicy) string {
+		if s.LabelsIncomplete {
+			return "its label history is longer than the rules read; a person decides"
+		}
 		for _, l := range s.Labels {
 			for _, stop := range stopLabels {
 				if strings.EqualFold(l, stop) {
@@ -325,6 +330,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
       author { __typename login }
       labels(first: 50) { nodes { name } }
       timelineItems(first: 100, itemTypes: [LABELED_EVENT, UNLABELED_EVENT]) {
+        pageInfo { hasNextPage }
         nodes {
           __typename
           ... on LabeledEvent { createdAt label { name } }
@@ -376,7 +382,8 @@ type gqlPR struct {
 	Author         *gqlActor
 	Labels         struct{ Nodes []struct{ Name string } }
 	TimelineItems  struct {
-		Nodes []struct {
+		PageInfo struct{ HasNextPage bool }
+		Nodes    []struct {
 			Typename  string `json:"__typename"`
 			CreatedAt time.Time
 			Label     struct{ Name string }
@@ -449,6 +456,8 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 		return cutoff.IsZero() || (t != nil && !t.After(cutoff))
 	}
 	if replay {
+		// A later page can hold a stop label from before the merge.
+		s.LabelsIncomplete = pr.TimelineItems.PageInfo.HasNextPage
 		on := map[string]bool{}
 		var order []string
 		for _, e := range pr.TimelineItems.Nodes {

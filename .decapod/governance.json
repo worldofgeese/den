@@ -62,6 +62,15 @@
       "proof_refs": [
         "just dagger-check 7/7 with two new fixture cases"
       ]
+    },
+    {
+      "id": "ckpt-dagger-p0-4",
+      "summary": "Living specs: the merge API in INTENT, ARCHITECTURE and INTERFACES (above the generated marker); refuse a replay when the label history is incomplete",
+      "input_digest": "sha256:61a64211fddbb6dc78b7078dcb961a9447d6f18d239cc12ecd7fe71106786005",
+      "proof_refs": [
+        "just dagger-check 7/7 with a new fixture case",
+        "the authored sections survive specs.refresh"
+      ]
     }
   ],
   "intents": {

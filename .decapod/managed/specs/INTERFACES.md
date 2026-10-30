@@ -248,11 +248,41 @@ These commands do not force an immediate reboot. The next planned boot verifies 
 | `just ghcr-login` (M-02877) | Replaces the `ghcr.io` internet-password item (security domain `com.apple.container.registry`) with gh's token under an any-app ACL | `security`'s exit status |
 | `/etc/homebrew/brew.env` | `HOMEBREW_NO_ENV_HINTS=1`, `HOMEBREW_SERVICES_NO_DOMAIN_WARNING=1` for every brew invocation | n/a |
 
+## Dagger ci Module
+
+`.dagger/modules/ci` is a public Go module. It names no host, account or
+company: each repository gives those as settings in its own `dagger.toml`
+(plan D6). AEC installs it at a pinned commit (plan, Shared module
+interface).
+
+- **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
+  `ci:decapod-overrides`, `ci:decapod-validate` and `ci:automerge-rules`.
+  VALIDATION.md (Dagger Checks) maps them to the `just check` steps.
+- **`automerge-dry-run --token <secret> --pr <n>`** judges an open pull
+  request by the merge rules, and prints the verdict and the merge method.
+- **`automerge-replay --token <secret> [--count 30]`** judges the newest
+  merged pull requests (1 to 100) as of their merge, and prints a Markdown
+  table.
+- **Read-only boundary.** Both functions only read GitHub. They write no
+  comment, status, label or merge, and read access is enough for the token.
+  Live merges come in plan P4.
+- **Settings** (`[modules.ci.settings]`): `repository` (owner/name),
+  `authors` (a bot is `app/<login>`), `reviewer` (the login whose review of
+  the head counts) and `riskyPaths` (path prefixes that a person merges).
+  Each one is optional, and an empty value refuses.
+- **Incomplete data refuses.** When GitHub has more changed files, check
+  contexts or label events than one query reads, the rules refuse.
+
+The token is a Dagger secret, for example `env://GH_TOKEN`. On M-02877,
+`DAGGER_ENGINE=container+podman://den-dagger-engine` is a session variable.
+Make the container once with `just dagger-check`, then call for example
+`dagger call ci automerge-dry-run --token env://GH_TOKEN --pr 73`.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `f32a99b176561b1fa7323124b7c0455bb03b42f6cb62b5d7f5490be911f59265`
+- Repository signal fingerprint: `b53a73f1940e652f8e72adc2ac674e8d5af9afd246434df408d0b26eb7df0a82`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

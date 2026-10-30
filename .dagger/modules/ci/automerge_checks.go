@@ -61,6 +61,7 @@ func ruleCases() []string {
 		{"stacked on another branch", func(s *prSnapshot) { s.Base = "feature" }, false, "stacked"},
 		{"labelled Hold", func(s *prSnapshot) { s.Labels = []string{"Hold"} }, false, "labels"},
 		{"labelled needs-human", func(s *prSnapshot) { s.Labels = []string{"needs-human"} }, false, "labels"},
+		{"a label history longer than the rules read", func(s *prSnapshot) { s.LabelsIncomplete = true }, true, "labels"},
 		{"an author outside the list", func(s *prSnapshot) { s.Author = "mallory" }, false, "author"},
 		{"a bot in the list", func(s *prSnapshot) { s.Author = "app/dependabot" }, false, ""},
 		{"a risky path", func(s *prSnapshot) { s.Files = []string{"secretspec.age"} }, false, "risky-paths"},

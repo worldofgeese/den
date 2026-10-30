@@ -182,7 +182,8 @@ configure Olivetti separately for this workflow.
 | `pbpaste \| just secretspec-se-setup` | New-Mac recovery from the password-manager backup key | `Justfile` |
 | `just secretspec-age-backup` | Copies the backup key from the old Keychain item to the clipboard; cleared after 60 s | `Justfile` |
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
-| `~/.pi/agent/mcp.json` | pi's built-in MCP config. Activation merges the declared `piAgent.mcpServers` in by name (`nixos` on every host; `chorus` and `github-spaces` on M-02877) and keeps every other entry. Credentials are `${VAR}` or `!command` values, never literals | `modules/pi.nix` |
+| `~/.pi/agent/mcp.json` | pi's built-in MCP config. Activation merges the declared `piAgent.mcpServers` in by name (`nixos` on every host; `chorus`, `github-spaces` and `codegraph` on M-02877), deletes each `piAgent.removedMcpServers` name, and keeps every other entry. M-02877 deletes `context-mode`: the context-mode pi package registers its tools through its own MCP bridge, and the entry started a second server with 11 duplicate tools (den#55). Credentials are `${VAR}` or `!command` values, never literals | `modules/pi.nix` |
+| `~/.pi/agent/settings.json` `skills` | pi's skill filters. Activation adds each declared `piAgent.skills` entry that is missing, after the existing entries, and never deletes one. On M-02877 the one entry is `-~/.agents/skills/research`: see pi Team Integrations | `modules/pi.nix` |
 
 ## pi Team Integrations (M-02877)
 `modules/M-02877/agent-integrations.nix` connects pi, and the other agents on
@@ -191,7 +192,7 @@ installed on the personal hosts.
 
 | Service | Endpoint | Credential | Consumers |
 |---|---|---|---|
-| Chorus (`projects/aws-chorus`, server v0.23.0) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from `chorus-api-key`: secretspec, else the last-known-good cache `~/.local/state/chorus-api-key.cache`; agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.23.0`; the `chorus-pi-daemon` launchd agent |
+| Chorus (`projects/aws-chorus`, server v0.23.0) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from `chorus-api-key`: secretspec, else the last-known-good cache `~/.local/state/chorus-api-key.cache`; agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.23.0`; the `chorus-pi-daemon` launchd agent. Both get `CHORUS_URL` and `CHORUS_SUBMIT_GATE=block` from `chorusEnv` |
 | Team Signet (`projects/aws-signet`) | `http://127.0.0.1:3860` through `signet-team-tunnel` | `~/.config/signet/token`, scoped to agent `tao.hansen` | every Signet client: `SIGNET_DAEMON_URL`, `SIGNET_AGENT_ID` and `SIGNET_API_KEY` in the session environment, and in the daemon's |
 | Team Friendship Hour (`projects/aws-tfh`) | `http://127.0.0.1:3880` through `tfh-tunnel` | none: tfh has no login, so the tunnel is the only access control | a browser |
 | Copilot Spaces | `https://api.githubcopilot.com/mcp/x/copilot_spaces` | `gh auth token` (OAuth, no PAT) | the `techwriter` pi agent |
@@ -201,14 +202,31 @@ installed on the personal hosts.
 rejects anything else. Activation installs and removes them through `pi`
 itself, so `settings.json` stays pi's file.
 
-The pins move by hand to the newest release. On 2026-10-23 they moved to
-ponytail 5.3.2 (`modules/M-02877/token-toolchain.nix`) and to Chorus 0.23.0
-(`chorusVersion`, the CLI and `chorus-pi`), because the team server runs
-0.23.0. The personal Signet container moved to
-`ghcr.io/signet-ai/signet:0.237.14` (`modules/M-02877/darwin.nix`). The
-container reads that pin only when it is created. To move a running container
-to a new pin, back up `~/.agents`, boot the `signet-container` agent out, run
-`podman rm -f signet`, and bootstrap the agent again.
+The pins move by hand to the newest release. On 2026-10-23 Chorus moved to
+0.23.0 (`chorusVersion`, the CLI and `chorus-pi`), because the team server
+runs 0.23.0. On 2026-10-30 ponytail moved to 5.3.3
+(`modules/M-02877/token-toolchain.nix`), and the personal Signet container
+moved to `ghcr.io/signet-ai/signet:0.238.0` (`modules/M-02877/darwin.nix`),
+the release that team Signet runs. The container reads that pin only when it
+is created. To move a running container to a new pin, back up `~/.agents`,
+boot the `signet-container` agent out, run `podman rm -f signet`, and
+bootstrap the agent again.
+
+Chorus 0.23.0 adds a pre-submit read-back gate to chorus-pi (Chorus#631).
+`CHORUS_SUBMIT_GATE=block` refuses `chorus_submit_for_verify` for a task that
+the agent did not read back with `chorus_get_task` after its last change. It
+refuses `chorus_pm_submit_proposal` unless a `chorus_pm_validate_proposal`
+after the last draft edit reported the proposal valid. The refusal tells the
+agent which call to make. `warn` only shows a TUI notice, and the pi that the daemon wakes has no
+TUI.
+
+chorus-pi has a `research` skill, which its idea and proposal skills load as
+`/skill:research`. mattpocock/skills has a skill with the same name. The
+skills CLI installs that skill in `~/.agents/skills/research`, and topgrade's
+`skills` step installs it again at each run. pi keeps the user skill on a name
+collision, so `piAgent.skills` excludes `~/.agents/skills/research` from pi
+only. Claude Code and Codex keep it. In pi, the mattpocock skill is
+`research-notes`, a copy with a different name in `~/.agents/skills`.
 
 ## Mahakala Maintenance Interface
 | Command or setting | Reads | Writes | Scope | Proof |
@@ -224,6 +242,7 @@ These commands do not force an immediate reboot. The next planned boot verifies 
 | Command or file | Effect | Exit |
 |---|---|---|
 | `scripts/cask-app-preflight.sh` (first step of `just deploy-darwin`) | Runs `brew update`; reinstalls into `~/Applications` every app cask whose recorded appdir is not owned by the user and that is outdated (`brew outdated --cask`, non-greedy, the set that `brew bundle` upgrades) or an empty shell, parking and restoring its CLI symlinks, trashing the old copy when the appdir is writable and otherwise printing an optional admin `rm -rf`; moves a Caskroom backup left by a failed upgrade to `~/.Trash` when the live app exists; lists the apps of outdated casks that have non-user-owned files | 0 = proceed; 1 = a reinstall failed (Caskroom record restored), or prints the `osascript ... chown -R` fix, and stops the deploy |
+| `scripts/deploy-freshness.sh` (first step of `just deploy-darwin`) | Runs `git fetch origin main` (30 s limit; on failure it uses the last fetched ref), then requires that `HEAD` contains `origin/main`. `DEN_DEPLOY_STALE=1` skips the check, for a rollback on purpose | 0 = proceed; 1 = `HEAD` does not contain `origin/main`; it lists the missing commits and stops the deploy |
 | `just update-darwin` (topgrade "Flake inputs" on M-02877) | `nix flake update` of every root input except `darwin-skip-inputs`, under the same 900 s SIGKILL guard as `just update` | nix's exit status |
 | `just cachix-push [target]` | `target` starting with `/` is pushed as a store path (after `readlink -f`); otherwise it is a flake attribute that is built, then pushed | cachix's exit status; callers treat failure as a warning |
 | `just ghcr-login` (M-02877) | Replaces the `ghcr.io` internet-password item (security domain `com.apple.container.registry`) with gh's token under an any-app ACL | `security`'s exit status |

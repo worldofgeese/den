@@ -7,10 +7,14 @@
   # the declared entries in and leaves every other entry alone:
   #   - mcpServers: a declared server replaces the entry of the same name, so
   #     a `/mcp` change to a declared server lasts until the next switch. Other
-  #     servers are untouched.
+  #     servers are untouched, except removedMcpServers, which are deleted by
+  #     name.
   #   - packages: each declared spec is pinned (`npm:name@version`). A listed
   #     entry with the same name at another version is removed and the pinned
   #     one installed through pi itself. removedPackages are removed by name.
+  #   - skills: each declared resource filter is added to settings.json's
+  #     `skills` array when it is missing. Other entries, such as `pi config`
+  #     toggles, stay. Activation never deletes an entry.
   # A failed install (no network) warns and leaves the rest of activation to
   # run; the next switch retries.
   #
@@ -42,6 +46,11 @@
           `!command` value, which pi resolves when it connects.
         '';
       };
+      removedMcpServers = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        description = "Server names to delete from `mcpServers` in ~/.pi/agent/mcp.json at each switch.";
+      };
       packages = lib.mkOption {
         type = lib.types.listOf (lib.types.strMatching "npm:.+@[^@/]+");
         default = [];
@@ -52,6 +61,18 @@
         default = [];
         description = "pi packages to remove, by source without a version (`npm:name`).";
       };
+      skills = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [];
+        example = ["-/Users/me/.agents/skills/research"];
+        description = ''
+          Entries for `skills` in ~/.pi/agent/settings.json, in pi's resource
+          filter syntax (docs/settings.md, Resources): a path, `!glob`,
+          `+path` or `-path`. A `-path` entry stops pi from loading one
+          discovered skill, such as a user skill whose name collides with a
+          package skill.
+        '';
+      };
     };
 
     config.home.activation = {
@@ -60,7 +81,8 @@
         current='{}'
         [ -e "$mcp" ] && current="$(cat "$mcp")"
         if merged="$(printf '%s' "$current" | ${jq} --slurpfile d ${declaredMcp} \
-            '.mcpServers = ((.mcpServers // {}) + $d[0].mcpServers)')"; then
+            --argjson removed ${lib.escapeShellArg (builtins.toJSON cfg.removedMcpServers)} \
+            '.mcpServers = ((.mcpServers // {}) + $d[0].mcpServers | with_entries(select(.key as $k | $removed | index($k) | not)))')"; then
           if [ ! -e "$mcp" ] || [ "$merged" != "$(${jq} . "$mcp")" ]; then
             # BSD install cannot read a pipe, so write beside the target and
             # rename, which also keeps a reader from seeing half a file.
@@ -100,6 +122,28 @@
           fi
         done
       '';
+
+      # After piPackages, because `pi install` and `pi remove` rewrite
+      # settings.json. The declared entries go after the existing ones, in
+      # declared order.
+      piSkills = lib.mkIf (cfg.skills != []) (lib.hm.dag.entryAfter ["writeBoundary" "piPackages"] ''
+        settings=${lib.escapeShellArg "${agentDir}/settings.json"}
+        current='{}'
+        [ -e "$settings" ] && current="$(cat "$settings")"
+        if merged="$(printf '%s' "$current" | ${jq} --argjson d ${lib.escapeShellArg (builtins.toJSON cfg.skills)} \
+            '.skills = ((.skills // []) as $s | $s + ($d - $s))')"; then
+          if [ ! -e "$settings" ] || [ "$merged" != "$(${jq} . "$settings")" ]; then
+            run mkdir -p ${lib.escapeShellArg agentDir}
+            if [ -z "''${DRY_RUN:-}" ]; then
+              (umask 077 && printf '%s\n' "$merged" >"$settings.hm-tmp") && mv "$settings.hm-tmp" "$settings"
+            else
+              echo "would write $settings"
+            fi
+          fi
+        else
+          warnEcho "pi: $settings is not valid JSON; left it unchanged"
+        fi
+      '');
     };
   };
 }

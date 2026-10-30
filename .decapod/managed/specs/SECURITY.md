@@ -78,6 +78,7 @@ flowchart LR
 | pr-reviewer GitHub token (M-02877) | `~/Library/Application Support/pr-reviewer/config.toml`, AES-GCM encrypted under a sibling 0600 keyfile plus a key derived from IOPlatformUUID and `$USER`; never in Nix | manual: `pr-reviewer config set-token` | `com.dktaohan.pr-reviewer` launchd agent; passed to git per-process via `GIT_CONFIG_*` env, never written to a clone's `.git/config` |
 | pr-reviewer gateway virtual key (M-02877) | `~/Library/Application Support/pr-reviewer/gateway.key`, plaintext, 0600, FileVault at rest; a dedicated key so a locked keybag cannot block background reviews; never in Nix (the store holds only its path) | manual: replace the file | `com.dktaohan.pr-reviewer`'s claude harness, read per call by `apiKeyHelper` |
 | Gateway key last-known-good cache (M-02877, any host using `gateway.keyCommand`) | `~/.local/state/gateway-key.cache`, plaintext, 0600, FileVault at rest; copy of `LEGO_GATEWAY_API_KEY` written by `gateway.keyCommand` after each successful secretspec lookup, so a locked keybag does not fail agents in flight; never in Nix | automatic: refreshed on the next unlocked lookup after the secret changes; delete the file to force a fresh lookup | `gateway.keyCommand` (pi, Caveman Code, omp, Claude Code shell token, Doom agent-shell), read only when secretspec misses |
+| Team Signet API key (M-02877) | `~/.config/signet/token`, 0600, from LEGO/devrel-infra `projects/aws-signet` `scripts/enroll.sh`. `signet connect pi` also writes it into the header of `~/.pi/agent/extensions/signet-pi.js`, which activation (`signetPiExtensionMode`) sets to 0600 at each switch. Never in Nix | manual: enroll again, then run `signet connect pi` again | every Signet client through `SIGNET_API_KEY`; the pi extension uses its copy when `SIGNET_API_KEY` is unset |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
 
@@ -110,6 +111,13 @@ value against the built closure and confirm zero matches. Done for `b9d6b00`.
 A prior violation of this invariant -- a `vk_...` key pasted into an untracked
 `~/.cave/agent/models.json` -- is recorded as `home-manager-l23`; note that it
 persisted precisely because the file was unmanaged, so no deploy could correct it.
+
+On 2026-10-30 the team Signet key was readable by every local account. `signet
+connect pi` writes the key into `signet-pi.js` with mode 0644, under
+`~/.pi/agent/extensions/` at 0755, while `~/.config/signet/token` holds it at
+0600. The file is outside git and the Nix store, so the invariant above holds.
+Activation now sets the file to 0600 at each switch, because a Signet sync can
+write it again.
 
 ## Security Testing
 | Test Type | Cadence | Tooling |

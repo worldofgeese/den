@@ -27,6 +27,17 @@ updated lock. Generation 343 (2026-10-23, nixpkgs 5adc5083) came from such a
 run. After a topgrade run changes `flake.lock`, commit the lock in its own PR
 from a workspace, when the deploy succeeds.
 
+The checkout must also contain `origin/main`. Agents merge through PRs from
+workspaces, and nobody pulls the main checkout, so it falls behind. On
+2026-10-30 topgrade deployed a main checkout that did not have PRs #52, #64,
+#65 and #66 (11 commits). The deploy reported success, and it took Chorus
+back from 0.23.0 to 0.21.1 and removed the CodeGraph `exposure = "direct"`.
+`scripts/deploy-freshness.sh`, the first step of `just deploy-darwin`, now
+stops a deploy from a commit that does not contain `origin/main`, and lists
+the missing commits. To recover, commit or stash the local edits, run
+`git pull --ff-only`, and deploy again. To deploy an older commit on purpose,
+set `DEN_DEPLOY_STALE=1`.
+
 The two fixes from that update, both no-ops once upstream changes:
 - Lix: `common-lix.nix` passes `-Dmimalloc=disabled`, which Lix 2.95.4's
   `meson.options` no longer has, so configure stops with 'Unknown option'.
@@ -208,6 +219,19 @@ ends the SSM session and launchd reconnects to the current task. On
 2026-10-06 a session stayed up and kept the port bound while every request
 through it hung, so agents lost team memory without any error until the agent
 was restarted by hand.
+
+A pi session that starts while a tunnel reconnects loses that service for the
+session. A deploy restarts each tunnel agent whose script changed, and a
+network change breaks every open session. The watchdog then needs up to two
+minutes to see the break, and a new session about 80 seconds. On 2026-10-30 a
+pi session started inside that window, after a deploy and a Wi-Fi change.
+Signet's extension warned "SignetAI daemon not running", and chorus-pi
+injected "Chorus: connection failed". Signet recovers by itself, because each
+Signet tool checks the daemon again at each call. pi's MCP client does not
+connect a server again after a failed first connection, so the session has no
+Chorus tools. When `curl -fsS http://127.0.0.1:3870/api/health` answers, run
+`/mcp reconnect chorus` in the session, or start a new session. chorus-pi's
+check-in runs only at session start.
 The launchd agent `com.dktaohan.chorus-pi-daemon` runs `chorus daemon --agent
 pi --cwd ~/projects`. Chorus wakes a headless `pi --mode rpc` in `~/projects`
 when work is assigned to the agent; that pi has this user's file access there,
@@ -220,12 +244,16 @@ which is why the served set is one directory. Log:
   `~/.local/state/chorus-api-key.cache` (0600) after each good read and uses
   the cache when secretspec fails, as the gateway `keyCommand` already does.
   The first start must happen while the Mac is unlocked.
-- Versions. Server, client and `chorus-pi` are all 0.21.1. The server moved
-  from v0.20.0 in LEGO/devrel-infra#291 (2026-10-07); v0.21.0 added private
-  projects with a schema migration. devrel-infra's nightly release job now
-  opens a PR for each new server release. Keep `chorusVersion` in step with
-  it: 0.21.1 is the first client release with pi's built-in MCP, so never
-  downgrade the client to match an older server.
+- Versions. Server, client and `chorus-pi` are all 0.23.0. The server moved
+  to it in LEGO/devrel-infra#483 (2026-10-22), and devrel-infra pins it in
+  `projects/aws-chorus/sst.config.ts`. v0.21.0 added private projects with a
+  schema migration. devrel-infra's nightly release job opens a PR for each
+  new server release. Keep `chorusVersion` in step with it: 0.21.1 is the
+  first client release with pi's built-in MCP, so never downgrade the client
+  to match an older server. 0.22.1 gives pi sub-agents their role-scoped
+  Chorus tools again (Chorus#608) and makes the daemon retry a failed wake
+  delivery (Chorus#609). 0.23.0 adds the submit gate (`CHORUS_SUBMIT_GATE`,
+  INTERFACES.md).
 - The Chorus CLI is an npm global (`~/.local/bin/chorus`), installed and pinned
   by activation because the package is the whole Chorus server app. The CLI is
   a `#!/usr/bin/env node` script and the activation PATH has no Node, so the

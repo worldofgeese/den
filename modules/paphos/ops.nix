@@ -69,6 +69,31 @@ in {
         record_failure forgejo-backup-never
       fi
 
+      # An installed kernel that is not booted means unattended reboots are not
+      # happening: Tang was down at boot, or the reboot window keeps being
+      # missed. paphos once ran 7.0.3 for 175 days that way.
+      now_epoch=$(${coreutils}/bin/date +%s)
+      booted_kernel=$(${coreutils}/bin/readlink -f /run/booted-system/kernel)
+      current_kernel=$(${coreutils}/bin/readlink -f /run/current-system/kernel)
+      if [[ "$booted_kernel" != "$current_kernel" ]]; then
+        switched_epoch=$(${coreutils}/bin/stat -c %Y /run/current-system)
+        pending_days=$(( (now_epoch - switched_epoch) / 86400 ))
+        if [[ "$pending_days" -ge 2 ]]; then
+          record_failure "reboot-pending-''${pending_days}d"
+        fi
+      fi
+
+      # nixpkgs follows nixos-unstable at every upgrade. A running nixpkgs that
+      # is two weeks old means upgrades are not landing, even when none failed.
+      build_date=$(${gawk}/bin/awk -F'"' '/^BUILD_ID=/ {split($2, a, "."); print a[3]}' /etc/os-release)
+      if [[ "$build_date" =~ ^[0-9]{8}$ ]]; then
+        build_epoch=$(${coreutils}/bin/date -d "$build_date" +%s)
+        build_age_days=$(( (now_epoch - build_epoch) / 86400 ))
+        if [[ "$build_age_days" -ge 14 ]]; then
+          record_failure "nixpkgs-stale-''${build_age_days}d"
+        fi
+      fi
+
       if [[ -n "''${failures// /}" ]]; then
         notify "paphos health FAIL ($host):$failures"
         exit 1

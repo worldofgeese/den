@@ -573,11 +573,53 @@ pi offers CodeGraph's one tool, `codegraph_explore`, to the model directly
 
 ### Server auto-upgrade and human SSH keys (paphos, oracle)
 
-paphos (`Wed 03:00`, no reboot) and oracle (daily `04:00`, reboot allowed) run
-`nixos-upgrade.service` against the published flake `github:worldofgeese/den`,
-not a local checkout. Whatever is on `main` is what they build. paphos'
-health check sends a Telegram alert `nixos-upgrade-failed` while the unit is
-in the failed state.
+paphos (daily `03:30` local, reboots `05:00`-`06:30`) and oracle (daily
+`04:00` UTC, reboots `04:00`-`05:00`) run `nixos-upgrade.service` against the
+published flake `github:worldofgeese/den`, not a local checkout. They build
+whatever is on `main`, with one exception: nixpkgs. Each run passes
+`--override-input nixpkgs github:NixOS/nixpkgs/nixos-unstable`, so a security
+fix lands within a day of reaching nixos-unstable. Before, it waited for
+someone to commit a flake.lock. In October 2026 the committed lock held both
+servers on mid-October nixpkgs through the Black October fixes:
+
+- Node 22.23.4, which carries Pangolin's Node2Shell fix on oracle.
+- cacert 3.131.1, which removes the eMudhra root.
+- Forgejo's security releases.
+
+Every other input stays pinned by the committed lock. nixos-unstable advances
+only after Hydra's NixOS tests pass. A run that fails to build leaves the
+running system in place. paphos' hourly health check sends these Telegram
+alerts:
+
+| Alert | Sent when |
+|---|---|
+| `nixos-upgrade-failed` | The upgrade unit is in the failed state. |
+| `reboot-pending-<n>d` | An installed kernel has not been booted for two days. |
+| `nixpkgs-stale-<n>d` | The running system's nixpkgs (`BUILD_ID` in `/etc/os-release`) is 14 days old. |
+
+The last two catch upgrades that stop landing without a failed unit. That is
+how paphos ran kernel 7.0.3 for 175 days with 7.3 installed.
+
+Unattended reboot on paphos: the LUKS root unlocks through Tang, which is
+network-bound disk encryption. `boot.initrd.clevis` holds the passphrase
+sealed to the Tang server on mother (`192.168.99.200:7500`). That server is a
+root-owned container built from Fedora's `tang` package by
+`/volume1/@local-sbin/tang/rebuild.sh`, and a weekly root cron job rebuilds
+it. Its keys are in `/volume1/@tang-db`.
+
+If paphos is off the home LAN, or mother does not answer, the initrd waits
+for the passphrase over SSH as before: `ssh -p 2222 root@paphos`.
+
+The sealed passphrase exists only on paphos, at
+`/etc/secrets/initrd/root.jwe`, and in its initrd. It is never in this
+repository. Create it once, and again after a Tang re-key or a passphrase
+change, with `sudo /etc/secrets/initrd/enroll-tang.sh` on paphos. The script
+verifies that the Tang round trip unlocks the disk before it keeps the file.
+Without `root.jwe` the upgrade build fails and alerts as
+`nixos-upgrade-failed`.
+
+The reboot window opens after mother's Monday `04:00` DSM auto-update, so
+Tang is up when paphos boots.
 
 Invariant: evaluating a server configuration MUST NOT depend on mutable remote
 content. A hash-pinned fetch of a URL whose content can change (for example

@@ -151,12 +151,23 @@
     # nix.settings.experimental-features, nixpkgs.config.allowUnfree and nix.gc
     # come from den.aspects.server.
 
-    # Rebuild from github:worldofgeese/den#oracle at committed flake.lock; no local checkout.
+    # A public cloud host has no LAN peers to resolve by LLMNR. It listened on
+    # 0.0.0.0:5355; only the OCI security list kept that off the internet.
+    services.resolved.settings.Resolve.LLMNR = "false";
+
+    # Rebuild from github:worldofgeese/den#oracle; no local checkout. nixpkgs
+    # follows the head of nixos-unstable at every run. The committed lock held
+    # this public gateway on mid-October nixpkgs through Black October (Pangolin
+    # ran on vulnerable Node 22.23.3). Other inputs stay at the committed lock.
+    # See modules/paphos/system.nix.
     system.autoUpgrade = {
       enable = true;
       flake = "github:worldofgeese/den#oracle";
       flags = [
         "--print-build-logs"
+        "--override-input"
+        "nixpkgs"
+        "github:NixOS/nixpkgs/nixos-unstable"
       ];
       dates = "04:00";
       randomizedDelaySec = "45min";

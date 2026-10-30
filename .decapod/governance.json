@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "3216bee8b310137cb0fa1050bbef61bd26811836",
+    "accepted_commit": "9e5366fb5e3a9f6c18bdd5f144bebd6ad8b2bf74",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -20,55 +20,178 @@
         "status": "open"
       },
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
-      "trajectory:165420485aa3e66e": "The OVERRIDE needs explicit user authority for commit and push; none given yet",
-      "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
-      "trajectory:5480c02d93f0debb": "decapod validate needs a committed candidate; den#61 says local validate stops at READINESS_PROFILE_REQUIRED, so CI validate on the PR is the proof",
-      "trajectory:d503e1a45c272536": "The live system runs the stale main checkout until the user pulls and deploys"
+      "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent"
     }
   },
   "change": {
-    "id": "change_01M66MXQVPRADBCRP3P04SNABD",
-    "base_commit": "3216bee8b310137cb0fa1050bbef61bd26811836",
+    "id": "change_01M66JKPZHNHJ8W37DZ1VYYQYR",
+    "base_commit": "9e5366fb5e3a9f6c18bdd5f144bebd6ad8b2bf74",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "paphos-unattended-unlock": {
+      "statement": "After Tang enrollment, paphos reboots in its 05:00-06:30 window and unlocks its LUKS root without a passphrase.",
+      "falsifier": "After enrollment and an upgrade reboot, paphos waits for the passphrase on initrd SSH port 2222.",
+      "status": "open"
+    },
+    "servers-evaluate-both-channels": {
+      "statement": "paphos and oracle evaluate at the committed lock (nixpkgs e62746b) and at nixos-unstable (31ecbac).",
+      "falsifier": "nix eval of either host's toplevel drvPath fails at either nixpkgs revision.",
+      "status": "supported",
+      "proof_refs": [
+        "trajectory branch_01M66JKQ2H8NFWV3ZJSCE8N6MN: eval_*_locked and eval_*_nixos_unstable checks"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "ckpt-dagger-p1-1",
-      "summary": "Dagger P1: den's ci module with five checks, the dagger-check recipe, the check map in VALIDATION.md, renewed readiness digests",
-      "input_digest": "sha256:e7f6fd28797c1bb5b3f37cdfc61945eb21510c0b8563627dd7b3aebf8ee20e78",
+      "id": "black-october-den-1",
+      "summary": "Servers track nixos-unstable daily; paphos unlocks via Tang and reboots unattended; Forgejo on loopback; oracle LLMNR off; reboot-pending and nixpkgs-stale alerts; drop removed boot.initrd.systemd.enable",
+      "input_digest": "sha256:af9afdf003ed95e3f07dc2ee407ded2b7b50abb5df98a8a72f931c10fbc2a946",
       "proof_refs": [
-        "ci:decapod-validate fails on an unrefreshed manifest (drift)",
-        "just dagger-check: run A 6/6 in 26 s, run B 6/6 in 2 s from the cache"
+        "nix eval paphos/oracle toplevel at locked and nixos-unstable nixpkgs",
+        "paphos health-check snippet: reboot-pending-2d"
       ]
     },
     {
-      "id": "ckpt-dagger-p1-2",
-      "summary": "Dagger P1, with the executable bit on the two new scripts",
-      "input_digest": "sha256:da6680c1ae0f1df48fb853f235349d2ddaa028795e1d6d66ac559fb5cc34624b",
+      "id": "black-october-den-3",
+      "summary": "Refresh the specs manifest after rebasing onto main ea8bbc7",
+      "input_digest": "sha256:8c22485ccb52105b3d457c7bbdb591b241a28048622931f7dbb1fa43311b8132",
       "proof_refs": [
-        "ci:decapod-validate fails on an unrefreshed manifest (drift)",
-        "just dagger-check: run A 6/6 in 26 s, run B 6/6 in 2 s from the cache"
+        "decapod rpc --op specs.refresh"
+      ]
+    },
+    {
+      "id": "black-october-den-4",
+      "summary": "Black October server durability: daily nixos-unstable upgrades, unattended paphos reboots with Tang unlock, Forgejo on loopback, oracle LLMNR off, health-check alerts; rebased onto main 3216bee",
+      "input_digest": "sha256:e00781d174ff0a57fa2ddc4f21f85920d5357f172e9132478def4289305e2829",
+      "proof_refs": [
+        "trajectory branch_01M66JKQ2H8NFWV3ZJSCE8N6MN"
+      ]
+    },
+    {
+      "id": "black-october-den-5",
+      "summary": "Record the project-check receipt for 4e42fad",
+      "input_digest": "sha256:b0e3f8a2ce05ee3ef74a604faaecbaa0cc1712f836558ba61459802966945344",
+      "proof_refs": [
+        "decapod govern project-check: pass=185 fail=0"
+      ]
+    },
+    {
+      "id": "black-october-den-6",
+      "summary": "Re-review the readiness source inventory after #69's flake.lock bump: only flake.lock changed, the command contract digest and pinned tool paths are unchanged",
+      "input_digest": "sha256:1531a5e8e9ac9db216e25d9232f09f2b51f08d93f16dc9c34c06009a36c4138d",
+      "proof_refs": [
+        "decapod rpc --op agent.init: inventory_digest sha256:79c4f4b3, command_contract_digest sha256:ba340c52"
+      ]
+    },
+    {
+      "id": "black-october-den-7",
+      "summary": "Refresh the specs manifest after the readiness inventory re-review",
+      "input_digest": "sha256:822571d1e65e98844b2e75ebc1cb9e4d40ccfdcfd78739d27b52d36269884ded",
+      "proof_refs": [
+        "decapod govern project-check"
+      ]
+    },
+    {
+      "id": "black-october-den-8",
+      "summary": "Start trajectory run black-october-den-r3 for validation epoch after the inventory re-review",
+      "input_digest": "sha256:6f6a3a331f389c3fe8547d5b080e9f1d7f484d3a63d0d044c782af9cef7fe225",
+      "proof_refs": [
+        "trajectory black-october-den-r3"
+      ]
+    },
+    {
+      "id": "black-october-den-9",
+      "summary": "Record the project-check receipt for trajectory run black-october-den-r3",
+      "input_digest": "sha256:3bcf7b7f6b97dee6b911c5c03542f95923d3c7ee651a07e74ce82958b2209213",
+      "proof_refs": [
+        "decapod govern project-check"
+      ]
+    },
+    {
+      "id": "black-october-den-10",
+      "summary": "Black October server durability, rebased onto main 0dec639 (#71): daily nixos-unstable upgrades, unattended paphos reboots with Tang unlock, Forgejo on loopback, oracle LLMNR off, health-check alerts",
+      "input_digest": "sha256:452bf65390999cc9e754483510e0293fd5b8884a1e7c230a9be7896c7151ee95",
+      "proof_refs": [
+        "trajectory black-october-den-r3; pre-commit just check"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M66MXQVPRADBCRP3P04SNABD": {
+    "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "Current claimed task and isolated work branch"
+        "Never reboot loving-kypris",
+        "No flake.lock change; MintRaven owns it (merged in #69)",
+        "Passphrase unlock over initrd SSH on port 2222 stays available"
       ],
       "constraints": [
-        "root"
+        "modules/paphos/system.nix",
+        "modules/paphos/hardware.nix",
+        "modules/paphos/forgejo.nix",
+        "modules/paphos/ops.nix",
+        "modules/oracle/system.nix",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        ".decapod/config.toml (reviewed_sources_digest)"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
+      "id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
-      "refined_intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
+      "raw_intent": "Handle everything except rebooting loving-kypris; durable: every host auto-updates to the absolute latest on a schedule and reboots unattended, except loving-kypris.",
+      "refined_intent": "paphos and oracle upgrade daily with nixpkgs overridden to the nixos-unstable head; paphos reboots unattended in 05:00-06:30 with Tang network-bound LUKS unlock and initrd SSH as fallback; Forgejo listens on loopback; oracle LLMNR off; health-check alerts for a pending reboot and stale nixpkgs; readiness inventory re-reviewed after #69's flake.lock.",
       "status": "refined",
       "updated_sequence": 3
+    }
+  },
+  "epochs": {
+    "ve_8a676961d6d1a6fb": {
+      "constitution_hash": "sha256:a098ac16fc0f54a9576f0ededd35d90ff66a7124d270fa3c3ff69d2a51058960",
+      "constitution_version": "embedded-docs@0.121.1",
+      "epoch_id": "ve_8a676961d6d1a6fb",
+      "evaluator_identity": "decapod-validate@0.121.1",
+      "evaluator_set_hash": "sha256:19d875a8e3263f58cae1df07f9a44331409226a08d418dd2db9222a85cf2a656",
+      "generated_specs_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+      "generated_specs_manifest_hash": "sha256:6b77858b7b117811b01fdb844b44ff49d49891ad41411d6b5818bd93d8a421af",
+      "material_hashes": {
+        "constitution:core/DECAPOD": "sha256:a098ac16fc0f54a9576f0ededd35d90ff66a7124d270fa3c3ff69d2a51058960",
+        "generated_spec:.decapod/managed/specs/ARCHITECTURE.md": "sha256:efca005131d59eee92d849ccd1e60eaed548d25565da5d07a884fb0cbf064c19",
+        "generated_spec:.decapod/managed/specs/INTENT.md": "sha256:4ea43e49094f75ca3a4998bbab40c786c368e6f7b8b43ec7252b68c0d9286765",
+        "generated_spec:.decapod/managed/specs/INTERFACES.md": "sha256:835943ed0f430e3ffbc564f372118265a3751647ba21b3124207ed3b8423f3ea",
+        "generated_spec:.decapod/managed/specs/OPERATIONS.md": "sha256:d018391913e3c55d5e8389df9b0eca018e0cb6e261ffaea335955c16413b4e40",
+        "generated_spec:.decapod/managed/specs/README.md": "sha256:5688fafd888812e03059e3183c1f3b4eb5bf6ccd54de580a9f4639f55287d76e",
+        "generated_spec:.decapod/managed/specs/SECURITY.md": "sha256:f632356e4215cfa2f04868a711e8ac06764fef3c42d844391b00e509d4197a08",
+        "generated_spec:.decapod/managed/specs/SEMANTICS.md": "sha256:c5e79670a5238954f8de5ee401d2e73621e6054f3a9387d72cb0e5f055048626",
+        "generated_spec:.decapod/managed/specs/VALIDATION.md": "sha256:eb12bc6cfbc61ab4841a016ca670dcf6dd4f58aeb4203c3d331f426f6aaf8251",
+        "generated_specs_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+        "generated_specs_manifest": "sha256:6b77858b7b117811b01fdb844b44ff49d49891ad41411d6b5818bd93d8a421af",
+        "governance_context": "sha256:55a3b0f001b493f237dafc5e17b0d8d8077de8a8b651c27f021dd629c0b3393e",
+        "governance_material:.decapod/managed/Dockerfile.decapod": "sha256:b827189bbceb3020cebfaef967a9f78f8d6c63a9b21a03ea1ee39a60200f3881",
+        "governance_material:AGENTS.md": "sha256:a827284dd27ce5e6613bbe6153280892679874cc5288a3eb34faccdb9506bfdf",
+        "governance_material:CLAUDE.md": "sha256:84418d5796cf9e7f60b53b2b86b6bdb63764b6506542b2d998430dfc9b6dd28a",
+        "governance_material:CODEX.md": "sha256:7619fb705a3ec74a4f6db854194a3883e9d8694582f33e93de1d9e75ff687d61",
+        "governance_material:GEMINI.md": "sha256:4ebada4c9637493a11e93ddf260550d68ec96a29afae675ad0ffcd86453086a6",
+        "governance_section:claims": "sha256:b0334aa74904df7a14a017d2754dcf687442bb048728fed052d8fbaae9f49766",
+        "governance_section:plan": "sha256:4adca3bce76d1129eb756a3041d53dbeabbc43632c25be2aff4a30baefc0d9ee",
+        "living_spec_material:.decapod/managed/specs/ARCHITECTURE.md": "sha256:f29a0d6ce22b42fe86ded4e4d667230f0debdef8d26f69566f6391bd40e22eba",
+        "living_spec_material:.decapod/managed/specs/INTENT.md": "sha256:a28034be1ea845b24c83d39c647dfa79bd3a52355d448daee17397bbf94cd5d2",
+        "living_spec_material:.decapod/managed/specs/INTERFACES.md": "sha256:04e9f3edd9393fb43f9b1435f491cb166e3f0d234f7726827f4d26cc5b36cba3",
+        "living_spec_material:.decapod/managed/specs/OPERATIONS.md": "sha256:9ed89ebd2c44c3d6e6ffd0da48247efaf6e55e9294107cfff0baaf5ac00914b7",
+        "living_spec_material:.decapod/managed/specs/README.md": "sha256:2657d7a156b5ccd0e73067aa65f4401426d6637ce10af87f4b4ebd3a738c9b70",
+        "living_spec_material:.decapod/managed/specs/SECURITY.md": "sha256:187131aa9fa3cbe7cbce281b8c364561ad0fe2f76b980b0a1a1824f3f3f5038d",
+        "living_spec_material:.decapod/managed/specs/SEMANTICS.md": "sha256:9923d5d3319d8619a3c2a253493107cd3d9aafd99541233204f0de89cd3ce560",
+        "living_spec_material:.decapod/managed/specs/VALIDATION.md": "sha256:6c043924d020673837c49ec30b1a07598c9c4336eafb69ab07940e5621ec5106",
+        "proof_rubric": "sha256:99e8ef25629da391e9b479db9fff52b82f340224f7a69d8a88d2992ae8e90466",
+        "validation_profile": "sha256:37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f"
+      },
+      "proof_rubric": "decapod-validate/current-proof-v1",
+      "proof_rubric_hash": "sha256:99e8ef25629da391e9b479db9fff52b82f340224f7a69d8a88d2992ae8e90466",
+      "schema_version": "1.0.0",
+      "validation_profile": "default",
+      "validation_profile_hash": "sha256:37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f"
     }
   },
   "sections": {
@@ -79,43 +202,87 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Dagger P1 (bead home-manager-1l3.2): add dagger.toml, dagger.lock and .dagger/modules/ci with the checks nix-eval, fmt, shellcheck, decapod-overrides and decapod-validate, which run den's own recipes and scripts in pinned containers",
+      "intent": "Implement durable den server updates: daily nixos-unstable upgrades, paphos Tang unlock with unattended reboots, Forgejo loopback, oracle LLMNR off, pending-reboot and stale-nixpkgs alerts",
       "phases": [],
       "proof_hooks": [
-        "just dagger-check",
-        "just check"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "Component boundaries are unchanged. autoUpgrade, initrd SSH, Forgejo and the health check already exist. The Tang server runs on mother outside den; OPERATIONS.md and SECURITY.md describe it.",
+          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+          "spec_material_hash": "f29a0d6ce22b42fe86ded4e4d667230f0debdef8d26f69566f6391bd40e22eba"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "No command, justfile recipe, module option or flake output changes. The change sets NixOS option values on paphos and oracle and adds two alerts to the existing paphos-health-check.",
+          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+          "spec_material_hash": "04e9f3edd9393fb43f9b1435f491cb166e3f0d234f7726827f4d26cc5b36cba3"
+        },
+        {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "Adds the trust-boundary row for the paphos initrd fetching a Tang advertisement from mother (192.168.99.200:7500, LAN only) to unlock its LUKS root.",
+          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+          "spec_material_hash": "187131aa9fa3cbe7cbce281b8c364561ad0fe2f76b980b0a1a1824f3f3f5038d"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Align den's pi chain with upstream: latest pins and clean pi startup",
+      "title": "Implement durable den server updates: daily nixos-unstable upgrades, paphos Tang unlock with unattended reboots, Forgejo loopback, oracle LLMNR off, pending-reboot and stale-nixpkgs alerts",
       "todo_ids": [
-        "test_01m6687pd7e55x59"
+        "feat_01m66jjt2vm7nkwx"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793374979Z"
+      "updated_at": "1793371792Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Never reboot loving-kypris",
+        "No flake.lock change; MintRaven owns it (merged in #69)",
+        "Passphrase unlock over initrd SSH on port 2222 stays available"
       ],
-      "artifact_hash": "sha256:1b362d37bfe5b789b79f9d3a035567b9d2bbfbc45466a5f50ca4054c9f7d70e0",
+      "artifact_hash": "sha256:caa50fba55858a14effa671c9bf46a92ea413ac060a5ec46edee2350e8845ed1",
       "checks": [
         {
-          "name": "dagger-check-run-A",
+          "name": "decapod validate",
           "status": "passed"
         },
         {
-          "name": "dagger-check-run-B-cached",
+          "name": "eval_oracle_locked",
           "status": "passed"
         },
         {
-          "name": "drift-negative",
+          "name": "eval_oracle_nixos_unstable",
           "status": "passed"
         },
         {
-          "name": "shellcheck-contract",
+          "name": "eval_paphos_locked",
+          "status": "passed"
+        },
+        {
+          "name": "eval_paphos_nixos_unstable",
+          "status": "passed"
+        },
+        {
+          "name": "health_check_logic_on_paphos",
+          "status": "passed"
+        },
+        {
+          "name": "pre_commit_just_check",
+          "status": "passed"
+        },
+        {
+          "name": "readiness_inventory_rereviewed",
+          "status": "passed"
+        },
+        {
+          "name": "tang_reachable_from_paphos",
           "status": "passed"
         }
       ],
@@ -124,103 +291,451 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
+            "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
+            "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M66MXQY60DC6RNBFXT980V4H",
+            "detail": "trajectory:black-october-den-r3",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
+            "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:black-october-den-r3",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M66MXQY60DC6RNBFXT980V4H": {
+          "black-october-den-r3": {
             "evidence_only": true,
-            "id": "branch_01M66MXQY60DC6RNBFXT980V4H",
-            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
+            "id": "black-october-den-r3",
+            "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
             "steps": [
               {
-                "action": "validation",
+                "action": "trajectory.record",
+                "command": "nix eval --raw path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "dagger.toml",
-                  "dagger.lock",
-                  ".dagger/modules/ci/main.go",
-                  "Justfile",
-                  "scripts/check-drvpaths.sh",
-                  "scripts/check-decapod-overrides.sh",
-                  "scripts/decapod-validate-ci.sh",
-                  ".decapod/config.toml",
-                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/paphos/system.nix",
+                  "modules/paphos/hardware.nix",
+                  "modules/paphos/forgejo.nix",
+                  "modules/paphos/ops.nix",
+                  "modules/oracle/system.nix",
                   ".decapod/managed/specs/ARCHITECTURE.md",
-                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-                  "run A: 6/6 checks pass in 26 s after a source change; run B: 6/6 pass in 2 s, each check 0.2-0.9 s from the cache",
-                  "nix-eval skips only aarch64-darwin.M-02877 (no remote builder); decapod validate 171 pass 0 fail; 24 overrides applied",
-                  "negative: an unrefreshed manifest failed ci:decapod-validate with spec drift"
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/config.toml",
+                  "modules/paphos/system.nix",
+                  "modules/paphos/hardware.nix",
+                  "modules/paphos/forgejo.nix",
+                  "modules/paphos/ops.nix",
+                  "modules/oracle/system.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  ".decapod/config.toml",
+                  "rebased onto main 3216bee (#69, flake.lock nixpkgs e62746b); evaluated after the rebase",
+                  "paphos at locked nixpkgs e62746b: hrhdlg9pv80ci4wxad38ksfrcn59j69m-nixos-system-paphos-26.11.20261028.e62746b.drv",
+                  "paphos at nixos-unstable 31ecbac: 2wx9b2zhczazb10qpzlygdb3w5nykhcc-nixos-system-paphos-26.11.20261027.31ecbac.drv",
+                  "oracle at locked nixpkgs e62746b: 5j9a6srq2ksd8ira0x41ph2g92ypihdx-nixos-system-oracle-oci-26.11.20261028.e62746b.drv",
+                  "oracle at nixos-unstable 31ecbac: 0dx9s2bpq1n64cmnqb3md4qx8wlrl2lb-nixos-system-oracle-oci-26.11.20261027.31ecbac.drv; services.resolved.settings.Resolve.LLMNR evaluates to false with no rename warning",
+                  "paphos-health-check logic run live on paphos: build_date=20261020 age=10d; result reboot-pending-2d (booted kernel 7.0.3, current 7.3)",
+                  "curl from paphos to http://192.168.99.200:7500/adv returns the Tang advertisement",
+                  "readiness inventory: only flake.lock changed (#69); inventory_digest 33307daf -> 79c4f4b3; command_contract_digest ba340c52 unchanged; pinned alejandra-4.1.0 and shellcheck-0.11.0 store paths exist",
+                  "pre-commit hook (scripts/check-drvpaths.sh, just check-doom-darwin) passed on commit 4e42fad"
                 ],
                 "proof_refs": [
-                  "dagger-check-run-A",
-                  "dagger-check-run-B-cached",
-                  "drift-negative",
-                  "shellcheck-contract"
+                  "eval_paphos_locked",
+                  "eval_oracle_locked",
+                  "eval_paphos_nixos_unstable",
+                  "eval_oracle_nixos_unstable",
+                  "health_check_logic_on_paphos",
+                  "tang_reachable_from_paphos",
+                  "readiness_inventory_rereviewed",
+                  "pre_commit_just_check"
                 ],
                 "scope": [
-                  "root"
+                  ".decapod/config.toml (reviewed_sources_digest)",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "modules/oracle/system.nix",
+                  "modules/paphos/forgejo.nix",
+                  "modules/paphos/hardware.nix",
+                  "modules/paphos/ops.nix",
+                  "modules/paphos/system.nix"
                 ],
                 "sequence": 4,
+                "validation_findings": [
+                  "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the next paphos upgrade build. Without root.jwe that build fails and alerts nixos-upgrade-failed; the running system stays unchanged.",
+                  "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
+                  "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md)."
+                ]
+              },
+              {
+                "action": "validation",
+                "command": "decapod validate",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".decapod/governance.json",
+                  ".decapod/governance.json",
+                  "validation epoch ve_8a676961d6d1a6fb completed with zero failures"
+                ],
+                "proof_refs": [
+                  "decapod validate"
+                ],
+                "scope": [
+                  ".decapod/config.toml (reviewed_sources_digest)",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "modules/oracle/system.nix",
+                  "modules/paphos/forgejo.nix",
+                  "modules/paphos/hardware.nix",
+                  "modules/paphos/ops.nix",
+                  "modules/paphos/system.nix"
+                ],
+                "sequence": 5,
                 "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "decapod rpc --op agent.init (inventory_digest, command_contract_digest)",
+        "decapod validate",
+        "nix eval --raw --override-input nixpkgs github:NixOS/nixpkgs/nixos-unstable path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath",
+        "nix eval --raw path:.#nixosConfigurations.<host>.config.system.build.toplevel.drvPath"
+      ],
       "destination": "pull request",
       "evidence": [
-        "negative: an unrefreshed manifest failed ci:decapod-validate with spec drift",
-        "nix-eval skips only aarch64-darwin.M-02877 (no remote builder); decapod validate 171 pass 0 fail; 24 overrides applied",
-        "run A: 6/6 checks pass in 26 s after a source change; run B: 6/6 pass in 2 s, each check 0.2-0.9 s from the cache"
+        "curl from paphos to http://192.168.99.200:7500/adv returns the Tang advertisement",
+        "oracle at locked nixpkgs e62746b: 5j9a6srq2ksd8ira0x41ph2g92ypihdx-nixos-system-oracle-oci-26.11.20261028.e62746b.drv",
+        "oracle at nixos-unstable 31ecbac: 0dx9s2bpq1n64cmnqb3md4qx8wlrl2lb-nixos-system-oracle-oci-26.11.20261027.31ecbac.drv; services.resolved.settings.Resolve.LLMNR evaluates to false with no rename warning",
+        "paphos at locked nixpkgs e62746b: hrhdlg9pv80ci4wxad38ksfrcn59j69m-nixos-system-paphos-26.11.20261028.e62746b.drv",
+        "paphos at nixos-unstable 31ecbac: 2wx9b2zhczazb10qpzlygdb3w5nykhcc-nixos-system-paphos-26.11.20261027.31ecbac.drv",
+        "paphos-health-check logic run live on paphos: build_date=20261020 age=10d; result reboot-pending-2d (booted kernel 7.0.3, current 7.3)",
+        "pre-commit hook (scripts/check-drvpaths.sh, just check-doom-darwin) passed on commit 4e42fad",
+        "readiness inventory: only flake.lock changed (#69); inventory_digest 33307daf -> 79c4f4b3; command_contract_digest ba340c52 unchanged; pinned alejandra-4.1.0 and shellcheck-0.11.0 store paths exist",
+        "rebased onto main 3216bee (#69, flake.lock nixpkgs e62746b); evaluated after the rebase",
+        "validation epoch ve_8a676961d6d1a6fb completed with zero failures"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
-      "modified_files": [
-        ".dagger/modules/ci/main.go",
+      "inspected_files": [
         ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/VALIDATION.md",
-        "Justfile",
-        "dagger.lock",
-        "dagger.toml",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-        "scripts/check-decapod-overrides.sh",
-        "scripts/check-drvpaths.sh",
-        "scripts/decapod-validate-ci.sh"
+        "modules/oracle/system.nix",
+        "modules/paphos/forgejo.nix",
+        "modules/paphos/hardware.nix",
+        "modules/paphos/ops.nix",
+        "modules/paphos/system.nix"
+      ],
+      "intent_id": "intent:change_01M66JKPZHNHJ8W37DZ1VYYQYR",
+      "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/governance.json",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "modules/oracle/system.nix",
+        "modules/paphos/forgejo.nix",
+        "modules/paphos/hardware.nix",
+        "modules/paphos/ops.nix",
+        "modules/paphos/system.nix"
       ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "publish"
       ],
       "repo_scope": [
-        "Dagger P1: dagger.toml, dagger.lock, .dagger/modules/ci, Justfile check recipes, scripts, VALIDATION.md, ARCHITECTURE.md, the plan",
-        "root"
+        ".decapod/config.toml (reviewed_sources_digest)",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "modules/oracle/system.nix",
+        "modules/paphos/forgejo.nix",
+        "modules/paphos/hardware.nix",
+        "modules/paphos/ops.nix",
+        "modules/paphos/system.nix"
       ],
-      "run_id": "branch_01M66MXQY60DC6RNBFXT980V4H",
+      "run_id": "black-october-den-r3",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "test_01m6687pd7e55x59",
+      "task_id": "feat_01m66jjt2vm7nkwx",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
+        "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the next paphos upgrade build. Without root.jwe that build fails and alerts nixos-upgrade-failed; the running system stays unchanged.",
+        "The unattended Tang unlock stays unproven until paphos reboots after enrollment."
+      ]
+    },
+    "validation": {
+      "ci_prediction": {
+        "confidence": "medium",
+        "recommendations": [
+          "Review the reported validation warnings before relying on the CI result.",
+          "Use `decapod validate -v --format json` to inspect the affected gate output."
+        ],
+        "result": "review"
+      },
+      "decapod_release": "0.121.1",
+      "drift_findings": [],
+      "elapsed_ms": 4194,
+      "epoch_ref": "ve_8a676961d6d1a6fb",
+      "fail_count": 0,
+      "failures": [],
+      "gate_timings": [
+        {
+          "elapsed_ms": 615,
+          "name": "validate_stale_workspaces"
+        },
+        {
+          "elapsed_ms": 594,
+          "name": "validate_project_specs_docs"
+        },
+        {
+          "elapsed_ms": 527,
+          "name": "validate_federation_gates"
+        },
+        {
+          "elapsed_ms": 464,
+          "name": "validate_markdown_primitives_roundtrip_gate"
+        },
+        {
+          "elapsed_ms": 133,
+          "name": "validate_machine_contract"
+        },
+        {
+          "elapsed_ms": 101,
+          "name": "validate_git_workspace_context"
+        },
+        {
+          "elapsed_ms": 98,
+          "name": "validate_obligations"
+        },
+        {
+          "elapsed_ms": 76,
+          "name": "validate_legacy_jsonl_retired"
+        },
+        {
+          "elapsed_ms": 43,
+          "name": "validate_git_protected_branch"
+        },
+        {
+          "elapsed_ms": 41,
+          "name": "validate_git_push_pr_gate"
+        },
+        {
+          "elapsed_ms": 40,
+          "name": "validate_no_legacy_namespaces"
+        },
+        {
+          "elapsed_ms": 40,
+          "name": "validate_archive_integrity"
+        },
+        {
+          "elapsed_ms": 31,
+          "name": "validate_repomap_determinism"
+        },
+        {
+          "elapsed_ms": 26,
+          "name": "validate_control_plane_contract"
+        },
+        {
+          "elapsed_ms": 26,
+          "name": "validate_schema_determinism"
+        },
+        {
+          "elapsed_ms": 24,
+          "name": "validate_lineage_hard_gate"
+        },
+        {
+          "elapsed_ms": 22,
+          "name": "validate_gatekeeper_gate"
+        },
+        {
+          "elapsed_ms": 18,
+          "name": "validate_generated_artifact_whitelist"
+        },
+        {
+          "elapsed_ms": 15,
+          "name": "validate_policy_integrity"
+        },
+        {
+          "elapsed_ms": 15,
+          "name": "validate_context_capsule_policy_contract"
+        },
+        {
+          "elapsed_ms": 14,
+          "name": "validate_lcm_immutability"
+        },
+        {
+          "elapsed_ms": 14,
+          "name": "validate_knowledge_promotions_if_present"
+        },
+        {
+          "elapsed_ms": 14,
+          "name": "validate_lcm_rebuild_gate"
+        },
+        {
+          "elapsed_ms": 13,
+          "name": "validate_watcher_audit"
+        },
+        {
+          "elapsed_ms": 12,
+          "name": "validate_plan_governed_execution_gate"
+        },
+        {
+          "elapsed_ms": 12,
+          "name": "validate_canon_mutation"
+        },
+        {
+          "elapsed_ms": 12,
+          "name": "validate_knowledge_integrity"
+        },
+        {
+          "elapsed_ms": 12,
+          "name": "validate_repo_map"
+        },
+        {
+          "elapsed_ms": 12,
+          "name": "validate_database_schema_versions"
+        },
+        {
+          "elapsed_ms": 12,
+          "name": "validate_health_purity"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_docs_templates_bucket"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_workunit_manifests_if_present"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_override_authority"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_health_cache_integrity"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_watcher_purity"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_risk_map_violations"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_trajectory_artifacts_if_present"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_embedded_self_contained"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_research_claims_if_present"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_validation_receipt_if_present"
+        },
+        {
+          "elapsed_ms": 11,
+          "name": "validate_coplayer_policy_tightening"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_recursive_improvement_passes_if_present"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_project_config_toml"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_entrypoint_invariants"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_project_scoped_state"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_eval_gate_if_required"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_spec_drift"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_risk_map"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_state_commit_gate"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_interface_contract_bootstrap"
+        },
+        {
+          "elapsed_ms": 10,
+          "name": "validate_tooling_gate"
+        },
+        {
+          "elapsed_ms": 9,
+          "name": "validate_root_dockerfile_seed_detection"
+        },
+        {
+          "elapsed_ms": 9,
+          "name": "validate_context_capsules_if_present"
+        },
+        {
+          "elapsed_ms": 9,
+          "name": "validate_internalization_artifacts_if_present"
+        },
+        {
+          "elapsed_ms": 9,
+          "name": "validate_heartbeat_invocation_gate"
+        }
+      ],
+      "git_revision": "75ba64694fe1a2a486d017afdb43a1a5641f10a3",
+      "kind": "validation_receipt",
+      "parallelism": 1,
+      "pass_count": 186,
+      "prediction_uses_warnings": true,
+      "receipt_hash": "sha256:5063e92eb717159f36f67b28d387b07073836645ebdea1324b0675be5208c2b3",
+      "repo_signal_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+      "schema_version": "1.0.0",
+      "status": "ok",
+      "temporary_artifacts_cleaned": 0,
+      "trajectory_artifact_hash": "sha256:caa50fba55858a14effa671c9bf46a92ea413ac060a5ec46edee2350e8845ed1",
+      "trajectory_run_id": "black-october-den-r3",
+      "warn_count": 5,
+      "warnings": [
+        "Risk map missing (run `decapod riskmap init`)",
+        "STALE_SPECS_TEMPLATE: Project specs use template version 'scaffold-v4' while current scaffolding is 'scaffold-v5'; living spec content remains authoritative.",
+        "Stale workspaces preserved for explicit review: <external-path> (active_claim: workspace belongs to an active task claim; release or complete the claim before pruning), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (dirty_workspace: workspace contains tracked or untracked changes; preserve or review them before rerunning with --force), <external-path> (active_claim: workspace belongs to an active task claim; release or complete the claim before pruning), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (container_cleanup_failed: workspace preserved because container cleanup could not be verified: Validation error: Container runtime provenance is unknown; preserve the workspace and recover its owning engine explicitly.), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (active_claim: workspace belongs to an active task claim; release or complete the claim before pruning), <external-path> (active_claim: abandoned invocation container reconciled; active task files preserved), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace directory is not registered with git; inspect it and rerun with --force only after preserving any needed files), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (active_claim: abandoned invocation container reconciled; active task files preserved), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (dirty_workspace: workspace contains tracked or untracked changes; preserve or review them before rerunning with --force), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly)",
+        "Watcher audit trail missing (run `decapod govern watcher run`)",
+        "Workspace branch 'agent/zenphoenix/feat_01m66jjt2vm7nkwx-black-october-den' has unpushed commits or does not exist on origin. Branch pushes and iteration are allowed before preflight; hold PR creation until intent is converged, the branch is mergeable, and full `decapod validate` succeeds against the exact current candidate and accepted target."
+      ]
     }
   },
   "legacy_digests": {

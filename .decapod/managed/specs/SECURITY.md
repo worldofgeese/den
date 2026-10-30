@@ -133,6 +133,7 @@ write it again.
 | Entrypoint -> core | | | | | deny/reject |
 | Core -> persistence | | | | | fail closed/transaction rollback |
 | Runtime -> external dependency | | | | | timeout/degrade |
+| paphos initrd -> Tang on mother (disk unlock) | paphos' clevis JWE (`/etc/secrets/initrd/root.jwe`, in the initrd), sealed to the Tang signing key on `192.168.99.200:7500` | Tang answers a key-exchange request. It never receives the LUKS passphrase. Unlocking needs both the JWE (on paphos) and a reachable Tang (on the home LAN). | The JWE pins the Tang signing-key thumbprint (`thp`). The enrollment script tests the round trip before it keeps the file. | paphos boot journal; Tang container on mother | Tang unreachable or a key mismatch leaves the root locked. The initrd waits for the passphrase over SSH (`root@paphos:2222`). |
 | paphos -> oracle (upgrade-state probe) | paphos' SSH host key (`modules/_host-keys.nix`), used by the root `paphos-oracle-relay-check` | `upgrade-status@oracle` can only run the forced command `systemctl is-failed nixos-upgrade.service` (`restrict`: no pty, no forwarding) | oracle's host key is pinned in paphos' `known_hosts`; `StrictHostKeyChecking=yes`, user known_hosts ignored | paphos journal for `paphos-oracle-relay-check`, Telegram alert | any other output alerts `oracle-nixos-upgrade-status-unavailable` |
 
 ## Agent and Automation Safety

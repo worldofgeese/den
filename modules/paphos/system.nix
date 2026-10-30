@@ -15,18 +15,37 @@
     # (built 2026-09-02 03:42 by nixos-upgrade.service from the May tree) dropped
     # it again, breaking container -> kypris@paphos exactly as before.
     #
-    # `--update-input` is gone with it: a github: ref has no writable lock, so
-    # inputs advance when a new flake.lock is committed here. Same arrangement as
-    # modules/oracle/system.nix, which has never had this problem.
+    # nixpkgs follows the head of nixos-unstable at every run, not the committed
+    # flake.lock. With only the lock, nixpkgs advanced when someone committed a
+    # new lock, so in October 2026 both servers stayed on mid-October nixpkgs
+    # through the Black October fixes (Node 22.23.4, the eMudhra root removal in
+    # cacert 3.131.1, Forgejo security releases). nixos-unstable advances only
+    # after Hydra's NixOS tests pass. A run that fails to build leaves the
+    # running system in place, and paphos-health-check reports
+    # nixos-upgrade-failed. Every other input stays at the committed lock. Same
+    # arrangement as modules/oracle/system.nix.
+    #
+    # Daily, with reboots. allowReboot used to be false because the LUKS root
+    # needed its passphrase over initrd SSH, so paphos ran kernel 7.0.3 for 175
+    # days with 7.3 installed. The root now unlocks through Tang on mother
+    # (hardware.nix). The window opens after mother's Monday 04:00 DSM update, so
+    # Tang is up when paphos boots.
     system.autoUpgrade = {
       enable = true;
       flake = "github:worldofgeese/den#paphos";
       flags = [
         "--print-build-logs"
+        "--override-input"
+        "nixpkgs"
+        "github:NixOS/nixpkgs/nixos-unstable"
       ];
-      dates = "Wed 03:00";
+      dates = "03:30";
       randomizedDelaySec = "30min";
-      allowReboot = false;
+      allowReboot = true;
+      rebootWindow = {
+        lower = "05:00";
+        upper = "06:30";
+      };
     };
 
     users.users.kypris = {

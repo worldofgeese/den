@@ -60,12 +60,15 @@ flowchart LR
   C --> R[(Read Store)]
 ```
 
-`bd` keeps the bead tracker in a local Dolt SQL server. The repository tracks
-`.beads/dolt-server-config.yaml`; the database under `.beads/dolt/` stays
-ignored. bd 1.1.0 writes `cfg_dir` into the config: the absolute path of
-`.beads/dolt/.doltcfg`, which holds the server's `privileges.db`. The value is
-the path of the M-02877 checkout. If bd runs from a checkout at another path,
-compare that line before you commit it.
+`bd` keeps the bead tracker in a local Dolt SQL server. The database under
+`.beads/dolt/` and the server config `.beads/dolt-server-config.yaml` are
+ignored. bd 1.1.0 writes that config each time it starts the server, with
+`cfg_dir` as the absolute path of `.beads/dolt/.doltcfg`, which holds the
+server's `privileges.db`. The path differs on each host (`/Users/dktaohan/...`
+on M-02877, `/home/worldofgeese/...` on mahakala), so a tracked copy made
+every other checkout dirty. Upstream beads ignores the file as server state
+(`cmd/bd/doctor/gitignore.go`), and so does `.beads/.gitignore`. On a new
+clone, `bd dolt start` writes it.
 
 ## Happy Path Sequence
 ```text

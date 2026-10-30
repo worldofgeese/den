@@ -56,7 +56,8 @@
         };
         desktop = {
           HostName = "desktop-6071t21.hound-celsius.ts.net";
-          User = "worldofgeese";
+          # The Windows account (whoami: desktop-6071t21\taoha).
+          User = "taoha";
         };
       };
     };

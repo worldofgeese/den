@@ -40,7 +40,7 @@ validation_buildkite_preflights = false
 
 [proof.required_profile]
 id = "repo.pr-readiness.v1"
-reviewed_sources_digest = "sha256:33307dafe15fb379551e5eb24ed543dce486186c2cd08afb52914dbac15600bd"
+reviewed_sources_digest = "sha256:ac54c2222b32826c2690994419f3ed51681875c07e3f22b839fc61a446dbe686"
 
 [[proof.commands]]
 name = "fmt"
@@ -51,11 +51,11 @@ required = true
 [[proof.commands]]
 name = "shellcheck"
 command = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
-args = ["scripts/cask-app-preflight.sh", "scripts/check-drvpaths.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/upgrade-cachyos-kernel.sh"]
+args = ["scripts/cask-app-preflight.sh", "scripts/check-decapod-overrides.sh", "scripts/check-drvpaths.sh", "scripts/decapod-validate-ci.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/upgrade-cachyos-kernel.sh"]
 required = true
 
 [proof.repository_contract]
-reviewed_commands_digest = "sha256:ba340c52525f853d7b01383e6158eb343e18881f0211a06c4763bfc3f8efd19d"
+reviewed_commands_digest = "sha256:b02e5cca62fcf0e7a0e3977339403c48eca2497529d7895b07073041ebf7f09a"
 source_coverage = [
     { source = ".github/workflows/decapod-validate.yml", commands = ["fmt", "shellcheck"] },
 ]

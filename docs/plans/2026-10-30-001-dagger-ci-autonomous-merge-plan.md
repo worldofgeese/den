@@ -152,7 +152,7 @@ Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
 | P3 | The reviewer in Dagger. Retire `com.dktaohan.pr-reviewer` after 5 PRs where the two reviewers agree | The review rounds stop at the cap. The code cannot send an `APPROVE` or `REQUEST_CHANGES` event |
 | P4 | Automerge in Dagger. Retire `com.dktaohan.pr-reviewer-automerge` | For 10 PRs, the dry-run verdicts agree with the launchd merger. Then the live merges start |
 | P5 | The fixer that pushes, and its poster | A test PR with a format error is fixed and merged without a person. A test PR that touches a denied path gets `needs-human` |
-| P6 | The nightly bump, and topgrade on M-02877 changed to pull and deploy only | A flake update PR merges. On M-02877, `scripts/deploy-freshness.sh` passes and the deployed commit is `origin/main`. den#60 is closed |
+| P6 | The nightly bump, and topgrade on M-02877 changed to pull and deploy only. A bump PR that changes `flake.lock` also renews `reviewed_sources_digest` in `.decapod/config.toml`, because the readiness inventory includes the lock | A flake update PR merges. On M-02877, `scripts/deploy-freshness.sh` passes and the deployed commit is `origin/main`. den#60 is closed |
 | P7 | The issue shepherd | For 7 days, no issue without `needs-human` is open. Each close names its evidence |
 | P8 | The deploy report | A forced deploy failure opens one issue, and a fix PR closes it |
 
@@ -160,13 +160,22 @@ Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
 
 | Item | State on 2026-10-30 | Where it goes |
 |---|---|---|
-| PR #24 (docs: guides lock-step) | open since 2026-10-05, `validate` passes | P0: close it if a later PR supersedes it, else rebase it and merge |
-| PR #25 (personal Signet 0.232.1) | open since 2026-10-05, `validate` passes | P0: the pin moved to 0.237.14 in PR #64 and to 0.238.0 in branch `agent/unknown/test_01m6687pd7e55x59-pi-chain`, so close it as superseded |
-| den#55 (context-mode twice) | fixed in branch `agent/unknown/test_01m6687pd7e55x59-pi-chain` | close it when that branch merges |
+| PR #24 (docs: guides lock-step) | closed: its rule landed in PR #69, with the current chain and pages | done |
+| PR #25 (personal Signet 0.232.1) | closed: the pin is 0.238.0 (PR #68), and its fix for both lock paths landed in PR #69 | done |
+| den#55 (context-mode twice) | closed by PR #68 | done |
 | den#57 (Caveman shrinking) | waits for a Caveman CLI release with JuliusBrussee/caveman#1315 and #1321 | P6: the bump finds the release |
 | den#59 (personal Signet scans) | open | P7 |
 | den#60 (topgrade deploys an uncommitted lock) | open | P6 |
-| den#61 (local Decapod validate) | open | P1 and D5 |
+| den#61 (local Decapod validate) | closed by PR #67 (Decapod 0.121.1). On macOS, local readiness waits for DecapodLabs/decapod#1470 | D5 |
+| PR #70 (ZenPhoenix: paphos and oracle) | open; it waits for the Tang enrollment on paphos by the user | merge after the enrollment |
+
+### Progress
+
+- **P0.** D1 to D6 are answered. #24 and #25 are closed. The dry run of the merge rules over the last 30 merged PRs is still to do.
+- **P1.** `.dagger/modules/ci` has the checks of item 1: `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`, `ci:decapod-overrides` and `ci:decapod-validate`. The map from each `just check` step to a check, and the two limits, are in VALIDATION.md (Dagger Checks). Measured on M-02877 on 2026-10-30:
+  - The default engine of the CLI does not start in Apple's container runtime (`/proc/sys/net/ipv4/ip_forward: read-only file system`). The podman VM's DNS does not answer AAAA queries for names without IPv6 records. `just dagger-check` makes a podman engine with a public resolver.
+  - The cold run took 229 s. After the fixes, a run took 25 s, and `ci:nix-eval` took 23.5 s from the cache volume.
+  - Item 1 named `ghcr.io/decapodlabs/decapod:v0.111.6-debian`. The checks read the image from `Dockerfile.decapod`, which is 0.121.1 today.
 
 ## Metrics
 

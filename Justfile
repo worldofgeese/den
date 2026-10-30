@@ -246,6 +246,7 @@ check: install-hooks
     if [[ "$(uname -s)" == Darwin ]]; then just check-doom-darwin; fi
     just check-guix
     just check-fmt
+    just check-shellcheck
     just check-decapod-overrides
 
 # Prove the project overrides in .decapod/OVERRIDE.md are actually loaded.
@@ -259,23 +260,9 @@ check: install-hooks
 #
 # `context.resolve` is the only honest source: it returns a resolved_authority
 # entry per applied override. Zero means the file is decorative again.
+# The Dagger check ci:decapod-overrides runs the same script.
 check-decapod-overrides:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if ! command -v decapod >/dev/null 2>&1; then
-        echo "check-decapod-overrides: decapod not found, skipping"
-        exit 0
-    fi
-    applied=$(decapod rpc --op context.resolve 2>/dev/null \
-        | jq '[..|objects|select(has("directive_id"))]|length')
-    if [[ "${applied:-0}" -lt 1 ]]; then
-        echo "check-decapod-overrides: 0 overrides applied - OVERRIDE.md is inert." >&2
-        echo "  Each authored body must sit inside a bare four-backtick block:" >&2
-        echo "  a tagged opener such as '\`\`\`\`markdown' is not recognised and" >&2
-        echo "  fails with OVERRIDE_UNCLOSED_BODY_FENCE." >&2
-        exit 1
-    fi
-    echo "check-decapod-overrides: $applied override(s) applied"
+    ./scripts/check-decapod-overrides.sh
 
 # Regenerate the Decapod entrypoint projections after a Decapod upgrade.
 # `decapod init with --force` resets `external_tracker` and `[tracker] provider`
@@ -581,11 +568,46 @@ show:
 
 # Format all Nix files with alejandra
 fmt:
-    nix run nixpkgs#alejandra -- flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
+    nix run --inputs-from . nixpkgs#alejandra -- flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
 
-# Check Nix formatting (fails if unformatted)
+# Check Nix formatting (fails if unformatted). --inputs-from . takes alejandra
+# from flake.lock, so a host and the Dagger check ci:fmt run the same release.
 check-fmt:
-    nix run nixpkgs#alejandra -- --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
+    nix run --inputs-from . nixpkgs#alejandra -- --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/
+
+# ShellCheck at its default severity on scripts/*.sh, with the release from
+# flake.lock. The Decapod readiness contract and the Dagger check
+# ci:shellcheck run the same check.
+check-shellcheck:
+    nix run --inputs-from . nixpkgs#shellcheck -- scripts/*.sh
+
+# The engine of the Dagger checks on a Mac: the release of
+# .dagger/modules/ci/dagger-module.toml (engineVersion), pinned by digest.
+# Move it with the Dagger CLI.
+dagger_engine_image := "registry.dagger.io/engine:v1.0.0-beta.21@sha256:3444c48e871bedaa95f5b1e57b8c41de929d9e061dd75e9ac6f6deb1f0a74bc3"
+
+# Run the Dagger checks (`dagger check`) on a local engine in podman.
+#
+# On M-02877 the CLI starts its default engine in Apple's container runtime,
+# and there the engine stops at once: "failed to enable forwarding: open
+# /proc/sys/net/ipv4/ip_forward: read-only file system". Podman runs it
+# privileged. The DNS forwarders of the podman VM do not answer an AAAA query
+# for a name without IPv6 records, so each lookup waits for a time-out. So the
+# engine asks a public resolver first, and the VM forwarder second. The name has
+# no dagger-engine- prefix: on 2026-10-30 an engine container with that prefix
+# was removed 4 seconds after a CLI exit.
+dagger-check *args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    name=den-dagger-engine
+    if ! podman container exists "$name"; then
+        podman run --name "$name" -d --restart always \
+            -v dagger-engine-den:/var/lib/dagger --privileged \
+            --dns 1.1.1.1 --dns 192.168.127.1 {{dagger_engine_image}} >/dev/null
+    elif [[ "$(podman inspect -f '{{{{.State.Running}}' "$name")" != true ]]; then
+        podman start "$name" >/dev/null
+    fi
+    DAGGER_ENGINE="container+podman://$name" dagger check {{args}}
 
 # Install git hooks (pre-commit runs 'just check'). Also runs as a `just check`
 # prerequisite, so this is idempotent and safe to re-run.

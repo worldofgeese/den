@@ -19,8 +19,14 @@ Architectural principles:
 
 ## Architecture Map
 This project's architecture consists of the following key layers/directories:
-- `src/`: Main source directory containing primary logic.
-- `tests/`: Integration and unit test suite.
+- `flake.nix` and `modules/`: the host configurations, and the modules that
+  they share. `modules/checks.nix` defines `.#checks`, the derivations that
+  `scripts/check-drvpaths.sh` evaluates.
+- `scripts/`: the shell scripts of the Justfile recipes and of the checks.
+- `.dagger/modules/ci` (Go) with `dagger.toml` and `dagger.lock`: the checks
+  of `dagger check`. Each check runs a recipe or a script of `scripts/` in a
+  pinned container (VALIDATION.md, Dagger Checks). The shepherd, the reviewer,
+  the fixer and the automerge of the Dagger plan come in its later phases.
 - `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
   servers and pinned pi packages; activation merges them into pi's own
   writable files (`mcp.json`, `settings.json`) instead of linking store files,
@@ -382,7 +388,7 @@ because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91`
-- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `fc72e1668c05d6bddca0157494571333ecdf5140961578fc56b49fbae2f4d88a`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (8 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

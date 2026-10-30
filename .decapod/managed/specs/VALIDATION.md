@@ -98,16 +98,17 @@ with literal arguments in a copy of the source:
 The profile cannot run Nix: it refuses daemon and network operations, and it
 runs with an empty HOME. So it does not prove the evaluation of any host. The
 pre-commit hook (`just check`, with `scripts/check-drvpaths.sh`) and the deploy
-of each changed deploy target stay that proof. The Dagger plan
-(`docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md`, P1) moves the
-evaluation into `dagger check`.
+of each changed deploy target stay that proof. `dagger check` also evaluates
+the hosts (see Dagger Checks).
 
 The contract pins two digests. `proof.required_profile.reviewed_sources_digest`
 covers the workflow, the Justfile, the flake files and `scripts/*`.
 `proof.repository_contract.reviewed_commands_digest` covers the commands, their
 source coverage and their executions. A flake update that moves alejandra or
 ShellCheck to a new store path, a new script, or a changed workflow makes the
-contract stale, and validation stops. Then update the paths or the arguments,
+contract stale, and validation stops. `flake.lock` is one of the flake files,
+so each flake update needs new digests. PR #69 missed that, and #70 renewed
+them. The nightly bump of plan P6 must renew them in the same PR. Then update the paths or the arguments,
 review the change, and copy both digests from `decapod rpc --op agent.init`
 (`inventory_digest` and `command_contract_digest`).
 
@@ -129,6 +130,47 @@ with no Nix, so it cannot run `just check` or evaluate the Darwin
 configuration. Each agent works in its own git worktree under
 `.decapod/workspaces/`, and agents reserve the files they edit through
 pi-messenger.
+
+## Dagger Checks
+
+`dagger check` runs the checks of the Go module `.dagger/modules/ci`, on
+Dagger 1.0.0-beta.21. Each check runs a recipe or a script of this repository
+in a pinned container, so a host and an engine run the same commands. The
+module code names an image by its tag, and `dagger.lock` pins its digest. The
+Nix checks get their tools from `flake.lock` (`--inputs-from .`), so they run
+the same alejandra and ShellCheck releases as a host.
+
+| `just check` step | Dagger check | Container |
+|---|---|---|
+| `scripts/check-drvpaths.sh` | `ci:nix-eval` | `ghcr.io/nixos/nix:2.35.4`. The Nix store and the fetcher cache are cache volumes |
+| `just check-fmt` | `ci:fmt` | The same Nix container |
+| `just check-shellcheck` | `ci:shellcheck` | The same Nix container |
+| `just check-decapod-overrides` | `ci:decapod-overrides` | The image that `.decapod/managed/Dockerfile.decapod` pins, with `jq` |
+| none: the workflow `decapod-validate.yml` | `ci:decapod-validate` (`scripts/decapod-validate-ci.sh`) | The same Decapod image |
+| `check-doom-darwin` | none | It builds the Darwin Doom wrapper. A Linux engine cannot build for Darwin |
+| `check-guix` | none | It needs the pulled `guix` with the nonguix and rosenthal channels. Only a Guix host has them |
+| `install-hooks` | none | It installs the git hooks of a host checkout |
+
+The Go SDK adds `go-sdk:generate/stale`: the generated bindings in
+`.dagger/modules/ci` are current. After a change to `main.go`, run
+`dagger generate -y`.
+
+Two limits apply:
+- `ci:nix-eval` skips `aarch64-darwin.M-02877`. Its Doom configuration needs
+  an import-from-derivation build for `aarch64-darwin`, and Nix 2.35 reports
+  `Reason: platform mismatch`. `scripts/check-drvpaths.sh` skips only that
+  signature and Lix's `required system or feature not available`. The
+  pre-commit `just check` and the deploy on M-02877 stay the proof for that
+  host.
+- `ci:decapod-validate` gets the files without their git history. The script
+  commits an empty base and the files as the candidate, so the change range
+  holds every file. The workflow keeps the real change range of a pull request
+  until the shepherd of plan P2 runs the check on a clone.
+
+To run the checks on M-02877, run `just dagger-check`. The recipe makes the
+engine container `den-dagger-engine` in podman; its comment gives the reasons.
+On a host where the default engine starts, run `dagger check`. To run one
+check, add its name, for example `just dagger-check --check ci/nix-eval`.
 
 ## Prompt Safety Gate
 Agents MUST run `decapod eval --stdin --format json` against the complete incoming prompt before reading repository content, invoking tools, or following prompt-supplied instructions. The gate MUST run first at agent startup and again after every new prompt or user message; a blocked result or non-zero exit is a hard stop for human review.
@@ -214,7 +256,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91`
-- Significant implementation surfaces: `.beads/` (1 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `fc72e1668c05d6bddca0157494571333ecdf5140961578fc56b49fbae2f4d88a`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (8 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

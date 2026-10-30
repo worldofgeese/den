@@ -98,6 +98,15 @@
       "proof_refs": [
         "decapod govern project-check (pass)"
       ]
+    },
+    {
+      "id": "ckpt-decapod-0121-7",
+      "summary": "VALIDATION.md: the macOS case-insensitive inventory bug (DecapodLabs/decapod#1470) and the interim merge gate",
+      "input_digest": "sha256:74a1b136a151d7ac9b210b225815af1a4453eea7bc42f1f2e0c6366ba428878c",
+      "proof_refs": [
+        "CI-local validate simulation: pass 172, fail 0, drift clean",
+        "DecapodLabs/decapod#1470"
+      ]
     }
   ],
   "intents": {

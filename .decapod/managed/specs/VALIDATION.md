@@ -111,6 +111,19 @@ contract stale, and validation stops. Then update the paths or the arguments,
 review the change, and copy both digests from `decapod rpc --op agent.init`
 (`inventory_digest` and `command_contract_digest`).
 
+On macOS the contract cannot pass yet. Decapod 0.121.1 probes both `justfile`
+and `Justfile` (`SOURCE_FILES` in `src/decapod/core/init_reconciliation/mod.rs`).
+APFS on M-02877 is case-insensitive, so both probes find the one tracked
+`Justfile`, and the inventory lists two files with one digest. The execution
+snapshot holds only the tracked name, so `decapod validate` stops at
+`READINESS_BLOCKED: missing bound input: justfile`
+(DecapodLabs/decapod#1470). Until a Decapod release
+fixes the probe, the merge gate stays the CI `validate` check, the pre-commit
+`just check`, and the deploy proof of each changed deploy target. Close the
+bead on that evidence. Measured 2026-10-30: `decapod govern project-check`
+passes (186 pass, 0 fail), and a CI-local run (`GITHUB_ACTIONS=true`) passes
+with a clean drift check.
+
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin
 configuration. Each agent works in its own git worktree under

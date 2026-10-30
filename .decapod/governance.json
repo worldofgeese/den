@@ -90,6 +90,15 @@
         "scripts/check-drvpaths.sh (pass, 313 s)",
         "shellcheck scripts/deploy-freshness.sh (pass)"
       ]
+    },
+    {
+      "id": "ckpt-a8y-pi-chain-2",
+      "summary": "Rebased onto Decapod 0.121.1 main; the readiness contract now covers scripts/deploy-freshness.sh, digests renewed from agent.init",
+      "input_digest": "sha256:85e35a0de220f0fa39354440c225b8d5f3d665ddbacb5774fa010112edc639da",
+      "proof_refs": [
+        "decapod rpc --op agent.init: proof_pending",
+        "shellcheck scripts/*.sh (pass)"
+      ]
     }
   ],
   "intents": {

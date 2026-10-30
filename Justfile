@@ -204,7 +204,12 @@ deploy-oracle host="" build-host="":
 # an upgrade over an app with root-owned files, or in an appdir this non-admin
 # user cannot write, fails and can leave the app half-deleted or empty. It
 # moves such casks to ~/Applications first. See scripts/cask-app-preflight.sh.
+#
+# deploy-freshness runs before both: a checkout that does not contain
+# origin/main removes merged work from the machine. See
+# scripts/deploy-freshness.sh.
 deploy-darwin:
+    ./scripts/deploy-freshness.sh
     ./scripts/cask-app-preflight.sh
     sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
     @just cachix-push /run/current-system || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2

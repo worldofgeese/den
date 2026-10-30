@@ -20,6 +20,17 @@
     # move chorusVersion with them.
     chorusUrl = "http://127.0.0.1:3870";
     chorusVersion = "0.23.0";
+    # The environment of every Chorus client here: interactive pi, chorus-pi
+    # and the Chorus pi daemon. CHORUS_SUBMIT_GATE is chorus-pi's pre-submit
+    # read-back gate (Chorus#631, in 0.23.0). `block` refuses a Chorus submit
+    # for a task or proposal that the agent did not read back after its last
+    # change, and the refusal names the read to make. `warn` only shows a TUI
+    # notice, and the headless pi that the daemon wakes has no TUI.
+    chorusEnv = {
+      CHORUS_URL = chorusUrl;
+      CHORUS_SUBMIT_GATE = "block";
+    };
+    exportLines = env: lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "export ${n}=${lib.escapeShellArg v}") env);
 
     # Team Signet: LEGO/devrel-infra projects/aws-signet, reached through the
     # signet-team-tunnel launchd agent (darwin.nix) on 3860. The key is the one
@@ -109,8 +120,8 @@
       runtimeInputs = [pkgs.coreutils];
       text = ''
         export PATH="/etc/profiles/per-user/${config.home.username}/bin:${home}/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-        export CHORUS_URL=${chorusUrl}
-        ${lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "export ${n}=${lib.escapeShellArg v}") signetEnv)}
+        ${exportLines chorusEnv}
+        ${exportLines signetEnv}
         SIGNET_API_KEY="$(cat ${lib.escapeShellArg signetTokenFile} 2>/dev/null || true)"
         export SIGNET_API_KEY
         # This daemon exists to be woken while nobody is at the Mac, which is
@@ -142,7 +153,7 @@
     # Chorus connection from the environment only, so interactive shells
     # export it. The key stays out of this git-tracked source.
     programs.zsh.initContent = ''
-      export CHORUS_URL=${chorusUrl}
+      ${exportLines chorusEnv}
       if [ -z "''${CHORUS_API_KEY:-}" ] && chorus_key="$(${lib.getExe chorusApiKey} "pi Chorus MCP server and chorus-pi" 2>/dev/null)"; then
         export CHORUS_API_KEY="$chorus_key"
       fi
@@ -184,9 +195,29 @@
       # a startup notice, and nobody ran /tasks after 2026-10-06. Without
       # devrel-infra's local beads store it only fell back to TODO.md.
       removedPackages = ["npm:@soleone/pi-tasks"];
+      # mattpocock/skills `research` lives in ~/.agents/skills, and the skills
+      # CLI installs it again at each run of topgrade's `skills` step. It has
+      # the name of chorus-pi's own `research` skill, which the Chorus idea
+      # and proposal skills load as `/skill:research`, and pi keeps the user
+      # skill on a name collision. So pi skips the user copy. The other
+      # harnesses keep it. In pi, the same skill is `research-notes`, a copy
+      # with a different name in ~/.agents/skills.
+      skills = ["-${home}/.agents/skills/research"];
     };
 
     home.activation = {
+      # `signet connect pi` writes the team Signet key into the header of the
+      # extension that it generates, with mode 0644 under 0755 directories, so
+      # every local account can read the key. ~/.config/signet/token holds the
+      # same key at 0600. pi reads the extension as this user only. Signet
+      # sync can write the file again, so each switch sets the mode.
+      signetPiExtensionMode = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        ext=${lib.escapeShellArg "${home}/.pi/agent/extensions/signet-pi.js"}
+        if [ -f "$ext" ]; then
+          run chmod 600 "$ext"
+        fi
+      '';
+
       # The chorus CLI is the whole Chorus app (Next.js server included), so
       # it is installed from npm, pinned, rather than packaged in Nix.
       # The CLI is a `#!/usr/bin/env node` script and the activation PATH has

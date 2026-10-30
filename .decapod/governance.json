@@ -24,643 +24,299 @@
     }
   },
   "change": {
-    "id": "change_01M66BB18PBDAHFZHF8AZQ6VZZ",
+    "id": "change_01M6688SJJNTPN576F4RA6TNBT",
     "base_commit": "55efa811640354a59ceae12be6f72b1f4443cc90",
     "target_base": "origin/main"
   },
   "claims": {
-    "claim-decapod-one-release": {
-      "statement": "AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md and Dockerfile.decapod pin Decapod 0.121.1, and the CI workflow installs the release that the AGENTS.md header names.",
-      "falsifier": "Any entrypoint header or Dockerfile ARG names another release, or decapod-validate.yml installs decapod without the version from the AGENTS.md header.",
+    "claim-chorus-submit-gate": {
+      "statement": "The zsh init and the chorus-pi-daemon script export CHORUS_SUBMIT_GATE=block next to CHORUS_URL.",
+      "falsifier": "Either the evaluated programs.zsh.initContent or the built chorus-pi-daemon script lacks export CHORUS_SUBMIT_GATE=block.",
       "status": "supported",
       "proof_refs": [
-        ".github/workflows/decapod-validate.yml",
-        "AGENTS.md"
+        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.zsh.initContent"
       ]
     },
-    "claim-readiness-contract": {
-      "statement": ".decapod/config.toml declares repo.pr-readiness.v1 with the required commands fmt (alejandra --check) and shellcheck, and agent.init reports the contract reconciled.",
-      "falsifier": "agent.init reports REPOSITORY_CONTRACT_INVALID or MISSING_REQUIRED_PROFILE, or a required command is missing.",
+    "claim-context-mode-single": {
+      "statement": "M-02877 declares no context-mode MCP server, and the piMcpServers activation deletes a context-mode entry from mcp.json.",
+      "falsifier": "nix eval of piAgent.mcpServers contains context-mode, or the piMcpServers jq filter keeps a context-mode key.",
       "status": "supported",
       "proof_refs": [
-        "decapod rpc --op agent.init"
+        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activation.piMcpServers.data"
+      ]
+    },
+    "claim-deploy-freshness": {
+      "statement": "just deploy-darwin runs scripts/deploy-freshness.sh first, and that script exits 1 when HEAD does not contain origin/main unless DEN_DEPLOY_STALE is set.",
+      "falsifier": "The script exits 0 at a commit that lacks origin/main without DEN_DEPLOY_STALE, or the Justfile recipe does not call it first.",
+      "status": "supported",
+      "proof_refs": [
+        "scripts/deploy-freshness.sh"
+      ]
+    },
+    "claim-pi-research-exclusion": {
+      "statement": "On M-02877, piAgent.skills holds -/Users/dktaohan/.agents/skills/research, so pi resolves skill:research to the chorus-pi package.",
+      "falsifier": "nix eval of home-manager.users.dktaohan.piAgent.skills lacks the entry, or pi --mode rpc get_commands resolves skill:research to ~/.agents/skills.",
+      "status": "supported",
+      "proof_refs": [
+        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.piAgent.skills"
+      ]
+    },
+    "claim-pins-latest": {
+      "statement": "ponytail is pinned at 5.3.3 and the personal Signet container image at ghcr.io/signet-ai/signet:0.238.0.",
+      "falsifier": "nix eval of piAgent.packages lacks npm:@dietrichgebert/ponytail@5.3.3, or the signet-container ProgramArguments lack signet:0.238.0.",
+      "status": "supported",
+      "proof_refs": [
+        "nix eval .#darwinConfigurations.M-02877.config.launchd.user.agents.signet-container.serviceConfig.ProgramArguments"
+      ]
+    },
+    "claim-signet-pi-mode": {
+      "statement": "Each switch on M-02877 runs chmod 600 on ~/.pi/agent/extensions/signet-pi.js when the file exists.",
+      "falsifier": "The evaluated home.activation.signetPiExtensionMode lacks the chmod 600, or the entry is missing.",
+      "status": "supported",
+      "proof_refs": [
+        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activation.signetPiExtensionMode.data"
       ]
     }
   },
   "checkpoints": [
     {
-      "id": "ckpt-decapod-0121-1",
-      "summary": "Decapod 0.121.1 projections and Dockerfile pin; CI installs the AGENTS.md release; repo.pr-readiness.v1 contract (fmt, shellcheck) with worktree isolation; VALIDATION.md rewritten; shellcheck directive in hm-app-signing.sh",
-      "input_digest": "sha256:c66acfe802562652f210b6e9fbb8d4439dd4f97b8c8e1328c86007c9c69cf17e",
+      "id": "ckpt-a8y-pi-chain-1",
+      "summary": "pi loads chorus-pi research (piAgent.skills), CHORUS_SUBMIT_GATE=block, context-mode MCP entry removed (den#55), ponytail 5.3.3, Signet image 0.238.0, signet-pi.js 0600, deploy-freshness guard, specs, Dagger CI plan",
+      "input_digest": "sha256:3fcd0a8560e47fb0c5617f083f3aec2f2a9206714d0b13b9a08561d768350fde",
       "proof_refs": [
-        "alejandra --check (pass)",
-        "decapod rpc --op agent.init: status proof_pending, digests copied",
-        "shellcheck scripts/*.sh (pass)"
-      ]
-    },
-    {
-      "id": "ckpt-decapod-0121-2",
-      "summary": "Trajectory record and current-PR claims for the Decapod 0.121.1 move",
-      "input_digest": "sha256:81002a846181c178e216ca67f936a76087c05a9243bbd1d6eb04f38f7093bc22",
-      "proof_refs": [
-        "decapod govern artifacts claim: claim-decapod-one-release, claim-readiness-contract",
-        "decapod govern trajectory status: proof_status passed"
-      ]
-    },
-    {
-      "id": "ckpt-decapod-0121-3",
-      "summary": "Project-check receipt for the Decapod 0.121.1 candidate",
-      "input_digest": "sha256:81002a846181c178e216ca67f936a76087c05a9243bbd1d6eb04f38f7093bc22",
-      "proof_refs": [
-        "decapod govern project-check (pass 185, fail 0)"
-      ]
-    },
-    {
-      "id": "ckpt-decapod-0121-4",
-      "summary": "Spec reviews: VALIDATION.md updated; the seven other specs unchanged with reason",
-      "input_digest": "sha256:7966b0fe1dc3de96c07d455f7a79d0d2abb680a20c8134a1eea8637c51674dd6",
-      "proof_refs": [
-        "decapod govern plan review-spec x8"
-      ]
-    },
-    {
-      "id": "ckpt-decapod-0121-5",
-      "summary": "New trajectory run for the current validation epoch",
-      "input_digest": "sha256:1103fec6e34907d972a25a381b0c082d37b750d0800996112372b379c5afd044",
-      "proof_refs": [
-        "decapod govern trajectory status run_decapod_0121_b"
-      ]
-    },
-    {
-      "id": "ckpt-decapod-0121-6",
-      "summary": "Project-check receipt for the current validation epoch",
-      "input_digest": "sha256:e0f238f157fac29abc79e847b433d2e2341874049dfecca47b633acd546680b2",
-      "proof_refs": [
-        "decapod govern project-check (pass)"
-      ]
-    },
-    {
-      "id": "ckpt-decapod-0121-7",
-      "summary": "VALIDATION.md: the macOS case-insensitive inventory bug (DecapodLabs/decapod#1470) and the interim merge gate",
-      "input_digest": "sha256:74a1b136a151d7ac9b210b225815af1a4453eea7bc42f1f2e0c6366ba428878c",
-      "proof_refs": [
-        "CI-local validate simulation: pass 172, fail 0, drift clean",
-        "DecapodLabs/decapod#1470"
+        "just check-fmt (pass)",
+        "nix eval piAgent (skills, mcpServers, removedMcpServers, packages)",
+        "pi --mode rpc get_commands (skill:research -> chorus-pi)",
+        "scripts/check-drvpaths.sh (pass, 313 s)",
+        "shellcheck scripts/deploy-freshness.sh (pass)"
       ]
     }
   ],
   "intents": {
-    "intent:run_decapod_0121_b": {
+    "intent:change_01M6688SJJNTPN576F4RA6TNBT": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "AGENTS.md",
-        "CLAUDE.md",
-        "CODEX.md",
-        "GEMINI.md",
-        ".decapod/config.toml",
-        ".decapod/managed/**",
-        ".github/workflows/decapod-validate.yml",
-        "scripts/hm-app-signing.sh"
+        "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "Decapod release pins, the CI install of Decapod, the readiness contract and its spec"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:run_decapod_0121_b",
+      "id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Always use the latest release of every tool: move den to Decapod 0.121.1 and make local decapod validate pass (den#61).",
-      "refined_intent": "Pin Decapod 0.121.1 in the entrypoints, the Dockerfile and CI; declare repo.pr-readiness.v1 (fmt, shellcheck) with worktree isolation; describe it in VALIDATION.md.",
+      "raw_intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
+      "refined_intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
       "status": "refined",
       "updated_sequence": 3
     }
   },
-  "epochs": {
-    "ve_654c0639b502cf51": {
-      "constitution_hash": "sha256:a098ac16fc0f54a9576f0ededd35d90ff66a7124d270fa3c3ff69d2a51058960",
-      "constitution_version": "embedded-docs@0.121.1",
-      "epoch_id": "ve_654c0639b502cf51",
-      "evaluator_identity": "decapod-validate@0.121.1",
-      "evaluator_set_hash": "sha256:19d875a8e3263f58cae1df07f9a44331409226a08d418dd2db9222a85cf2a656",
-      "generated_specs_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
-      "generated_specs_manifest_hash": "sha256:5a27367815bf7fdcb07faf18e8287535b4f56bb87ce30dbb40c260e700ac3369",
-      "material_hashes": {
-        "constitution:core/DECAPOD": "sha256:a098ac16fc0f54a9576f0ededd35d90ff66a7124d270fa3c3ff69d2a51058960",
-        "generated_spec:.decapod/managed/specs/ARCHITECTURE.md": "sha256:efca005131d59eee92d849ccd1e60eaed548d25565da5d07a884fb0cbf064c19",
-        "generated_spec:.decapod/managed/specs/INTENT.md": "sha256:4ea43e49094f75ca3a4998bbab40c786c368e6f7b8b43ec7252b68c0d9286765",
-        "generated_spec:.decapod/managed/specs/INTERFACES.md": "sha256:48eec80b80dd2dc7714d662185ee66b9ddc7292d53b10fafdcc0840313d20caa",
-        "generated_spec:.decapod/managed/specs/OPERATIONS.md": "sha256:fbaeca65e43739e2ca767136b8b3c329b1d334c603d61f34f104c96768d9736a",
-        "generated_spec:.decapod/managed/specs/README.md": "sha256:5688fafd888812e03059e3183c1f3b4eb5bf6ccd54de580a9f4639f55287d76e",
-        "generated_spec:.decapod/managed/specs/SECURITY.md": "sha256:c25b7d73f84686900f6642eb6d706abb57a0d00b7bb51a8520445787374a9acd",
-        "generated_spec:.decapod/managed/specs/SEMANTICS.md": "sha256:c5e79670a5238954f8de5ee401d2e73621e6054f3a9387d72cb0e5f055048626",
-        "generated_spec:.decapod/managed/specs/VALIDATION.md": "sha256:2b495930dc896de17de9db521c86309a2be23f4f76dd2af5ee054612f0958ba8",
-        "generated_specs_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
-        "generated_specs_manifest": "sha256:5a27367815bf7fdcb07faf18e8287535b4f56bb87ce30dbb40c260e700ac3369",
-        "governance_context": "sha256:362b96ed28e0dc0766a5e3935ef02d579c8c86b0dff02d2cb061446b0dd92aa9",
-        "governance_material:.decapod/managed/Dockerfile.decapod": "sha256:b827189bbceb3020cebfaef967a9f78f8d6c63a9b21a03ea1ee39a60200f3881",
-        "governance_material:AGENTS.md": "sha256:a827284dd27ce5e6613bbe6153280892679874cc5288a3eb34faccdb9506bfdf",
-        "governance_material:CLAUDE.md": "sha256:84418d5796cf9e7f60b53b2b86b6bdb63764b6506542b2d998430dfc9b6dd28a",
-        "governance_material:CODEX.md": "sha256:7619fb705a3ec74a4f6db854194a3883e9d8694582f33e93de1d9e75ff687d61",
-        "governance_material:GEMINI.md": "sha256:4ebada4c9637493a11e93ddf260550d68ec96a29afae675ad0ffcd86453086a6",
-        "governance_section:claims": "sha256:87934f20299f20829ff5c7c123d5d1c7cab82ee5e64bc3c582a99df8849fb51b",
-        "governance_section:plan": "sha256:1cd64f9890685720e769fe2d277d0384018ed6b0aca1a9c7450d8d34a55719e2",
-        "living_spec_material:.decapod/managed/specs/ARCHITECTURE.md": "sha256:f29a0d6ce22b42fe86ded4e4d667230f0debdef8d26f69566f6391bd40e22eba",
-        "living_spec_material:.decapod/managed/specs/INTENT.md": "sha256:a28034be1ea845b24c83d39c647dfa79bd3a52355d448daee17397bbf94cd5d2",
-        "living_spec_material:.decapod/managed/specs/INTERFACES.md": "sha256:a7bbdeb2a5f8787ace009883da41c59e8817c81d2c86e0489545d2cad5f811c2",
-        "living_spec_material:.decapod/managed/specs/OPERATIONS.md": "sha256:d0078426a61c0f36d4102281a7e345123dd5b6c2330ac61b8c702b9cddd1dd8e",
-        "living_spec_material:.decapod/managed/specs/README.md": "sha256:2657d7a156b5ccd0e73067aa65f4401426d6637ce10af87f4b4ebd3a738c9b70",
-        "living_spec_material:.decapod/managed/specs/SECURITY.md": "sha256:7fdf106dc32ae26c1ee35df5f26609f1b313ca66951130571372189ff8bad3dd",
-        "living_spec_material:.decapod/managed/specs/SEMANTICS.md": "sha256:9923d5d3319d8619a3c2a253493107cd3d9aafd99541233204f0de89cd3ce560",
-        "living_spec_material:.decapod/managed/specs/VALIDATION.md": "sha256:c5353e662b604e0a73848f4d79f83d2c756726dcad98c13336b37d3b14e90d4c",
-        "proof_rubric": "sha256:99e8ef25629da391e9b479db9fff52b82f340224f7a69d8a88d2992ae8e90466",
-        "validation_profile": "sha256:37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f"
-      },
-      "proof_rubric": "decapod-validate/current-proof-v1",
-      "proof_rubric_hash": "sha256:99e8ef25629da391e9b479db9fff52b82f340224f7a69d8a88d2992ae8e90466",
-      "schema_version": "1.0.0",
-      "validation_profile": "default",
-      "validation_profile_hash": "sha256:37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f"
-    }
-  },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Move den to Decapod 0.121.1 everywhere (entrypoints, Dockerfile pin, CI install pinned to the AGENTS.md release) and declare the repo.pr-readiness.v1 contract (fmt, shellcheck) with worktree isolation, so that local decapod validate passes (den#61, DecapodLabs/decapod#1431)",
-      "phases": [],
+      "constraints": {},
+      "intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
       "proof_hooks": [
-        "decapod validate",
-        "just check"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "spec_reviews": [
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Reviewed against this PR: it changes only the Decapod release pins, the CI install of Decapod, .decapod/config.toml (readiness contract, worktree isolation) and a shellcheck directive. ARCHITECTURE.md describes none of these; VALIDATION.md carries them. Only the generated attestation fingerprint changed.",
-          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
-          "spec_material_hash": "f29a0d6ce22b42fe86ded4e4d667230f0debdef8d26f69566f6391bd40e22eba"
-        },
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Reviewed against this PR: it changes only the Decapod release pins, the CI install of Decapod, .decapod/config.toml (readiness contract, worktree isolation) and a shellcheck directive. INTERFACES.md describes none of these; VALIDATION.md carries them. Only the generated attestation fingerprint changed.",
-          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
-          "spec_material_hash": "a7bbdeb2a5f8787ace009883da41c59e8817c81d2c86e0489545d2cad5f811c2"
-        },
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "Reviewed against this PR: it changes only the Decapod release pins, the CI install of Decapod, .decapod/config.toml (readiness contract, worktree isolation) and a shellcheck directive. SECURITY.md describes none of these; VALIDATION.md carries them. Only the generated attestation fingerprint changed.",
-          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
-          "spec_material_hash": "7fdf106dc32ae26c1ee35df5f26609f1b313ca66951130571372189ff8bad3dd"
-        }
-      ],
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Move den to Decapod 0.121.1 and declare the readiness contract",
+      "state": "DRAFT",
+      "title": "Align den's pi chain with upstream: latest pins and clean pi startup",
       "todo_ids": [
-        "code_01m66ba7w6vpy4ma"
+        "test_01m6687pd7e55x59"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1793363792Z"
+      "updated_at": "1793358849Z"
     },
     "trajectory": {
       "active_boundaries": [
-        ".decapod/config.toml",
-        ".decapod/managed/**",
-        ".github/workflows/decapod-validate.yml",
-        "AGENTS.md",
-        "CLAUDE.md",
-        "CODEX.md",
-        "GEMINI.md",
-        "scripts/hm-app-signing.sh"
+        ".decapod/managed/specs/**",
+        "Current claimed task and isolated work branch",
+        "Justfile",
+        "docs/plans/**",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix",
+        "scripts/deploy-freshness.sh"
       ],
-      "artifact_hash": "sha256:be4c5c72c7d5448e2e2219b1a2ca65416e616a1244cfb429f7d75cbd0ee3d91c",
+      "artifact_hash": "sha256:4e72ac07628eb99b0e38973b7f6659b1a94e1561b6c39c4f45cf940c5c5eed45",
       "checks": [
         {
-          "name": "alejandra-check",
+          "name": "check-drvpaths",
           "status": "passed"
         },
         {
-          "name": "decapod validate",
+          "name": "check-fmt",
           "status": "passed"
         },
         {
-          "name": "just-check",
+          "name": "chorus-pi-daemon-build",
           "status": "passed"
         },
         {
-          "name": "project-check",
+          "name": "decapod-validate",
+          "status": "unavailable"
+        },
+        {
+          "name": "deploy-freshness-stale-probe",
           "status": "passed"
         },
         {
-          "name": "readiness-contract-reconciled",
+          "name": "jq-mcp-merge-cases",
           "status": "passed"
         },
         {
-          "name": "shellcheck-scripts",
+          "name": "nix-eval-piAgent",
+          "status": "passed"
+        },
+        {
+          "name": "pi-rpc-skill-exclusion",
+          "status": "passed"
+        },
+        {
+          "name": "shellcheck-deploy-freshness",
           "status": "passed"
         }
       ],
-      "current_phase": "validation",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:run_decapod_0121_b",
+            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:run_decapod_0121_b",
+            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:run_decapod_0121_b",
+            "detail": "trajectory:branch_01M6688SN9Y2MYW2HEBABB2A0N",
             "event_id": "event:4",
-            "intent_id": "intent:run_decapod_0121_b",
+            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:run_decapod_0121_b",
-            "event_id": "event:5",
-            "intent_id": "intent:run_decapod_0121_b",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "run_decapod_0121_b": {
+          "branch_01M6688SN9Y2MYW2HEBABB2A0N": {
             "evidence_only": true,
-            "id": "run_decapod_0121_b",
-            "intent_id": "intent:run_decapod_0121_b",
+            "id": "branch_01M6688SN9Y2MYW2HEBABB2A0N",
+            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
             "steps": [
               {
-                "action": "validation",
-                "command": "just check",
+                "action": "implementation",
+                "command": "just check-fmt",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".decapod/config.toml",
+                  "modules/pi.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/M-02877/darwin.nix",
+                  "modules/M-02877/pr-reviewer.nix",
+                  "Justfile",
                   ".github/workflows/decapod-validate.yml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "AGENTS.md",
                   ".decapod/managed/Dockerfile.decapod",
-                  ".decapod/config.toml",
-                  ".github/workflows/decapod-validate.yml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "scripts/hm-app-signing.sh",
-                  "pre-commit just check passed on 33180b3 (461 s)",
-                  "decapod govern project-check passed: pass 185, fail 0",
-                  "spec reviews recorded for ARCHITECTURE, INTERFACES, SECURITY"
+                  "modules/pi.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/M-02877/darwin.nix",
+                  "scripts/deploy-freshness.sh",
+                  "Justfile",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+                  "check-drvpaths exit 0 in 313 s after the last pi.nix change, no FAIL or SKIP",
+                  "pi --mode rpc get_commands with -/Users/dktaohan/.agents/skills/research: skill:research resolves to npm:@chorus-aidlc/chorus-pi, 132 skills",
+                  "nix eval piAgent: mcpServers chorus codegraph(direct) github-spaces nixos; removedMcpServers context-mode; skills -/Users/dktaohan/.agents/skills/research; packages ponytail@5.3.3 chorus-pi@0.23.0",
+                  "deploy-freshness: exit 0 at 55efa81; exit 1 at b8248a6 listing 11 missing commits; exit 0 with DEN_DEPLOY_STALE=1",
+                  "built chorus-pi-daemon (writeShellApplication runs shellcheck); it exports CHORUS_SUBMIT_GATE=block and CHORUS_URL"
                 ],
                 "proof_refs": [
-                  "just-check",
-                  "shellcheck-scripts",
-                  "alejandra-check",
-                  "readiness-contract-reconciled",
-                  "project-check"
+                  "check-fmt",
+                  "check-drvpaths",
+                  "shellcheck-deploy-freshness",
+                  "nix-eval-piAgent",
+                  "chorus-pi-daemon-build",
+                  "pi-rpc-skill-exclusion",
+                  "jq-mcp-merge-cases",
+                  "deploy-freshness-stale-probe",
+                  "decapod-validate"
                 ],
                 "scope": [
-                  "Decapod release pins, the CI install of Decapod, the readiness contract and its spec"
+                  "root"
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "governance-only commits used git commit --no-verify; the code equals 33180b3, where the pre-commit just check passed"
+                  "decapod validate needs a committed candidate; den#61 says local validate stops at READINESS_PROFILE_REQUIRED, so CI validate on the PR is the proof",
+                  "The OVERRIDE needs explicit user authority for commit and push; none given yet",
+                  "The live system runs the stale main checkout until the user pulls and deploys"
                 ]
-              },
-              {
-                "action": "validation",
-                "command": "decapod validate",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".decapod/governance.json",
-                  ".decapod/governance.json",
-                  "validation epoch ve_654c0639b502cf51 completed with zero failures"
-                ],
-                "proof_refs": [
-                  "decapod validate"
-                ],
-                "scope": [
-                  "Decapod release pins, the CI install of Decapod, the readiness contract and its spec"
-                ],
-                "sequence": 5,
-                "validation_findings": []
               }
             ]
           }
         }
       },
       "declared_commands": [
-        "decapod govern project-check",
-        "decapod rpc --op agent.init",
-        "decapod validate",
-        "just check"
+        "./scripts/check-drvpaths.sh",
+        "just check-fmt",
+        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.piAgent",
+        "shellcheck scripts/deploy-freshness.sh"
       ],
+      "destination": "pull request",
       "evidence": [
-        "decapod govern project-check passed: pass 185, fail 0",
-        "pre-commit just check passed on 33180b3 (461 s)",
-        "spec reviews recorded for ARCHITECTURE, INTERFACES, SECURITY",
-        "validation epoch ve_654c0639b502cf51 completed with zero failures"
+        "built chorus-pi-daemon (writeShellApplication runs shellcheck); it exports CHORUS_SUBMIT_GATE=block and CHORUS_URL",
+        "check-drvpaths exit 0 in 313 s after the last pi.nix change, no FAIL or SKIP",
+        "deploy-freshness: exit 0 at 55efa81; exit 1 at b8248a6 listing 11 missing commits; exit 0 with DEN_DEPLOY_STALE=1",
+        "nix eval piAgent: mcpServers chorus codegraph(direct) github-spaces nixos; removedMcpServers context-mode; skills -/Users/dktaohan/.agents/skills/research; packages ponytail@5.3.3 chorus-pi@0.23.0",
+        "pi --mode rpc get_commands with -/Users/dktaohan/.agents/skills/research: skill:research resolves to npm:@chorus-aidlc/chorus-pi, 132 skills"
       ],
       "inspected_files": [
-        ".decapod/config.toml",
-        ".decapod/managed/specs/VALIDATION.md",
-        ".github/workflows/decapod-validate.yml"
-      ],
-      "intent_id": "intent:run_decapod_0121_b",
-      "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/governance.json",
         ".decapod/managed/Dockerfile.decapod",
-        ".decapod/managed/specs/VALIDATION.md",
         ".github/workflows/decapod-validate.yml",
-        "AGENTS.md",
-        "scripts/hm-app-signing.sh"
+        "Justfile",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/pr-reviewer.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix"
+      ],
+      "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+      "modified_files": [
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "Justfile",
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix",
+        "scripts/deploy-freshness.sh"
       ],
       "next_transitions": [
-        "publish"
+        "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "Decapod release pins, the CI install of Decapod, the readiness contract and its spec"
+        "M-02877 pi chain, the M-02877 deploy recipe, and a docs-only Dagger plan",
+        "root"
       ],
-      "run_id": "run_decapod_0121_b",
+      "run_id": "branch_01M6688SN9Y2MYW2HEBABB2A0N",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [
-        "governance-only commits used git commit --no-verify; the code equals 33180b3, where the pre-commit just check passed"
-      ],
-      "task_id": "code_01m66ba7w6vpy4ma",
+      "shortcut_risk_signals": [],
+      "task_id": "test_01m6687pd7e55x59",
       "tool_calls": [],
-      "unresolved_assumptions": []
-    },
-    "validation": {
-      "ci_prediction": {
-        "confidence": "medium",
-        "recommendations": [
-          "Review the reported validation warnings before relying on the CI result.",
-          "Use `decapod validate -v --format json` to inspect the affected gate output."
-        ],
-        "result": "review"
-      },
-      "decapod_release": "0.121.1",
-      "drift_findings": [],
-      "elapsed_ms": 9414,
-      "epoch_ref": "ve_654c0639b502cf51",
-      "fail_count": 0,
-      "failures": [],
-      "gate_timings": [
-        {
-          "elapsed_ms": 2255,
-          "name": "validate_project_specs_docs"
-        },
-        {
-          "elapsed_ms": 1783,
-          "name": "validate_federation_gates"
-        },
-        {
-          "elapsed_ms": 1149,
-          "name": "validate_stale_workspaces"
-        },
-        {
-          "elapsed_ms": 1137,
-          "name": "validate_markdown_primitives_roundtrip_gate"
-        },
-        {
-          "elapsed_ms": 218,
-          "name": "validate_git_workspace_context"
-        },
-        {
-          "elapsed_ms": 161,
-          "name": "validate_machine_contract"
-        },
-        {
-          "elapsed_ms": 126,
-          "name": "validate_obligations"
-        },
-        {
-          "elapsed_ms": 95,
-          "name": "validate_git_push_pr_gate"
-        },
-        {
-          "elapsed_ms": 88,
-          "name": "validate_legacy_jsonl_retired"
-        },
-        {
-          "elapsed_ms": 85,
-          "name": "validate_repomap_determinism"
-        },
-        {
-          "elapsed_ms": 68,
-          "name": "validate_git_protected_branch"
-        },
-        {
-          "elapsed_ms": 61,
-          "name": "validate_archive_integrity"
-        },
-        {
-          "elapsed_ms": 50,
-          "name": "validate_generated_artifact_whitelist"
-        },
-        {
-          "elapsed_ms": 45,
-          "name": "validate_plan_governed_execution_gate"
-        },
-        {
-          "elapsed_ms": 39,
-          "name": "validate_policy_integrity"
-        },
-        {
-          "elapsed_ms": 37,
-          "name": "validate_no_legacy_namespaces"
-        },
-        {
-          "elapsed_ms": 36,
-          "name": "validate_lineage_hard_gate"
-        },
-        {
-          "elapsed_ms": 35,
-          "name": "validate_gatekeeper_gate"
-        },
-        {
-          "elapsed_ms": 34,
-          "name": "validate_recursive_improvement_passes_if_present"
-        },
-        {
-          "elapsed_ms": 29,
-          "name": "validate_health_purity"
-        },
-        {
-          "elapsed_ms": 28,
-          "name": "validate_schema_determinism"
-        },
-        {
-          "elapsed_ms": 27,
-          "name": "validate_control_plane_contract"
-        },
-        {
-          "elapsed_ms": 25,
-          "name": "validate_knowledge_integrity"
-        },
-        {
-          "elapsed_ms": 25,
-          "name": "validate_watcher_audit"
-        },
-        {
-          "elapsed_ms": 23,
-          "name": "validate_lcm_rebuild_gate"
-        },
-        {
-          "elapsed_ms": 23,
-          "name": "validate_heartbeat_invocation_gate"
-        },
-        {
-          "elapsed_ms": 22,
-          "name": "validate_repo_map"
-        },
-        {
-          "elapsed_ms": 22,
-          "name": "validate_lcm_immutability"
-        },
-        {
-          "elapsed_ms": 22,
-          "name": "validate_risk_map_violations"
-        },
-        {
-          "elapsed_ms": 19,
-          "name": "validate_override_authority"
-        },
-        {
-          "elapsed_ms": 18,
-          "name": "validate_context_capsules_if_present"
-        },
-        {
-          "elapsed_ms": 17,
-          "name": "validate_knowledge_promotions_if_present"
-        },
-        {
-          "elapsed_ms": 17,
-          "name": "validate_watcher_purity"
-        },
-        {
-          "elapsed_ms": 16,
-          "name": "validate_coplayer_policy_tightening"
-        },
-        {
-          "elapsed_ms": 16,
-          "name": "validate_validation_receipt_if_present"
-        },
-        {
-          "elapsed_ms": 16,
-          "name": "validate_health_cache_integrity"
-        },
-        {
-          "elapsed_ms": 16,
-          "name": "validate_database_schema_versions"
-        },
-        {
-          "elapsed_ms": 16,
-          "name": "validate_workunit_manifests_if_present"
-        },
-        {
-          "elapsed_ms": 15,
-          "name": "validate_risk_map"
-        },
-        {
-          "elapsed_ms": 14,
-          "name": "validate_project_config_toml"
-        },
-        {
-          "elapsed_ms": 14,
-          "name": "validate_project_scoped_state"
-        },
-        {
-          "elapsed_ms": 14,
-          "name": "validate_embedded_self_contained"
-        },
-        {
-          "elapsed_ms": 13,
-          "name": "validate_canon_mutation"
-        },
-        {
-          "elapsed_ms": 13,
-          "name": "validate_interface_contract_bootstrap"
-        },
-        {
-          "elapsed_ms": 13,
-          "name": "validate_context_capsule_policy_contract"
-        },
-        {
-          "elapsed_ms": 13,
-          "name": "validate_docs_templates_bucket"
-        },
-        {
-          "elapsed_ms": 12,
-          "name": "validate_trajectory_artifacts_if_present"
-        },
-        {
-          "elapsed_ms": 12,
-          "name": "validate_tooling_gate"
-        },
-        {
-          "elapsed_ms": 12,
-          "name": "validate_state_commit_gate"
-        },
-        {
-          "elapsed_ms": 11,
-          "name": "validate_entrypoint_invariants"
-        },
-        {
-          "elapsed_ms": 11,
-          "name": "validate_eval_gate_if_required"
-        },
-        {
-          "elapsed_ms": 10,
-          "name": "validate_root_dockerfile_seed_detection"
-        },
-        {
-          "elapsed_ms": 10,
-          "name": "validate_research_claims_if_present"
-        },
-        {
-          "elapsed_ms": 10,
-          "name": "validate_spec_drift"
-        },
-        {
-          "elapsed_ms": 10,
-          "name": "validate_internalization_artifacts_if_present"
-        }
-      ],
-      "git_revision": "7259dd325a1e1e7ca26f41c3191d851baa2fb9d9",
-      "kind": "validation_receipt",
-      "parallelism": 1,
-      "pass_count": 186,
-      "prediction_uses_warnings": true,
-      "receipt_hash": "sha256:d880c2b667ff8f8d08d5a7dc876fdd95a89d40500d81d04e48faff195e07d2d2",
-      "repo_signal_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
-      "schema_version": "1.0.0",
-      "status": "ok",
-      "temporary_artifacts_cleaned": 0,
-      "trajectory_artifact_hash": "sha256:be4c5c72c7d5448e2e2219b1a2ca65416e616a1244cfb429f7d75cbd0ee3d91c",
-      "trajectory_run_id": "run_decapod_0121_b",
-      "warn_count": 5,
-      "warnings": [
-        "Risk map missing (run `decapod riskmap init`)",
-        "STALE_SPECS_TEMPLATE: Project specs use template version 'scaffold-v4' while current scaffolding is 'scaffold-v5'; living spec content remains authoritative.",
-        "Stale workspaces preserved for explicit review: <external-path> (active_claim: workspace belongs to an active task claim; release or complete the claim before pruning), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (active_claim: workspace belongs to an active task claim; release or complete the claim before pruning), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (container_cleanup_failed: workspace preserved because container cleanup could not be verified: Validation error: Container runtime provenance is unknown; preserve the workspace and recover its owning engine explicitly.), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (active_claim: abandoned invocation container reconciled; active task files preserved), <external-path> (current_workspace: workspace contains the current process; rerun prune from the host checkout after leaving this workspace so Git can release the branch), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (active_claim: abandoned invocation container reconciled; active task files preserved), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (active_claim: abandoned invocation container reconciled; active task files preserved), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly), <external-path> (dirty_workspace: workspace contains tracked or untracked changes; preserve or review them before rerunning with --force), <external-path> (unregistered_workspace: workspace ownership is unverified; --force does not authorize deleting unrelated directories. Inspect and preserve or remove this directory explicitly)",
-        "Watcher audit trail missing (run `decapod govern watcher run`)",
-        "Workspace branch 'agent/unknown/code_01m66ba7w6vpy4ma-decapod-0121' has unpushed commits or does not exist on origin. Branch pushes and iteration are allowed before preflight; hold PR creation until intent is converged, the branch is mergeable, and full `decapod validate` succeeds against the exact current candidate and accepted target."
+      "unresolved_assumptions": [
+        "The OVERRIDE needs explicit user authority for commit and push; none given yet",
+        "The live system runs the stale main checkout until the user pulls and deploys",
+        "decapod validate needs a committed candidate; den#61 says local validate stops at READINESS_PROFILE_REQUIRED, so CI validate on the PR is the proof"
       ]
     }
   },

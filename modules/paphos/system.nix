@@ -29,7 +29,9 @@
     # needed its passphrase over initrd SSH, so paphos ran kernel 7.0.3 for 175
     # days with 7.3 installed. The root now unlocks through Tang on mother
     # (hardware.nix). The window opens after mother's Monday 04:00 DSM update, so
-    # Tang is up when paphos boots.
+    # Tang is up when paphos boots. The run must start inside the window: NixOS
+    # checks it when the build finishes, and outside it skips the reboot and,
+    # when the kernel changed, the switch too.
     system.autoUpgrade = {
       enable = true;
       flake = "github:worldofgeese/den#paphos";
@@ -39,8 +41,8 @@
         "nixpkgs"
         "github:NixOS/nixpkgs/nixos-unstable"
       ];
-      dates = "03:30";
-      randomizedDelaySec = "30min";
+      dates = "05:00";
+      randomizedDelaySec = "20min";
       allowReboot = true;
       rebootWindow = {
         lower = "05:00";

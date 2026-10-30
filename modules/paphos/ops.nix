@@ -284,6 +284,54 @@ in {
       };
     };
 
+    # Firmware from LVFS: UEFI dbx and any device firmware a vendor publishes.
+    # Capsules install on the next boot, so a pending update gets its own reboot
+    # inside the autoUpgrade window, after nixos-upgrade has finished.
+    services.fwupd.enable = true;
+
+    systemd.services.paphos-firmware-update = {
+      description = "Apply available firmware updates from LVFS";
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
+      path = [config.services.fwupd.package pkgs.python3];
+      serviceConfig.Type = "oneshot";
+      script = ''
+        fwupdmgr refresh --force >/dev/null 2>&1 || true
+        fwupdmgr update --assume-yes --no-reboot-check || true
+        if fwupdmgr get-devices --json | python3 -c 'import json, sys; sys.exit(0 if any(d.get("UpdateState") in (1, 4) for d in json.load(sys.stdin).get("Devices", [])) else 1)'; then
+          touch /run/paphos-firmware-reboot
+        else
+          rm -f /run/paphos-firmware-reboot
+        fi
+      '';
+    };
+
+    systemd.timers.paphos-firmware-update = {
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnCalendar = "*-*-* 04:30";
+        Persistent = true;
+      };
+    };
+
+    systemd.services.paphos-firmware-reboot = {
+      description = "Reboot to install a pending firmware update";
+      unitConfig.ConditionPathExists = "/run/paphos-firmware-reboot";
+      serviceConfig.Type = "oneshot";
+      script = ''
+        if systemctl is-active --quiet nixos-upgrade.service; then
+          echo "nixos-upgrade is still running; the next window retries"
+          exit 0
+        fi
+        systemctl reboot
+      '';
+    };
+
+    systemd.timers.paphos-firmware-reboot = {
+      wantedBy = ["timers.target"];
+      timerConfig.OnCalendar = "*-*-* 06:00";
+    };
+
     systemd.services.paphos-health-check-test = {
       description = "One-shot paphos health check (manual test)";
       after = ["network-online.target" "agenix-secrets.target"];

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ea8bbc7af774e725816dc30ea6d5ad180078ca25",
+    "accepted_commit": "3216bee8b310137cb0fa1050bbef61bd26811836",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -27,32 +27,32 @@
     }
   },
   "change": {
-    "id": "change_01M66JXZA8Y7ANDD49VH8KBPRT",
-    "base_commit": "ea8bbc7af774e725816dc30ea6d5ad180078ca25",
+    "id": "change_01M66MXQVPRADBCRP3P04SNABD",
+    "base_commit": "3216bee8b310137cb0fa1050bbef61bd26811836",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-deployed-edits-1",
-      "summary": "Commit the deployed uncommitted edits: LEGO_GATEWAY_API_KEY rotation, mcp-agent-mail removal, nushell loadSessionVariables, OPERATIONS.md record",
-      "input_digest": "sha256:1bff2d440726223d33491b524ee5ab0f573898a17b71bbc2675ff6ecabe02333",
+      "id": "ckpt-dagger-p1-1",
+      "summary": "Dagger P1: den's ci module with five checks, the dagger-check recipe, the check map in VALIDATION.md, renewed readiness digests",
+      "input_digest": "sha256:e7f6fd28797c1bb5b3f37cdfc61945eb21510c0b8563627dd7b3aebf8ee20e78",
       "proof_refs": [
-        "cmp against the deployed working copies",
-        "gateway probe: new key 200, old key 401"
+        "ci:decapod-validate fails on an unrefreshed manifest (drift)",
+        "just dagger-check: run A 6/6 in 26 s, run B 6/6 in 2 s from the cache"
       ]
     },
     {
-      "id": "ckpt-deployed-edits-2",
-      "summary": "Deployed flake.lock and paphos initrd line; Signet v2 lock paths (den#25); token-chain guide rule in DOC_RULES (den#24)",
-      "input_digest": "sha256:0ea4e16354b13c12a8400a4edad37f6497f1ea53b1f2c4f6f3eede3be9c3c73b",
+      "id": "ckpt-dagger-p1-2",
+      "summary": "Dagger P1, with the executable bit on the two new scripts",
+      "input_digest": "sha256:da6680c1ae0f1df48fb853f235349d2ddaa028795e1d6d66ac559fb5cc34624b",
       "proof_refs": [
-        "lock comparison: 9 newer, 11 same, 0 older than main",
-        "~/.agents/runtime/daemon.lock exists; ~/.agents/.daemon is absent"
+        "ci:decapod-validate fails on an unrefreshed manifest (drift)",
+        "just dagger-check: run A 6/6 in 26 s, run B 6/6 in 2 s from the cache"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT": {
+    "intent:change_01M66MXQVPRADBCRP3P04SNABD": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -62,7 +62,7 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
+      "id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
       "out_of_scope": [],
       "proof_requirements": [],
       "raw_intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
@@ -79,11 +79,11 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Commit the edits that the 2026-10-30 topgrade deploy built uncommitted: the LEGO_GATEWAY_API_KEY rotation in secretspec.age, the mcp-agent-mail removal, and nushell loadSessionVariables",
+      "intent": "Dagger P1 (bead home-manager-1l3.2): add dagger.toml, dagger.lock and .dagger/modules/ci with the checks nix-eval, fmt, shellcheck, decapod-overrides and decapod-validate, which run den's own recipes and scripts in pinned containers",
       "phases": [],
       "proof_hooks": [
-        "just check",
-        "decapod validate"
+        "just dagger-check",
+        "just check"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
@@ -94,24 +94,28 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793370084Z"
+      "updated_at": "1793374979Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:a080b642ad0036b0c513d017405db46aa12ee3fce9706a7e628f6d11648a6de9",
+      "artifact_hash": "sha256:1b362d37bfe5b789b79f9d3a035567b9d2bbfbc45466a5f50ca4054c9f7d70e0",
       "checks": [
         {
-          "name": "files-equal-deployed",
+          "name": "dagger-check-run-A",
           "status": "passed"
         },
         {
-          "name": "gateway-new-key",
+          "name": "dagger-check-run-B-cached",
           "status": "passed"
         },
         {
-          "name": "no-live-agent-mail-config",
+          "name": "drift-negative",
+          "status": "passed"
+        },
+        {
+          "name": "shellcheck-contract",
           "status": "passed"
         }
       ],
@@ -120,20 +124,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
+            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
+            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M66JXZD6YP97A08MJPFRRDEX",
+            "detail": "trajectory:branch_01M66MXQY60DC6RNBFXT980V4H",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
+            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -142,28 +146,35 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M66JXZD6YP97A08MJPFRRDEX": {
+          "branch_01M66MXQY60DC6RNBFXT980V4H": {
             "evidence_only": true,
-            "id": "branch_01M66JXZD6YP97A08MJPFRRDEX",
-            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
+            "id": "branch_01M66MXQY60DC6RNBFXT980V4H",
+            "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "secretspec.age",
-                  "modules/overlays.nix",
-                  "modules/shared-devtools.nix",
-                  "modules/checks.nix",
-                  "modules/M-02877/dktaohan.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "new LEGO_GATEWAY_API_KEY: HTTP 200; committed key: HTTP 401; cache holds the new key",
-                  "cmp: all five files equal the deployed working copies"
+                  "dagger.toml",
+                  "dagger.lock",
+                  ".dagger/modules/ci/main.go",
+                  "Justfile",
+                  "scripts/check-drvpaths.sh",
+                  "scripts/check-decapod-overrides.sh",
+                  "scripts/decapod-validate-ci.sh",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+                  "run A: 6/6 checks pass in 26 s after a source change; run B: 6/6 pass in 2 s, each check 0.2-0.9 s from the cache",
+                  "nix-eval skips only aarch64-darwin.M-02877 (no remote builder); decapod validate 171 pass 0 fail; 24 overrides applied",
+                  "negative: an unrefreshed manifest failed ci:decapod-validate with spec drift"
                 ],
                 "proof_refs": [
-                  "gateway-new-key",
-                  "files-equal-deployed",
-                  "no-live-agent-mail-config"
+                  "dagger-check-run-A",
+                  "dagger-check-run-B-cached",
+                  "drift-negative",
+                  "shellcheck-contract"
                 ],
                 "scope": [
                   "root"
@@ -178,27 +189,33 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "cmp: all five files equal the deployed working copies",
-        "new LEGO_GATEWAY_API_KEY: HTTP 200; committed key: HTTP 401; cache holds the new key"
+        "negative: an unrefreshed manifest failed ci:decapod-validate with spec drift",
+        "nix-eval skips only aarch64-darwin.M-02877 (no remote builder); decapod validate 171 pass 0 fail; 24 overrides applied",
+        "run A: 6/6 checks pass in 26 s after a source change; run B: 6/6 pass in 2 s, each check 0.2-0.9 s from the cache"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
+      "intent_id": "intent:change_01M66MXQVPRADBCRP3P04SNABD",
       "modified_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/dktaohan.nix",
-        "modules/checks.nix",
-        "modules/overlays.nix",
-        "modules/shared-devtools.nix",
-        "secretspec.age"
+        ".dagger/modules/ci/main.go",
+        ".decapod/config.toml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "Justfile",
+        "dagger.lock",
+        "dagger.toml",
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+        "scripts/check-decapod-overrides.sh",
+        "scripts/check-drvpaths.sh",
+        "scripts/decapod-validate-ci.sh"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "root",
-        "secretspec.age, the mcp-agent-mail removal, nushell session variables, OPERATIONS.md"
+        "Dagger P1: dagger.toml, dagger.lock, .dagger/modules/ci, Justfile check recipes, scripts, VALIDATION.md, ARCHITECTURE.md, the plan",
+        "root"
       ],
-      "run_id": "branch_01M66JXZD6YP97A08MJPFRRDEX",
+      "run_id": "branch_01M66MXQY60DC6RNBFXT980V4H",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "test_01m6687pd7e55x59",

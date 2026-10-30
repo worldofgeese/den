@@ -14,7 +14,9 @@
 set -u
 
 fail=0
-skip_pattern='required system or feature not available'
+# The "no builder for this system" signatures. Lix and older Nix print the
+# first. Nix 2.35, which the Dagger check ci:nix-eval runs, prints the second.
+skip_patterns=('required system or feature not available' 'Reason: platform mismatch')
 
 systems=$(nix eval --no-warn-dirty --json .#checks --apply 'builtins.attrNames' 2>/dev/null) \
   || { echo "check-drvpaths: could not list systems under .#checks" >&2; exit 1; }
@@ -29,7 +31,11 @@ for system in $(echo "$systems" | jq -r '.[]'); do
     if [[ $status -eq 0 ]]; then
       continue
     fi
-    if [[ "$output" == *"$skip_pattern"* ]]; then
+    skip=0
+    for pattern in "${skip_patterns[@]}"; do
+      if [[ "$output" == *"$pattern"* ]]; then skip=1; fi
+    done
+    if [[ $skip -eq 1 ]]; then
       echo "SKIP: ${system}.${check} — no remote builder for the required system" >&2
       continue
     fi

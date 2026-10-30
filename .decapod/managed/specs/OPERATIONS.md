@@ -314,21 +314,36 @@ panes had no `SIGNET_*`, and pi fell back to the personal daemon as agent
 `hm-session-vars.sh` once per `HERDR_PANE_ID`. A pi started before that keeps
 its old environment: start it again in a new pane.
 
-The personal daemon has run `ghcr.io/signet-ai/signet:0.237.9` since
-2026-10-08 (before: 0.232.1). The `distrobox create` pin in darwin.nix is read
-only when the container is created; it had stayed at 0.214.27 while the
-container moved on. The in-container auto-update fails (`manifest_invalid` for
-linux-arm64), so to upgrade:
+The personal daemon has run `ghcr.io/signet-ai/signet:0.238.0` since
+2026-10-30 (before: 0.237.9 from 2026-10-08, and 0.232.1). The
+`distrobox create` pin in darwin.nix is read only when the container is
+created; it had stayed at 0.214.27 while the container moved on. The
+in-container auto-update fails (`manifest_invalid` for linux-arm64), so to
+upgrade, first deploy the new pin. Then:
 1. Boot `com.dktaohan.signet-container` out. With the agent loaded, KeepAlive
    would recreate a removed container from the deployed pin.
-2. With the container stopped, clone `~/.agents`:
-   `cp -cR ~/.agents ~/.agents.bak-signet-<old version>-<date>`. It is about
-   7 GB and takes about 5 minutes. The 2026-10-08 copy is
+2. Run `podman rm -f signet`. A stopped container does not stay stopped: the
+   exported `signet` command starts it through distrobox-enter, and on
+   2026-10-30 a call started it 1 s after `podman stop`. The data stays in
+   `~/.agents`.
+3. Clone `~/.agents` while no container runs:
+   `cp -cR ~/.agents ~/.local/state/agents-backup-<date>`. It is about 7 GB
+   and takes about 2 to 5 minutes. The 2026-10-30 copy is
+   `~/.local/state/agents-backup-20261030b`, and the 2026-10-08 copy is
    `~/.agents.bak-signet-0.232.1-20261008`.
-3. `podman rm signet`, then run the agent's `distrobox create` with the new
-   image.
-4. Bootstrap the agent again. The first enter runs distrobox-init, and the
-   daemon answers on 3850 after about 75 s.
+4. Bootstrap the agent again. It creates the container from the deployed pin.
+   The first enter runs distrobox-init, and the daemon answered on 3850 after
+   160 s on 2026-10-30.
+
+On 2026-10-30 launchd had started the agent 277 times since its last load,
+about every 10 s, and each run ended with "Another daemon instance is already
+running". The daemon that
+held the lock belonged to an earlier job. When launchd stops a job, it ends
+the host's distrobox-enter, and the daemon in the container lives on. So the
+script now stops the container when 3850 answers before the job starts its
+daemon. Each run of that loop also ran `podman info`, and one failed call
+stopped and started the VM. The script now retries `podman info` for 30 s
+before a VM cycle (den#59).
 
 The agent carries `AbandonProcessGroup`. When its script has started the
 podman VM, vfkit and gvproxy keep the job's process group. On 2026-10-08,

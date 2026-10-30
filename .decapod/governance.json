@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "8c7ddbfc1c06365d82ee7172659db252cf911226",
+    "accepted_commit": "55efa811640354a59ceae12be6f72b1f4443cc90",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -24,50 +24,24 @@
     }
   },
   "change": {
-    "id": "change_01M5MS4ZX0G7Q6C82E26WR7RVQ",
-    "base_commit": "8c7ddbfc1c06365d82ee7172659db252cf911226",
+    "id": "change_01M66BB18PBDAHFZHF8AZQ6VZZ",
+    "base_commit": "55efa811640354a59ceae12be6f72b1f4443cc90",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "claim-caveman-no-telemetry": {
-      "statement": "The Caveman proxy launchd script and the pi shim set DO_NOT_TRACK=1, so Caveman telemetry stays off for the proxy and the hook CLI.",
-      "falsifier": "token-toolchain.nix cavemanProxy text or cavemanShim lacks DO_NOT_TRACK.",
-      "status": "supported",
-      "proof_refs": [
-        "modules/M-02877/token-toolchain.nix"
-      ]
-    },
-    "claim-codegraph-direct": {
-      "statement": "pi's declared codegraph MCP server has exposure direct.",
-      "falsifier": "nix eval of home-manager.users.dktaohan.piAgent.mcpServers.codegraph has no exposure or another value.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.piAgent.mcpServers.codegraph"
-      ]
-    },
-    "claim-headroom-state-on-volume": {
-      "statement": "The evaluated headroom-proxy launchd agent passes HEADROOM_WORKSPACE_DIR=/data and HEADROOM_MEMORY_DB_PATH=/data/memory.db, and no HEADROOM_STORE_URL or HEADROOM_SAVINGS_PATH.",
-      "falsifier": "nix eval of darwinConfigurations.M-02877 launchd.user.agents.headroom-proxy ProgramArguments lacks either variable or still contains HEADROOM_STORE_URL.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.launchd.user.agents.headroom-proxy.serviceConfig.ProgramArguments"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "ckpt-token-chain-max-1",
-      "summary": "Headroom state on the volume (den#62), CodeGraph direct in pi (den#63), Caveman telemetry off and the Caveman max install recorded in OPERATIONS.md",
-      "input_digest": "sha256:15bf8736213b283ed592c5e482176f73a6ff2f4d88a8582fa2d7dd20ae5a300e",
+      "id": "ckpt-decapod-0121-1",
+      "summary": "Decapod 0.121.1 projections and Dockerfile pin; CI installs the AGENTS.md release; repo.pr-readiness.v1 contract (fmt, shellcheck) with worktree isolation; VALIDATION.md rewritten; shellcheck directive in hm-app-signing.sh",
+      "input_digest": "sha256:c66acfe802562652f210b6e9fbb8d4439dd4f97b8c8e1328c86007c9c69cf17e",
       "proof_refs": [
-        "just check-fmt (pass)",
-        "nix eval headroom-proxy ProgramArguments",
-        "scripts/check-drvpaths.sh (pass)"
+        "alejandra --check (pass)",
+        "decapod rpc --op agent.init: status proof_pending, digests copied",
+        "shellcheck scripts/*.sh (pass)"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M5MS4ZX0G7Q6C82E26WR7RVQ": {
+    "intent:change_01M66BB18PBDAHFZHF8AZQ6VZZ": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -77,11 +51,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M5MS4ZX0G7Q6C82E26WR7RVQ",
+      "id": "intent:change_01M66BB18PBDAHFZHF8AZQ6VZZ",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Max the token chain: CodeGraph direct in pi, Caveman telemetry off, Headroom state on /data\n\nden#62, den#63, Caveman max (telemetry off, 4.0.2 runtime, pi extension fix caveman#1376)",
-      "refined_intent": "Max the token chain: CodeGraph direct in pi, Caveman telemetry off, Headroom state on /data\n\nden#62, den#63, Caveman max (telemetry off, 4.0.2 runtime, pi extension fix caveman#1376)",
+      "raw_intent": "Move den to Decapod 0.121.1 and declare the readiness contract",
+      "refined_intent": "Move den to Decapod 0.121.1 and declare the readiness contract",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -94,40 +68,41 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Max the token chain: CodeGraph direct in pi, Caveman telemetry off, Headroom state on /data\n\nden#62, den#63, Caveman max (telemetry off, 4.0.2 runtime, pi extension fix caveman#1376)",
+      "intent": "Move den to Decapod 0.121.1 everywhere (entrypoints, Dockerfile pin, CI install pinned to the AGENTS.md release) and declare the repo.pr-readiness.v1 contract (fmt, shellcheck) with worktree isolation, so that local decapod validate passes (den#61, DecapodLabs/decapod#1431)",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "decapod validate",
+        "just check"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Max the token chain: CodeGraph direct in pi, Caveman telemetry off, Headroom state on /data",
+      "title": "Move den to Decapod 0.121.1 and declare the readiness contract",
       "todo_ids": [
-        "code_01m5ms3r2jbrtx0s"
+        "code_01m66ba7w6vpy4ma"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1792773082Z"
+      "updated_at": "1793362537Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:a307b1d4df7ae1d75ba86ea57232426cdbcd91be90448a9a763ae252a38d820c",
+      "artifact_hash": "sha256:74dd133346906583ce40450d89350d0ad5af04006541fe09734cf63f7f567c6b",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M5MS4ZX0G7Q6C82E26WR7RVQ",
+            "intent_id": "intent:change_01M66BB18PBDAHFZHF8AZQ6VZZ",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M5MS4ZX0G7Q6C82E26WR7RVQ",
+            "intent_id": "intent:change_01M66BB18PBDAHFZHF8AZQ6VZZ",
             "kind": "refined",
             "sequence": 3
           }
@@ -141,7 +116,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M5MS4ZX0G7Q6C82E26WR7RVQ",
+      "intent_id": "intent:change_01M66BB18PBDAHFZHF8AZQ6VZZ",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -149,10 +124,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M5MS4ZZ9T66EHPCK52SPPY8Z",
+      "run_id": "branch_01M66BB1BGPD97VVMSKHRE9AEF",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m5ms3r2jbrtx0s",
+      "task_id": "code_01m66ba7w6vpy4ma",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

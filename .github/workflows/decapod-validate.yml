@@ -17,6 +17,19 @@ jobs:
           fetch-depth: 0
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      # AGENTS.md names the one Decapod release that governs den
+      # (VALIDATION.md, "Decapod Upgrades and the Merge Gate"). CI installs
+      # exactly that release, and the cache key holds it. Before, CI installed
+      # the newest crate and cached it by the hash of AGENTS.md.
+      - name: Read the pinned Decapod release
+        id: decapod_pin
+        run: |
+          version="$(sed -n 's/^<!-- decapod-release: \([0-9][0-9.]*\) -->$/\1/p' AGENTS.md)"
+          if [ -z "$version" ]; then
+            echo "::error::AGENTS.md has no decapod-release header"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - name: Cache cargo-binstall and Decapod
         id: cache_decapod_tools
         uses: actions/cache@v4
@@ -24,20 +37,20 @@ jobs:
           path: |
             ~/.cargo/bin/cargo-binstall
             ~/.cargo/bin/decapod
-          key: ${{ runner.os }}-decapod-tools-v1-${{ hashFiles('AGENTS.md') }}
+          key: ${{ runner.os }}-decapod-tools-v2-${{ steps.decapod_pin.outputs.version }}
       - name: Install cargo-binstall
         if: steps.cache_decapod_tools.outputs.cache-hit != 'true'
         uses: cargo-bins/cargo-binstall@main
       - name: Install Decapod
         if: steps.cache_decapod_tools.outputs.cache-hit != 'true'
-        run: cargo binstall --no-confirm decapod
+        run: cargo binstall --no-confirm "decapod@${{ steps.decapod_pin.outputs.version }}"
       - name: Decapod Validate
         env:
           DECAPOD_VALIDATE_SKIP_GIT_GATES: 1
           # Post-merge: tree-local binary fingerprints lag the last published pin.
           # PRs still enforce release-bound pins + drift.
           DECAPOD_VALIDATE_SKIP_FINGERPRINT_GATES: ${{ github.event_name == 'push' && '1' || '' }}
-          # Decapod 0.111 requires the immutable change range of the event.
+          # Decapod requires the immutable change range of the event.
           CHANGE_EVENT: ${{ github.event_name }}
           CHANGE_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           CHANGE_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}

@@ -24,7 +24,7 @@ primary_languages = [
 ]
 detected_surfaces = ["shell"]
 external_tracker = true
-container_workspaces = true
+container_workspaces = false
 backend = "local"
 declared_capabilities = [
     "infrastructure-management",
@@ -36,10 +36,46 @@ protected_paths = []
 approval_categories = ["destructive_operations"]
 
 [proof]
-commands = []
+validation_buildkite_preflights = false
+
+[proof.required_profile]
+id = "repo.pr-readiness.v1"
+reviewed_sources_digest = "sha256:8377b98ea28c32f075d84a2c9b4bdc501522af610fb3a8ae1d92ffdbbc2dba58"
+
+[[proof.commands]]
+name = "fmt"
+command = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra"
+args = ["--check", "flake.nix", "modules/", "secrets/", "guix/", "guix-packages/", "pkgs/"]
+required = true
+
+[[proof.commands]]
+name = "shellcheck"
+command = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
+args = ["scripts/cask-app-preflight.sh", "scripts/check-drvpaths.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/upgrade-cachyos-kernel.sh"]
+required = true
+
+[proof.repository_contract]
+reviewed_commands_digest = "sha256:b4c0ce4575493bb5efeb95050f7ff45dddb8d369ba929397fc34ebe13f8e204a"
+source_coverage = [
+    { source = ".github/workflows/decapod-validate.yml", commands = ["fmt", "shellcheck"] },
+]
+
+[proof.repository_contract.executions.fmt]
+program = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra"
+toolchain_files = { alejandra = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra" }
+environment = {}
+directory = "."
+timeout_seconds = 300
+
+[proof.repository_contract.executions.shellcheck]
+program = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
+toolchain_files = { shellcheck = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck" }
+environment = {}
+directory = "."
+timeout_seconds = 300
 
 [custody]
-isolation = "container"
+isolation = "worktree"
 
 [tracker]
 provider = "beads"

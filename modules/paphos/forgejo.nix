@@ -22,6 +22,11 @@
         server = {
           DOMAIN = "paphos.hound-celsius.ts.net";
           ROOT_URL = "https://paphos.hound-celsius.ts.net/";
+          # Loopback only. Clients use https://paphos.hound-celsius.ts.net
+          # (tailscale-serve-forgejo proxies to 127.0.0.1:3000), and the health
+          # check probes 127.0.0.1. Listening on every interface exposed it to
+          # the whole LAN.
+          HTTP_ADDR = "127.0.0.1";
           HTTP_PORT = 3000;
           SSH_PORT = 22;
         };

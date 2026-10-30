@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "55efa811640354a59ceae12be6f72b1f4443cc90",
+    "accepted_commit": "ea8bbc7af774e725816dc30ea6d5ad180078ca25",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -20,89 +20,39 @@
         "status": "open"
       },
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
-      "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent"
+      "trajectory:165420485aa3e66e": "The OVERRIDE needs explicit user authority for commit and push; none given yet",
+      "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
+      "trajectory:5480c02d93f0debb": "decapod validate needs a committed candidate; den#61 says local validate stops at READINESS_PROFILE_REQUIRED, so CI validate on the PR is the proof",
+      "trajectory:d503e1a45c272536": "The live system runs the stale main checkout until the user pulls and deploys"
     }
   },
   "change": {
-    "id": "change_01M6688SJJNTPN576F4RA6TNBT",
-    "base_commit": "55efa811640354a59ceae12be6f72b1f4443cc90",
+    "id": "change_01M66JXZA8Y7ANDD49VH8KBPRT",
+    "base_commit": "ea8bbc7af774e725816dc30ea6d5ad180078ca25",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "claim-chorus-submit-gate": {
-      "statement": "The zsh init and the chorus-pi-daemon script export CHORUS_SUBMIT_GATE=block next to CHORUS_URL.",
-      "falsifier": "Either the evaluated programs.zsh.initContent or the built chorus-pi-daemon script lacks export CHORUS_SUBMIT_GATE=block.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.zsh.initContent"
-      ]
-    },
-    "claim-context-mode-single": {
-      "statement": "M-02877 declares no context-mode MCP server, and the piMcpServers activation deletes a context-mode entry from mcp.json.",
-      "falsifier": "nix eval of piAgent.mcpServers contains context-mode, or the piMcpServers jq filter keeps a context-mode key.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activation.piMcpServers.data"
-      ]
-    },
-    "claim-deploy-freshness": {
-      "statement": "just deploy-darwin runs scripts/deploy-freshness.sh first, and that script exits 1 when HEAD does not contain origin/main unless DEN_DEPLOY_STALE is set.",
-      "falsifier": "The script exits 0 at a commit that lacks origin/main without DEN_DEPLOY_STALE, or the Justfile recipe does not call it first.",
-      "status": "supported",
-      "proof_refs": [
-        "scripts/deploy-freshness.sh"
-      ]
-    },
-    "claim-pi-research-exclusion": {
-      "statement": "On M-02877, piAgent.skills holds -/Users/dktaohan/.agents/skills/research, so pi resolves skill:research to the chorus-pi package.",
-      "falsifier": "nix eval of home-manager.users.dktaohan.piAgent.skills lacks the entry, or pi --mode rpc get_commands resolves skill:research to ~/.agents/skills.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.piAgent.skills"
-      ]
-    },
-    "claim-pins-latest": {
-      "statement": "ponytail is pinned at 5.3.3 and the personal Signet container image at ghcr.io/signet-ai/signet:0.238.0.",
-      "falsifier": "nix eval of piAgent.packages lacks npm:@dietrichgebert/ponytail@5.3.3, or the signet-container ProgramArguments lack signet:0.238.0.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.launchd.user.agents.signet-container.serviceConfig.ProgramArguments"
-      ]
-    },
-    "claim-signet-pi-mode": {
-      "statement": "Each switch on M-02877 runs chmod 600 on ~/.pi/agent/extensions/signet-pi.js when the file exists.",
-      "falsifier": "The evaluated home.activation.signetPiExtensionMode lacks the chmod 600, or the entry is missing.",
-      "status": "supported",
-      "proof_refs": [
-        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activation.signetPiExtensionMode.data"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "ckpt-a8y-pi-chain-1",
-      "summary": "pi loads chorus-pi research (piAgent.skills), CHORUS_SUBMIT_GATE=block, context-mode MCP entry removed (den#55), ponytail 5.3.3, Signet image 0.238.0, signet-pi.js 0600, deploy-freshness guard, specs, Dagger CI plan",
-      "input_digest": "sha256:3fcd0a8560e47fb0c5617f083f3aec2f2a9206714d0b13b9a08561d768350fde",
+      "id": "ckpt-deployed-edits-1",
+      "summary": "Commit the deployed uncommitted edits: LEGO_GATEWAY_API_KEY rotation, mcp-agent-mail removal, nushell loadSessionVariables, OPERATIONS.md record",
+      "input_digest": "sha256:1bff2d440726223d33491b524ee5ab0f573898a17b71bbc2675ff6ecabe02333",
       "proof_refs": [
-        "just check-fmt (pass)",
-        "nix eval piAgent (skills, mcpServers, removedMcpServers, packages)",
-        "pi --mode rpc get_commands (skill:research -> chorus-pi)",
-        "scripts/check-drvpaths.sh (pass, 313 s)",
-        "shellcheck scripts/deploy-freshness.sh (pass)"
+        "cmp against the deployed working copies",
+        "gateway probe: new key 200, old key 401"
       ]
     },
     {
-      "id": "ckpt-a8y-pi-chain-2",
-      "summary": "Rebased onto Decapod 0.121.1 main; the readiness contract now covers scripts/deploy-freshness.sh, digests renewed from agent.init",
-      "input_digest": "sha256:85e35a0de220f0fa39354440c225b8d5f3d665ddbacb5774fa010112edc639da",
+      "id": "ckpt-deployed-edits-2",
+      "summary": "Deployed flake.lock and paphos initrd line; Signet v2 lock paths (den#25); token-chain guide rule in DOC_RULES (den#24)",
+      "input_digest": "sha256:0ea4e16354b13c12a8400a4edad37f6497f1ea53b1f2c4f6f3eede3be9c3c73b",
       "proof_refs": [
-        "decapod rpc --op agent.init: proof_pending",
-        "shellcheck scripts/*.sh (pass)"
+        "lock comparison: 9 newer, 11 same, 0 older than main",
+        "~/.agents/runtime/daemon.lock exists; ~/.agents/.daemon is absent"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6688SJJNTPN576F4RA6TNBT": {
+    "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,7 +62,7 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+      "id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
       "out_of_scope": [],
       "proof_requirements": [],
       "raw_intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
@@ -129,11 +79,10 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Align den's pi chain on M-02877 with upstream releases and fix the pi startup warnings: chorus-pi's research skill loads in pi, Chorus submits are gated, the duplicate context-mode MCP server goes away (den#55), the pins move to the latest releases, signet-pi.js stays 0600, a darwin deploy needs origin/main, and the Dagger CI plan is recorded",
+      "intent": "Commit the edits that the 2026-10-30 topgrade deploy built uncommitted: the LEGO_GATEWAY_API_KEY rotation in secretspec.age, the mcp-agent-mail removal, and nushell loadSessionVariables",
       "phases": [],
       "proof_hooks": [
         "just check",
-        "scripts/check-drvpaths.sh",
         "decapod validate"
       ],
       "schema_version": "1.1.0",
@@ -145,78 +94,46 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793361944Z"
+      "updated_at": "1793370084Z"
     },
     "trajectory": {
       "active_boundaries": [
-        ".decapod/managed/specs/**",
-        "Current claimed task and isolated work branch",
-        "Justfile",
-        "docs/plans/**",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix",
-        "scripts/deploy-freshness.sh"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:4e72ac07628eb99b0e38973b7f6659b1a94e1561b6c39c4f45cf940c5c5eed45",
+      "artifact_hash": "sha256:a080b642ad0036b0c513d017405db46aa12ee3fce9706a7e628f6d11648a6de9",
       "checks": [
         {
-          "name": "check-drvpaths",
+          "name": "files-equal-deployed",
           "status": "passed"
         },
         {
-          "name": "check-fmt",
+          "name": "gateway-new-key",
           "status": "passed"
         },
         {
-          "name": "chorus-pi-daemon-build",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-validate",
-          "status": "unavailable"
-        },
-        {
-          "name": "deploy-freshness-stale-probe",
-          "status": "passed"
-        },
-        {
-          "name": "jq-mcp-merge-cases",
-          "status": "passed"
-        },
-        {
-          "name": "nix-eval-piAgent",
-          "status": "passed"
-        },
-        {
-          "name": "pi-rpc-skill-exclusion",
-          "status": "passed"
-        },
-        {
-          "name": "shellcheck-deploy-freshness",
+          "name": "no-live-agent-mail-config",
           "status": "passed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6688SN9Y2MYW2HEBABB2A0N",
+            "detail": "trajectory:branch_01M66JXZD6YP97A08MJPFRRDEX",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -225,119 +142,68 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6688SN9Y2MYW2HEBABB2A0N": {
+          "branch_01M66JXZD6YP97A08MJPFRRDEX": {
             "evidence_only": true,
-            "id": "branch_01M6688SN9Y2MYW2HEBABB2A0N",
-            "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+            "id": "branch_01M66JXZD6YP97A08MJPFRRDEX",
+            "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
             "steps": [
               {
-                "action": "implementation",
-                "command": "just check-fmt",
+                "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/pi.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/M-02877/darwin.nix",
-                  "modules/M-02877/pr-reviewer.nix",
-                  "Justfile",
-                  ".github/workflows/decapod-validate.yml",
-                  ".decapod/managed/Dockerfile.decapod",
-                  "modules/pi.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/M-02877/darwin.nix",
-                  "scripts/deploy-freshness.sh",
-                  "Justfile",
-                  ".decapod/managed/specs/INTERFACES.md",
+                  "secretspec.age",
+                  "modules/overlays.nix",
+                  "modules/shared-devtools.nix",
+                  "modules/checks.nix",
+                  "modules/M-02877/dktaohan.nix",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/SECURITY.md",
-                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-                  "check-drvpaths exit 0 in 313 s after the last pi.nix change, no FAIL or SKIP",
-                  "pi --mode rpc get_commands with -/Users/dktaohan/.agents/skills/research: skill:research resolves to npm:@chorus-aidlc/chorus-pi, 132 skills",
-                  "nix eval piAgent: mcpServers chorus codegraph(direct) github-spaces nixos; removedMcpServers context-mode; skills -/Users/dktaohan/.agents/skills/research; packages ponytail@5.3.3 chorus-pi@0.23.0",
-                  "deploy-freshness: exit 0 at 55efa81; exit 1 at b8248a6 listing 11 missing commits; exit 0 with DEN_DEPLOY_STALE=1",
-                  "built chorus-pi-daemon (writeShellApplication runs shellcheck); it exports CHORUS_SUBMIT_GATE=block and CHORUS_URL"
+                  "new LEGO_GATEWAY_API_KEY: HTTP 200; committed key: HTTP 401; cache holds the new key",
+                  "cmp: all five files equal the deployed working copies"
                 ],
                 "proof_refs": [
-                  "check-fmt",
-                  "check-drvpaths",
-                  "shellcheck-deploy-freshness",
-                  "nix-eval-piAgent",
-                  "chorus-pi-daemon-build",
-                  "pi-rpc-skill-exclusion",
-                  "jq-mcp-merge-cases",
-                  "deploy-freshness-stale-probe",
-                  "decapod-validate"
+                  "gateway-new-key",
+                  "files-equal-deployed",
+                  "no-live-agent-mail-config"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "decapod validate needs a committed candidate; den#61 says local validate stops at READINESS_PROFILE_REQUIRED, so CI validate on the PR is the proof",
-                  "The OVERRIDE needs explicit user authority for commit and push; none given yet",
-                  "The live system runs the stale main checkout until the user pulls and deploys"
-                ]
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "./scripts/check-drvpaths.sh",
-        "just check-fmt",
-        "nix eval .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.piAgent",
-        "shellcheck scripts/deploy-freshness.sh"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "built chorus-pi-daemon (writeShellApplication runs shellcheck); it exports CHORUS_SUBMIT_GATE=block and CHORUS_URL",
-        "check-drvpaths exit 0 in 313 s after the last pi.nix change, no FAIL or SKIP",
-        "deploy-freshness: exit 0 at 55efa81; exit 1 at b8248a6 listing 11 missing commits; exit 0 with DEN_DEPLOY_STALE=1",
-        "nix eval piAgent: mcpServers chorus codegraph(direct) github-spaces nixos; removedMcpServers context-mode; skills -/Users/dktaohan/.agents/skills/research; packages ponytail@5.3.3 chorus-pi@0.23.0",
-        "pi --mode rpc get_commands with -/Users/dktaohan/.agents/skills/research: skill:research resolves to npm:@chorus-aidlc/chorus-pi, 132 skills"
+        "cmp: all five files equal the deployed working copies",
+        "new LEGO_GATEWAY_API_KEY: HTTP 200; committed key: HTTP 401; cache holds the new key"
       ],
-      "inspected_files": [
-        ".decapod/managed/Dockerfile.decapod",
-        ".github/workflows/decapod-validate.yml",
-        "Justfile",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/pr-reviewer.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix"
-      ],
-      "intent_id": "intent:change_01M6688SJJNTPN576F4RA6TNBT",
+      "inspected_files": [],
+      "intent_id": "intent:change_01M66JXZA8Y7ANDD49VH8KBPRT",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        ".decapod/managed/specs/SECURITY.md",
-        "Justfile",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix",
-        "scripts/deploy-freshness.sh"
+        "modules/M-02877/dktaohan.nix",
+        "modules/checks.nix",
+        "modules/overlays.nix",
+        "modules/shared-devtools.nix",
+        "secretspec.age"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "M-02877 pi chain, the M-02877 deploy recipe, and a docs-only Dagger plan",
-        "root"
+        "root",
+        "secretspec.age, the mcp-agent-mail removal, nushell session variables, OPERATIONS.md"
       ],
-      "run_id": "branch_01M6688SN9Y2MYW2HEBABB2A0N",
+      "run_id": "branch_01M66JXZD6YP97A08MJPFRRDEX",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "test_01m6687pd7e55x59",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "The OVERRIDE needs explicit user authority for commit and push; none given yet",
-        "The live system runs the stale main checkout until the user pulls and deploys",
-        "decapod validate needs a committed candidate; den#61 says local validate stops at READINESS_PROFILE_REQUIRED, so CI validate on the PR is the proof"
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

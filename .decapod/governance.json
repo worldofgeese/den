@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "80e63c95ed5d3ea73ab8fae65e4c53a466487a79",
+    "accepted_commit": "ff3a3a63fc37cc781eb6c72371bc2a76f2a6afe7",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -32,58 +32,22 @@
     }
   },
   "change": {
-    "id": "change_01M671NQ3888PATMYJ3N54HKXH",
-    "base_commit": "80e63c95ed5d3ea73ab8fae65e4c53a466487a79",
+    "id": "change_01M67BGR1QW0C11KY96FY6YJVF",
+    "base_commit": "ff3a3a63fc37cc781eb6c72371bc2a76f2a6afe7",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-dagger-p0-1",
-      "summary": "Dagger P0: merge rules as den's own code, fixture check, dry-run and replay functions, replay table, AEC interface, DAGGER_ENGINE on M-02877",
-      "input_digest": "sha256:02381f215bd1688a1ede8f9e228092703b8f639b57782e2fbca9b3a81185e9b7",
+      "id": "ckpt-beads-config-1",
+      "summary": "Untrack bd's Dolt server config; desktop ssh user taoha",
+      "input_digest": "sha256:4ff8606088161ff18e23effe25a341088e600b55926372001947961dc5e9d60d",
       "proof_refs": [
-        "automerge-replay over 30 merges: 4 accepted, 26 refused",
-        "just dagger-check 7/7 in 27 s"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p0-2",
-      "summary": "Fix the three Codex findings: incomplete file lists, runs still running at the merge, replay sample by merge time",
-      "input_digest": "sha256:69b9ad009243516509e524b72dee3adc7c80860120cb1e9b2ee281f4135cf120",
-      "proof_refs": [
-        "just dagger-check 7/7 with the new fixture cases",
-        "replay: same 30 verdicts, now ordered by merge time"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p0-3",
-      "summary": "Queued reruns count as the newest run; refuse when the check rollup is incomplete",
-      "input_digest": "sha256:e5b50847c6746930291b76bd5edd8890d6d036d8305192b7f6a1665c89993404",
-      "proof_refs": [
-        "just dagger-check 7/7 with two new fixture cases"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p0-4",
-      "summary": "Living specs: the merge API in INTENT, ARCHITECTURE and INTERFACES (above the generated marker); refuse a replay when the label history is incomplete",
-      "input_digest": "sha256:61a64211fddbb6dc78b7078dcb961a9447d6f18d239cc12ecd7fe71106786005",
-      "proof_refs": [
-        "just dagger-check 7/7 with a new fixture case",
-        "the authored sections survive specs.refresh"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p0-5",
-      "summary": "A Codex summary with a null findings flag counts as a review of the head; the threads rule decides",
-      "input_digest": "sha256:e6c4b5f4ffb72ba029e1236fe4054f8bf85036592759edc9298bb46047d74cc6",
-      "proof_refs": [
-        "automerge-dry-run on #73 head 4f419fd: would merge",
-        "just dagger-check 7/7 with two new fixture cases"
+        "beads doltserver.go writes the config at each start; bd doctor's gitignore lists it"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M671NQ3888PATMYJ3N54HKXH": {
+    "intent:change_01M67BGR1QW0C11KY96FY6YJVF": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +57,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M671NQ3888PATMYJ3N54HKXH",
+      "id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Dagger P0: port den's merge rules to the ci module and replay the last 30 merged PRs",
-      "refined_intent": "Dagger P0: port den's merge rules to the ci module and replay the last 30 merged PRs",
+      "raw_intent": "Untrack the bd Dolt server config and fix the desktop ssh user",
+      "refined_intent": "Untrack the bd Dolt server config and fix the desktop ssh user",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,39 +74,34 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Dagger P0 (bead home-manager-1l3.1): port den's merge rules into .dagger/modules/ci as den's own code, add the fixture check ci:automerge-rules and the read-only functions automerge-dry-run and automerge-replay, replay the last 30 merges, and record the AEC module interface in the plan",
+      "intent": "Stop tracking .beads/dolt-server-config.yaml, which bd 1.1.0 rewrites at each server start with a host-specific cfg_dir, and set the desktop ssh user to the Windows account taoha",
       "phases": [],
       "proof_hooks": [
-        "just dagger-check",
         "just check"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Dagger P0: port den's merge rules to the ci module and replay the last 30 merged PRs",
+      "title": "Untrack the bd Dolt server config and fix the desktop ssh user",
       "todo_ids": [
-        "cicd_01m671n6d81sgq8z"
+        "bugs_01m67bg58tf9dtrm"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793387339Z"
+      "updated_at": "1793395893Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7546326cfbad6e86ad8e1a51b60715edeac8c403360e20bd181b71df7118e2d5",
+      "artifact_hash": "sha256:3e054a2d726600b868f10aaa9b3dd28e10cf7511ad09bd1a2bb49aba3ee70c0f",
       "checks": [
         {
-          "name": "automerge-rules-fixtures",
+          "name": "bd-writes-config-at-start",
           "status": "passed"
         },
         {
-          "name": "dagger-check-7-of-7",
-          "status": "passed"
-        },
-        {
-          "name": "replay-30",
+          "name": "check-ignore",
           "status": "passed"
         }
       ],
@@ -151,20 +110,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M671NQ3888PATMYJ3N54HKXH",
+            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M671NQ3888PATMYJ3N54HKXH",
+            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M671NQ5WWCGKY8GF4CDSN6YH",
+            "detail": "trajectory:branch_01M67BGR3S2KZ0VJTDND91PDT8",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M671NQ3888PATMYJ3N54HKXH",
+            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -173,32 +132,25 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M671NQ5WWCGKY8GF4CDSN6YH": {
+          "branch_01M67BGR3S2KZ0VJTDND91PDT8": {
             "evidence_only": true,
-            "id": "branch_01M671NQ5WWCGKY8GF4CDSN6YH",
-            "intent_id": "intent:change_01M671NQ3888PATMYJ3N54HKXH",
+            "id": "branch_01M67BGR3S2KZ0VJTDND91PDT8",
+            "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/automerge_checks.go",
-                  ".dagger/modules/ci/main.go",
-                  "dagger.toml",
-                  "modules/M-02877/dktaohan.nix",
-                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-                  "docs/plans/2026-10-30-002-dagger-p0-merge-rule-replay.md",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "just dagger-check: 7/7 pass in 27 s, ci:automerge-rules included",
-                  "replay of 30 merges: 4 accepted, 26 refused (20 reviewed, 4 risky-paths, 2 threads)",
-                  "DAGGER_ENGINE with a missing container: the CLI waits (timeout 60 s), so the comment says to run just dagger-check first"
+                  ".beads/.gitignore",
+                  ".beads/dolt-server-config.yaml",
+                  "modules/ssh.nix",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "gastownhall/beads internal/doltserver/doltserver.go renders the config with the absolute cfgDir at each server start; cmd/bd/doctor/gitignore.go ignores dolt-server-config.yaml",
+                  "QuickGrove: mahakala needs /home/worldofgeese/..., whoami on desktop: desktop-6071t21\\taoha; paphos sshd log: invalid user taoha from the Windows host"
                 ],
                 "proof_refs": [
-                  "dagger-check-7-of-7",
-                  "automerge-rules-fixtures",
-                  "replay-30"
+                  "bd-writes-config-at-start",
+                  "check-ignore"
                 ],
                 "scope": [
                   "root"
@@ -213,34 +165,28 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "DAGGER_ENGINE with a missing container: the CLI waits (timeout 60 s), so the comment says to run just dagger-check first",
-        "just dagger-check: 7/7 pass in 27 s, ci:automerge-rules included",
-        "replay of 30 merges: 4 accepted, 26 refused (20 reviewed, 4 risky-paths, 2 threads)"
+        "QuickGrove: mahakala needs /home/worldofgeese/..., whoami on desktop: desktop-6071t21\\taoha; paphos sshd log: invalid user taoha from the Windows host",
+        "gastownhall/beads internal/doltserver/doltserver.go renders the config with the absolute cfgDir at each server start; cmd/bd/doctor/gitignore.go ignores dolt-server-config.yaml"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M671NQ3888PATMYJ3N54HKXH",
+      "intent_id": "intent:change_01M67BGR1QW0C11KY96FY6YJVF",
       "modified_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/automerge_checks.go",
-        ".dagger/modules/ci/main.go",
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/VALIDATION.md",
-        "dagger.toml",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-        "docs/plans/2026-10-30-002-dagger-p0-merge-rule-replay.md",
-        "modules/M-02877/dktaohan.nix"
+        ".beads/.gitignore",
+        ".beads/dolt-server-config.yaml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        "modules/ssh.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "Dagger P0: merge rules, replay, AEC interface, DAGGER_ENGINE on M-02877",
+        ".beads/.gitignore, .beads/dolt-server-config.yaml, modules/ssh.nix, ARCHITECTURE.md",
         "root"
       ],
-      "run_id": "branch_01M671NQ5WWCGKY8GF4CDSN6YH",
+      "run_id": "branch_01M67BGR3S2KZ0VJTDND91PDT8",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m671n6d81sgq8z",
+      "task_id": "bugs_01m67bg58tf9dtrm",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -72,6 +72,10 @@ dolt-server.log
 dolt-server.lock
 dolt-server.port
 dolt-server.activity
+# bd writes it at each server start, with a cfg_dir path of this host
+# (gastownhall/beads cmd/bd/doctor/gitignore.go ignores it too).
+dolt-server-config.yaml
+dolt-pprof/
 daemon.*
 *.corrupt.backup/
 .beads-credential-key

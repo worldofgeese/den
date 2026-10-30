@@ -625,9 +625,19 @@
                 # against a VM that never boots. Drive off real reachability:
                 # `machine start` blocks until the VM answers, and `stop`
                 # reconciles a stale state (a no-op when already stopped).
+                # One failed `podman info` is not proof of a dead VM: the call
+                # also fails while the VM is busy. A cycle stops every
+                # container in the VM, so retry for 30 s first (den#59).
+                tries=0
                 until podman info >/dev/null 2>&1; do
+                  tries=$((tries + 1))
+                  if [ "$tries" -le 6 ]; then
+                    sleep 5
+                    continue
+                  fi
                   podman machine stop >/dev/null 2>&1 || true
                   podman machine start || sleep 5
+                  tries=0
                 done
 
                 # The image is read only when the container is created, and
@@ -679,6 +689,19 @@
                 fi
                 "$bin/distrobox-enter" --no-tty --name signet -- \
                   sudo ln -sf "$graphiq" /usr/local/bin/graphiq
+
+                # launchd owns the only daemon, and this job has not started
+                # its daemon yet. So a daemon that answers now belongs to an
+                # earlier job. When launchd stops a job, it ends the host's
+                # distrobox-enter, and the daemon in the container lives on.
+                # Its lock makes each new daemon exit ("Another daemon
+                # instance is already running"), and launchd starts this job
+                # again every 10 s. On 2026-10-30 that loop had run 277 times
+                # (den#59). Stop the container, which stops the orphan.
+                # distrobox-enter below starts the container again.
+                if curl -sf --max-time 2 http://127.0.0.1:3850/health >/dev/null 2>&1; then
+                  podman stop -t 30 signet >/dev/null 2>&1 || true
+                fi
 
                 # A host restart kills the daemon without releasing its lock,
                 # and the recorded pid belongs to the container's dead pid

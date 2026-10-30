@@ -47,7 +47,9 @@
     # internal and this flake is public, so it cannot be a flake input (the
     # lock would publish the rev, and the personal hosts could not fetch it).
     # Activation clones this one rev with gh's credential instead.
-    toolboxDocsRev = "6a46c9f9c7d78b9c379b4c1d2fd00261c8e3bee6";
+    toolboxDocsRev = "09c43a0695e4c135e6fe1b0b5f1d02656588dee5";
+    # The plugin (1.2.0) has seven skills. copy-rich-text is not linked: it
+    # runs PowerShell, on Windows only.
     toolboxDocsSkills = [
       "diataxis"
       "simple-english"

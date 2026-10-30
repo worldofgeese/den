@@ -41,13 +41,40 @@ var noNest = dagger.ContainerWithExecOpts{DisableDaggerInDagger: true}
 type Ci struct {
 	// +private
 	Source *dagger.Directory
+	// The merge rules (automerge.go). A repository sets them in its
+	// dagger.toml.
+	// +private
+	Repository string
+	// +private
+	Authors []string
+	// +private
+	Reviewer string
+	// +private
+	RiskyPaths []string
 }
 
 func New(
 	// The current workspace. Dagger gives it.
 	ws *dagger.Workspace,
+	// The GitHub repository, owner/name, that the merge rules read.
+	// +optional
+	repository string,
+	// Logins whose pull requests can merge without a person. A bot is
+	// app/<login>. With none, every pull request needs a person.
+	// +optional
+	authors []string,
+	// The login whose review of the head counts. With none, nothing merges.
+	// +optional
+	reviewer string,
+	// Path prefixes. A pull request that changes one is merged by a person.
+	// +optional
+	riskyPaths []string,
 ) *Ci {
 	return &Ci{
+		Repository: repository,
+		Authors:    authors,
+		Reviewer:   reviewer,
+		RiskyPaths: riskyPaths,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

@@ -685,9 +685,13 @@
                 # namespace, where the number is reusable after a restart, so
                 # the next daemon refuses to start. launchd owns the only
                 # instance: when nothing answers the published port, the lock
-                # is stale by definition.
+                # is stale by definition. Signet 0.232 and later (workspace
+                # layout v2) keep the lock in runtime/; layout v1 kept it in
+                # .daemon/. Clear both, so the cleanup works for either
+                # release (from den#25).
                 if ! curl -sf --max-time 2 http://127.0.0.1:3850/health >/dev/null 2>&1; then
-                  rm -f "$home/.agents/.daemon/daemon.lock" "$home/.agents/.daemon/pid"
+                  rm -f "$home/.agents/runtime/daemon.lock" "$home/.agents/runtime/pid" \
+                    "$home/.agents/.daemon/daemon.lock" "$home/.agents/.daemon/pid"
                 fi
 
                 # Clean PATH excludes host Mach-O binaries while retaining the

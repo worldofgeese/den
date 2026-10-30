@@ -40,6 +40,15 @@
         "cmp against the deployed working copies",
         "gateway probe: new key 200, old key 401"
       ]
+    },
+    {
+      "id": "ckpt-deployed-edits-2",
+      "summary": "Deployed flake.lock and paphos initrd line; Signet v2 lock paths (den#25); token-chain guide rule in DOC_RULES (den#24)",
+      "input_digest": "sha256:0ea4e16354b13c12a8400a4edad37f6497f1ea53b1f2c4f6f3eede3be9c3c73b",
+      "proof_refs": [
+        "lock comparison: 9 newer, 11 same, 0 older than main",
+        "~/.agents/runtime/daemon.lock exists; ~/.agents/.daemon is absent"
+      ]
     }
   ],
   "intents": {

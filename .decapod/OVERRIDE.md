@@ -101,6 +101,11 @@ Repository updates and deployments run through the `Justfile`, never the underly
 - Technical names stay verbatim: file paths, flags, commands, symbol names, and error text are quoted exactly and are exempt from vocabulary rules.
 - Source of the rule set: ASD-STE100 (https://www.asd-ste100.org/). The paraphrased 53-rule agent skill lives at https://github.com/AminBlg/SimpleEnglish. Load that skill when a writing task needs the full rule text; the bullets here are the binding subset.
 - STE does not apply to marketing copy or brand writing. This repository contains neither.
+- The LEGO/agentic-engineering-community guides teach other teams the token-saving chain that this repository runs on M-02877. If you change that chain, change those guides in the same piece of work. The chain is the Headroom launchd agents (`headroom-proxy`, `headroom-watchdog`) and their `gateway.json` settings, the Caveman proxy and the pi extensions, packages, MCP servers and provider in `modules/M-02877/token-toolchain.nix`, and the Signet connection in `modules/M-02877/agent-integrations.nix`.
+- The pages to check are `docs/guides/setup-token-saving-toolchain.md`, `docs/guides/setup-token-saving-toolchain-for-pi.md`, `docs/guides/upgrade-headroom.md` and `docs/reference/token-toolchain.md`.
+- Open a pull request in LEGO/agentic-engineering-community, or give the measured facts to the agent that owns that repository, and put the link in the pull request for this repository. If the guides stay correct, write the reason in the pull request.
+- Write the guide text with the `toolbox-docs` plugin skills in this order: `diataxis`, the `techwriter` agent, `simple-english`, then `rewrite-slop`. If two of them disagree, the LEGO style guide that `techwriter` loads has priority.
+- Do not copy a measured fact into a guide until you run the command again on the current configuration. On 2026-10-05 the guide still taught the network-gateway route after it stopped working on 2026-09-18.
 ````
 
 ### interfaces/GLOSSARY.md

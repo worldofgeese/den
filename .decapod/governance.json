@@ -114,18 +114,29 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
-      "intent": "Align den's pi chain with upstream: latest pins and clean pi startup",
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "Align den's pi chain on M-02877 with upstream releases and fix the pi startup warnings: chorus-pi's research skill loads in pi, Chorus submits are gated, the duplicate context-mode MCP server goes away (den#55), the pins move to the latest releases, signet-pi.js stays 0600, a darwin deploy needs origin/main, and the Dagger CI plan is recorded",
+      "phases": [],
       "proof_hooks": [
+        "just check",
+        "scripts/check-drvpaths.sh",
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Align den's pi chain with upstream: latest pins and clean pi startup",
       "todo_ids": [
         "test_01m6687pd7e55x59"
       ],
-      "updated_at": "1793358849Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793361944Z"
     },
     "trajectory": {
       "active_boundaries": [

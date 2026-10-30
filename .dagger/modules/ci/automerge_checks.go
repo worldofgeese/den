@@ -90,6 +90,12 @@ func ruleCases() []string {
 		{"a failed check", func(s *prSnapshot) { s.Checks[0].Conclusion = "FAILURE" }, false, "checks"},
 		{"a pending check", func(s *prSnapshot) { s.Checks[0].Status, s.Checks[0].Conclusion = "IN_PROGRESS", "" }, false, "checks"},
 		{"no check", func(s *prSnapshot) { s.Checks = nil }, false, "checks"},
+		{"more checks than the rules read", func(s *prSnapshot) { s.ChecksIncomplete = true }, false, "checks"},
+		{"a queued rerun after a success", func(s *prSnapshot) {
+			queued := s.Checks[0]
+			queued.Status, queued.Conclusion, queued.At = "QUEUED", "", time.Time{}
+			s.Checks = append(s.Checks, queued)
+		}, false, "checks"},
 		{"a failed commit status", func(s *prSnapshot) {
 			s.Checks = append(s.Checks, prCheck{Name: "den/dagger-check", Workflow: "status", State: "FAILURE", At: fixtureTime})
 		}, false, "checks"},
@@ -143,16 +149,8 @@ func replayCases() []string {
 		SubmittedAt *time.Time
 		Commit      *struct{ Oid string }
 	}{&gqlActor{Typename: "Bot", Login: "chatgpt-codex-connector"}, "COMMENTED", &late, &struct{ Oid string }{fixtureHead}})
-	pr.Commits.Nodes = append(pr.Commits.Nodes, struct {
-		Commit struct {
-			StatusCheckRollup *struct {
-				Contexts struct{ Nodes []gqlContext }
-			}
-		}
-	}{})
-	rollup := &struct {
-		Contexts struct{ Nodes []gqlContext }
-	}{}
+	pr.Commits.Nodes = append(pr.Commits.Nodes, gqlCommitNode{})
+	rollup := &gqlRollup{}
 	earlier := early.Add(-time.Hour)
 	rollup.Contexts.Nodes = []gqlContext{
 		// Complete before the merge: it counts as it is.

@@ -388,7 +388,7 @@ because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `045d99635d9a0315fadae3260674d3594088eb3b5279887ec658036a0e0eb5a4`
+- Repository signal fingerprint: `f32a99b176561b1fa7323124b7c0455bb03b42f6cb62b5d7f5490be911f59265`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

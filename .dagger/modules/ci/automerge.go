@@ -73,7 +73,9 @@ type prSnapshot struct {
 	// ChangedFiles is GitHub's count. A query reads at most 100 paths, so
 	// fewer Files than ChangedFiles means the list is incomplete.
 	ChangedFiles int
-	Unresolved   int
+	// ChecksIncomplete: GitHub has more check contexts than the query read.
+	ChecksIncomplete bool
+	Unresolved       int
 }
 
 type mergeRule struct {
@@ -165,6 +167,9 @@ var mergeRules = []mergeRule{
 		return ""
 	}},
 	{"checks", false, func(s *prSnapshot, _ mergePolicy) string {
+		if s.ChecksIncomplete {
+			return "head " + short(s.Head) + " has more checks than the rules read; a person merges"
+		}
 		newest := newestChecks(s.Checks)
 		if len(newest) == 0 {
 			return "no check ran on head " + short(s.Head)
@@ -214,7 +219,8 @@ func (c prCheck) green() bool {
 
 // newestChecks keeps the newest entry of each check (its name and workflow).
 // A new run of a check replaces the older entry, which a concurrency group
-// can leave CANCELLED.
+// can leave CANCELLED. An entry with no time is a queued run, and a queued
+// run is newer than each run that has started.
 func newestChecks(all []prCheck) []prCheck {
 	newest := map[string]prCheck{}
 	var order []string
@@ -224,7 +230,7 @@ func newestChecks(all []prCheck) []prCheck {
 		if !seen {
 			order = append(order, key)
 		}
-		if !seen || c.At.After(old.At) {
+		if !seen || c.At.IsZero() || (!old.At.IsZero() && c.At.After(old.At)) {
 			newest[key] = c
 		}
 	}
@@ -330,7 +336,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
       reviewThreads(first: 100) { nodes { isResolved } }
       files(first: 100) { nodes { path } }
       commits(last: 1) {
-        nodes { commit { statusCheckRollup { contexts(first: 100) { nodes {
+        nodes { commit { statusCheckRollup { contexts(first: 100) { totalCount nodes {
           __typename
           ... on CheckRun { name status conclusion startedAt completedAt checkSuite { workflowRun { workflow { name } } } }
           ... on StatusContext { context state createdAt }
@@ -392,14 +398,17 @@ type gqlPR struct {
 	}
 	ReviewThreads struct{ Nodes []struct{ IsResolved bool } }
 	Files         struct{ Nodes []struct{ Path string } }
-	Commits       struct {
-		Nodes []struct {
-			Commit struct {
-				StatusCheckRollup *struct {
-					Contexts struct{ Nodes []gqlContext }
-				}
-			}
-		}
+	Commits       struct{ Nodes []gqlCommitNode }
+}
+
+type gqlCommitNode struct {
+	Commit struct{ StatusCheckRollup *gqlRollup }
+}
+
+type gqlRollup struct {
+	Contexts struct {
+		TotalCount int
+		Nodes      []gqlContext
 	}
 }
 
@@ -486,7 +495,11 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 		if n.Commit.StatusCheckRollup == nil {
 			continue
 		}
-		for _, c := range n.Commit.StatusCheckRollup.Contexts.Nodes {
+		contexts := n.Commit.StatusCheckRollup.Contexts
+		if contexts.TotalCount > len(contexts.Nodes) {
+			s.ChecksIncomplete = true
+		}
+		for _, c := range contexts.Nodes {
 			switch c.Typename {
 			case "CheckRun":
 				check := prCheck{Name: c.Name, Status: c.Status, Conclusion: c.Conclusion}

@@ -54,6 +54,14 @@
         "just dagger-check 7/7 with the new fixture cases",
         "replay: same 30 verdicts, now ordered by merge time"
       ]
+    },
+    {
+      "id": "ckpt-dagger-p0-3",
+      "summary": "Queued reruns count as the newest run; refuse when the check rollup is incomplete",
+      "input_digest": "sha256:e5b50847c6746930291b76bd5edd8890d6d036d8305192b7f6a1665c89993404",
+      "proof_refs": [
+        "just dagger-check 7/7 with two new fixture cases"
+      ]
     }
   ],
   "intents": {

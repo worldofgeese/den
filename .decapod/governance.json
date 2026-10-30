@@ -75,24 +75,37 @@
       "proof_refs": [
         "trajectory branch_01M67C3VXMGFZTJAE201MSYKPJ"
       ]
+    },
+    {
+      "id": "firmware-auto-apply-4",
+      "summary": "Record trajectory run firmware-auto-apply-r2 after the rebase onto f7cabf2",
+      "input_digest": "sha256:e83153ad96852d00238b3095cb873e889cc52b27b460cdb2fcb67cc76169bcf6",
+      "proof_refs": [
+        "trajectory firmware-auto-apply-r2"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW": {
+    "intent:firmware-auto-apply-r2": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "Current claimed task and isolated work branch"
+        "No flake.lock change",
+        "paphos reboots only inside 05:00-06:30"
       ],
       "constraints": [
-        "root"
+        "modules/paphos/system.nix",
+        "modules/paphos/ops.nix",
+        "guix/system.scm",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
+      "id": "intent:firmware-auto-apply-r2",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Auto-apply LVFS firmware updates on paphos (NixOS) and mahakala (Guix)",
-      "refined_intent": "Auto-apply LVFS firmware updates on paphos (NixOS) and mahakala (Guix)",
+      "raw_intent": "We definitely want BIOS updates and all other firmware updates auto-applied (fwupd), on every host where possible.",
+      "refined_intent": "paphos: enable fwupd, apply LVFS updates daily at 04:30 and reboot for a pending capsule at 06:00 inside the reboot window; start paphos' nixos-upgrade at 05:00 so its reboot lands inside 05:00-06:30. mahakala: apply LVFS updates every six hours via mcron.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -146,12 +159,10 @@
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
         "No flake.lock change",
-        "loving-kypris is outside den (local units)",
-        "paphos reboots only inside 05:00-06:30, after mother's Monday DSM update window"
+        "paphos reboots only inside 05:00-06:30"
       ],
-      "artifact_hash": "sha256:724b18ee5d4c49852382af59e6e7f8744a57b107ee99be58e88e4f803bcc7def",
+      "artifact_hash": "sha256:a50fb42635fa56e53ee9965e89d5ca0bb467743e36d96951f359848a1948a064",
       "checks": [
         {
           "name": "eval_paphos_locked",
@@ -166,33 +177,32 @@
           "status": "passed"
         },
         {
-          "name": "loving_kypris_fwupd_check_detects_pending",
+          "name": "paphos_schedule_attrs",
           "status": "passed"
         },
         {
-          "name": "paphos_schedule_attrs",
+          "name": "pre_commit_just_check",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
+            "intent_id": "intent:firmware-auto-apply-r2",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
+            "intent_id": "intent:firmware-auto-apply-r2",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M67C3VXMGFZTJAE201MSYKPJ",
+            "detail": "trajectory:firmware-auto-apply-r2",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
+            "intent_id": "intent:firmware-auto-apply-r2",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -201,45 +211,41 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M67C3VXMGFZTJAE201MSYKPJ": {
+          "firmware-auto-apply-r2": {
             "evidence_only": true,
-            "id": "branch_01M67C3VXMGFZTJAE201MSYKPJ",
-            "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
+            "id": "firmware-auto-apply-r2",
+            "intent_id": "intent:firmware-auto-apply-r2",
             "steps": [
               {
                 "action": "trajectory.record",
-                "command": "nix eval paphos toplevel drvPath (locked and --override-input nixpkgs nixos-unstable)",
                 "custody_event_id": "event:4",
                 "observations": [
                   "modules/paphos/system.nix",
                   "modules/paphos/ops.nix",
                   "guix/system.scm",
-                  "modules/oracle/system.nix",
-                  "modules/paphos/system.nix",
-                  "modules/paphos/ops.nix",
-                  "guix/system.scm",
                   ".decapod/managed/specs/OPERATIONS.md",
                   ".decapod/managed/specs/SECURITY.md",
-                  "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv",
-                  "paphos at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
+                  "rebased onto main f7cabf2 (#74: .beads, modules/ssh.nix, ARCHITECTURE.md; no overlap with this change); pre-commit hook passed on the squashed commit",
+                  "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv; at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
                   "paphos config: autoUpgrade.dates=05:00 randomizedDelaySec=20min; services.fwupd.enable=true; paphos-firmware-update 04:30; paphos-firmware-reboot 06:00 with ConditionPathExists=/run/paphos-firmware-reboot",
-                  "mahakala: guix system build --dry-run with the new system.scm evaluated (533.4 MB would be downloaded), no errors",
-                  "the same UpdateState 1/4 check on loving-kypris flagged the pending UEFI dbx update, and the next reboot applied it",
-                  "bug found: paphos nixos-upgrade at 03:30 vs rebootWindow 05:00-06:30 logged 'Outside of configured reboot window, skipping.' on 2026-10-30"
+                  "mahakala: guix system build --dry-run with the new system.scm evaluated, no errors"
                 ],
                 "proof_refs": [
                   "eval_paphos_locked",
                   "eval_paphos_nixos_unstable",
                   "paphos_schedule_attrs",
                   "guix_dry_run_mahakala",
-                  "loving_kypris_fwupd_check_detects_pending"
+                  "pre_commit_just_check"
                 ],
                 "scope": [
-                  "root"
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "guix/system.scm",
+                  "modules/paphos/ops.nix",
+                  "modules/paphos/system.nix"
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "LVFS currently offers nothing for paphos' CompuLab fitlet (BIOS 2015); fwupd still applies UEFI dbx and any future vendor uploads.",
                   "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy."
                 ]
               }
@@ -247,26 +253,16 @@
           }
         }
       },
-      "declared_commands": [
-        "guix system build --dry-run -L guix-packages guix/system.scm (root channels guix nonguix rosenthal, on mahakala)",
-        "nix eval paphos toplevel drvPath (locked and --override-input nixpkgs nixos-unstable)"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "bug found: paphos nixos-upgrade at 03:30 vs rebootWindow 05:00-06:30 logged 'Outside of configured reboot window, skipping.' on 2026-10-30",
-        "mahakala: guix system build --dry-run with the new system.scm evaluated (533.4 MB would be downloaded), no errors",
-        "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv",
-        "paphos at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
+        "mahakala: guix system build --dry-run with the new system.scm evaluated, no errors",
+        "paphos at locked nixpkgs e62746b: q6msm2820afn5cmz4y5w0l78f4cyff2f-nixos-system-paphos-26.11.20261028.e62746b.drv; at nixos-unstable 1c89083: gzm9hwfrrk72nbjlvwlgxxv5g76sbcd3-nixos-system-paphos-26.11.20261030.1c89083.drv",
         "paphos config: autoUpgrade.dates=05:00 randomizedDelaySec=20min; services.fwupd.enable=true; paphos-firmware-update 04:30; paphos-firmware-reboot 06:00 with ConditionPathExists=/run/paphos-firmware-reboot",
-        "the same UpdateState 1/4 check on loving-kypris flagged the pending UEFI dbx update, and the next reboot applied it"
+        "rebased onto main f7cabf2 (#74: .beads, modules/ssh.nix, ARCHITECTURE.md; no overlap with this change); pre-commit hook passed on the squashed commit"
       ],
-      "inspected_files": [
-        "guix/system.scm",
-        "modules/oracle/system.nix",
-        "modules/paphos/ops.nix",
-        "modules/paphos/system.nix"
-      ],
-      "intent_id": "intent:change_01M67C3VTYQ7PSAGRVZFFAYDMW",
+      "inspected_files": [],
+      "intent_id": "intent:firmware-auto-apply-r2",
       "modified_files": [
         ".decapod/managed/specs/OPERATIONS.md",
         ".decapod/managed/specs/SECURITY.md",
@@ -274,24 +270,19 @@
         "modules/paphos/ops.nix",
         "modules/paphos/system.nix"
       ],
-      "next_transitions": [
-        "Refine plan and declare falsifiable checks"
-      ],
       "repo_scope": [
         ".decapod/managed/specs/OPERATIONS.md",
         ".decapod/managed/specs/SECURITY.md",
         "guix/system.scm",
         "modules/paphos/ops.nix",
-        "modules/paphos/system.nix",
-        "root"
+        "modules/paphos/system.nix"
       ],
-      "run_id": "branch_01M67C3VXMGFZTJAE201MSYKPJ",
+      "run_id": "firmware-auto-apply-r2",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "secu_01m67bgz0fj54b9m",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "LVFS currently offers nothing for paphos' CompuLab fitlet (BIOS 2015); fwupd still applies UEFI dbx and any future vendor uploads.",
         "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy."
       ]
     }

@@ -7,7 +7,10 @@
     config,
     lib,
     ...
-  }: {
+  }: let
+    # The pinned host keys. paphos's operations use the same file.
+    hostKeys = import ./_host-keys.nix;
+  in {
     programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
@@ -15,6 +18,9 @@
         "*" = {
           ControlMaster = "auto";
           ControlPersist = "yes";
+          # The second file holds the pinned keys. ssh adds a newly seen key
+          # to the first file only.
+          UserKnownHostsFile = "~/.ssh/known_hosts ~/.ssh/known_hosts.den";
         };
         "github.com" = {
           HostName = "github.com";
@@ -67,6 +73,17 @@
     # group-writable directories (/nix/store is root:nixbld g+w).
     # Replace the symlink with a copy after link generation.
     home.file.".ssh/config".force = true;
+
+    # The pinned keys, for the names that the aliases above connect to. On
+    # 2026-10-30 `ssh oracle` failed with "Host key verification failed":
+    # known_hosts had oracle's key only under its tailnet address. A pinned
+    # host needs no first-use prompt, and a changed key fails the connection.
+    # ssh reads a known-hosts file through a store link; only the config
+    # file must be a copy.
+    home.file.".ssh/known_hosts.den".text = ''
+      paphos.hound-celsius.ts.net ${hostKeys.paphos}
+      oracle.hound-celsius.ts.net,${oracleHost.publicIp} ${hostKeys.oracle}
+    '';
 
     home.activation.installSSHConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
       run install -d -m 0700 "$HOME/.ssh"

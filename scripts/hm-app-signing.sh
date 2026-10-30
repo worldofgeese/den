@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # hm-app-signing -- give Nix-built macOS apps a stable code-signing identity.
 #
 # Why: Nix signs apps ad hoc, so an app's designated requirement is the cdhash

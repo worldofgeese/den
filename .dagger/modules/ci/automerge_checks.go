@@ -72,6 +72,17 @@ func ruleCases() []string {
 			s.Reviews = nil
 			s.Comments = []prComment{codexComment(fixtureHead, false)}
 		}, false, ""},
+		{"a Codex summary with a null findings flag", func(s *prSnapshot) {
+			s.Reviews = nil
+			s.Comments = []prComment{{Author: fixturePolicy.Reviewer, Body: fmt.Sprintf(
+				`<!-- codex-review-state:v1 {"code_review":{"commit_sha":%q,"has_any_findings":null,"has_unresolved_findings":null,"status":"completed"}} -->`, fixtureHead)}}
+		}, false, ""},
+		{"a null findings flag with an unresolved thread", func(s *prSnapshot) {
+			s.Reviews = nil
+			s.Comments = []prComment{{Author: fixturePolicy.Reviewer, Body: fmt.Sprintf(
+				`<!-- codex-review-state:v1 {"code_review":{"commit_sha":%q,"has_any_findings":null,"has_unresolved_findings":null,"status":"completed"}} -->`, fixtureHead)}}
+			s.Unresolved = 1
+		}, false, "threads"},
 		{"a Codex summary with unresolved findings", func(s *prSnapshot) {
 			s.Reviews = nil
 			s.Comments = []prComment{codexComment(fixtureHead, true)}

@@ -247,7 +247,10 @@ func newestChecks(all []prCheck) []prCheck {
 }
 
 // cleanCodexReview reports whether a comment of the reviewer records a
-// completed review of head with no unresolved finding.
+// completed review of head with no unresolved finding. A review that a
+// comment requests can leave the findings flag null. Codex posts each
+// finding as a review thread, so the threads rule decides then, as it does
+// for a review of the head.
 func cleanCodexReview(comments []prComment, reviewer, head string) bool {
 	for _, c := range comments {
 		if c.Author != reviewer {
@@ -268,7 +271,7 @@ func cleanCodexReview(comments []prComment, reviewer, head string) bool {
 			continue
 		}
 		r := state.CodeReview
-		if r.CommitSHA == head && r.Status == "completed" && r.Unresolved != nil && !*r.Unresolved {
+		if r.CommitSHA == head && r.Status == "completed" && (r.Unresolved == nil || !*r.Unresolved) {
 			return true
 		}
 	}

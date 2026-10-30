@@ -71,6 +71,15 @@
         "just dagger-check 7/7 with a new fixture case",
         "the authored sections survive specs.refresh"
       ]
+    },
+    {
+      "id": "ckpt-dagger-p0-5",
+      "summary": "A Codex summary with a null findings flag counts as a review of the head; the threads rule decides",
+      "input_digest": "sha256:e6c4b5f4ffb72ba029e1236fe4054f8bf85036592759edc9298bb46047d74cc6",
+      "proof_refs": [
+        "automerge-dry-run on #73 head 4f419fd: would merge",
+        "just dagger-check 7/7 with two new fixture cases"
+      ]
     }
   ],
   "intents": {

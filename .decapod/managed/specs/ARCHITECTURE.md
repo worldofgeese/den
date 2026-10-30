@@ -258,6 +258,17 @@ resolve: nix-darwin writes `/etc/resolver/hound-celsius.ts.net` pointing at
 tailscaled's `100.100.100.100`, which macOS consults for that domain only. The
 fleet SSH aliases in `modules/ssh.nix` (now including `mahakala`) depend on it.
 
+### Pinned SSH Host Keys
+Each Home Manager host gets `~/.ssh/known_hosts.den`, which `modules/ssh.nix`
+writes from the pins in `modules/_host-keys.nix`. Its lines are for the names
+that the aliases connect to: `paphos.hound-celsius.ts.net`, and
+`oracle.hound-celsius.ts.net` with oracle's public address. The `Host *` block
+reads it as the second `UserKnownHostsFile`. So a pinned host needs no
+first-use prompt, and a changed key fails the connection. On 2026-10-30
+`ssh oracle` failed in batch mode: `~/.ssh/known_hosts` on M-02877 had
+oracle's key only under its tailnet address `100.87.121.45`, and the alias
+connects by name. A rotated host key changes the pin, and with it this file.
+
 ### Homebrew Cask Upgrade Guard
 Activation's `brew bundle` upgrades casks, including self-updating ones. The
 self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)

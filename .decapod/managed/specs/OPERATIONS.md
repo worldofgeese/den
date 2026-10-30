@@ -38,6 +38,23 @@ the missing commits. To recover, commit or stash the local edits, run
 `git pull --ff-only`, and deploy again. To deploy an older commit on purpose,
 set `DEN_DEPLOY_STALE=1`.
 
+The same deploy also built four uncommitted edits, and their authors are not
+known. Each was checked, then committed on 2026-10-30:
+- `secretspec.age`: only `LEGO_GATEWAY_API_KEY` changed. The new value got
+  HTTP 200 from the gateway, the committed value got 401, and the
+  last-known-good cache already held the new value. So it was a rotation. A
+  checkout of the old file restores a revoked key.
+- `mcp-agent-mail` is gone from `modules/overlays.nix`, from
+  `modules/shared-devtools.nix`, and from the comment in `modules/checks.nix`,
+  with the `fastmcp` test override that only it needed. No live agent
+  configuration used it. Agents coordinate through pi-messenger.
+- `programs.nushell.loadSessionVariables = true` in
+  `modules/M-02877/dktaohan.nix`, so nushell gets the Home Manager session
+  variables, for example `SIGNET_*`.
+- The removal of `boot.initrd.systemd.enable` in `modules/paphos/hardware.nix`
+  goes in the paphos PR with the `flake.lock` update. nixos-unstable removed
+  the scripted initrd, and the option now fails evaluation.
+
 The two fixes from that update, both no-ops once upstream changes:
 - Lix: `common-lix.nix` passes `-Dmimalloc=disabled`, which Lix 2.95.4's
   `meson.options` no longer has, so configure stops with 'Unknown option'.

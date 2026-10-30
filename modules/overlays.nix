@@ -39,120 +39,6 @@
         # one and scraping the mismatch out of stderr on every release.
         decapod = inputs.decapod.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
-        # Re-enabled: the fastmcp test flake that motivated disabling this is
-        # handled by the python313Packages fastmcp doCheck=false overlay below.
-        mcp-agent-mail = final.python313Packages.buildPythonApplication {
-          pname = "mcp-agent-mail";
-          version = "0.3.2";
-          pyproject = true;
-
-          src = final.fetchFromGitHub {
-            owner = "Dicklesworthstone";
-            repo = "mcp_agent_mail";
-            rev = "v0.3.2";
-            hash = "sha256-KWxrgC48GmU8KhJ43lLchQL1LqVJc24Weg59jyv8qNk=";
-          };
-
-          nativeBuildInputs = [final.makeWrapper] ++ (with final.python313Packages; [hatchling]);
-          pythonRelaxDeps = ["authlib"];
-
-          propagatedBuildInputs = with final.python313Packages; [
-            aiosqlite
-            aiolimiter
-            attrs
-            authlib
-            bleach
-            botocore
-            fastapi
-            fastmcp
-            filelock
-            gitpython
-            httpx
-            jinja2
-            jsonschema
-            litellm
-            markdown2
-            orjson
-            pathspec
-            pillow
-            psutil
-            pynacl
-            python-decouple
-            pyyaml
-            redis
-            rich
-            ruff
-            sqlalchemy
-            sqlmodel
-            structlog
-            tenacity
-            tiktoken
-            tinycss2
-            typer
-            uvicorn
-          ];
-
-          nativeCheckInputs = with final.python313Packages; [pytestCheckHook];
-          doCheck = false;
-
-          nativeInstallCheckInputs = [final.versionCheckHook];
-          versionCheckProgramArg = "--version";
-          doInstallCheck = false;
-
-          postInstall = ''
-            agent_mail_python_path="$out/${final.python313.sitePackages}:${final.python313Packages.makePythonPath (with final.python313Packages; [
-              aiosqlite
-              aiolimiter
-              attrs
-              authlib
-              bleach
-              botocore
-              fastapi
-              fastmcp
-              filelock
-              gitpython
-              httpx
-              jinja2
-              jsonschema
-              litellm
-              markdown2
-              orjson
-              pathspec
-              pillow
-              psutil
-              pynacl
-              python-decouple
-              pyyaml
-              redis
-              rich
-              ruff
-              sqlalchemy
-              sqlmodel
-              structlog
-              tenacity
-              tiktoken
-              tinycss2
-              typer
-              uvicorn
-            ])}"
-            makeWrapper ${final.python313.interpreter} $out/bin/mcp-agent-mail \
-              --prefix PYTHONPATH : "$agent_mail_python_path" \
-              --add-flags "-m mcp_agent_mail.cli" \
-              --set-default WORKTREES_ENABLED 1 \
-              --set-default AGENT_MAIL_GUARD_MODE warn
-            makeWrapper $out/bin/mcp-agent-mail $out/bin/am \
-              --set-default WORKTREES_ENABLED 1 \
-              --set-default AGENT_MAIL_GUARD_MODE warn
-          '';
-
-          meta = {
-            description = "Mail-like coordination layer for coding agents";
-            homepage = "https://github.com/Dicklesworthstone/mcp_agent_mail";
-            license = final.lib.licenses.mit;
-            mainProgram = "mcp-agent-mail";
-          };
-        };
-
         agent-token-dashboard = final.buildGoModule {
           pname = "agent-token-dashboard";
           version = "0-unstable-2026-06-19";
@@ -195,11 +81,6 @@
         atuin = prev.atuin.overrideAttrs {
           doCheck = !final.stdenv.hostPlatform.isDarwin;
         };
-      })
-      (final: prev: {
-        python313Packages = prev.python313Packages.overrideScope (pyFinal: pyPrev: {
-          fastmcp = pyPrev.fastmcp.overridePythonAttrs {doCheck = false;};
-        });
       })
     ];
     nixpkgs.config.allowUnfree = true;

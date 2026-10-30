@@ -51,7 +51,6 @@
           herdr
           # ACP agents query current NixOS, Home Manager, and nix-darwin data.
           mcp-nixos
-          mcp-agent-mail
           # Governance kernel, used on every host. Was Darwin-excluded and
           # installed there by `cargo install decapod` in an activation hook,
           # which failed silently and left the version unpinned.

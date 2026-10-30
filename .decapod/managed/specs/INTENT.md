@@ -118,6 +118,18 @@ Homebrew leaves that app alone. A cask that installs a macOS package must
 upgrade during an unattended deploy. A deploy must not stop halfway, with `/etc`
 changed and Home Manager not activated.
 
+## Pull Requests Merge Only Within Fixed Rules
+The target is no open pull request without the `hold` label and no open issue
+without the `needs-human` label (plan
+`docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md`). A pull
+request merges without a person only when the merge rules of
+`.dagger/modules/ci/automerge.go` accept its exact head. The rules require an
+allowed author, no stop label, no risky path, a clean review of that head,
+and checks that are all complete and green. Each refusal names its rule and
+its reason. A pull request from an author outside the list gets the checks
+only. Until plan P4 the rules only judge, with `automerge-dry-run` and
+`automerge-replay`, and a person or an agent merges.
+
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
 - [ ] Define required data/contracts for that workflow.
@@ -167,7 +179,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `fc72e1668c05d6bddca0157494571333ecdf5140961578fc56b49fbae2f4d88a`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (8 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

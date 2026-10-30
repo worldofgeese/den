@@ -61,21 +61,37 @@ func convertSlice[I any, O any](in []I, f func(I) O) []O {
 
 func (r Ci) MarshalJSON() ([]byte, error) {
 	var concrete struct {
-		Source *dagger.Directory
+		Source     *dagger.Directory
+		Repository string
+		Authors    []string
+		Reviewer   string
+		RiskyPaths []string
 	}
 	concrete.Source = r.Source
+	concrete.Repository = r.Repository
+	concrete.Authors = r.Authors
+	concrete.Reviewer = r.Reviewer
+	concrete.RiskyPaths = r.RiskyPaths
 	return json.Marshal(&concrete)
 }
 
 func (r *Ci) UnmarshalJSON(bs []byte) error {
 	var concrete struct {
-		Source *dagger.Directory
+		Source     *dagger.Directory
+		Repository string
+		Authors    []string
+		Reviewer   string
+		RiskyPaths []string
 	}
 	err := json.Unmarshal(bs, &concrete)
 	if err != nil {
 		return err
 	}
 	r.Source = concrete.Source
+	r.Repository = concrete.Repository
+	r.Authors = concrete.Authors
+	r.Reviewer = concrete.Reviewer
+	r.RiskyPaths = concrete.RiskyPaths
 	return nil
 }
 
@@ -198,6 +214,55 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 	switch parentName {
 	case "Ci":
 		switch fnName {
+		case "AutomergeDryRun":
+			var parent Ci
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
+			}
+			var token *dagger.Secret
+			if inputArgs["token"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["token"]), &token)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg token", err))
+				}
+			}
+			var pr int
+			if inputArgs["pr"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["pr"]), &pr)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg pr", err))
+				}
+			}
+			return (*Ci).AutomergeDryRun(&parent, ctx, token, pr)
+		case "AutomergeReplay":
+			var parent Ci
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
+			}
+			var token *dagger.Secret
+			if inputArgs["token"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["token"]), &token)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg token", err))
+				}
+			}
+			var count int
+			if inputArgs["count"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["count"]), &count)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg count", err))
+				}
+			}
+			return (*Ci).AutomergeReplay(&parent, ctx, token, count)
+		case "AutomergeRules":
+			var parent Ci
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
+			}
+			return nil, (*Ci).AutomergeRules(&parent, ctx)
 		case "DecapodOverrides":
 			var parent Ci
 			err = json.Unmarshal(parentJSON, &parent)
@@ -246,7 +311,35 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg ws", err))
 				}
 			}
-			return New(ws), nil
+			var repository string
+			if inputArgs["repository"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["repository"]), &repository)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg repository", err))
+				}
+			}
+			var authors []string
+			if inputArgs["authors"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["authors"]), &authors)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg authors", err))
+				}
+			}
+			var reviewer string
+			if inputArgs["reviewer"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["reviewer"]), &reviewer)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg reviewer", err))
+				}
+			}
+			var riskyPaths []string
+			if inputArgs["riskyPaths"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["riskyPaths"]), &riskyPaths)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg riskyPaths", err))
+				}
+			}
+			return New(ws, repository, authors, reviewer, riskyPaths), nil
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
@@ -256,40 +349,66 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 			WithObject(
 				dag.TypeDef().WithObject("Ci", dagger.TypeDefWithObjectOpts{SourceMap: dag.SourceMap("main.go", 41, 6)}).
 					WithFunction(
+						dag.Function("AutomergeDryRun",
+							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
+							WithDescription("Judge an open pull request by the merge rules, and say what a merge would\ndo. It merges nothing.").
+							WithCachePolicy(dagger.FunctionCachePolicyNever).
+							WithSourceMap(dag.SourceMap("automerge.go", 599, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 602, 2)}).
+							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 604, 2)})).
+					WithFunction(
+						dag.Function("AutomergeReplay",
+							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
+							WithDescription("Judge the newest merged pull requests as of their merge, and print a\nMarkdown table of the verdicts.").
+							WithCachePolicy(dagger.FunctionCachePolicyNever).
+							WithSourceMap(dag.SourceMap("automerge.go", 624, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 627, 2)}).
+							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 630, 2), DefaultValue: dagger.JSON("30")})).
+					WithFunction(
+						dag.Function("AutomergeRules",
+							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
+							WithDescription("The merge rules give the expected verdict for fixed pull requests, and a\nreplay reads a merged pull request as of its merge. No network and no\ntoken.").
+							WithSourceMap(dag.SourceMap("automerge_checks.go", 15, 1)).
+							WithCheck()).
+					WithFunction(
 						dag.Function("DecapodOverrides",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("Decapod loads the overrides in .decapod/OVERRIDE.md\n(scripts/check-decapod-overrides.sh).").
-							WithSourceMap(dag.SourceMap("main.go", 132, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 159, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("DecapodValidate",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("A CI-local `decapod validate` passes, and it leaves no spec or entrypoint\ndrift (scripts/decapod-validate-ci.sh).").
-							WithSourceMap(dag.SourceMap("main.go", 144, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 171, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Fmt",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("The Nix files are formatted (`just check-fmt`).").
-							WithSourceMap(dag.SourceMap("main.go", 111, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 138, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("NixEval",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("The derivation of each check under .#checks evaluates\n(scripts/check-drvpaths.sh). A check that needs a builder that the engine\ndoes not have, for example a Darwin build, is skipped, as on a host.").
-							WithSourceMap(dag.SourceMap("main.go", 119, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 146, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Shellcheck",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("ShellCheck passes on scripts/*.sh (`just check-shellcheck`).").
-							WithSourceMap(dag.SourceMap("main.go", 125, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 152, 1)).
 							WithCheck()).
 					WithConstructor(
 						dag.Function("New",
 							dag.TypeDef().WithObject("Ci")).
-							WithSourceMap(dag.SourceMap("main.go", 46, 1)).
-							WithArg("ws", dag.TypeDef().WithObject("Workspace"), dagger.FunctionWithArgOpts{Description: "The current workspace. Dagger gives it.", SourceMap: dag.SourceMap("main.go", 48, 2)}))), nil
+							WithSourceMap(dag.SourceMap("main.go", 56, 1)).
+							WithArg("ws", dag.TypeDef().WithObject("Workspace"), dagger.FunctionWithArgOpts{Description: "The current workspace. Dagger gives it.", SourceMap: dag.SourceMap("main.go", 58, 2)}).
+							WithArg("repository", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The GitHub repository, owner/name, that the merge rules read.", SourceMap: dag.SourceMap("main.go", 61, 2)}).
+							WithArg("authors", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Logins whose pull requests can merge without a person. A bot is\napp/<login>. With none, every pull request needs a person.", SourceMap: dag.SourceMap("main.go", 65, 2)}).
+							WithArg("reviewer", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The login whose review of the head counts. With none, nothing merges.", SourceMap: dag.SourceMap("main.go", 68, 2)}).
+							WithArg("riskyPaths", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path prefixes. A pull request that changes one is merged by a person.", SourceMap: dag.SourceMap("main.go", 71, 2)}))), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}

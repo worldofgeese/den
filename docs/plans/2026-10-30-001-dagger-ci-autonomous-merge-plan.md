@@ -171,7 +171,7 @@ Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
 
 ### Progress
 
-- **P0.** D1 to D6 are answered. #24 and #25 are closed. The dry run of the merge rules over the last 30 merged PRs is still to do.
+- **P0 (done).** D1 to D6 are answered, and #24 and #25 are closed. The merge rules are in `.dagger/modules/ci/automerge.go`: the automerge filter of `modules/M-02877/pr-reviewer.nix`, in its order, with the D4 stops. The fixture check `ci:automerge-rules` covers each rule. `ci:automerge-replay` judged the last 30 merges: 4 accepted, 26 refused, each with its reason (`docs/plans/2026-10-30-002-dagger-p0-merge-rule-replay.md`). One lesson for P4: a force-push changes the head, so the merger waits for a new review of the new head. The code is den's own, written from den's jq filter. devrel-infra's code is internal, so none of it is copied into this public module.
 - **P1.** `.dagger/modules/ci` has the checks of item 1: `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`, `ci:decapod-overrides` and `ci:decapod-validate`. The map from each `just check` step to a check, and the two limits, are in VALIDATION.md (Dagger Checks). Measured on M-02877 on 2026-10-30:
   - The default engine of the CLI does not start in Apple's container runtime (`/proc/sys/net/ipv4/ip_forward: read-only file system`). The podman VM's DNS does not answer AAAA queries for names without IPv6 records. `just dagger-check` makes a podman engine with a public resolver.
   - The cold run took 229 s. After the fixes, a run took 25 s, and `ci:nix-eval` took 23.5 s from the cache volume.
@@ -196,3 +196,12 @@ Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
 ## Coordination
 
 IronUnion plans the same pipeline for LEGO/agentic-engineering-community, as a Chorus proposal. The two plans agree on the function names, the merge rules and the trust boundaries. D6 decides whether the two repositories share one module.
+
+### Shared module interface (agreed with AEC on 2026-10-30)
+
+AEC's plan is approved in Chorus: proposal `86ce0320-9afd-4b39-832e-f071b7654895` in the project "Agentic Engineering Community". AEC installs den's module at a pinned commit.
+
+- **Two lanes.** PR code runs only on a PR engine that has no secret. Model calls run only on a credential engine that runs no PR code. The GitHub token stays in the shepherd process. Agents return data (findings, a patch, a decision), and the shepherd posts it after the denied-path check. den runs both engines on paphos. This refines D1: PR code cannot then poison a cache that a call with a credential reads later.
+- **Settings.** The module takes these as settings in each repository's `dagger.toml`: `forkPolicy` (`checks-only` or `review-and-fix`), `authors`, `riskyPaths` (AEC adds maintainer approval), the `hold` and `needs-human` labels with a table from each refusal to its action, a deterministic bump rule, `statusPrefix`, phase flags, `prEngine` and `credentialEngine`. The module refuses by default: with no authors, nothing merges without a person. den's values are in its own `dagger.toml`. P0 adds `repository`, `authors`, `reviewer` and `riskyPaths`; the others come with the phases that use them.
+- **Function names.** `shepherd`, `reviewer`, `fixer`, `automerge`, `bump` and `issues`.
+- **Task M.** IronUnion opens a PR to den when P3 and P4 exist. Else, after two weeks, AEC keeps its own copy of the module.

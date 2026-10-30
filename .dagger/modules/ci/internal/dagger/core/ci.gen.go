@@ -16,6 +16,9 @@ type Ci struct { // ci (../../../../../../:0:0)
 	// field again.
 	refetchID bool
 
+	automergeDryRun  *string
+	automergeReplay  *string
+	automergeRules   *Void
 	decapodOverrides *Void
 	decapodValidate  *Void
 	fmt              *Void
@@ -31,6 +34,65 @@ func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
 		// must be reevaluated.
 		refetchID: true,
 	}
+}
+
+// Judge an open pull request by the merge rules, and say what a merge would
+// do. It merges nothing.
+func (r *Ci) AutomergeDryRun(ctx context.Context, token *Secret, pr int) (string, error) {
+	assertNotNil("token", token)
+	if r.automergeDryRun != nil {
+		return *r.automergeDryRun, nil
+	}
+	q := r.query.Select("automergeDryRun")
+	q = q.Arg("token", token)
+	q = q.Arg("pr", pr)
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// CiAutomergeReplayOpts contains options for Ci.AutomergeReplay
+type CiAutomergeReplayOpts struct {
+	// How many merged pull requests to judge, newest first.
+	//
+	// Default: 30
+	Count int
+}
+
+// Judge the newest merged pull requests as of their merge, and print a
+// Markdown table of the verdicts.
+func (r *Ci) AutomergeReplay(ctx context.Context, token *Secret, opts ...CiAutomergeReplayOpts) (string, error) {
+	assertNotNil("token", token)
+	if r.automergeReplay != nil {
+		return *r.automergeReplay, nil
+	}
+	q := r.query.Select("automergeReplay")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `count` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Count) {
+			q = q.Arg("count", opts[i].Count)
+		}
+	}
+	q = q.Arg("token", token)
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// The merge rules give the expected verdict for fixed pull requests, and a
+// replay reads a merged pull request as of its merge. No network and no
+// token.
+func (r *Ci) AutomergeRules(ctx context.Context) error {
+	if r.automergeRules != nil {
+		return nil
+	}
+	q := r.query.Select("automergeRules")
+
+	return q.Execute(ctx)
 }
 
 // Decapod loads the overrides in .decapod/OVERRIDE.md
@@ -142,9 +204,40 @@ func (r *Ci) Shellcheck(ctx context.Context) error {
 	return q.Execute(ctx)
 }
 
-func (r *Query) Ci(ws *Workspace) *Ci { // ci (../../../../../../:0:0)
+// CiOpts contains options for Query.Ci
+type CiOpts struct {
+	// The GitHub repository, owner/name, that the merge rules read.
+	Repository string
+	// Logins whose pull requests can merge without a person. A bot is
+	// app/<login>. With none, every pull request needs a person.
+	Authors []string
+	// The login whose review of the head counts. With none, nothing merges.
+	Reviewer string
+	// Path prefixes. A pull request that changes one is merged by a person.
+	RiskyPaths []string
+}
+
+func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
 	assertNotNil("ws", ws)
 	q := r.query.Select("ci")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `repository` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Repository) {
+			q = q.Arg("repository", opts[i].Repository)
+		}
+		// `authors` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Authors) {
+			q = q.Arg("authors", opts[i].Authors)
+		}
+		// `reviewer` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Reviewer) {
+			q = q.Arg("reviewer", opts[i].Reviewer)
+		}
+		// `riskyPaths` optional argument
+		if !querybuilder.IsZeroValue(opts[i].RiskyPaths) {
+			q = q.Arg("riskyPaths", opts[i].RiskyPaths)
+		}
+	}
 	q = q.Arg("ws", ws)
 
 	return &Ci{

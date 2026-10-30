@@ -38,6 +38,13 @@
         # the Nix-store node path, which is read-only. Point npm at
         # ~/.local, which is already on PATH via home.sessionPath below.
         NPM_CONFIG_PREFIX = "$HOME/.local";
+        # Each dagger command uses the podman engine that `just dagger-check`
+        # makes. The CLI's default engine runs in Apple's container runtime,
+        # where it does not start (dagger/dagger#13857), and the CLI then
+        # waits without an error. The CLI also waits without an error when
+        # this container is missing, so run `just dagger-check` once first.
+        # The container restarts by itself after that.
+        DAGGER_ENGINE = "container+podman://den-dagger-engine";
       };
 
       home.sessionPath = [

@@ -7,3 +7,9 @@ import (
 )
 
 type Ci = core.Ci
+
+// CiAutomergeReplayOpts contains options for Ci.AutomergeReplay
+type CiAutomergeReplayOpts = core.CiAutomergeReplayOpts
+
+// CiOpts contains options for Query.Ci
+type CiOpts = core.CiOpts

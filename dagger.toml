@@ -14,6 +14,16 @@ module = "go-sdk"
 [modules.ci]
 source = ".dagger/modules/ci"
 
+# den's merge rules (.dagger/modules/ci/automerge.go). The module refuses by
+# default; these values are den's own: the authors of
+# modules/M-02877/pr-reviewer.nix, the Codex connector as the reviewer of
+# record until plan P3, and the denied paths of plan D4.
+[modules.ci.settings]
+repository = "worldofgeese/den"
+authors = ["worldofgeese", "app/github-actions", "app/dependabot"]
+reviewer = "app/chatgpt-codex-connector"
+riskyPaths = ["secrets/", "secretspec.", "modules/_host-keys.nix", "modules/_github-ssh-keys.nix", ".decapod/OVERRIDE.md", "terraform/"]
+
 [sdks.go.scopes.".dagger/modules/ci"]
 is-module = true
 name = "ci"

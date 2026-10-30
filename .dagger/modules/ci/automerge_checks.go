@@ -64,6 +64,7 @@ func ruleCases() []string {
 		{"an author outside the list", func(s *prSnapshot) { s.Author = "mallory" }, false, "author"},
 		{"a bot in the list", func(s *prSnapshot) { s.Author = "app/dependabot" }, false, ""},
 		{"a risky path", func(s *prSnapshot) { s.Files = []string{"secretspec.age"} }, false, "risky-paths"},
+		{"more changed files than the rules read", func(s *prSnapshot) { s.ChangedFiles = 150 }, false, "risky-paths"},
 		{"a review of an earlier head", func(s *prSnapshot) { s.Reviews[0].Commit = "feed" }, false, "reviewed"},
 		{"a review by someone else", func(s *prSnapshot) { s.Reviews[0].Author = "bob" }, false, "reviewed"},
 		{"a clean Codex summary of the head", func(s *prSnapshot) {
@@ -152,14 +153,33 @@ func replayCases() []string {
 	rollup := &struct {
 		Contexts struct{ Nodes []gqlContext }
 	}{}
+	earlier := early.Add(-time.Hour)
 	rollup.Contexts.Nodes = []gqlContext{
-		{Typename: "CheckRun", Name: "validate", Status: "COMPLETED", Conclusion: "SUCCESS", CompletedAt: &early},
-		{Typename: "CheckRun", Name: "deploy", Status: "COMPLETED", Conclusion: "FAILURE", CompletedAt: &late},
+		// Complete before the merge: it counts as it is.
+		{Typename: "CheckRun", Name: "validate", Status: "COMPLETED", Conclusion: "SUCCESS", StartedAt: &earlier, CompletedAt: &early},
+		// Started after the merge, by the push to main: it does not count.
+		{Typename: "CheckRun", Name: "deploy", Status: "COMPLETED", Conclusion: "FAILURE", StartedAt: &late, CompletedAt: &late},
 	}
 	pr.Commits.Nodes[0].Commit.StatusCheckRollup = rollup
 
 	s := snapshotFrom(pr, "main", true)
 	var failed []string
+
+	// Started before the merge and complete after it: it was running at the
+	// merge, so the checks were not all complete.
+	running := *pr
+	runningRollup := *rollup
+	runningRollup.Contexts.Nodes = append([]gqlContext{}, rollup.Contexts.Nodes...)
+	runningRollup.Contexts.Nodes = append(runningRollup.Contexts.Nodes,
+		gqlContext{Typename: "CheckRun", Name: "lint", Status: "COMPLETED", Conclusion: "SUCCESS", StartedAt: &early, CompletedAt: &late})
+	running.Commits.Nodes = append(running.Commits.Nodes[:0:0], pr.Commits.Nodes...)
+	running.Commits.Nodes[0].Commit.StatusCheckRollup = &runningRollup
+	rs := snapshotFrom(&running, "main", true)
+	// This case tests the checks; give it a review of the head.
+	rs.Reviews = []prReview{{Author: fixturePolicy.Reviewer, State: "COMMENTED", Commit: fixtureHead}}
+	if rule, _ := judge(&rs, fixturePolicy, true); rule != "checks" {
+		failed = append(failed, fmt.Sprintf("replay: a run that was running at the merge gives rule %q, want checks", rule))
+	}
 	if len(s.Labels) != 0 {
 		failed = append(failed, fmt.Sprintf("replay: labels %v, want none at the merge", s.Labels))
 	}

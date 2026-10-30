@@ -18,19 +18,19 @@ The settings are den's, from `dagger.toml`: the authors of the automerger, the C
 GH_TOKEN=$(gh auth token) dagger call ci automerge-replay --token env://GH_TOKEN --count 30
 ```
 
-## Result (measured 2026-10-30 18:58 UTC)
+## Result (measured 2026-10-30 19:17 UTC, newest merge first)
 
 | PR | Merged (UTC) | Head | Verdict | Rule | Reason |
 | #72 | 2026-10-30 17:53 | `e5c7ac95cc0a` | accept | - | - |
-| #71 | 2026-10-30 16:01 | `48390ba5c812` | accept | - | - |
 | #70 | 2026-10-30 17:25 | `0d35821284c4` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head 0d35821284c4 |
+| #71 | 2026-10-30 16:01 | `48390ba5c812` | accept | - | - |
 | #69 | 2026-10-30 14:35 | `bb0d06b12556` | refuse | risky-paths | it changes .decapod/OVERRIDE.md, which a person merges |
 | #68 | 2026-10-30 14:20 | `74914b3a723a` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head 74914b3a723a |
 | #67 | 2026-10-30 14:10 | `87780678b50d` | accept | - | - |
 | #66 | 2026-10-23 16:45 | `89ceff34ff3f` | refuse | threads | 1 unresolved review thread(s) |
+| #52 | 2026-10-23 16:21 | `369c9b5dde27` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head 369c9b5dde27 |
 | #65 | 2026-10-23 11:48 | `a4fdcff8a965` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head a4fdcff8a965 |
 | #64 | 2026-10-23 11:30 | `6a1748bc31a1` | accept | - | - |
-| #52 | 2026-10-23 16:21 | `369c9b5dde27` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head 369c9b5dde27 |
 | #51 | 2026-10-21 11:16 | `0c3ce2efdaff` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head 0c3ce2efdaff |
 | #50 | 2026-10-21 10:13 | `78fa8ab3ef3c` | refuse | threads | 4 unresolved review thread(s) |
 | #48 | 2026-10-15 07:49 | `a366dd76a338` | refuse | reviewed | app/chatgpt-codex-connector has not reviewed head a366dd76a338 |
@@ -67,3 +67,6 @@ No refusal is wrong for the rules as written. The live merger (P4) must ask for 
 
 - The unresolved threads, the review decision and the Codex summary comment are read as they are now. GitHub keeps no history of them.
 - A reaction (for example the Codex connector's 👍) names no commit, so the rules do not count it.
+- The rules read at most 100 changed paths. A pull request with more changed files is refused, because an unread path can be a risky one.
+- A check run that started before the merge and ended after it counts as incomplete at the merge. A run that started after the merge does not count.
+- GitHub cannot order pull requests by their merge. The replay reads the 100 newest merged pull requests, sorts them by the time of the merge, and judges the first `count`.

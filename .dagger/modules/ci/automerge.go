@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -69,7 +70,10 @@ type prSnapshot struct {
 	Reviews        []prReview
 	Comments       []prComment
 	Files          []string
-	Unresolved     int
+	// ChangedFiles is GitHub's count. A query reads at most 100 paths, so
+	// fewer Files than ChangedFiles means the list is incomplete.
+	ChangedFiles int
+	Unresolved   int
 }
 
 type mergeRule struct {
@@ -118,6 +122,10 @@ var mergeRules = []mergeRule{
 		return "author " + s.Author + " is merged by a person"
 	}},
 	{"risky-paths", false, func(s *prSnapshot, p mergePolicy) string {
+		// A path that the query did not read can be a risky one.
+		if s.ChangedFiles > len(s.Files) {
+			return fmt.Sprintf("it changes %d files, more than the %d that the rules read; a person merges", s.ChangedFiles, len(s.Files))
+		}
 		for _, f := range s.Files {
 			for _, r := range p.RiskyPaths {
 				if strings.HasPrefix(f, r) {
@@ -307,7 +315,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
     defaultBranchRef { name }
     mergeCommitAllowed squashMergeAllowed rebaseMergeAllowed
     pullRequest(number: $n) {
-      number state isDraft baseRefName headRefOid body reviewDecision mergeable mergedAt
+      number state isDraft baseRefName headRefOid body reviewDecision mergeable mergedAt changedFiles
       author { __typename login }
       labels(first: 50) { nodes { name } }
       timelineItems(first: 100, itemTypes: [LABELED_EVENT, UNLABELED_EVENT]) {
@@ -358,6 +366,7 @@ type gqlPR struct {
 	ReviewDecision string
 	Mergeable      string
 	MergedAt       *time.Time
+	ChangedFiles   int
 	Author         *gqlActor
 	Labels         struct{ Nodes []struct{ Name string } }
 	TimelineItems  struct {
@@ -420,7 +429,7 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 	s := prSnapshot{
 		Number: pr.Number, State: pr.State, Draft: pr.IsDraft, Base: pr.BaseRefName,
 		Trunk: trunk, Author: pr.Author.name(), Head: pr.HeadRefOid, Body: pr.Body,
-		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable,
+		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable, ChangedFiles: pr.ChangedFiles,
 	}
 	var cutoff time.Time
 	if replay && pr.MergedAt != nil {
@@ -480,19 +489,26 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 		for _, c := range n.Commit.StatusCheckRollup.Contexts.Nodes {
 			switch c.Typename {
 			case "CheckRun":
-				at := c.CompletedAt
-				if at == nil {
-					at = c.StartedAt
-				}
-				// After a merge, the push to main adds runs to the same commit.
-				if !before(at) {
-					continue
-				}
 				check := prCheck{Name: c.Name, Status: c.Status, Conclusion: c.Conclusion}
+				if replay {
+					// After a merge, the push to main adds runs to the same
+					// commit: a run that started after the merge does not
+					// count. A run that was still running at the merge was not
+					// complete then.
+					if c.StartedAt != nil && c.StartedAt.After(cutoff) {
+						continue
+					}
+					if c.CompletedAt == nil || c.CompletedAt.After(cutoff) {
+						check.Status, check.Conclusion = "IN_PROGRESS", ""
+					}
+				}
 				if c.CheckSuite != nil && c.CheckSuite.WorkflowRun != nil {
 					check.Workflow = c.CheckSuite.WorkflowRun.Workflow.Name
 				}
-				if at != nil {
+				// A new run of a check replaces the older one: order by start.
+				if at := c.StartedAt; at != nil {
+					check.At = *at
+				} else if at := c.CompletedAt; at != nil {
 					check.At = *at
 				}
 				s.Checks = append(s.Checks, check)
@@ -592,25 +608,39 @@ func (m *Ci) AutomergeReplay(
 	if err != nil {
 		return "", err
 	}
+	if count < 1 || count > 100 {
+		return "", fmt.Errorf("count is %d; use 1 to 100", count)
+	}
 	var list struct {
 		Repository struct {
-			PullRequests struct{ Nodes []struct{ Number int } }
+			PullRequests struct {
+				Nodes []struct {
+					Number   int
+					MergedAt time.Time
+				}
+			}
 		}
 	}
-	const listQuery = `query($o: String!, $r: String!, $n: Int!) {
+	// GitHub cannot order pull requests by their merge, so read the 100
+	// newest merged ones and sort them by the time of the merge.
+	const listQuery = `query($o: String!, $r: String!) {
   repository(owner: $o, name: $r) {
-    pullRequests(states: MERGED, last: $n, orderBy: {field: CREATED_AT, direction: ASC}) { nodes { number } }
+    pullRequests(states: MERGED, last: 100, orderBy: {field: CREATED_AT, direction: ASC}) { nodes { number mergedAt } }
   }
 }`
-	if err := g.graphql(ctx, listQuery, map[string]any{"o": owner, "r": name, "n": count}, &list); err != nil {
+	if err := g.graphql(ctx, listQuery, map[string]any{"o": owner, "r": name}, &list); err != nil {
 		return "", err
 	}
 	nodes := list.Repository.PullRequests.Nodes
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].MergedAt.After(nodes[j].MergedAt) })
+	if len(nodes) > count {
+		nodes = nodes[:count]
+	}
 	var b strings.Builder
 	b.WriteString("| PR | Merged (UTC) | Head | Verdict | Rule | Reason |\n|---|---|---|---|---|---|\n")
 	accepted := 0
-	for i := len(nodes) - 1; i >= 0; i-- {
-		repo, err := m.fetch(ctx, g, owner, name, nodes[i].Number)
+	for _, node := range nodes {
+		repo, err := m.fetch(ctx, g, owner, name, node.Number)
 		if err != nil {
 			return "", err
 		}

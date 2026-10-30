@@ -45,6 +45,15 @@
         "automerge-replay over 30 merges: 4 accepted, 26 refused",
         "just dagger-check 7/7 in 27 s"
       ]
+    },
+    {
+      "id": "ckpt-dagger-p0-2",
+      "summary": "Fix the three Codex findings: incomplete file lists, runs still running at the merge, replay sample by merge time",
+      "input_digest": "sha256:69b9ad009243516509e524b72dee3adc7c80860120cb1e9b2ee281f4135cf120",
+      "proof_refs": [
+        "just dagger-check 7/7 with the new fixture cases",
+        "replay: same 30 verdicts, now ordered by merge time"
+      ]
     }
   ],
   "intents": {

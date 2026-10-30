@@ -824,7 +824,7 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `5314e99e7416267c5d4bbbda2091331f264ebdc0f62599610f894fd5cfbd3611`
+- Repository signal fingerprint: `045d99635d9a0315fadae3260674d3594088eb3b5279887ec658036a0e0eb5a4`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

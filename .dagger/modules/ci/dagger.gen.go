@@ -353,17 +353,17 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge an open pull request by the merge rules, and say what a merge would\ndo. It merges nothing.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 558, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 561, 2)}).
-							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 563, 2)})).
+							WithSourceMap(dag.SourceMap("automerge.go", 574, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 577, 2)}).
+							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 579, 2)})).
 					WithFunction(
 						dag.Function("AutomergeReplay",
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge the newest merged pull requests as of their merge, and print a\nMarkdown table of the verdicts.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 583, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 586, 2)}).
-							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 589, 2), DefaultValue: dagger.JSON("30")})).
+							WithSourceMap(dag.SourceMap("automerge.go", 599, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 602, 2)}).
+							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 605, 2), DefaultValue: dagger.JSON("30")})).
 					WithFunction(
 						dag.Function("AutomergeRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).

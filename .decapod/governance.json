@@ -74,6 +74,14 @@
       "proof_refs": [
         "decapod govern project-check (pass 185, fail 0)"
       ]
+    },
+    {
+      "id": "ckpt-decapod-0121-4",
+      "summary": "Spec reviews: VALIDATION.md updated; the seven other specs unchanged with reason",
+      "input_digest": "sha256:7966b0fe1dc3de96c07d455f7a79d0d2abb680a20c8134a1eea8637c51674dd6",
+      "proof_refs": [
+        "decapod govern plan review-spec x8"
+      ]
     }
   ],
   "intents": {
@@ -158,6 +166,29 @@
         "just check"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "Reviewed against this PR: it changes only the Decapod release pins, the CI install of Decapod, .decapod/config.toml (readiness contract, worktree isolation) and a shellcheck directive. ARCHITECTURE.md describes none of these; VALIDATION.md carries them. Only the generated attestation fingerprint changed.",
+          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+          "spec_material_hash": "f29a0d6ce22b42fe86ded4e4d667230f0debdef8d26f69566f6391bd40e22eba"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "Reviewed against this PR: it changes only the Decapod release pins, the CI install of Decapod, .decapod/config.toml (readiness contract, worktree isolation) and a shellcheck directive. INTERFACES.md describes none of these; VALIDATION.md carries them. Only the generated attestation fingerprint changed.",
+          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+          "spec_material_hash": "a7bbdeb2a5f8787ace009883da41c59e8817c81d2c86e0489545d2cad5f811c2"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "Reviewed against this PR: it changes only the Decapod release pins, the CI install of Decapod, .decapod/config.toml (readiness contract, worktree isolation) and a shellcheck directive. SECURITY.md describes none of these; VALIDATION.md carries them. Only the generated attestation fingerprint changed.",
+          "reviewed_code_fingerprint": "1ab011fe446d0e170b19dd41d0b116fb9c66cb16dfbc2d27b1437c3886fc8c91",
+          "spec_material_hash": "7fdf106dc32ae26c1ee35df5f26609f1b313ca66951130571372189ff8bad3dd"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
       "title": "Move den to Decapod 0.121.1 and declare the readiness contract",
@@ -166,7 +197,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793362537Z"
+      "updated_at": "1793363792Z"
     },
     "trajectory": {
       "active_boundaries": [

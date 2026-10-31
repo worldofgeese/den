@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "cc21b0b818895d36953195d4976ecc8ec08756fb",
+    "accepted_commit": "64f336001a23d687fc613b6dd524386c81845575",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -39,22 +39,32 @@
     }
   },
   "change": {
-    "id": "change_01M67DVEVZYXD8QNYBD1BHKG3C",
-    "base_commit": "cc21b0b818895d36953195d4976ecc8ec08756fb",
+    "id": "change_01M67MC794F2SKKRQ89CCGC7T0",
+    "base_commit": "64f336001a23d687fc613b6dd524386c81845575",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "signet-personal-routing": {
+      "statement": "An interactive zsh on M-02877 exports SIGNET_DAEMON_URL=http://127.0.0.1:3850 inside allow-listed personal repositories and http://127.0.0.1:3860 elsewhere, with SIGNET_STORE overriding.",
+      "falsifier": "After deploy, a new shell in ~/.config/home-manager prints a SIGNET_DAEMON_URL other than http://127.0.0.1:3850, or one in ~/projects/devrel-infra prints other than http://127.0.0.1:3860.",
+      "status": "supported",
+      "proof_refs": [
+        "trajectory branch_01M67MC7BFWNG2KZ1NGH3AWD6T"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "ckpt-known-hosts-1",
-      "summary": "known_hosts.den from the pinned host keys",
-      "input_digest": "sha256:98d96062732b9869cfe3a537ab37abdc8994b3a7915dbfcb395354961494a1f0",
+      "id": "signet-routing-1",
+      "summary": "Route Pi to the personal Signet in personal repositories on M-02877",
+      "input_digest": "sha256:c5dcf0cd27e98ca10a690241c22a479f80979da0a204818947f7c5af73ab894f",
       "proof_refs": [
-        "BatchMode ssh to oracle and paphos with only the generated file: ok"
+        "trajectory branch_01M67MC7BFWNG2KZ1NGH3AWD6T"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C": {
+    "intent:change_01M67MC794F2SKKRQ89CCGC7T0": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -64,11 +74,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C",
+      "id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Write a known_hosts file from the pinned host keys",
-      "refined_intent": "Write a known_hosts file from the pinned host keys",
+      "raw_intent": "Route Pi to the personal Signet in personal repos on M-02877",
+      "refined_intent": "Route Pi to the personal Signet in personal repos on M-02877",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -81,56 +91,81 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Write ~/.ssh/known_hosts.den from modules/_host-keys.nix for the names that den's ssh aliases connect to, and read it as a second UserKnownHostsFile, so ssh oracle and ssh paphos verify against the pins",
+      "intent": "Route Pi to the personal Signet in personal repos on M-02877",
       "phases": [],
       "proof_hooks": [
-        "just check"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "No component boundary changes: both Signet daemons already exist; only which one an interactive shell exports changes.",
+          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
+          "spec_material_hash": "944fe3e3789a2b2345ee2bb3bfa304569aa535b4ee2479002c2e08892b6ca952"
+        },
+        {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "Adds the Personal Signet row: 127.0.0.1:3850, chosen per repository by the _signet_store zsh hook, with the SIGNET_STORE override.",
+          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
+          "spec_material_hash": "62e7fab17fecd9234761c23a30abed38c889ddf164c16ec08a318e9e8a95f2f7"
+        },
+        {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "Adds the data-classification rule: personal data stays out of the team Signet (recall is not partitioned; deletes are soft), and names the routing hook.",
+          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
+          "spec_material_hash": "82c612310e6b9d1fbd82023c79d01e1287b5862ccb73d6bc3a7296e8c8ee1c3d"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Write a known_hosts file from the pinned host keys",
+      "title": "Route Pi to the personal Signet in personal repos on M-02877",
       "todo_ids": [
-        "code_01m67cpydw1ggj1c"
+        "code_01m67mbspw2ny78c"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793398343Z"
+      "updated_at": "1793405211Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Team Signet stays the default on M-02877; only allow-listed personal repositories use the personal Signet",
+        "launchd agents (chorus-pi-daemon) keep the team Signet"
       ],
-      "artifact_hash": "sha256:e1b1e637c56db541ddba60007c2292cbda82b1dc55a82a7841df4dff21754fa6",
+      "artifact_hash": "sha256:adcf1913bab29f77b517fd3f97e3d3ed397e59c1646afce8ba34510643060fa7",
       "checks": [
         {
-          "name": "batchmode-oracle-with-pins-only",
+          "name": "eval_m02877_zsh_initcontent",
           "status": "passed"
         },
         {
-          "name": "batchmode-paphos-with-pins-only",
+          "name": "routing_table",
           "status": "passed"
         }
       ],
-      "current_phase": "validation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C",
+            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C",
+            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M67DVEYM2FT38NH18RZ0WHN7",
+            "detail": "trajectory:branch_01M67MC7BFWNG2KZ1NGH3AWD6T",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C",
+            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -139,59 +174,73 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M67DVEYM2FT38NH18RZ0WHN7": {
+          "branch_01M67MC7BFWNG2KZ1NGH3AWD6T": {
             "evidence_only": true,
-            "id": "branch_01M67DVEYM2FT38NH18RZ0WHN7",
-            "intent_id": "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C",
+            "id": "branch_01M67MC7BFWNG2KZ1NGH3AWD6T",
+            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
             "steps": [
               {
-                "action": "validation",
+                "action": "trajectory.record",
+                "command": "nix eval darwinConfigurations.M-02877...programs.zsh.initContent; zsh -f routing test over real checkouts",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/ssh.nix",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  "ssh -o BatchMode=yes -o UserKnownHostsFile=<generated known_hosts.den>: ok oracle as nixos, ok paphos as kypris",
-                  "known_hosts on M-02877: 0 entries for oracle.hound-celsius.ts.net, 2 for 100.87.121.45"
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "routing: ~/.config/home-manager -> 3850; ~/projects/henry-sugar -> 3850; ~/projects/devrel-infra -> 3860; ~/projects/agentic-engineering-community -> 3860; worldofgeese/team-friendship-hour (LEGO fork) -> 3860; /tmp -> 3860; SIGNET_STORE=personal in devrel-infra -> 3850; SIGNET_STORE=team in den -> 3860",
+                  "personal daemon accepts requests with and without the team bearer (HTTP 200 both), so only SIGNET_DAEMON_URL needs to change"
                 ],
                 "proof_refs": [
-                  "batchmode-oracle-with-pins-only",
-                  "batchmode-paphos-with-pins-only"
+                  "eval_m02877_zsh_initcontent",
+                  "routing_table"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
+                "validation_findings": [
+                  "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL."
+                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "nix eval darwinConfigurations.M-02877...programs.zsh.initContent; zsh -f routing test over real checkouts"
+      ],
       "destination": "pull request",
       "evidence": [
-        "known_hosts on M-02877: 0 entries for oracle.hound-celsius.ts.net, 2 for 100.87.121.45",
-        "ssh -o BatchMode=yes -o UserKnownHostsFile=<generated known_hosts.den>: ok oracle as nixos, ok paphos as kypris"
+        "personal daemon accepts requests with and without the team bearer (HTTP 200 both), so only SIGNET_DAEMON_URL needs to change",
+        "routing: ~/.config/home-manager -> 3850; ~/projects/henry-sugar -> 3850; ~/projects/devrel-infra -> 3860; ~/projects/agentic-engineering-community -> 3860; worldofgeese/team-friendship-hour (LEGO fork) -> 3860; /tmp -> 3860; SIGNET_STORE=personal in devrel-infra -> 3850; SIGNET_STORE=team in den -> 3860"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M67DVEVZYXD8QNYBD1BHKG3C",
+      "inspected_files": [
+        "modules/M-02877/agent-integrations.nix"
+      ],
+      "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
       "modified_files": [
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        "modules/ssh.nix"
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "modules/M-02877/agent-integrations.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "modules/ssh.nix and ARCHITECTURE.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "modules/M-02877/agent-integrations.nix",
         "root"
       ],
-      "run_id": "branch_01M67DVEYM2FT38NH18RZ0WHN7",
+      "run_id": "branch_01M67MC7BFWNG2KZ1NGH3AWD6T",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m67cpydw1ggj1c",
+      "task_id": "code_01m67mbspw2ny78c",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL."
+      ]
     }
   },
   "legacy_digests": {

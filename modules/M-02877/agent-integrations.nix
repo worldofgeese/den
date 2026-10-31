@@ -43,6 +43,21 @@
     };
     signetTokenFile = "${home}/.config/signet/token";
 
+    # Personal repositories use the personal Signet (the container on 3850),
+    # not the team store. The zsh hook below picks the daemon from the
+    # repository's origin remote each time the shell changes directory, so a
+    # harness started from that shell inherits it. Entries are zsh glob
+    # patterns matched against `git remote get-url origin`; add personal
+    # repositories here. Anything that does not match uses the team Signet.
+    personalSignetUrl = "http://127.0.0.1:3850";
+    personalSignetRemotes = [
+      "*[/:]worldofgeese/den"
+      "*[/:]worldofgeese/den.git"
+      "*[/:]worldofgeese/henry-sugar"
+      "*[/:]worldofgeese/henry-sugar.git"
+      "*paphos.hound-celsius.ts.net*"
+    ];
+
     # LEGO/agentic-engineering-community, plugins/toolbox-docs. The repo is
     # internal and this flake is public, so it cannot be a flake input (the
     # lock would publish the rev, and the personal hosts could not fetch it).
@@ -160,6 +175,28 @@
         export CHORUS_API_KEY="$chorus_key"
       fi
       unset chorus_key
+
+      # Signet store for the current directory: personal repositories use the
+      # personal Signet, everything else the team Signet. SIGNET_STORE=personal
+      # or SIGNET_STORE=team overrides the choice.
+      _signet_store() {
+        local store="''${SIGNET_STORE:-}" remote
+        if [[ -z $store ]]; then
+          remote=$(command git remote get-url origin 2>/dev/null)
+          case $remote in
+            (${lib.concatStringsSep "|" personalSignetRemotes}) store=personal ;;
+            (*) store=team ;;
+          esac
+        fi
+        if [[ $store == personal ]]; then
+          export SIGNET_DAEMON_URL=${personalSignetUrl}
+        else
+          export SIGNET_DAEMON_URL=${signetEnv.SIGNET_DAEMON_URL}
+        fi
+      }
+      autoload -Uz add-zsh-hook
+      add-zsh-hook chpwd _signet_store
+      _signet_store
     '';
 
     home.sessionVariables =

@@ -51,6 +51,14 @@ flowchart LR
   repair it.
 
 ## Data Classification
+
+Personal data (the home lab, personal repositories, private life) does not
+belong in the team Signet: team recall is not partitioned per engineer, and a
+team delete is a soft delete that keeps versions for the admins. On M-02877 the
+`_signet_store` zsh hook (`modules/M-02877/agent-integrations.nix`) sends
+sessions in personal repositories to the personal Signet on `127.0.0.1:3850`;
+everything else stays on the team store. The allow-list is explicit, because
+owning a fork does not make its content personal.
 | Data Class | Examples | Storage Rules | Access Rules |
 |---|---|---|---|
 | Public | docs, non-sensitive metadata | standard | unrestricted |

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "d5dc9ed8d791aac3495835df5e1d9dbdc0236598",
+    "accepted_commit": "a1290a5a6cdd617669e0e332be5a7b459b0afaeb",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,22 +40,22 @@
     }
   },
   "change": {
-    "id": "change_01M68DEZV4DXAPZBYYZ4J29V41",
-    "base_commit": "d5dc9ed8d791aac3495835df5e1d9dbdc0236598",
+    "id": "change_01M68GKXDBQ08DR74GJSWV6XEQ",
+    "base_commit": "a1290a5a6cdd617669e0e332be5a7b459b0afaeb",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-kernel-gc-root-1",
-      "summary": "kernel-build replaces the GC root only after a successful build",
-      "input_digest": "sha256:082918662b45e40cef41f0679143d5e17f628c632dfb4af3ee459049306bb5eb",
+      "id": "ckpt-remove-tramp-rpc-1",
+      "summary": "Remove tramp-rpc from den",
+      "input_digest": "sha256:e87cfe29cb25c4a3ed80f27b21b103732f7557b292c6c3d7a3b502b659bef34a",
       "proof_refs": [
-        "rendered recipe passes bash -n; GNU mv -fT test on paphos"
+        "nix flake lock drops only the emacs-tramp-rpc node"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M68DEZV4DXAPZBYYZ4J29V41": {
+    "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -65,11 +65,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
+      "id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Replace the kernel GC root only after a successful build",
-      "refined_intent": "Replace the kernel GC root only after a successful build",
+      "raw_intent": "Remove tramp-rpc from den",
+      "refined_intent": "Remove tramp-rpc from den",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -82,7 +82,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "just kernel-build builds into a new GC root and renames it over the old one after a successful build, because guix build --root does not replace an existing root",
+      "intent": "Remove tramp-rpc from den at the user's request: the flake input, the Emacs package overrides with the cross-built servers, and the Doom package and config",
       "phases": [],
       "proof_hooks": [
         "just check"
@@ -90,30 +90,26 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Replace the kernel GC root only after a successful build",
+      "title": "Remove tramp-rpc from den",
       "todo_ids": [
-        "fend_01m68de85ejbhnrz"
+        "code_01m68gk4x618ytat"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793431492Z"
+      "updated_at": "1793434810Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7625288844d1bcaa974eea9f2d7c8674e9a3eef53755c6127994cbb41eb03e97",
+      "artifact_hash": "sha256:da71d6d5c3941278403182964415bdd3a0b1b1fe13064c45380c9d5671838190",
       "checks": [
         {
-          "name": "gnu-mv-fT-replaces-symlink",
+          "name": "lock-only-drops-tramp-node",
           "status": "passed"
         },
         {
-          "name": "rendered-recipe-bash-n",
-          "status": "passed"
-        },
-        {
-          "name": "single-output-root-on-mahakala",
+          "name": "no-leftover-references",
           "status": "passed"
         }
       ],
@@ -122,20 +118,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
+            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
+            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M68DEZXA0N6D4Z2C5JXY4BJX",
+            "detail": "trajectory:branch_01M68GKXFP2Y34MEX4G3JSZW8E",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
+            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -144,26 +140,28 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M68DEZXA0N6D4Z2C5JXY4BJX": {
+          "branch_01M68GKXFP2Y34MEX4G3JSZW8E": {
             "evidence_only": true,
-            "id": "branch_01M68DEZXA0N6D4Z2C5JXY4BJX",
-            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
+            "id": "branch_01M68GKXFP2Y34MEX4G3JSZW8E",
+            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "Justfile",
-                  ".decapod/config.toml",
+                  "flake.nix",
+                  "flake.lock",
+                  "modules/doom-emacs.nix",
+                  "modules/doom.d/packages.el",
+                  "modules/doom.d/config.el",
                   ".decapod/managed/specs/ARCHITECTURE.md",
-                  "mahakala /var/guix/gcroots: one cachyos-bore-kernel root, no per-output roots",
-                  "paphos GNU mv 9.12: mv -fT new-link root replaces the link; the old target stays",
-                  "inventory digest 0fa091cc after the Justfile change; commands digest unchanged"
+                  ".decapod/config.toml",
+                  "nix flake lock: removed emacs-tramp-rpc and its two follows; no other node changed",
+                  "mahakala: aarch64 musl gcc cross build failed with No space left on device; the user chose to remove tramp-rpc"
                 ],
                 "proof_refs": [
-                  "rendered-recipe-bash-n",
-                  "gnu-mv-fT-replaces-symlink",
-                  "single-output-root-on-mahakala"
+                  "lock-only-drops-tramp-node",
+                  "no-leftover-references"
                 ],
                 "scope": [
                   "root"
@@ -178,28 +176,31 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "inventory digest 0fa091cc after the Justfile change; commands digest unchanged",
-        "mahakala /var/guix/gcroots: one cachyos-bore-kernel root, no per-output roots",
-        "paphos GNU mv 9.12: mv -fT new-link root replaces the link; the old target stays"
+        "mahakala: aarch64 musl gcc cross build failed with No space left on device; the user chose to remove tramp-rpc",
+        "nix flake lock: removed emacs-tramp-rpc and its two follows; no other node changed"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
+      "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
       "modified_files": [
         ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
-        "Justfile"
+        "flake.lock",
+        "flake.nix",
+        "modules/doom-emacs.nix",
+        "modules/doom.d/config.el",
+        "modules/doom.d/packages.el"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "Justfile kernel-build, ARCHITECTURE.md, readiness digest",
+        "flake.nix, flake.lock, modules/doom-emacs.nix, modules/doom.d, ARCHITECTURE.md, readiness digest",
         "root"
       ],
-      "run_id": "branch_01M68DEZXA0N6D4Z2C5JXY4BJX",
+      "run_id": "branch_01M68GKXFP2Y34MEX4G3JSZW8E",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "fend_01m68de85ejbhnrz",
+      "task_id": "code_01m68gk4x618ytat",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

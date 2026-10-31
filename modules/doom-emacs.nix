@@ -69,15 +69,6 @@
             pkg.overrideAttrs (old: {
               packageRequires = (old.packageRequires or []) ++ [eself.agent-shell];
             });
-          mkTrampRpcServer = crossPkgs:
-            (crossPkgs.callPackage "${inputs.emacs-tramp-rpc}/default.nix" {}).overrideAttrs {
-              doCheck = false;
-            };
-          # These target binaries are cross-compiled for deployment to Linux.
-          # Their tests spawn target `python3`, `/bin/sh`, and PTYs, which are
-          # unavailable while cross-building (and under Darwin's sandbox).
-          tramp-rpc-server = mkTrampRpcServer pkgs.pkgsCross.musl64;
-          tramp-rpc-server-aarch64 = mkTrampRpcServer pkgs.pkgsCross.aarch64-multiplatform-musl;
           emacs-reader-src = pkgs.fetchFromGitea {
             domain = "codeberg.org";
             owner = "MonadicSheep";
@@ -86,16 +77,6 @@
             hash = "sha256-rZ+1PgRS68QN0yXdYyEJafJmbCceaKeDQhT+GfsPiFA=";
           };
         in {
-          tramp-rpc = eself.melpaBuild rec {
-            pname = "tramp-rpc";
-            version = "0.9.0";
-            src = inputs.emacs-tramp-rpc;
-            postInstall = ''
-              install -m755 -D ${tramp-rpc-server}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/x86_64-linux/tramp-rpc-server
-              install -m755 -D ${tramp-rpc-server-aarch64}/bin/tramp-rpc-server $out/share/emacs/site-lisp/elpa/${pname}-${version}/binaries/aarch64-linux/tramp-rpc-server
-            '';
-            packageRequires = [eself.tramp eself.msgpack];
-          };
           reader = eself.melpaBuild {
             pname = "emacs-reader";
             ename = "reader";

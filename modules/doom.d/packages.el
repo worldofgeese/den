@@ -28,7 +28,3 @@
 ;; Available as nixpkgs#emacsPackages.ghostel — enable when binary cache has it
 ;; (package! ghostel)
 
-;; tramp-rpc: high-performance TRAMP backend via binary RPC
-(package! msgpack)
-(package! tramp-rpc
-  :recipe (:host github :repo "ArthurHeymans/emacs-tramp-rpc" :files ("lisp/*.el")))

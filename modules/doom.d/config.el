@@ -248,15 +248,6 @@ Prompts for source type: book (page table) or conversation (bullet list)."
   (setq vterm-max-scrollback 10000)
   (setq vterm-buffer-name-string "vterm: %s"))
 
-;;; --------------------------------------------------------------------------
-;;; tramp-rpc (high-performance TRAMP backend)
-;;; --------------------------------------------------------------------------
-
-(use-package! tramp-rpc
-  :after tramp
-  :config
-  (advice-add 'tramp-rpc-deploy--ensure-local-binary :filter-return #'file-truename))
-
 
 ;;; --------------------------------------------------------------------------
 ;;; org-crypt — auto-encrypt journal entries

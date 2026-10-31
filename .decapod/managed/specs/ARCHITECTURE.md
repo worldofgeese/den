@@ -331,8 +331,7 @@ same 54k-file nixpkgs tree 12x faster). Fetching one nixpkgs revision took 8.5
 minutes. The repository therefore minimises trees Nix must touch there:
 topgrade's "Flake inputs" step runs `just update-darwin`, which skips the
 Linux-only root inputs in `darwin-skip-inputs` (nixarchy brings a third nixpkgs
-and ~15 inputs); one root `rust-overlay` is followed by decapod, devenv and
-emacs-tramp-rpc; and `just cachix-push /run/current-system` pushes the path
+and ~15 inputs); one root `rust-overlay` is followed by decapod and devenv; and `just cachix-push /run/current-system` pushes the path
 darwin-rebuild just built instead of evaluating the system again. The durable
 fix is a Defender exclusion for Lix's `nix`/`nix-daemon` or `/nix/store`, which
 only device management can grant.

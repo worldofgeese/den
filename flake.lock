@@ -313,29 +313,6 @@
         "type": "github"
       }
     },
-    "emacs-tramp-rpc": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "rust-overlay": [
-          "rust-overlay"
-        ]
-      },
-      "locked": {
-        "lastModified": 1793289176,
-        "narHash": "sha256-kmb0tolO3E/cXqvdzTUQFKPGgDXSO0uN+98RXvmMvBk=",
-        "owner": "ArthurHeymans",
-        "repo": "emacs-tramp-rpc",
-        "rev": "543b3bf30b8a80b8cd0200c98d00f22a4e0220ac",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ArthurHeymans",
-        "repo": "emacs-tramp-rpc",
-        "type": "github"
-      }
-    },
     "ewm": {
       "inputs": {
         "nixpkgs": [
@@ -2131,7 +2108,6 @@
         "decapod": "decapod",
         "den": "den",
         "devenv": "devenv",
-        "emacs-tramp-rpc": "emacs-tramp-rpc",
         "ewm": "ewm",
         "flake-parts": "flake-parts_2",
         "forgesync": "forgesync",

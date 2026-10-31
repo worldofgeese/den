@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "64f336001a23d687fc613b6dd524386c81845575",
+    "accepted_commit": "d5dc9ed8d791aac3495835df5e1d9dbdc0236598",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -33,46 +33,29 @@
       "trajectory:10eccbd015927b8c": "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux.",
       "trajectory:2e73ace6f8b455ed": "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
+      "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
       "trajectory:fdec2beaf29b30d0": "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the merge. Without root.jwe the paphos upgrade build fails and alerts nixos-upgrade-failed; the running system stays unchanged."
     }
   },
   "change": {
-    "id": "change_01M67MC794F2SKKRQ89CCGC7T0",
-    "base_commit": "64f336001a23d687fc613b6dd524386c81845575",
+    "id": "change_01M68DEZV4DXAPZBYYZ4J29V41",
+    "base_commit": "d5dc9ed8d791aac3495835df5e1d9dbdc0236598",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "signet-personal-routing": {
-      "statement": "An interactive zsh on M-02877 exports SIGNET_DAEMON_URL=http://127.0.0.1:3850 inside allow-listed personal repositories and http://127.0.0.1:3860 elsewhere, with SIGNET_STORE overriding.",
-      "falsifier": "After deploy, a new shell in ~/.config/home-manager prints a SIGNET_DAEMON_URL other than http://127.0.0.1:3850, or one in ~/projects/devrel-infra prints other than http://127.0.0.1:3860.",
-      "status": "supported",
-      "proof_refs": [
-        "trajectory branch_01M67MC7BFWNG2KZ1NGH3AWD6T"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "signet-routing-1",
-      "summary": "Route Pi to the personal Signet in personal repositories on M-02877",
-      "input_digest": "sha256:c5dcf0cd27e98ca10a690241c22a479f80979da0a204818947f7c5af73ab894f",
+      "id": "ckpt-kernel-gc-root-1",
+      "summary": "kernel-build replaces the GC root only after a successful build",
+      "input_digest": "sha256:082918662b45e40cef41f0679143d5e17f628c632dfb4af3ee459049306bb5eb",
       "proof_refs": [
-        "trajectory branch_01M67MC7BFWNG2KZ1NGH3AWD6T"
-      ]
-    },
-    {
-      "id": "signet-routing-2",
-      "summary": "Record the project-check receipt",
-      "input_digest": "sha256:37a90fe639309dbfdb0cf783193e88d4e0bc9120a96a1c454234de0dbf85b8da",
-      "proof_refs": [
-        "decapod govern project-check"
+        "rendered recipe passes bash -n; GNU mv -fT test on paphos"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M67MC794F2SKKRQ89CCGC7T0": {
+    "intent:change_01M68DEZV4DXAPZBYYZ4J29V41": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -82,11 +65,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
+      "id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Route Pi to the personal Signet in personal repos on M-02877",
-      "refined_intent": "Route Pi to the personal Signet in personal repos on M-02877",
+      "raw_intent": "Replace the kernel GC root only after a successful build",
+      "refined_intent": "Replace the kernel GC root only after a successful build",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -99,81 +82,60 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Route Pi to the personal Signet in personal repos on M-02877",
+      "intent": "just kernel-build builds into a new GC root and renames it over the old one after a successful build, because guix build --root does not replace an existing root",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "just check"
       ],
       "schema_version": "1.1.0",
-      "spec_reviews": [
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "No component boundary changes: both Signet daemons already exist; only which one an interactive shell exports changes.",
-          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
-          "spec_material_hash": "944fe3e3789a2b2345ee2bb3bfa304569aa535b4ee2479002c2e08892b6ca952"
-        },
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Adds the Personal Signet row: 127.0.0.1:3850, chosen per repository by the _signet_store zsh hook, with the SIGNET_STORE override.",
-          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
-          "spec_material_hash": "62e7fab17fecd9234761c23a30abed38c889ddf164c16ec08a318e9e8a95f2f7"
-        },
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "Adds the data-classification rule: personal data stays out of the team Signet (recall is not partitioned; deletes are soft), and names the routing hook.",
-          "reviewed_code_fingerprint": "03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f",
-          "spec_material_hash": "82c612310e6b9d1fbd82023c79d01e1287b5862ccb73d6bc3a7296e8c8ee1c3d"
-        }
-      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Route Pi to the personal Signet in personal repos on M-02877",
+      "title": "Replace the kernel GC root only after a successful build",
       "todo_ids": [
-        "code_01m67mbspw2ny78c"
+        "fend_01m68de85ejbhnrz"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793405211Z"
+      "updated_at": "1793431492Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Team Signet stays the default on M-02877; only allow-listed personal repositories use the personal Signet",
-        "launchd agents (chorus-pi-daemon) keep the team Signet"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:adcf1913bab29f77b517fd3f97e3d3ed397e59c1646afce8ba34510643060fa7",
+      "artifact_hash": "sha256:7625288844d1bcaa974eea9f2d7c8674e9a3eef53755c6127994cbb41eb03e97",
       "checks": [
         {
-          "name": "eval_m02877_zsh_initcontent",
+          "name": "gnu-mv-fT-replaces-symlink",
           "status": "passed"
         },
         {
-          "name": "routing_table",
+          "name": "rendered-recipe-bash-n",
+          "status": "passed"
+        },
+        {
+          "name": "single-output-root-on-mahakala",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
+            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
+            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M67MC7BFWNG2KZ1NGH3AWD6T",
+            "detail": "trajectory:branch_01M68DEZXA0N6D4Z2C5JXY4BJX",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
+            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -182,73 +144,64 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M67MC7BFWNG2KZ1NGH3AWD6T": {
+          "branch_01M68DEZXA0N6D4Z2C5JXY4BJX": {
             "evidence_only": true,
-            "id": "branch_01M67MC7BFWNG2KZ1NGH3AWD6T",
-            "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
+            "id": "branch_01M68DEZXA0N6D4Z2C5JXY4BJX",
+            "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
             "steps": [
               {
-                "action": "trajectory.record",
-                "command": "nix eval darwinConfigurations.M-02877...programs.zsh.initContent; zsh -f routing test over real checkouts",
+                "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/SECURITY.md",
-                  "routing: ~/.config/home-manager -> 3850; ~/projects/henry-sugar -> 3850; ~/projects/devrel-infra -> 3860; ~/projects/agentic-engineering-community -> 3860; worldofgeese/team-friendship-hour (LEGO fork) -> 3860; /tmp -> 3860; SIGNET_STORE=personal in devrel-infra -> 3850; SIGNET_STORE=team in den -> 3860",
-                  "personal daemon accepts requests with and without the team bearer (HTTP 200 both), so only SIGNET_DAEMON_URL needs to change"
+                  "Justfile",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "mahakala /var/guix/gcroots: one cachyos-bore-kernel root, no per-output roots",
+                  "paphos GNU mv 9.12: mv -fT new-link root replaces the link; the old target stays",
+                  "inventory digest 0fa091cc after the Justfile change; commands digest unchanged"
                 ],
                 "proof_refs": [
-                  "eval_m02877_zsh_initcontent",
-                  "routing_table"
+                  "rendered-recipe-bash-n",
+                  "gnu-mv-fT-replaces-symlink",
+                  "single-output-root-on-mahakala"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL."
-                ]
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "nix eval darwinConfigurations.M-02877...programs.zsh.initContent; zsh -f routing test over real checkouts"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "personal daemon accepts requests with and without the team bearer (HTTP 200 both), so only SIGNET_DAEMON_URL needs to change",
-        "routing: ~/.config/home-manager -> 3850; ~/projects/henry-sugar -> 3850; ~/projects/devrel-infra -> 3860; ~/projects/agentic-engineering-community -> 3860; worldofgeese/team-friendship-hour (LEGO fork) -> 3860; /tmp -> 3860; SIGNET_STORE=personal in devrel-infra -> 3850; SIGNET_STORE=team in den -> 3860"
+        "inventory digest 0fa091cc after the Justfile change; commands digest unchanged",
+        "mahakala /var/guix/gcroots: one cachyos-bore-kernel root, no per-output roots",
+        "paphos GNU mv 9.12: mv -fT new-link root replaces the link; the old target stays"
       ],
-      "inspected_files": [
-        "modules/M-02877/agent-integrations.nix"
-      ],
-      "intent_id": "intent:change_01M67MC794F2SKKRQ89CCGC7T0",
+      "inspected_files": [],
+      "intent_id": "intent:change_01M68DEZV4DXAPZBYYZ4J29V41",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/SECURITY.md",
-        "modules/M-02877/agent-integrations.nix"
+        ".decapod/config.toml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        "Justfile"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/SECURITY.md",
-        "modules/M-02877/agent-integrations.nix",
+        "Justfile kernel-build, ARCHITECTURE.md, readiness digest",
         "root"
       ],
-      "run_id": "branch_01M67MC7BFWNG2KZ1NGH3AWD6T",
+      "run_id": "branch_01M68DEZXA0N6D4Z2C5JXY4BJX",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m67mbspw2ny78c",
+      "task_id": "fend_01m68de85ejbhnrz",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL."
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

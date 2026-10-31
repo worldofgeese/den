@@ -61,6 +61,14 @@
       "proof_refs": [
         "trajectory branch_01M67MC7BFWNG2KZ1NGH3AWD6T"
       ]
+    },
+    {
+      "id": "signet-routing-2",
+      "summary": "Record the project-check receipt",
+      "input_digest": "sha256:37a90fe639309dbfdb0cf783193e88d4e0bc9120a96a1c454234de0dbf85b8da",
+      "proof_refs": [
+        "decapod govern project-check"
+      ]
     }
   ],
   "intents": {

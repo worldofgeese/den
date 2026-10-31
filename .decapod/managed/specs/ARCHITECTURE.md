@@ -114,6 +114,8 @@ The QCA6174 card uses `ath10k_pci`. The Guix System kernel arguments request `at
 
 This reset mode is a recovery trial, not a proven fix. The deployment does not force a reboot. The next planned boot must confirm the ath10k probe result.
 
+`just kernel-build` pins the CachyOS kernel with the GC root `/var/guix/gcroots/cachyos-bore-kernel`, so `guix gc` does not delete a build of about three hours before a reconfigure uses it. `guix build --root` does not replace a root that exists. So the recipe builds into `cachyos-bore-kernel.new`, then renames it over the old root with `mv -fT`. The old kernel stays pinned until a new build succeeds. Before this change, each rebuild after the first one failed with "File exists" after its build (2026-10-31, kernel 7.1.5).
+
 ## Data and Contracts
 - Inbound contracts (CLI/API/events):
 - Outbound dependencies (datastores/queues/external APIs):

@@ -158,7 +158,16 @@ kernel-build:
     log="/tmp/cachyos-bore-build-$(date +%Y%m%d-%H%M%S).log"
     echo "kernel-build: logging to $log"
     echo "kernel-build: follow with  tail -f $log"
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{ guix-substitute-urls }}" --fallback --root={{ kernel-gc-root }} -L "{{ repo-dir }}/guix-packages" -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
+    # `guix build --root` does not replace a root that exists ("File exists"),
+    # so each rebuild after the first one failed after its build. Build into a
+    # new root, then rename it over the old one: the old kernel stays pinned
+    # until a new build succeeds, and rename(2) replaces the link in one step.
+    # -T stops mv from moving the new link into the store directory that the
+    # old link points to. The rm removes a new root that an interrupted run
+    # left; the old root stays.
+    sudo rm -f {{ kernel-gc-root }}.new
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{ guix-substitute-urls }}" --fallback --root={{ kernel-gc-root }}.new -L "{{ repo-dir }}/guix-packages" -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
+    sudo mv -fT {{ kernel-gc-root }}.new {{ kernel-gc-root }}
     echo "kernel-build: done -> $(readlink -f {{ kernel-gc-root }})"
 
 # Deploy NixOS on paphos (remote server; build on target by default)

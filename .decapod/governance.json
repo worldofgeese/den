@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "9aa752694449972b5e1d61330696fa2b5ca0c050",
+    "accepted_commit": "3d29ab40d9de13d024d99024b62cb00f62b98b4b",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,40 +40,52 @@
     }
   },
   "change": {
-    "id": "change_01M6BRYQX425K3J116CNDB08P2",
-    "base_commit": "9aa752694449972b5e1d61330696fa2b5ca0c050",
+    "id": "change_01M6BQCEV4078RQBQT3654VR3F",
+    "base_commit": "3d29ab40d9de13d024d99024b62cb00f62b98b4b",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-pi-packages-latest-1",
-      "summary": "pi packages track their latest release: pi.nix accepts unpinned npm:name and runs pi update for it at each switch; ponytail, context-mode and pi-beads-extension unpinned; chorus-pi stays at chorusVersion",
-      "input_digest": "sha256:ab897d0fcc3f202e7645e7eed0c606fc35196699247a38acf1d950d86228cddc",
+      "id": "ckpt-shepherd-fix-1",
+      "summary": "Shepherd: grace only for a new PR, own requests only, run on comments",
+      "input_digest": "sha256:0453683f26b089d6f8a005328a75e81166fd9eddd209924fc8be5b50973ed0c3",
       "proof_refs": [
-        "activation loop test against a sample settings.json (pinned->unpinned, unpinned update, scoped names, object entries)",
-        "nix build of the M-02877 Home Manager generation"
+        "ci:shepherd-rules passes"
+      ]
+    },
+    {
+      "id": "ckpt-shepherd-fix-2",
+      "summary": "Rebase onto c94a809: refreshed specs and digest",
+      "input_digest": "sha256:fde643c80531bf3d5c2697b62e94dc98501731a58c3566c33470ca01fa3f9b36",
+      "proof_refs": [
+        "rebase onto c94a809"
+      ]
+    },
+    {
+      "id": "ckpt-shepherd-fix-4",
+      "summary": "Rebase onto 10fc490: authored spec text merged again, generated specs and digest refreshed",
+      "input_digest": "sha256:6e2ce318831fa40a73dd376805efd690252af0afd609234fc04c41271b35fa6e",
+      "proof_refs": [
+        "rebase onto 10fc490"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6BRYQX425K3J116CNDB08P2": {
+    "intent:change_01M6BQCEV4078RQBQT3654VR3F": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "modules/pi.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/M-02877/agent-integrations.nix",
-        ".decapod/managed/specs"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
+      "id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "M-02877: pi packages track their latest release (unpinned piAgent.packages)\n\nUser decision 2026-11-01: 'we always want latest' and 'Yes they should' (the other pi packages move to latest). modules/pi.nix accepts unpinned npm:name specs next to pinned npm:name@version; activation runs pi update for unpinned specs at each switch. Unpin ponytail, context-mode and pi-beads-extension. chorus-pi stays matched to the team Chorus server (chorusVersion), as proposed to the user. Update INTERFACES/ARCHITECTURE/OPERATIONS and bead home-manager-hfq.",
-      "refined_intent": "M-02877: pi packages track their latest release (unpinned piAgent.packages)\n\nUser decision 2026-11-01: 'we always want latest' and 'Yes they should' (the other pi packages move to latest). modules/pi.nix accepts unpinned npm:name specs next to pinned npm:name@version; activation runs pi update for unpinned specs at each switch. Unpin ponytail, context-mode and pi-beads-extension. chorus-pi stays matched to the team Chorus server (chorusVersion), as proposed to the user. Update INTERFACES/ARCHITECTURE/OPERATIONS and bead home-manager-hfq.",
+      "raw_intent": "Shepherd: grace only before the first Codex summary; count only its own requests; run on comments",
+      "refined_intent": "Shepherd: grace only before the first Codex summary; count only its own requests; run on comments",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -86,40 +98,35 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "User decisions 2026-11-01: 'we don't want to pin we always want latest' and, asked whether the other pi packages should move to latest, 'Yes they should'. Derived: modules/pi.nix accepts unpinned npm:name specs next to pinned npm:name@version, and its activation runs pi update for an unpinned spec at each switch (pi never updates packages on its own). Unpin ponytail, context-mode and pi-beads-extension. chorus-pi stays pinned to chorusVersion so client, chorus-pi and the team Chorus server move together, as proposed to the user. Update INTERFACES/ARCHITECTURE/OPERATIONS.",
+      "intent": "Shepherd: grace only before the first Codex summary; count only its own requests; run on new or edited comments",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "just check",
+        "dagger check"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [
-        "Stop if the activation logic would remove or reinstall a pinned package that did not change"
-      ],
-      "title": "M-02877: pi packages track their latest release (unpinned piAgent.packages)",
+      "stop_conditions": [],
+      "title": "Shepherd: grace only before the first Codex summary; count only its own requests; run on comments",
       "todo_ids": [
-        "test_01m6bqkn3n1epndy"
+        "docs_01m6bqbkegb2jz4n"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793544172Z"
+      "updated_at": "1793542890Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:14a618e73aacfbe4f362f63af0c1b66a290617843c73ac77e112986af5b8466e",
+      "artifact_hash": "sha256:c2488d8f73785ff5959def4236b9e698d31d5ea1978d4884e02922442c2cf0e5",
       "checks": [
         {
-          "name": "activation-loop-cases",
+          "name": "actionlint",
           "status": "passed"
         },
         {
-          "name": "eval-pi-packages",
-          "status": "passed"
-        },
-        {
-          "name": "hm-generation-builds",
+          "name": "shepherd-rules-18-cases",
           "status": "passed"
         }
       ],
@@ -128,20 +135,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
+            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
+            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6BRYQZB1V9CWJ7J1PXH86Q5",
+            "detail": "trajectory:branch_01M6BQCEXKZAZS39FD40F67CPK",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
+            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -150,89 +157,68 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6BRYQZB1V9CWJ7J1PXH86Q5": {
+          "branch_01M6BQCEXKZAZS39FD40F67CPK": {
             "evidence_only": true,
-            "id": "branch_01M6BRYQZB1V9CWJ7J1PXH86Q5",
-            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
+            "id": "branch_01M6BQCEXKZAZS39FD40F67CPK",
+            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
             "steps": [
               {
                 "action": "validation",
-                "command": "bash /tmp/pitest/t.sh (activation loop against a sample settings.json with pinned, unpinned, scoped and object entries)",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/pi.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/pi.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/M-02877/agent-integrations.nix",
+                  ".dagger/modules/ci/shepherd.go",
+                  ".dagger/modules/ci/shepherd_checks.go",
+                  ".dagger/modules/ci/dagger.gen.go",
+                  ".github/workflows/shepherd.yml",
                   ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "Sample settings.json: npm:@dietrichgebert/ponytail@5.3.3 -> remove + install npm:@dietrichgebert/ponytail; npm:context-mode@1.0.169 -> remove + install npm:context-mode; chorus-pi@0.23.0 left alone; npm:pi-beads-extension -> pi update; new npm:billion-context -> install; object entry {source} -> pi update",
-                  "nix eval piAgent.packages = [npm:@dietrichgebert/ponytail, npm:context-mode, npm:@chorus-aidlc/chorus-pi@0.23.0, npm:pi-beads-extension]; the generated activate script (bash 5.3) carries the BASH_REMATCH parse and the pi update branch"
+                  ".decapod/managed/specs/SECURITY.md",
+                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+                  ".decapod/config.toml",
+                  "live: run 41311223419 saw #85 head 39bf07b inside the grace period, and no schedule run came in 3 hours, so no request was posted"
                 ],
                 "proof_refs": [
-                  "activation-loop-cases",
-                  "eval-pi-packages",
-                  "hm-generation-builds"
+                  "shepherd-rules-18-cases",
+                  "actionlint"
                 ],
                 "scope": [
-                  ".decapod/managed/specs",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/pi.nix"
+                  "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to"
-                ]
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "bash /tmp/pitest/t.sh (activation loop against a sample settings.json with pinned, unpinned, scoped and object entries)",
-        "nix build path:<copy of origin/main + change>#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "Sample settings.json: npm:@dietrichgebert/ponytail@5.3.3 -> remove + install npm:@dietrichgebert/ponytail; npm:context-mode@1.0.169 -> remove + install npm:context-mode; chorus-pi@0.23.0 left alone; npm:pi-beads-extension -> pi update; new npm:billion-context -> install; object entry {source} -> pi update",
-        "nix eval piAgent.packages = [npm:@dietrichgebert/ponytail, npm:context-mode, npm:@chorus-aidlc/chorus-pi@0.23.0, npm:pi-beads-extension]; the generated activate script (bash 5.3) carries the BASH_REMATCH parse and the pi update branch"
+        "live: run 41311223419 saw #85 head 39bf07b inside the grace period, and no schedule run came in 3 hours, so no request was posted"
       ],
-      "inspected_files": [
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix"
-      ],
-      "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
+      "inspected_files": [],
+      "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
       "modified_files": [
-        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".dagger/modules/ci/dagger.gen.go",
+        ".dagger/modules/ci/shepherd.go",
+        ".dagger/modules/ci/shepherd_checks.go",
+        ".decapod/config.toml",
         ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix"
+        ".decapod/managed/specs/SECURITY.md",
+        ".github/workflows/shepherd.yml",
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
       ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks",
-        "specs.refresh, checkpoint, commit, CI-local validate, PR"
+        "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/managed/specs",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix"
+        "root"
       ],
-      "run_id": "branch_01M6BRYQZB1V9CWJ7J1PXH86Q5",
+      "run_id": "branch_01M6BQCEXKZAZS39FD40F67CPK",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "test_01m6bqkn3n1epndy",
+      "task_id": "docs_01m6bqbkegb2jz4n",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to"
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

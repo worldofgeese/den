@@ -19,9 +19,11 @@ func (m *Ci) ShepherdRules(_ context.Context) error {
 			`<!-- codex-review-state:v1 {"code_review":{"commit_sha":%q,"has_any_findings":false,"has_unresolved_findings":false,"status":%q}} -->`,
 			sha, status)}
 	}
-	request := func(sha string, at time.Time) shepherdComment {
-		return shepherdComment{Author: "alice", Body: "@codex review\n\n" + requestMarker(sha), At: at}
+	requestBy := func(login, sha string, at time.Time) shepherdComment {
+		return shepherdComment{Author: login, Body: "@codex review\n\n" + requestMarker(sha), At: at}
 	}
+	// The shepherd's own login in these cases is alice.
+	request := func(sha string, at time.Time) shepherdComment { return requestBy("alice", sha, at) }
 	cases := []struct {
 		name   string
 		edit   func(*shepherdPR)
@@ -46,7 +48,14 @@ func (m *Ci) ShepherdRules(_ context.Context) error {
 		{"a review of an older head does not count", func(p *shepherdPR) {
 			p.Comments = []shepherdComment{summary("feedface", "completed")}
 		}, nil, stepRequest},
-		{"a new head waits for the automatic review", func(p *shepherdPR) { p.HeadAt = now.Add(-time.Minute) }, nil, stepNone},
+		{"a new pull request waits for the automatic review", func(p *shepherdPR) { p.HeadAt = now.Add(-time.Minute) }, nil, stepNone},
+		{"a new head after a summary gets a request at once", func(p *shepherdPR) {
+			p.HeadAt = now.Add(-time.Minute)
+			p.Comments = []shepherdComment{summary("feedface", "completed")}
+		}, nil, stepRequest},
+		{"requests from another login do not count", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{requestBy("mallory", fixtureHead, old), requestBy("mallory", fixtureHead, old), requestBy("mallory", fixtureHead, old)}
+		}, nil, stepRequest},
 		{"a recent request waits", func(p *shepherdPR) {
 			p.Comments = []shepherdComment{request(fixtureHead, now.Add(-5*time.Minute))}
 		}, nil, stepNone},
@@ -73,7 +82,7 @@ func (m *Ci) ShepherdRules(_ context.Context) error {
 		if c.policy != nil {
 			c.policy(&p)
 		}
-		if got, why := nextStep(pr, p, now); got != c.want {
+		if got, why := nextStep(pr, p, "alice", now); got != c.want {
 			failed = append(failed, fmt.Sprintf("shepherd case %q: step %q (%s), want %q", c.name, got, why, c.want))
 		}
 	}

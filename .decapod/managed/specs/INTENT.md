@@ -125,8 +125,10 @@ without the `needs-human` label (plan
 request merges without a person only when the merge rules of
 `.dagger/modules/ci/automerge.go` accept its exact head. The rules require an
 allowed author, no stop label, no risky path, a clean review of that head,
-and checks that are all complete and green. Each refusal names its rule and
-its reason. A pull request from an author outside the list gets the checks
+and checks that are all complete and green. Branch protection on `main`
+requires the checks `den/dagger-check` and `validate`, and the rules also
+refuse until GitHub reports that branch protection lets the head merge. Each
+refusal names its rule and its reason. A pull request from an author outside the list gets the checks
 only. Until plan P4 the rules only judge, with `automerge-dry-run` and
 `automerge-replay`, and a person or an agent merges.
 
@@ -179,7 +181,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a20388ac4350fb7804f47d262f00832693219d05aa651298fb9b2fa2ac048731`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

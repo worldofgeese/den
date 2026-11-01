@@ -41,7 +41,7 @@ func codexComment(sha string, unresolved bool) prComment {
 func readyPR() prSnapshot {
 	return prSnapshot{
 		Number: 1, State: "OPEN", Base: "main", Trunk: "main", Author: "alice",
-		Head: fixtureHead, Mergeable: "MERGEABLE",
+		Head: fixtureHead, Mergeable: "MERGEABLE", MergeState: "CLEAN",
 		Checks:  []prCheck{{Name: "validate", Workflow: "Decapod Validate", Status: "COMPLETED", Conclusion: "SUCCESS", At: fixtureTime}},
 		Reviews: []prReview{{Author: fixturePolicy.Reviewer, State: "COMMENTED", Commit: fixtureHead}},
 		Files:   []string{"modules/pi.nix"},
@@ -117,9 +117,11 @@ func ruleCases() []string {
 			s.Checks = append([]prCheck{old}, s.Checks...)
 		}, false, ""},
 		{"not mergeable", func(s *prSnapshot) { s.Mergeable = "CONFLICTING" }, false, "mergeable"},
+		{"branch protection blocks the head", func(s *prSnapshot) { s.MergeState = "BLOCKED" }, false, "protected"},
+		{"GitHub has not computed the merge state", func(s *prSnapshot) { s.MergeState = "UNKNOWN" }, false, "protected"},
 		{"an unresolved thread", func(s *prSnapshot) { s.Unresolved = 1 }, false, "threads"},
-		{"a replay skips the open and mergeable rules", func(s *prSnapshot) {
-			s.State, s.Mergeable = "MERGED", "UNKNOWN"
+		{"a replay skips the open, mergeable and protected rules", func(s *prSnapshot) {
+			s.State, s.Mergeable, s.MergeState = "MERGED", "UNKNOWN", "UNKNOWN"
 		}, true, ""},
 		{"no reviewer is set", nil, false, "reviewed"},
 	}

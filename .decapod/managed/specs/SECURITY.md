@@ -87,6 +87,7 @@ owning a fork does not make its content personal.
 | pr-reviewer gateway virtual key (M-02877) | `~/Library/Application Support/pr-reviewer/gateway.key`, plaintext, 0600, FileVault at rest; a dedicated key so a locked keybag cannot block background reviews; never in Nix (the store holds only its path) | manual: replace the file | `com.dktaohan.pr-reviewer`'s claude harness, read per call by `apiKeyHelper` |
 | Gateway key last-known-good cache (M-02877, any host using `gateway.keyCommand`) | `~/.local/state/gateway-key.cache`, plaintext, 0600, FileVault at rest; copy of `LEGO_GATEWAY_API_KEY` written by `gateway.keyCommand` after each successful secretspec lookup, so a locked keybag does not fail agents in flight; never in Nix | automatic: refreshed on the next unlocked lookup after the secret changes; delete the file to force a fresh lookup | `gateway.keyCommand` (pi, Caveman Code, omp, Claude Code shell token, Doom agent-shell), read only when secretspec misses |
 | Team Signet API key (M-02877) | `~/.config/signet/token`, 0600, from LEGO/devrel-infra `projects/aws-signet` `scripts/enroll.sh`. `signet connect pi` also writes it into the header of `~/.pi/agent/extensions/signet-pi.js`, which activation (`signetPiExtensionMode`) sets to 0600 at each switch. Never in Nix | manual: enroll again, then run `signet connect pi` again | every Signet client through `SIGNET_API_KEY`; the pi extension uses its copy when `SIGNET_API_KEY` is unset |
+| `DEN_SHEPHERD_TOKEN` (the fine-grained token `den-shepherd` of `worldofgeese`) | Secret of the GitHub Actions environment `shepherd` of `worldofgeese/den`. Only jobs on `main` can read it. Never in the repository or the Nix store | manual: make a new token for `worldofgeese/den` only, then run `gh secret set DEN_SHEPHERD_TOKEN --env shepherd -R worldofgeese/den` | The shepherd of Dagger plan P3 to P8. No workflow reads it in P2 |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
 
@@ -153,6 +154,11 @@ write it again.
 - Sensitive artifacts, credentials, and untrusted attachments are not executed
   or imported as instructions.
 - Every privileged mutation has an actor, scope, and durable evidence trail.
+- The workflow `.github/workflows/dagger.yml` runs pull request code with a
+  token that can only read, and it gets no secret. It pins each action by its
+  commit.
+- The token `den-shepherd` has no workflows access. So GitHub refuses a push
+  from the automation that changes a file in `.github/workflows`.
 
 ## Security Change Review
 - [ ] New inputs and outputs are classified.
@@ -185,7 +191,7 @@ Describe the security primitives and security controls implemented in this repos
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a20388ac4350fb7804f47d262f00832693219d05aa651298fb9b2fa2ac048731`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

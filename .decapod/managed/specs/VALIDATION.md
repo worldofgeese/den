@@ -157,16 +157,41 @@ The Go SDK adds `go-sdk:generate/stale`: the generated bindings in
 `dagger generate -y`.
 
 Two limits apply:
-- `ci:nix-eval` skips `aarch64-darwin.M-02877`. Its Doom configuration needs
-  an import-from-derivation build for `aarch64-darwin`, and Nix 2.35 reports
-  `Reason: platform mismatch`. `scripts/check-drvpaths.sh` skips only that
-  signature and Lix's `required system or feature not available`. The
-  pre-commit `just check` and the deploy on M-02877 stay the proof for that
-  host.
+- `ci:nix-eval` skips a check when the engine can neither build nor download
+  an import-from-derivation step of that check. Nix 2.35 reports
+  `Reason: platform mismatch`, and `scripts/check-drvpaths.sh` skips only
+  that signature and Lix's `required system or feature not available`. A
+  skip is not a proof. Each check forces the package names of its host, not
+  its activation package (`modules/checks.nix`), so it builds no Doom step.
+  On 2026-11-01 an `aarch64-linux` job and an `x86_64-linux` job each
+  skipped only `aarch64-darwin.M-02877`. No Linux engine evaluates that
+  check, so the pre-commit `just check` and the deploy on M-02877 stay the
+  proof for that host. A check also does not prove a deploy: the deploy
+  evaluates and builds the whole activation package.
 - `ci:decapod-validate` gets the files without their git history. The script
   commits an empty base and the files as the candidate, so the change range
-  holds every file. The workflow keeps the real change range of a pull request
-  until the shepherd of plan P2 runs the check on a clone.
+  holds every file. The workflow `decapod-validate.yml` keeps the real change
+  range of a pull request until plan P2 deletes it.
+
+### Dagger Checks in CI
+
+The workflow `.github/workflows/dagger.yml` runs the checks on GitHub-hosted
+runners for each pull request to `main` and for each push to `main`. Standard
+runners are free for a public repository, and each job gets a new virtual
+machine, so each run starts with an empty engine cache.
+
+The job `den/dagger-check` runs `dagger check` on `ubuntu-24.04-arm`, the
+system of the engine on M-02877. With an empty cache, it took 3 min 10 s on
+2026-11-01. An `x86_64-linux` job ran only once, on the first head of PR
+#80: it skipped the same check, so it gave no more coverage.
+
+The job gets no secret, and its token can only read the repository. The
+action `dagger/dagger-for-github` installs the CLI release that
+`engineVersion` in `.dagger/modules/ci/dagger-module.toml` names, and the CLI
+starts its engine in Docker on the runner. Branch protection on `main`
+requires `den/dagger-check` and the `validate` job of `decapod-validate.yml`.
+The merge rules read GitHub's `mergeStateStatus` (the rule `protected`), so
+a pull request merges only after both pass.
 
 To run the checks on M-02877, run `just dagger-check`. The recipe makes the
 engine container `den-dagger-engine` in podman; its comment gives the reasons.
@@ -257,7 +282,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a20388ac4350fb7804f47d262f00832693219d05aa651298fb9b2fa2ac048731`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

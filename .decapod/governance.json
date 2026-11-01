@@ -52,6 +52,22 @@
       "proof_refs": [
         "bump experiment: CI-mode validate 171/0"
       ]
+    },
+    {
+      "id": "ckpt-dagger-p6-2",
+      "summary": "Bump: drift check without the refresh time; portable sed",
+      "input_digest": "sha256:ebbf6a8c77edd73f0e005a9891eba0099b4f422d57aaae4c91ae3fa690ab64df",
+      "proof_refs": [
+        "local end-to-end run: exit 0"
+      ]
+    },
+    {
+      "id": "ckpt-dagger-p6-3",
+      "summary": "Rebase onto c94a809: refreshed specs and digest",
+      "input_digest": "sha256:e805bf5f5f54383d7efd7dcda458625977b0d74bc7c45496084a21bcb0f0d02b",
+      "proof_refs": [
+        "rebase onto c94a809"
+      ]
     }
   ],
   "intents": {
@@ -102,10 +118,14 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:89e922ebf2d262395ae149a956e6ccf9b3afa507c47c4728cf2d1fd3859bc68d",
+      "artifact_hash": "sha256:a673227b4454624c94c0f043fef008814c924ec6e7063b756ae5be79795a7ae8",
       "checks": [
         {
           "name": "actionlint",
+          "status": "passed"
+        },
+        {
+          "name": "bump-end-to-end-local",
           "status": "passed"
         },
         {
@@ -146,10 +166,17 @@
             "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6BK2QYHB6FBERS9R2QM2WM0",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6BK2QYHB6FBERS9R2QM2WM0": {
@@ -185,6 +212,23 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "validation",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "scripts/bump-flake-inputs.sh",
+                  ".decapod/config.toml",
+                  "local end-to-end run with a stub gh and a bare remote: exit 0, 57 nodes, validate 171/0 twice, one commit with flake.lock, config.toml, OPERATIONS.md and .manifest.json"
+                ],
+                "proof_refs": [
+                  "bump-end-to-end-local"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -193,7 +237,8 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "experiment: a flake update with an authored spec section passes CI-mode validate (171/0); without it FINGERPRINT_ONLY_SPECS"
+        "experiment: a flake update with an authored spec section passes CI-mode validate (171/0); without it FINGERPRINT_ONLY_SPECS",
+        "local end-to-end run with a stub gh and a bare remote: exit 0, 57 nodes, validate 171/0 twice, one commit with flake.lock, config.toml, OPERATIONS.md and .manifest.json"
       ],
       "inspected_files": [],
       "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",

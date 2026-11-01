@@ -93,7 +93,9 @@ if [[ -z "$digest" ]]; then
   echo "bump: decapod agent.init gave no inventory_digest" >&2
   exit 1
 fi
-sed -i "s/^reviewed_sources_digest = \"sha256:[0-9a-f]*\"/reviewed_sources_digest = \"$digest\"/" .decapod/config.toml
+# -i.bak works with GNU sed and BSD sed, so the script also runs on macOS.
+sed -i.bak "s/^reviewed_sources_digest = \"sha256:[0-9a-f]*\"/reviewed_sources_digest = \"$digest\"/" .decapod/config.toml
+rm -f .decapod/config.toml.bak
 
 login="$(gh api user --jq .login)"
 git config user.name "$login"
@@ -108,14 +110,33 @@ validate() {
   GITHUB_ACTIONS=true CI=true DECAPOD_VALIDATE_SKIP_GIT_GATES=1 CHANGE_EVENT=pull_request \
     CHANGE_BASE="$base" CHANGE_HEAD="$(git rev-parse HEAD)" decapod validate --refresh-specs
 }
+# Each refresh writes its time into the manifest. The drift check compares
+# without that time and without the governance records, as
+# decapod-validate.yml and scripts/decapod-validate-ci.sh do.
+manifest=".decapod/managed/specs/.manifest.json"
+no_drift() {
+  local committed
+  committed="$(git show "HEAD:${manifest}" | sed -n 's/.*"generated_at": "\([^"]*\)".*/\1/p' | head -1)"
+  if [[ -n "$committed" ]]; then
+    sed -i.bak "s/\"generated_at\": \"[^\"]*\"/\"generated_at\": \"${committed}\"/" "$manifest"
+    rm -f "$manifest.bak"
+  fi
+  git diff --quiet -- . ':!.decapod/governance/' ':!.decapod/governance.json'
+}
 validate
-# validate refreshes the spec manifest. The bump commits that refresh.
-if ! git diff --quiet; then
+# validate refreshes the specs. The bump commits that refresh.
+if ! no_drift; then
   git add .decapod/managed/specs
   git commit -q --amend --no-edit
   validate
+  if ! no_drift; then
+    echo "bump: the specs still drift after their refresh" >&2
+    git diff --stat -- . ':!.decapod/governance/' ':!.decapod/governance.json' >&2
+    exit 1
+  fi
 fi
-git diff --exit-code
+# The governance records of validate stay out of the commit.
+git checkout -q -- .
 
 gh auth setup-git
 git push -q --force origin "HEAD:refs/heads/$branch"

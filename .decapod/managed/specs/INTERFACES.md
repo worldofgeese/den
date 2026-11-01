@@ -69,7 +69,9 @@ custom provider in omp. On M-02877, pi's `lego-claude` first goes to Caveman's
 `lego-claude` compat mount (`http://127.0.0.1:8787/compat/lego-claude`,
 `agentProviders.pi.baseUrl`), then to Headroom, and then to the gateway's
 `/claude` endpoint. It also sends `x-headroom-cwd` (OPERATIONS.md, "pi through
-the chain"). The other harnesses use Headroom as their first hop.
+the chain"). On every host, den also writes `lego-claude-direct`: the same
+models, straight to the gateway's `/anthropic` endpoint, for a session that
+skips the proxies. The other harnesses use Headroom as their first hop.
 
 The credential is never a value in this repository. It crosses as a *command*
 that prints it when an agent process starts, so it reaches neither the store nor

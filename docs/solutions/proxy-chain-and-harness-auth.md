@@ -66,6 +66,16 @@ Its consumer is agent-shell inside Doom Emacs
 (`modules/doom.d/modules/tools/agent-shell/config.el`), which points
 `ANTHROPIC_BASE_URL` at `http://127.0.0.1:8787`.
 
+Its state and its HuggingFace model cache live on the `headroom-data` volume,
+with the same variables as M-02877: `HEADROOM_WORKSPACE_DIR`,
+`HEADROOM_MEMORY_DB_PATH`, `HF_HOME` and `HF_HUB_DISABLE_XET`. It starts with
+`podman run --pull newer`, so a start without network runs the local image.
+On 2026-11-01 headroom had been down on mahakala for 45 hours. Shepherd had
+started it at login before the network was up, every `--pull always` run had
+exited 125, and shepherd had disabled the service. The config could not
+reconfigure either: it still read the `storeUrl` and `savingsPath` keys, which
+left `gateway.json` on 2026-10-23.
+
 `HEADROOM_MODE` was absent from the Guix side until `home-manager-0pr.2`, so
 mahakala silently ran headroom's built-in default mode. It is now set from
 `gateway.json` on both substrates. The memory limit followed the same path: Guix

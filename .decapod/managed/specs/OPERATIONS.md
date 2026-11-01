@@ -434,8 +434,8 @@ Headroom 0.41.0 fixed that (#4213). The A/B runs of 2026-10-23 and
 2026-11-01 keep the cache through Headroom. Claude Code, omp and Caveman Code
 use Headroom as their first hop (`modules/agent-providers.nix`). A running pi
 session keeps the provider it started with, so a pi session from before the
-deploy stays direct until it restarts. `/model anthropic-proxy/...` goes
-straight to the gateway.
+deploy stays direct until it restarts. `/model lego-claude-direct/...` goes
+straight to the gateway (see "pi through the chain").
 
 #### Prompt cache
 
@@ -601,6 +601,16 @@ recycled it, every 10 minutes, and pi, Claude Code and omp had no Headroom for
 hours. On the volume the models download once, and an interrupted download
 resumes over plain HTTPS.
 
+mahakala's Guix Home config sets the same variables
+(`guix/home-configuration.scm`): `HEADROOM_WORKSPACE_DIR`,
+`HEADROOM_MEMORY_DB_PATH`, `HF_HOME` and `HF_HUB_DISABLE_XET`. Until 2026-11-01 it still read the
+`storeUrl` and `savingsPath` keys, which left `gateway.json` on 2026-10-23, so
+`guix home reconfigure` failed on the missing key, and mahakala ran its Guix
+Home generation of 2026-09-25. In that generation, shepherd started headroom
+at login before the network was up. Every `podman run --pull always` exited
+125, and shepherd disabled the service for 45 hours. The config now uses
+`--pull newer`, which runs the local image when the registry cannot be reached.
+
 To keep the watchdog from recycling a Headroom that is still downloading, write
 a future time into its cooldown file:
 `echo $(( $(date +%s) + 7200 )) > /tmp/headroom-watchdog.cooldown`. The
@@ -638,10 +648,20 @@ Both hops are now in pi's model path. If Caveman or Headroom is down, pi's
 requests fail with a 502 `cave_upstream_unavailable`, and there is no fallback
 to direct. launchd restarts Caveman, and `com.headroom.watchdog` recovers
 Headroom. Restart either one from a plain terminal, never from a pi session.
-While a hop is down, a pi session can use `/model anthropic-proxy/<model id>`,
-which goes straight to the gateway. To send all new sessions direct, set
-`lego-claude`'s `baseUrl` in `~/.pi/agent/models.json` to the gateway's
-`/anthropic` endpoint. The next switch puts the chain back.
+To skip the proxies, use `lego-claude-direct`. den writes it next to
+`lego-claude` in `~/.pi/agent/models.json` on every host: the same models, sent
+straight to the gateway's `/anthropic` endpoint.
+
+| To change | Direct | Through the proxies |
+|---|---|---|
+| The current session | `/model lego-claude-direct/<model id>` | `/model lego-claude/<model id>` |
+| Every new session | the same pick, then Ctrl+S in the `/model` picker | the same pick, then Ctrl+S |
+| One launch | `pi --provider lego-claude-direct` | `pi --provider lego-claude` |
+
+Ctrl+S saves the pick as pi's default (`defaultProvider` and `defaultModel` in
+`~/.pi/agent/settings.json`), and den keeps a saved default. Use the direct
+provider while a hop is down; the old hand-made `anthropic-proxy` provider has
+no `promptCache`, so pi does not keep its cache warm.
 
 What we measured on 2026-11-01 with `~/.cache/chain-test/chain-ab.sh`: an
 isolated pi agent dir with a one-shot stand-in for Signet, a private bin-v4.0.2

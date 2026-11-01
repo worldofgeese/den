@@ -54,6 +54,15 @@
         "nix eval of headroom-proxy ProgramArguments and the darwin system drvPath",
         "watchdog log + container logs: each new container stuck downloading models before listening; xet .incomplete files at 0 bytes"
       ]
+    },
+    {
+      "id": "ckpt-headroom-mahakala-direct-1",
+      "summary": "mahakala Headroom: state and model-cache variables as on M-02877, --pull newer, no more missing gateway keys; pi lego-claude-direct provider for an easy direct/proxy swap; docs",
+      "input_digest": "sha256:701475ea7fe7254dcaaa524016cbfab8750fabfddf8bba3f782fce823b2b2a29",
+      "proof_refs": [
+        "M-02877 HM generation renders pi-lego-claude-direct.json",
+        "mahakala guix home build --dry-run: main fails on missing key storeUrl, branch loads"
+      ]
     }
   ],
   "intents": {
@@ -86,7 +95,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Incident 2026-11-01, user: 'New pi sessions error ... 502 cave_upstream_unavailable. Investigate and remediate.' Root cause: Headroom (the chain's second hop since den#84) was wedged at startup. Every container start downloads ~350 MB of HuggingFace models before it listens, because the HF cache sits in the container layer (headroom#4443); with the Mac's Wi-Fi at 0.1 MB/s and the xet transfer stalled at 0 bytes, the watchdog recycled each container before its download ended. Remediation: HF_HOME=/data/huggingface and HF_HUB_DISABLE_XET=1 for the headroom-proxy agent, OPERATIONS documents the incident, the pi escape hatch and the watchdog pause. Runtime mitigation already applied: pi's lego-claude points straight at the gateway in ~/.pi/agent/models.json until the next switch; watchdog cooldown stamped to 19:16.",
+      "intent": "Incident 2026-11-01 and the user's follow-ups ('Ok fix mahakala and tell me how to easily swap between direct and proxy', then 'Go ahead'). M-02877: Headroom keeps its HuggingFace model cache on its volume (HF_HOME=/data/huggingface, HF_HUB_DISABLE_XET=1). mahakala: guix/home-configuration.scm read gateway.json keys removed on 2026-10-23 (storeUrl, savingsPath), so guix home reconfigure failed and mahakala ran its 2026-09-25 Guix Home generation, whose podman --pull always failed at login before the network was up (exit 125) and left shepherd's headroom disabled for 45 hours. Fix the Guile service: same state and model-cache variables as darwin.nix, --pull newer. pi: a den-owned lego-claude-direct provider (same models, straight to /anthropic) makes direct vs proxy a /model pick, Ctrl+S to save as default, or pi --provider.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -102,16 +111,28 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793550627Z"
+      "updated_at": "1793555231Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:cfc57d37cbbdc270f3cecf92bafa77d30610ae740a85ae98c9435425abbdcba8",
+      "artifact_hash": "sha256:875a4d8bb5b2be579410541b530daac3901d85b24f2ae71fa0a815048d4c1934",
       "checks": [
         {
           "name": "eval-headroom-args",
+          "status": "passed"
+        },
+        {
+          "name": "guix-home-build-dry-run",
+          "status": "passed"
+        },
+        {
+          "name": "lego-claude-direct-rendered",
+          "status": "passed"
+        },
+        {
+          "name": "mahakala-root-cause",
           "status": "passed"
         },
         {
@@ -144,10 +165,17 @@
             "intent_id": "intent:change_01M6BZ4NRJ0DZ9SF0VA19115JC",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6BZ4NTNZGDCEJXPZ73CRCT1",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6BZ4NRJ0DZ9SF0VA19115JC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6BZ4NTNZGDCEJXPZ73CRCT1": {
@@ -186,6 +214,37 @@
                 "validation_findings": [
                   "Headroom's model loading uses huggingface_hub and honors HF_HOME (the image sets no HF_* variables)"
                 ]
+              },
+              {
+                "action": "validation",
+                "command": "ssh mahakala: herd status headroom; ~/.local/state/headroom.log; guix home build --dry-run (main: missing key storeUrl; branch: loads)",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "guix/home-configuration.scm",
+                  "modules/agent-providers.nix",
+                  "modules/gateway.nix",
+                  "guix/home-configuration.scm",
+                  "modules/agent-providers.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "docs/solutions/proxy-chain-and-harness-auth.md",
+                  "mahakala: herd status headroom = stopped and disabled since 2026-10-30 20:58 (exit 125); headroom.log: podman --pull always could not reach ghcr.io; ~/.guix-home -> 2026-09-25 generation",
+                  "mahakala: guix home build --dry-run ~/.config/home-manager/guix/home-configuration.scm fails: gateway.json: missing key storeUrl (headroom storeUrl); the branch's file loads and plans the build",
+                  "M-02877 HM generation: pi-lego-claude-direct.json baseUrl https://api.genai.thelegogroup.com/anthropic, headers x-api-key empty, 3 models with promptCache",
+                  "homeConfigurations.worldofgeese cannot be evaluated on aarch64-darwin (doom-dir IFD needs x86_64-linux), same on main"
+                ],
+                "proof_refs": [
+                  "mahakala-root-cause",
+                  "guix-home-build-dry-run",
+                  "lego-claude-direct-rendered"
+                ],
+                "scope": [
+                  ".decapod/managed/specs",
+                  "gateway.json",
+                  "modules/M-02877/darwin.nix"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -193,35 +252,51 @@
       },
       "declared_commands": [
         "curl 127.0.0.1:18787/readyz (000); /tmp/headroom-watchdog.log; container logs headroom; /proc inside the container",
-        "nix eval path:<copy>#darwinConfigurations.M-02877.config.launchd.user.agents.headroom-proxy.serviceConfig.ProgramArguments"
+        "nix build .#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage (lego-claude-direct JSON)",
+        "nix eval path:<copy>#darwinConfigurations.M-02877.config.launchd.user.agents.headroom-proxy.serviceConfig.ProgramArguments",
+        "ssh mahakala: herd status headroom; ~/.local/state/headroom.log; guix home build --dry-run (main: missing key storeUrl; branch: loads)"
       ],
       "destination": "pull request",
       "evidence": [
         "Headroom /readyz 000 since 16:10; watchdog recycled it at 16:20, 16:30, 16:44, 16:54; each new container stops logging after HF xet-read-token; /root/.cache/huggingface .incomplete files stay 0 bytes with ESTABLISHED connections to xet CAS hosts",
+        "M-02877 HM generation: pi-lego-claude-direct.json baseUrl https://api.genai.thelegogroup.com/anthropic, headers x-api-key empty, 3 models with promptCache",
         "Network: Cloudflare 70-100 KB/s, HF CDN 28-64 KB/s; QuickWolf: Mac Wi-Fi on DFS channel 132 at 20 MHz, MCS 1, 800 ms ping; wired hosts fine",
         "Seed with HF_HOME=/data/huggingface and HF_HUB_DISABLE_XET=1 inside the live container downloaded the small MiniLM files to the volume (980 KB) before it was paused for QuickWolf's Wi-Fi work",
+        "homeConfigurations.worldofgeese cannot be evaluated on aarch64-darwin (doom-dir IFD needs x86_64-linux), same on main",
+        "mahakala: guix home build --dry-run ~/.config/home-manager/guix/home-configuration.scm fails: gateway.json: missing key storeUrl (headroom storeUrl); the branch's file loads and plans the build",
+        "mahakala: herd status headroom = stopped and disabled since 2026-10-30 20:58 (exit 125); headroom.log: podman --pull always could not reach ghcr.io; ~/.guix-home -> 2026-09-25 generation",
         "nix eval: headroom-proxy ProgramArguments carry HF_HOME=/data/huggingface and HF_HUB_DISABLE_XET=1; darwin system drvPath evaluates",
         "pi -p on lego-claude after pointing baseUrl at the gateway: OK"
       ],
       "inspected_files": [
         "gateway.json",
         "guix/home-configuration.scm",
-        "modules/M-02877/darwin.nix"
+        "modules/M-02877/darwin.nix",
+        "modules/agent-providers.nix",
+        "modules/gateway.nix"
       ],
       "intent_id": "intent:change_01M6BZ4NRJ0DZ9SF0VA19115JC",
       "modified_files": [
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
+        "docs/solutions/proxy-chain-and-harness-auth.md",
         "gateway.json",
-        "modules/M-02877/darwin.nix"
+        "guix/home-configuration.scm",
+        "modules/M-02877/darwin.nix",
+        "modules/agent-providers.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks",
-        "specs.refresh, checkpoint, commit, CI-local validate, PR, merge; user deploys after the Wi-Fi work"
+        "specs.refresh, checkpoint, commit, CI-local validate, PR, merge; user deploys after the Wi-Fi work",
+        "specs.refresh, checkpoint, commit, CI-local validate, push, PureWolf shepherds, then guix home reconfigure on mahakala"
       ],
       "repo_scope": [
         ".decapod/managed/specs",
+        "docs/solutions/proxy-chain-and-harness-auth.md",
         "gateway.json",
-        "modules/M-02877/darwin.nix"
+        "guix/home-configuration.scm",
+        "modules/M-02877/darwin.nix",
+        "modules/agent-providers.nix"
       ],
       "run_id": "branch_01M6BZ4NTNZGDCEJXPZ73CRCT1",
       "schema_version": "1.1.0",

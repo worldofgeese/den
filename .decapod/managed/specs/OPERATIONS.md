@@ -666,8 +666,8 @@ tested 0.1.210, 0.1.211 and the build of its PR #4898, and did not install it:
   turns them off.
 
 Run `chain-ab.sh direct bili bilicavehr` again when a release includes #4898.
-billion-context updates itself only through an unpinned `npm:billion-context`
-entry, and `piAgent.packages` accepts only pinned specs today.
+Declare it unpinned (`npm:billion-context`), like the other pi packages. Its
+proxy then also updates it through pi between switches.
 
 ### Server auto-upgrade and human SSH keys (paphos, oracle)
 

@@ -162,8 +162,8 @@
     piAgent = {
       packages = [
         # Not npm:ponytail, which is an unrelated package.
-        "npm:@dietrichgebert/ponytail@5.3.3"
-        "npm:context-mode@1.0.169"
+        "npm:@dietrichgebert/ponytail"
+        "npm:context-mode"
       ];
       # The context-mode package starts its own server.bundle.mjs and registers
       # each tool with pi.registerTool() (its MCP bridge, context-mode#426).

@@ -263,20 +263,28 @@
                 # ends up empty and the script exits 0 on its own. On a machine
                 # that does have a user manager nothing changes at all, and
                 # units that exist still report their own failures.
+                #
+                # nixarchy now replaces the script with a bare `exit 0`
+                # (pkgs/omarchy/enable-user-units.sh), which already succeeds
+                # with no user manager. Skip the patch only while it calls no
+                # systemctl at all; any systemctl call in another shape still
+                # fails the build.
                 units=$out/share/omarchy/install/user/first-run/enable-user-units.sh
                 if [ ! -e "$units" ]; then
                   echo "enable-user-units.sh no longer exists in this Omarchy version;" >&2
                   echo "the Guix systemd guard in modules/omarchy.nix is stale." >&2
                   exit 1
                 fi
-                if ! grep -q '^systemctl --user daemon-reload$' "$units"; then
-                  echo "enable-user-units.sh no longer opens with a bare daemon-reload;" >&2
-                  echo "the Guix systemd guard in modules/omarchy.nix is stale." >&2
-                  exit 1
+                if grep -q 'systemctl' "$units"; then
+                  if ! grep -q '^systemctl --user daemon-reload$' "$units"; then
+                    echo "enable-user-units.sh no longer opens with a bare daemon-reload;" >&2
+                    echo "the Guix systemd guard in modules/omarchy.nix is stale." >&2
+                    exit 1
+                  fi
+                  substituteInPlace "$units" \
+                    --replace-fail 'systemctl --user daemon-reload' \
+                      'systemctl --user daemon-reload || true'
                 fi
-                substituteInPlace "$units" \
-                  --replace-fail 'systemctl --user daemon-reload' \
-                    'systemctl --user daemon-reload || true'
 
                 # uwsm-app, replaced by a shim that just runs the command.
                 #
@@ -407,89 +415,65 @@
                   exit 1
                 fi
 
-                # Reboot and shutdown, via loginctl instead of systemd-run.
+                # Log out, reboot and shut down, without the systemd user manager.
                 #
-                # Both scripts open with
-                #   systemd-run --user ... systemctl reboot --no-wall || exit 1
-                # to schedule the action in the user manager so that closing the
-                # calling terminal's scope cannot kill it. systemd-run --user
-                # exits 1 here (measured: same user-scope-bus failure), and the
-                # `|| exit 1` means the script stops THERE -- before the OSD,
-                # before `omarchy-state clear`, before it closes windows. So the
-                # power menu appears to do nothing at all.
+                # Omarchy 4.5 folds the old omarchy-system-{logout,reboot,shutdown}
+                # scripts into one `omarchy-system <action>`. Run bare, it
+                # re-executes itself through `systemd-run --user` so that closing
+                # the calling terminal cannot kill it; that exits 1 here (the
+                # same user-scope-bus failure), so the power menu did nothing.
+                # setsid --fork gives the same property without a user manager.
                 #
-                # loginctl is the right substitute and it is present: elogind
-                # 257 answers, and pkaction reports
-                # org.freedesktop.login1.power-off as `implicit active: yes`, so
-                # an active session needs no password.
+                # reboot and shutdown go through loginctl BY ABSOLUTE PATH.
+                # `loginctl` on the session PATH resolves to the SYSTEMD one from
+                # the Home Manager profile (systemd is in the omarchy package's
+                # runtimeDeps), and that binary refuses to run without systemd as
+                # PID 1. /run/current-system/profile/bin is Guix's elogind, whose
+                # daemon owns the session, and it survives reconfigures.
+                # pkaction reports org.freedesktop.login1.power-off as `implicit
+                # active: yes`, so an active session needs no password.
                 #
-                # By ABSOLUTE PATH, which the first version of this got wrong.
-                # `loginctl` on the session PATH resolves to the SYSTEMD one out
-                # of the Home Manager profile -- systemd is in the omarchy
-                # package's runtimeDeps, and $hm_profile/bin precedes the Guix
-                # profile -- and that binary refuses to do anything here:
-                # "System has not been booted with systemd as init system (PID
-                # 1). Can't operate." So the bare name made this fix no fix at
-                # all.
+                # Shutdown wraps itself in systemd-inhibit to hold off lid
+                # handling; elogind-inhibit is the same tool for elogind.
                 #
-                # /run/current-system/profile/bin/loginctl is Guix's elogind and
-                # it answers (verified: it lists both live sessions). A literal
-                # path rather than a Nix store reference on purpose -- this must
-                # be the elogind of the RUNNING system, the one whose daemon owns
-                # the session, and nixpkgs' own elogind would be a second
-                # implementation talking to Guix's daemon across a version gap.
-                # It is also reconfigure-proof, being the current-system symlink.
+                # Logout uses `hyprctl dispatch exit` instead of `uwsm stop`,
+                # which needs the user manager uwsm drives. omarchy-session execs
+                # Hyprland through start-hyprland, so Hyprland exiting returns
+                # the seat to the greeter, after its normal teardown.
                 #
-                # The 2-second defer is kept with setsid+sleep rather than
-                # dropped: the window-closing below it is the whole point of
-                # these two scripts over a bare `loginctl reboot`, and it needs
-                # the action to fire after it, not before. setsid detaches so
-                # the terminal that ran it can exit -- which is the property
-                # systemd-run was there to provide.
-                for action in reboot:reboot shutdown:poweroff; do
-                  script=$out/share/omarchy/bin/omarchy-system-''${action%%:*}
-                  verb=''${action##*:}
-                  if [ ! -e "$script" ]; then
-                    echo "omarchy-system-''${action%%:*} no longer exists;" >&2
-                    echo "the Guix loginctl override in modules/omarchy.nix is stale." >&2
-                    exit 1
-                  fi
-                  substituteInPlace "$script" \
-                    --replace-fail \
-                      "systemd-run --user --collect --quiet --on-active=\"2s\" --timer-property=AccuracySec=100ms systemctl $verb --no-wall || exit 1" \
-                      "setsid sh -c 'sleep 2; exec /run/current-system/profile/bin/loginctl $verb' >/dev/null 2>&1 &"
-                done
-
-                # Logout, via the compositor instead of `uwsm stop`.
-                #
-                # omarchy-system-logout ends the session with
-                #   nohup bash -c "sleep 2 && uwsm stop"
-                # which needs the systemd user manager uwsm drives, so logging
-                # out from the menu did nothing at all: the OSD appeared, the
-                # windows closed, and the session stayed up. Missed by the
-                # earlier uwsm audit because that searched for `uwsm-app` and
-                # this is bare `uwsm` -- the other bare-uwsm hits are two
-                # .desktop files this setup does not use, since the session entry
-                # is our own in guix/system.scm.
-                #
-                # `hyprctl dispatch exit` is the compositor's own clean shutdown
-                # and is what ends this session: omarchy-session execs Hyprland
-                # (through start-hyprland), so Hyprland exiting returns the seat
-                # to the greeter. It also runs Hyprland's normal teardown rather
-                # than killing the process.
-                #
-                # The 2-second nohup defer is kept for the reason it was there:
-                # the script closes windows after this line, and the exit has to
-                # land after that, not during it.
-                logout=$out/share/omarchy/bin/omarchy-system-logout
-                if [ ! -e "$logout" ]; then
-                  echo "omarchy-system-logout no longer exists; the Guix logout" >&2
-                  echo "override in modules/omarchy.nix is stale." >&2
+                # The script already waits for windows to close before it runs
+                # the command, so the old 2-second defer is no longer needed.
+                system=$out/share/omarchy/bin/omarchy-system
+                if [ ! -e "$system" ]; then
+                  echo "omarchy-system no longer exists; the Guix logout, reboot" >&2
+                  echo "and shutdown override in modules/omarchy.nix is stale." >&2
                   exit 1
                 fi
-                substituteInPlace "$logout" \
-                  --replace-fail 'sleep 2 && uwsm stop' \
-                    'sleep 2 && hyprctl dispatch exit'
+                substituteInPlace "$system" \
+                  --replace-fail \
+                    'logout) command=(uwsm stop) ;;' \
+                    'logout) command=(hyprctl dispatch exit) ;;' \
+                  --replace-fail \
+                    'reboot) command=(systemctl reboot --no-wall) ;;' \
+                    'reboot) command=(/run/current-system/profile/bin/loginctl reboot) ;;' \
+                  --replace-fail \
+                    'shutdown) command=(systemctl poweroff --no-wall) ;;' \
+                    'shutdown) command=(/run/current-system/profile/bin/loginctl poweroff) ;;' \
+                  --replace-fail \
+                    'systemd-inhibit --what=' \
+                    '/run/current-system/profile/bin/elogind-inhibit --what=' \
+                  --replace-fail \
+                    'systemd-run --user --collect --quiet --property=Type=exec --property=RuntimeMaxSec=30s' \
+                    'setsid --fork' \
+                  --replace-fail \
+                    '--setenv=PATH --setenv=HYPRLAND_INSTANCE_SIGNATURE --setenv=OMARCHY_PATH' \
+                    '--'
+                if grep -nE 'systemd-run|systemd-inhibit|systemctl|uwsm' "$system" \
+                     | grep -vE '^[0-9]+:\s*#' | grep -q .; then
+                  echo "omarchy-system still calls systemd or uwsm after the Guix override:" >&2
+                  grep -nE 'systemd-run|systemd-inhibit|systemctl|uwsm' "$system" >&2
+                  exit 1
+                fi
               '';
           });
       };

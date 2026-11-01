@@ -52,6 +52,14 @@
       "proof_refs": [
         "dagger check: 7 checks pass on den-dagger-engine"
       ]
+    },
+    {
+      "id": "ckpt-dagger-p2-2",
+      "summary": "Dagger P2: one den/dagger-check job",
+      "input_digest": "sha256:2fbbba1719336d365302726585c63c3edff02b1fc35eb4189b6a1770c9d0ab67",
+      "proof_refs": [
+        "GitHub run 41290971141"
+      ]
     }
   ],
   "intents": {
@@ -82,7 +90,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Dagger P2: run dagger check on GitHub-hosted runners (.github/workflows/dagger.yml) with a den/dagger-check summary job, add the live merge rule protected (mergeStateStatus), and record the 2026-11-01 decisions",
+      "intent": "Dagger P2: one den/dagger-check job on ubuntu-24.04-arm; the x86_64 leg added no coverage",
       "phases": [],
       "proof_hooks": [
         "just check",
@@ -97,13 +105,13 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793523157Z"
+      "updated_at": "1793525612Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:8b8c913beeb8e8ddf184f36b9782bd24432ff1894985af3cb69ccb425af67753",
+      "artifact_hash": "sha256:2451ae83da7d0cb04192e2690c2050f7262afe5fc4a2caac332b2265427e2f12",
       "checks": [
         {
           "name": "actionlint",
@@ -115,6 +123,10 @@
         },
         {
           "name": "dagger-install-beta21-linux",
+          "status": "passed"
+        },
+        {
+          "name": "github-run-41290971141",
           "status": "passed"
         }
       ],
@@ -139,10 +151,17 @@
             "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6B3KBEVBAM01XSQ4PYYC8F8": {
@@ -179,6 +198,27 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "validation",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".github/workflows/dagger.yml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/config.toml",
+                  "run 41290971141: both legs skipped only aarch64-darwin.M-02877; arm leg 3 min 10 s, x86 leg 3 min 25 s, den/dagger-check 2 s"
+                ],
+                "proof_refs": [
+                  "github-run-41290971141",
+                  "actionlint"
+                ],
+                "scope": [
+                  ".github/workflows/dagger.yml, .dagger/modules/ci, specs, plan doc, readiness digest",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -189,7 +229,8 @@
       "evidence": [
         "dagger check --check ci/nix-eval runs only ci/nix-eval (30 s)",
         "dagger check on den-dagger-engine: 7 checks pass, ci/automerge-rules includes the protected cases",
-        "dl.dagger.io serves v1.0.0-beta.21 linux_amd64 and linux_arm64 (HTTP 206, checksums)"
+        "dl.dagger.io serves v1.0.0-beta.21 linux_amd64 and linux_arm64 (HTTP 206, checksums)",
+        "run 41290971141: both legs skipped only aarch64-darwin.M-02877; arm leg 3 min 10 s, x86 leg 3 min 25 s, den/dagger-check 2 s"
       ],
       "inspected_files": [],
       "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",

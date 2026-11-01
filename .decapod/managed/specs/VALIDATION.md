@@ -161,12 +161,13 @@ Two limits apply:
   an import-from-derivation step of that check. Nix 2.35 reports
   `Reason: platform mismatch`, and `scripts/check-drvpaths.sh` skips only
   that signature and Lix's `required system or feature not available`. A
-  skip is not a proof. An engine builds only for its own system, and the
-  container downloads only from `cache.nixos.org`. So a step for
-  `x86_64-linux` that no cache has, for example after a change to the Doom
-  configuration, needs an `x86_64-linux` engine. No Linux engine evaluates
-  `aarch64-darwin.M-02877`, so the pre-commit `just check` and the deploy on
-  M-02877 stay the proof for that host.
+  skip is not a proof. Each check forces the package names of its host, not
+  its activation package (`modules/checks.nix`), so it builds no Doom step.
+  On 2026-11-01 an `aarch64-linux` job and an `x86_64-linux` job each
+  skipped only `aarch64-darwin.M-02877`. No Linux engine evaluates that
+  check, so the pre-commit `just check` and the deploy on M-02877 stay the
+  proof for that host. A check also does not prove a deploy: the deploy
+  evaluates and builds the whole activation package.
 - `ci:decapod-validate` gets the files without their git history. The script
   commits an empty base and the files as the candidate, so the change range
   holds every file. The workflow `decapod-validate.yml` keeps the real change
@@ -179,13 +180,12 @@ runners for each pull request to `main` and for each push to `main`. Standard
 runners are free for a public repository, and each job gets a new virtual
 machine, so each run starts with an empty engine cache.
 
-| Job | Runner | Command |
-|---|---|---|
-| `dagger check (aarch64-linux)` | `ubuntu-24.04-arm` | `dagger check`: every check, on the same system as the engine on M-02877 |
-| `dagger check (x86_64-linux)` | `ubuntu-24.04` | `dagger check --check ci/nix-eval`: the x86_64-linux checks that an `aarch64-linux` engine skips |
-| `den/dagger-check` | `ubuntu-24.04` | None. It passes only when both check jobs pass |
+The job `den/dagger-check` runs `dagger check` on `ubuntu-24.04-arm`, the
+system of the engine on M-02877. With an empty cache, it took 3 min 10 s on
+2026-11-01. An `x86_64-linux` job ran only once, on the first head of PR
+#80: it skipped the same check, so it gave no more coverage.
 
-The jobs get no secret, and their token can only read the repository. The
+The job gets no secret, and its token can only read the repository. The
 action `dagger/dagger-for-github` installs the CLI release that
 `engineVersion` in `.dagger/modules/ci/dagger-module.toml` names, and the CLI
 starts its engine in Docker on the runner. Branch protection on `main`
@@ -282,7 +282,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `2d30f87d9cc2221fecf485b9bdfae0ee777f01cb40ac0ce93eb9e9acdc81bebf`
+- Repository signal fingerprint: `a20388ac4350fb7804f47d262f00832693219d05aa651298fb9b2fa2ac048731`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

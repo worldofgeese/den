@@ -261,10 +261,10 @@ interface).
   VALIDATION.md (Dagger Checks) maps them to the `just check` steps. To run
   one check, give its name to `--check`, for example
   `dagger check --check ci/nix-eval`.
-- **CI** (`.github/workflows/dagger.yml`): two jobs on GitHub-hosted runners
-  run the checks, and the job `den/dagger-check` passes only when both pass.
-  Branch protection on `main` requires `den/dagger-check` and `validate`.
-  The jobs get no secret and a token that can only read.
+- **CI** (`.github/workflows/dagger.yml`): the job `den/dagger-check` runs
+  `dagger check` on a GitHub-hosted `ubuntu-24.04-arm` runner. Branch
+  protection on `main` requires `den/dagger-check` and `validate`. The job
+  gets no secret and a token that can only read.
 - **`automerge-dry-run --token <secret> --pr <n>`** judges an open pull
   request by the merge rules, and prints the verdict and the merge method.
 - **`automerge-replay --token <secret> [--count 30]`** judges the newest
@@ -295,7 +295,7 @@ Make the container once with `just dagger-check`, then call for example
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `2d30f87d9cc2221fecf485b9bdfae0ee777f01cb40ac0ce93eb9e9acdc81bebf`
+- Repository signal fingerprint: `a20388ac4350fb7804f47d262f00832693219d05aa651298fb9b2fa2ac048731`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

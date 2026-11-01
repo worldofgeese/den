@@ -276,6 +276,14 @@ first-use prompt, and a changed key fails the connection. On 2026-10-30
 oracle's key only under its tailnet address `100.87.121.45`, and the alias
 connects by name. A rotated host key changes the pin, and with it this file.
 
+paphos also pins two hosts in its global `known_hosts`, through
+`programs.ssh.knownHosts` in `modules/paphos/ops.nix`. It pins oracle for the
+upgrade-state probe, and mother on `[192.168.99.200]:2235` for the Forgejo
+backup. Both calls use `StrictHostKeyChecking=yes` and read only the global
+file. Since 2026-11-01 the backup goes over the LAN. Mother's
+`authorized_keys` accepts the backup key only from paphos' addresses
+(`from=`, since 2026-10-31), and over MagicDNS mother refused it.
+
 ### Homebrew Cask Upgrade Guard
 Activation's `brew bundle` upgrades casks, including self-updating ones. The
 self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)

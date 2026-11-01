@@ -9,9 +9,12 @@
   #     a `/mcp` change to a declared server lasts until the next switch. Other
   #     servers are untouched, except removedMcpServers, which are deleted by
   #     name.
-  #   - packages: each declared spec is pinned (`npm:name@version`). A listed
-  #     entry with the same name at another version is removed and the pinned
-  #     one installed through pi itself. removedPackages are removed by name.
+  #   - packages: a declared spec is `npm:name`, which tracks the latest
+  #     release, or `npm:name@version`, which is pinned. A listed entry with
+  #     the same name in another form is removed and the declared one
+  #     installed through pi itself. Each switch runs `pi update` for an
+  #     unpinned spec, so it moves to the latest release; pi does not update
+  #     packages on its own. removedPackages are removed by name.
   #   - skills: each declared resource filter is added to settings.json's
   #     `skills` array when it is missing. Other entries, such as `pi config`
   #     toggles, stay. Activation never deletes an entry.
@@ -52,9 +55,12 @@
         description = "Server names to delete from `mcpServers` in ~/.pi/agent/mcp.json at each switch.";
       };
       packages = lib.mkOption {
-        type = lib.types.listOf (lib.types.strMatching "npm:.+@[^@/]+");
+        type = lib.types.listOf (lib.types.strMatching "npm:.+");
         default = [];
-        description = "Pinned pi packages, as `npm:name@version`.";
+        description = ''
+          pi packages, as `npm:name` (tracks the latest release: each switch
+          runs `pi update` for it) or `npm:name@version` (pinned).
+        '';
       };
       removedPackages = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -108,8 +114,19 @@
             ${awk} -v n="$1" '$0 == n || index($0, n "@") == 1' | head -n 1
         }
         for spec in ${lib.escapeShellArgs cfg.packages}; do
-          have="$(piListed "''${spec%@*}")"
-          [ "$have" = "$spec" ] && continue
+          # A trailing @version pins the spec. A scope's @ comes before a /,
+          # so npm:@scope/name stays unpinned.
+          name=$spec
+          if [[ $spec =~ ^(npm:.+)@[^@/]+$ ]]; then
+            name=''${BASH_REMATCH[1]}
+          fi
+          have="$(piListed "$name")"
+          if [ "$have" = "$spec" ]; then
+            if [ "$name" = "$spec" ]; then
+              run pi update "$spec" || warnEcho "pi: could not update $spec; the next switch retries"
+            fi
+            continue
+          fi
           if [ -n "$have" ]; then
             run pi remove "$have" || warnEcho "pi: could not remove $have"
           fi

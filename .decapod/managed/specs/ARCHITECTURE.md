@@ -39,7 +39,7 @@ This project's architecture consists of the following key layers/directories:
   The fixer and the live automerge of the Dagger plan come in its later
   phases.
 - `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
-  servers and pinned pi packages; activation merges them into pi's own
+  servers and pi packages (latest or pinned); activation merges them into pi's own
   writable files (`mcp.json`, `settings.json`) instead of linking store files,
   because pi writes to both.
 - `modules/M-02877/agent-integrations.nix`: work-Mac-only team integrations

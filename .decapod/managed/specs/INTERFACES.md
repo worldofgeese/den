@@ -202,16 +202,19 @@ installed on the personal hosts.
 | Copilot Spaces | `https://api.githubcopilot.com/mcp/x/copilot_spaces` | `gh auth token` (OAuth, no PAT) | the `techwriter` pi agent |
 | toolbox-docs (`LEGO/agentic-engineering-community`) | git, pinned rev | gh's git credential | `~/.agents/skills/{diataxis,simple-english,rewrite-slop,rewrite-documentation,write-usecase,edit-confluence-page}`, `~/.pi/agent/agents/techwriter.md` |
 
-`piAgent.packages` entries must be pinned (`npm:name@version`); the option type
-rejects anything else. Activation installs and removes them through `pi`
-itself, so `settings.json` stays pi's file.
+`piAgent.packages` entries are `npm:name` or `npm:name@version`; the option
+type rejects anything else. Activation installs and removes them through `pi`
+itself, so `settings.json` stays pi's file. Since 2026-11-01 the pi packages
+track their latest release (the user's decision): an `npm:name` entry has no
+version, and each switch runs `pi update` for it, because pi does not update
+packages on its own. ponytail, context-mode and pi-beads-extension are
+unpinned.
 
-The pins move by hand to the newest release. On 2026-10-23 Chorus moved to
-0.23.0 (`chorusVersion`, the CLI and `chorus-pi`), because the team server
-runs 0.23.0. On 2026-10-30 ponytail moved to 5.3.3
-(`modules/M-02877/token-toolchain.nix`), and the personal Signet container
-moved to `ghcr.io/signet-ai/signet:0.238.0` (`modules/M-02877/darwin.nix`),
-the release that team Signet runs. The container reads that pin only when it
+chorus-pi stays pinned. The Chorus client, chorus-pi and the team server move
+together: on 2026-10-23 they moved to 0.23.0 (`chorusVersion`), because the
+team server runs 0.23.0. The personal Signet container is pinned too, at
+`ghcr.io/signet-ai/signet:0.238.0` (`modules/M-02877/darwin.nix`), the release
+that team Signet runs. The container reads that pin only when it
 is created. To move a running container to a new pin, back up `~/.agents`,
 boot the `signet-container` agent out, run `podman rm -f signet`, and
 bootstrap the agent again.

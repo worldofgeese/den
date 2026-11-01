@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "3d29ab40d9de13d024d99024b62cb00f62b98b4b",
+    "accepted_commit": "9aa752694449972b5e1d61330696fa2b5ca0c050",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,52 +40,40 @@
     }
   },
   "change": {
-    "id": "change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
-    "base_commit": "3d29ab40d9de13d024d99024b62cb00f62b98b4b",
+    "id": "change_01M6BRYQX425K3J116CNDB08P2",
+    "base_commit": "9aa752694449972b5e1d61330696fa2b5ca0c050",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-dagger-p6-1",
-      "summary": "Dagger P6: nightly flake bump, topgrade pull and deploy, clean-tree guard",
-      "input_digest": "sha256:5825115d14b64526911381eaa986c94ea7ee450ca553d7f6bd390d342a9d54ca",
+      "id": "ckpt-pi-packages-latest-1",
+      "summary": "pi packages track their latest release: pi.nix accepts unpinned npm:name and runs pi update for it at each switch; ponytail, context-mode and pi-beads-extension unpinned; chorus-pi stays at chorusVersion",
+      "input_digest": "sha256:ab897d0fcc3f202e7645e7eed0c606fc35196699247a38acf1d950d86228cddc",
       "proof_refs": [
-        "bump experiment: CI-mode validate 171/0"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p6-2",
-      "summary": "Bump: drift check without the refresh time; portable sed",
-      "input_digest": "sha256:ebbf6a8c77edd73f0e005a9891eba0099b4f422d57aaae4c91ae3fa690ab64df",
-      "proof_refs": [
-        "local end-to-end run: exit 0"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p6-3",
-      "summary": "Rebase onto c94a809: refreshed specs and digest",
-      "input_digest": "sha256:e805bf5f5f54383d7efd7dcda458625977b0d74bc7c45496084a21bcb0f0d02b",
-      "proof_refs": [
-        "rebase onto c94a809"
+        "activation loop test against a sample settings.json (pinned->unpinned, unpinned update, scoped names, object entries)",
+        "nix build of the M-02877 Home Manager generation"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W": {
+    "intent:change_01M6BRYQX425K3J116CNDB08P2": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "root"
+        "modules/pi.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/M-02877/agent-integrations.nix",
+        ".decapod/managed/specs"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+      "id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Dagger P6: nightly flake-input bump PR; topgrade pulls and deploys; clean-tree deploy guard",
-      "refined_intent": "Dagger P6: nightly flake-input bump PR; topgrade pulls and deploys; clean-tree deploy guard",
+      "raw_intent": "M-02877: pi packages track their latest release (unpinned piAgent.packages)\n\nUser decision 2026-11-01: 'we always want latest' and 'Yes they should' (the other pi packages move to latest). modules/pi.nix accepts unpinned npm:name specs next to pinned npm:name@version; activation runs pi update for unpinned specs at each switch. Unpin ponytail, context-mode and pi-beads-extension. chorus-pi stays matched to the team Chorus server (chorusVersion), as proposed to the user. Update INTERFACES/ARCHITECTURE/OPERATIONS and bead home-manager-hfq.",
+      "refined_intent": "M-02877: pi packages track their latest release (unpinned piAgent.packages)\n\nUser decision 2026-11-01: 'we always want latest' and 'Yes they should' (the other pi packages move to latest). modules/pi.nix accepts unpinned npm:name specs next to pinned npm:name@version; activation runs pi update for unpinned specs at each switch. Unpin ponytail, context-mode and pi-beads-extension. chorus-pi stays matched to the team Chorus server (chorusVersion), as proposed to the user. Update INTERFACES/ARCHITECTURE/OPERATIONS and bead home-manager-hfq.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -98,50 +86,40 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Dagger P6: nightly flake-input bump PR (bump.yml, scripts/bump-flake-inputs.sh); topgrade pulls and deploys; deploy-freshness refuses uncommitted edits (den#60)",
+      "intent": "User decisions 2026-11-01: 'we don't want to pin we always want latest' and, asked whether the other pi packages should move to latest, 'Yes they should'. Derived: modules/pi.nix accepts unpinned npm:name specs next to pinned npm:name@version, and its activation runs pi update for an unpinned spec at each switch (pi never updates packages on its own). Unpin ponytail, context-mode and pi-beads-extension. chorus-pi stays pinned to chorusVersion so client, chorus-pi and the team Chorus server move together, as proposed to the user. Update INTERFACES/ARCHITECTURE/OPERATIONS.",
       "phases": [],
       "proof_hooks": [
-        "just check"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Dagger P6: nightly flake-input bump PR; topgrade pulls and deploys; clean-tree deploy guard",
+      "stop_conditions": [
+        "Stop if the activation logic would remove or reinstall a pinned package that did not change"
+      ],
+      "title": "M-02877: pi packages track their latest release (unpinned piAgent.packages)",
       "todo_ids": [
-        "cicd_01m6bk1vnd851vk9"
+        "test_01m6bqkn3n1epndy"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793538291Z"
+      "updated_at": "1793544172Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:a673227b4454624c94c0f043fef008814c924ec6e7063b756ae5be79795a7ae8",
+      "artifact_hash": "sha256:14a618e73aacfbe4f362f63af0c1b66a290617843c73ac77e112986af5b8466e",
       "checks": [
         {
-          "name": "actionlint",
+          "name": "activation-loop-cases",
           "status": "passed"
         },
         {
-          "name": "bump-end-to-end-local",
+          "name": "eval-pi-packages",
           "status": "passed"
         },
         {
-          "name": "bump-experiment-ci-validate",
-          "status": "passed"
-        },
-        {
-          "name": "guard-dirty-refusal",
-          "status": "passed"
-        },
-        {
-          "name": "section-rewrite-idempotent",
-          "status": "passed"
-        },
-        {
-          "name": "shellcheck",
+          "name": "hm-generation-builds",
           "status": "passed"
         }
       ],
@@ -150,122 +128,111 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6BK2QYHB6FBERS9R2QM2WM0",
+            "detail": "trajectory:branch_01M6BRYQZB1V9CWJ7J1PXH86Q5",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6BK2QYHB6FBERS9R2QM2WM0",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6BK2QYHB6FBERS9R2QM2WM0": {
+          "branch_01M6BRYQZB1V9CWJ7J1PXH86Q5": {
             "evidence_only": true,
-            "id": "branch_01M6BK2QYHB6FBERS9R2QM2WM0",
-            "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+            "id": "branch_01M6BRYQZB1V9CWJ7J1PXH86Q5",
+            "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
             "steps": [
               {
                 "action": "validation",
+                "command": "bash /tmp/pitest/t.sh (activation loop against a sample settings.json with pinned, unpinned, scoped and object entries)",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".github/workflows/bump.yml",
-                  "scripts/bump-flake-inputs.sh",
-                  "scripts/deploy-freshness.sh",
-                  "modules/M-02877/dktaohan.nix",
-                  ".decapod/config.toml",
-                  ".decapod/managed/specs/OPERATIONS.md",
+                  "modules/pi.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/pi.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/M-02877/agent-integrations.nix",
                   ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/SECURITY.md",
                   ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTENT.md",
-                  "experiment: a flake update with an authored spec section passes CI-mode validate (171/0); without it FINGERPRINT_ONLY_SPECS"
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "Sample settings.json: npm:@dietrichgebert/ponytail@5.3.3 -> remove + install npm:@dietrichgebert/ponytail; npm:context-mode@1.0.169 -> remove + install npm:context-mode; chorus-pi@0.23.0 left alone; npm:pi-beads-extension -> pi update; new npm:billion-context -> install; object entry {source} -> pi update",
+                  "nix eval piAgent.packages = [npm:@dietrichgebert/ponytail, npm:context-mode, npm:@chorus-aidlc/chorus-pi@0.23.0, npm:pi-beads-extension]; the generated activate script (bash 5.3) carries the BASH_REMATCH parse and the pi update branch"
                 ],
                 "proof_refs": [
-                  "shellcheck",
-                  "actionlint",
-                  "guard-dirty-refusal",
-                  "section-rewrite-idempotent",
-                  "bump-experiment-ci-validate"
+                  "activation-loop-cases",
+                  "eval-pi-packages",
+                  "hm-generation-builds"
                 ],
                 "scope": [
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "modules/pi.nix"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "validation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "scripts/bump-flake-inputs.sh",
-                  ".decapod/config.toml",
-                  "local end-to-end run with a stub gh and a bare remote: exit 0, 57 nodes, validate 171/0 twice, one commit with flake.lock, config.toml, OPERATIONS.md and .manifest.json"
-                ],
-                "proof_refs": [
-                  "bump-end-to-end-local"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
+                "validation_findings": [
+                  "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to"
+                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "bash /tmp/pitest/t.sh (activation loop against a sample settings.json with pinned, unpinned, scoped and object entries)",
+        "nix build path:<copy of origin/main + change>#darwinConfigurations.M-02877.config.home-manager.users.dktaohan.home.activationPackage"
+      ],
       "destination": "pull request",
       "evidence": [
-        "experiment: a flake update with an authored spec section passes CI-mode validate (171/0); without it FINGERPRINT_ONLY_SPECS",
-        "local end-to-end run with a stub gh and a bare remote: exit 0, 57 nodes, validate 171/0 twice, one commit with flake.lock, config.toml, OPERATIONS.md and .manifest.json"
+        "Sample settings.json: npm:@dietrichgebert/ponytail@5.3.3 -> remove + install npm:@dietrichgebert/ponytail; npm:context-mode@1.0.169 -> remove + install npm:context-mode; chorus-pi@0.23.0 left alone; npm:pi-beads-extension -> pi update; new npm:billion-context -> install; object entry {source} -> pi update",
+        "nix eval piAgent.packages = [npm:@dietrichgebert/ponytail, npm:context-mode, npm:@chorus-aidlc/chorus-pi@0.23.0, npm:pi-beads-extension]; the generated activate script (bash 5.3) carries the BASH_REMATCH parse and the pi update branch"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M6BK2QW7ZQSJDTPW1Z0H9H2W",
+      "inspected_files": [
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix"
+      ],
+      "intent_id": "intent:change_01M6BRYQX425K3J116CNDB08P2",
       "modified_files": [
-        ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
         ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        ".decapod/managed/specs/SECURITY.md",
-        ".github/workflows/bump.yml",
-        "modules/M-02877/dktaohan.nix",
-        "scripts/bump-flake-inputs.sh",
-        "scripts/deploy-freshness.sh"
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix"
       ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "Refine plan and declare falsifiable checks",
+        "specs.refresh, checkpoint, commit, CI-local validate, PR"
       ],
       "repo_scope": [
-        "root"
+        ".decapod/managed/specs",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix"
       ],
-      "run_id": "branch_01M6BK2QYHB6FBERS9R2QM2WM0",
+      "run_id": "branch_01M6BRYQZB1V9CWJ7J1PXH86Q5",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m6bk1vnd851vk9",
+      "task_id": "test_01m6bqkn3n1epndy",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to"
+      ]
     }
   },
   "legacy_digests": {

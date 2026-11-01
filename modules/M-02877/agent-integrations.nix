@@ -225,10 +225,12 @@
         };
       };
       packages = [
+        # Pinned on purpose: the Chorus client, chorus-pi and the team server
+        # move together (chorusVersion above).
         "npm:@chorus-aidlc/chorus-pi@${chorusVersion}"
         # Agent side of Beads: `bd prime` in the system prompt and kept
         # through compaction, plus /beads:* commands. Only ever runs `bd`.
-        "npm:pi-beads-extension@0.1.0"
+        "npm:pi-beads-extension"
       ];
       # pi-tasks (/tasks over bd) added no agent tools, only the command and
       # a startup notice, and nobody ran /tasks after 2026-10-06. Without

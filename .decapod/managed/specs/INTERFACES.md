@@ -257,8 +257,9 @@ company: each repository gives those as settings in its own `dagger.toml`
 interface).
 
 - **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
-  `ci:decapod-overrides`, `ci:decapod-validate` and `ci:automerge-rules`.
-  VALIDATION.md (Dagger Checks) maps them to the `just check` steps. To run
+  `ci:decapod-overrides`, `ci:decapod-validate`, `ci:automerge-rules` and
+  `ci:shepherd-rules`. VALIDATION.md (Dagger Checks) maps them to the
+  `just check` steps. To run
   one check, give its name to `--check`, for example
   `dagger check --check ci/nix-eval`.
 - **CI** (`.github/workflows/dagger.yml`): the job `den/dagger-check` runs
@@ -270,9 +271,19 @@ interface).
 - **`automerge-replay --token <secret> [--count 30]`** judges the newest
   merged pull requests (1 to 100) as of their merge, and prints a Markdown
   table.
-- **Read-only boundary.** Both functions only read GitHub. They write no
-  comment, status, label or merge, and read access is enough for the token.
-  Live merges come in plan P4.
+- **`shepherd --token <secret> [--dry-run]`** (plan P3) asks the Codex
+  connector to review the head of each open pull request that has no review
+  of its head, and prints a Markdown table of its steps. A new head waits 10
+  minutes for the automatic review. The shepherd asks again after 20 minutes,
+  and after 3 requests it adds the label `needs-human` with a comment. It
+  skips drafts, the stop labels and authors outside `authors`, and it needs
+  `reviewer = "app/chatgpt-codex-connector"`. `ci:shepherd-rules` tests its
+  steps. The workflow `.github/workflows/shepherd.yml` runs it every 15
+  minutes and after each `dagger` run, with the token `DEN_SHEPHERD_TOKEN`.
+- **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
+  GitHub. The shepherd writes only the request comment `@codex review`, the
+  label `needs-human` and its comment. No function sends a review event,
+  writes a status or merges. Live merges come in plan P4.
 - **Settings** (`[modules.ci.settings]`): `repository` (owner/name),
   `authors` (a bot is `app/<login>`), `reviewer` (the login whose review of
   the head counts) and `riskyPaths` (path prefixes that a person merges).
@@ -295,7 +306,7 @@ Make the container once with `just dagger-check`, then call for example
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `a20388ac4350fb7804f47d262f00832693219d05aa651298fb9b2fa2ac048731`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `c9215c809578f264037fa6920070fca912bde77a37866203080ef84857b05975`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

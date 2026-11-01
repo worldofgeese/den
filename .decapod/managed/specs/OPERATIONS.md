@@ -17,15 +17,20 @@ Describe the operational runtime model, scheduling, and system deployment archit
 Generation 341 (2026-10-16) was built from an uncommitted flake.lock update
 (nixpkgs 319e4ceb and ten other inputs) with two build fixes, and `main`
 lagged it for five days: a deploy from a clean `main` would have downgraded
-the machine. Commit a flake update and its fixes before or right after the
-deploy that uses them. Before a deploy, `git status` in the checkout must be
-clean, or the dirty files must be the change under review.
+the machine. Generation 343 (2026-10-23, nixpkgs 5adc5083) came the same way
+from a topgrade run, whose "Flake inputs" step ran `just update-darwin`
+before the deploy (den#60).
 
-Each topgrade run does the same. Its "Flake inputs" step runs
-`just update-darwin`, and its next step runs `just deploy-darwin` on the
-updated lock. Generation 343 (2026-10-23, nixpkgs 5adc5083) came from such a
-run. After a topgrade run changes `flake.lock`, commit the lock in its own PR
-from a workspace, when the deploy succeeds.
+Since plan P6 three parts stop this:
+- `scripts/deploy-freshness.sh`, the first step of `just deploy-darwin`,
+  refuses a checkout with uncommitted edits to tracked files and lists them.
+  To deploy such edits on purpose, run `DEN_DEPLOY_DIRTY=1 just deploy-darwin`.
+- topgrade's first step, "Den pull", runs `git pull --ff-only origin main`.
+  Its second step deploys. topgrade no longer updates `flake.lock`.
+- The flake inputs change only through the nightly bump PR
+  (`.github/workflows/bump.yml`, "Flake Input Updates" below). `just
+  update-darwin` stays for a manual update in a workspace; its lock goes into
+  a PR like any other change.
 
 The checkout must also contain `origin/main`. Agents merge through PRs from
 workspaces, and nobody pulls the main checkout, so it falls behind. On
@@ -914,11 +919,19 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 - [ ] Dependency vulnerability scan reviewed.
 - [ ] No unresolved critical/high security findings.
 
+## Flake Input Updates
+
+The nightly bump (`scripts/bump-flake-inputs.sh`, run by
+`.github/workflows/bump.yml` at 01:17 UTC) rewrites this section. It updates
+each input of `flake.lock`, renews `reviewed_sources_digest`, and opens or
+updates the PR from the branch `bump/flake-inputs`. The section then lists
+each node of the lock that changed. The bump has not run yet.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

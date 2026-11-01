@@ -411,10 +411,12 @@
             set_title = true;
           };
           commands = {
-            # Separate steps on purpose. Attrset order puts "Flake inputs"
-            # first, so inputs refresh before the deploy — but a forge outage
-            # fails only its own step instead of blocking the deploy.
-            "Flake inputs" = "cd ~/.config/home-manager && just update-darwin";
+            # Separate steps on purpose. Attrset order puts "Den pull" first,
+            # so the checkout gets origin/main before the deploy, but a forge
+            # outage fails only its own step. The flake inputs change only
+            # through the nightly bump PR (.github/workflows/bump.yml), so
+            # topgrade deploys only commits that CI checked (den#60).
+            "Den pull" = "cd ~/.config/home-manager && git pull --ff-only origin main";
             "Nix-Darwin via Justfile" = "cd ~/.config/home-manager && just deploy-darwin";
           };
         };

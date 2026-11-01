@@ -1,0 +1,69 @@
+# The nightly bump of plan P6 (docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md).
+# It updates each input of flake.lock and opens or updates one pull request
+# from the branch bump/flake-inputs: scripts/bump-flake-inputs.sh. The pull
+# request then passes the same gates as any other.
+#
+# The job runs the code of main only. The token DEN_SHEPHERD_TOKEN comes from
+# the environment shepherd, which only jobs on main can use. A push with that
+# token starts the checks of the pull request; a push with GITHUB_TOKEN does
+# not.
+name: bump
+
+on:
+  schedule:
+    - cron: "17 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump
+  cancel-in-progress: false
+
+jobs:
+  flake-inputs:
+    name: den/bump-flake-inputs
+    runs-on: ubuntu-24.04
+    environment:
+      name: shepherd
+      deployment: false
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable
+      # The same Decapod release and cache as decapod-validate.yml.
+      - name: Read the pinned Decapod release
+        id: decapod_pin
+        run: |
+          version="$(sed -n 's/^<!-- decapod-release: \([0-9][0-9.]*\) -->$/\1/p' AGENTS.md)"
+          if [ -z "$version" ]; then
+            echo "::error::AGENTS.md has no decapod-release header"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Cache cargo-binstall and Decapod
+        id: cache_decapod_tools
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/bin/cargo-binstall
+            ~/.cargo/bin/decapod
+          key: ${{ runner.os }}-decapod-tools-v2-${{ steps.decapod_pin.outputs.version }}
+      - name: Install cargo-binstall
+        if: steps.cache_decapod_tools.outputs.cache-hit != 'true'
+        uses: cargo-bins/cargo-binstall@851112458b5f28a29e5bc14a690c3f283d9dcc6f # v1.26.2
+      - name: Install Decapod
+        if: steps.cache_decapod_tools.outputs.cache-hit != 'true'
+        run: cargo binstall --no-confirm "decapod@${{ steps.decapod_pin.outputs.version }}"
+      - name: Update the flake inputs, and open or update the pull request
+        env:
+          GH_TOKEN: ${{ secrets.DEN_SHEPHERD_TOKEN }}
+          DECAPOD_AGENT_ID: den-bump
+        run: scripts/bump-flake-inputs.sh

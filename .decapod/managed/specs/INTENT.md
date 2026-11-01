@@ -134,7 +134,8 @@ head does not wait for a person to ask (plan P3). Until plan P4 merges by
 itself, the rules only judge, with `automerge-dry-run`, `automerge-replay`
 and the verdict column of the shepherd, and a person or an agent merges. An
 agent merges only a head that the last report of the shepherd calls
-mergeable.
+mergeable. The flake inputs change only through the nightly bump PR, so a
+deploy of M-02877 uses only inputs that CI checked (plan P6).
 
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
@@ -185,7 +186,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

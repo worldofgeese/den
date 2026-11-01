@@ -405,11 +405,16 @@ The watchdog matches its process with the exact container name
 (`--uuid headroom`). A substring match killed a test container named
 `headroom-test` on 2026-10-06.
 
-pi does not use the chain. The den-owned `lego-claude` provider
-(`modules/M-02877/token-toolchain.nix`) goes straight to the gateway's
-`/anthropic` endpoint. That is the gateway's documented endpoint for pi, and
-it caches like `/claude` in an A/B test. We measured the reason on 2026-10-14
-from the gateway's request log:
+Since 2026-11-01 pi uses the chain too, with Caveman's proxy in front. The
+den-owned `lego-claude` provider (`modules/M-02877/token-toolchain.nix`) sends
+each request to Caveman's `lego-claude` compat mount (`127.0.0.1:8787`). Caveman
+forwards it to Headroom, and Headroom to the gateway's `/claude` endpoint. See
+"pi through the chain" below.
+
+From 2026-10-14 to 2026-11-01, pi went straight to the gateway's `/anthropic`
+endpoint. That is the gateway's documented endpoint for pi, and it caches like
+`/claude` in an A/B test. We measured the reason on 2026-10-14 from the
+gateway's request log:
 - Headroom 0.40.0 in `cache` mode loses its prefix lineage when the previous
   request ended in a one-shot message. Signet's pi extension adds such a
   message to the first request of each prompt.
@@ -420,12 +425,12 @@ from the gateway's request log:
   of input tokens in the same period.
 - A controlled A/B test in pi RPC mode showed the same difference.
 
-Claude Code, omp and Caveman Code still use Headroom as their first hop
-(`modules/agent-providers.nix`). pi sessions that started before the profile of
-2026-10-14 18:19Z keep the old base URL, `127.0.0.1:18788`, until they restart.
-Restart them before the deploy that deletes local-model-proxy. If you do not,
-they get "connection refused". New sessions start on `lego-claude`.
-`/model anthropic-proxy/...` also goes straight to the gateway.
+Headroom 0.41.0 fixed that (#4213). The A/B runs of 2026-10-23 and
+2026-11-01 keep the cache through Headroom. Claude Code, omp and Caveman Code
+use Headroom as their first hop (`modules/agent-providers.nix`). A running pi
+session keeps the provider it started with, so a pi session from before the
+deploy stays direct until it restarts. `/model anthropic-proxy/...` goes
+straight to the gateway.
 
 #### Prompt cache
 
@@ -519,18 +524,17 @@ Caveman behaviours that shape this design:
 - Without `caveman.yaml`, Caveman sends Anthropic-format requests to
   `api.anthropic.com`. That hands the LEGO gateway key to Anthropic (measured
   2026-10-06). The file sets the gateway's `/claude` endpoint as the upstream.
-  No model traffic uses it now.
+  No model traffic uses it.
 - pi sends the key as the bearer and as `x-api-key`. The gateway accepts only
   the bearer. A `bin-v4.0.2` compat mount with `wire_dialect: anthropic`
   forwards the bearer and compresses Anthropic requests. It compressed a JSON
   and log tool result from 29,956 to 867 tokens. It does not compress prose:
-  pi's markdown tool outputs, already trimmed by RTK and context-mode, came
-  through unchanged, and the run cost the same as the direct one. So
-  `lego-claude` stays direct, and Caveman works in pi through its extension.
-- The empty `x-api-key` on the provider is load-bearing. The extension refuses
-  to route a provider whose `x-api-key` is empty ("keep the provider direct").
-  Each new session warns "Caveman: pass-through for lego-claude/..."; that is
-  expected.
+  pi's markdown tool outputs, already trimmed by RTK and context-mode, come
+  through unchanged. Since 2026-11-01, `lego-claude` uses the `lego-claude`
+  mount (see "pi through the chain").
+- The provider's empty `x-api-key` keeps the key out of that header. Each new
+  session prints "Caveman: pass-through for lego-claude/...". That is
+  expected: the provider URL is already the proxy.
 - In the long-lived `~/.caveman`, the `bin-v4.0.2` runtime under launchd can
   answer every `native.sock` request with an empty reply while the proxy uses
   50% to 85% CPU. A fresh home answers. The extension then fails open: no
@@ -585,6 +589,80 @@ because the proxy never read it.
 pi offers CodeGraph's one tool, `codegraph_explore`, to the model directly
 (`exposure = "direct"`). With the default `codemode` exposure, the model made
 0 calls in 60 sessions (den#63).
+
+#### pi through the chain
+
+pi's `lego-claude` provider (`agentProviders.pi` in
+`modules/M-02877/token-toolchain.nix`) is set up like this:
+- `baseUrl` is `http://127.0.0.1:8787/compat/lego-claude`, a compat mount of
+  Caveman's proxy.
+- The mount (`~/.caveman/caveman.yaml`) sends requests to Headroom
+  (`base_url: http://127.0.0.1:18787`) with `wire_dialect: anthropic`. A compat
+  mount keeps the inbound bearer, which is the only credential the gateway
+  accepts (caveman#1215).
+- Caveman's SSRF guard blocks loopback upstreams, so the proxy runs with
+  `CAVE_SSRF_ALLOWLIST=127.0.0.1` (caveman#841). Without it, every request gets
+  a bare 502 `cave_upstream_unavailable`, and the log has no line for it
+  (caveman#1440).
+- The provider sends `x-headroom-cwd: ${PWD}`, which pi expands per request.
+  Headroom does not find pi's working directory itself (headroom#4442), and
+  without a project it still adds its memory tools (9,838 bytes) to each
+  request. The mount forwards only standard headers, so its
+  `forward_headers` names this one.
+- The Caveman extension sees that the provider URL is the proxy itself and
+  does not route the provider again. Each new session prints "Caveman:
+  pass-through for lego-claude/... points at the Caveman proxy itself". That
+  is expected. Tool-output shrinking and `caveman_retrieve` still work.
+
+Both hops are now in pi's model path. If Caveman or Headroom is down, pi's
+requests fail, with no fallback to direct. launchd restarts Caveman, and
+`com.headroom.watchdog` recovers Headroom. Restart either one from a plain
+terminal, never from a pi session.
+
+What we measured on 2026-11-01 with `~/.cache/chain-test/chain-ab.sh`: an
+isolated pi agent dir with a one-shot stand-in for Signet, a private bin-v4.0.2
+Caveman proxy on `:18797`, and a test Headroom 0.42.0 container on `:28787`.
+pi 1.4.0, and every tool at its latest release:
+
+| Session | Direct | Headroom | Caveman | Caveman, then Headroom |
+|---|---:|---:|---:|---:|
+| Haiku 4.5, 8 prompts, mean of 4 runs | $0.121 | $0.116 | $0.108 | $0.131 |
+| Haiku 4.5, 16 prompts with long reads, 1 run | $0.420 | $0.417 | $0.387 | $0.371 |
+| Opus 5.5, 16 prompts with long reads, 1 run | $1.657 | not run | not run | $1.693 |
+
+- The cache holds through both hops. No request re-wrote the conversation,
+  and the cache writes of a session track its number of requests.
+- Opus 5.5 with thinking runs through both hops without an error.
+- The run-to-run noise is large: the same 8 prompts took from 14 to 29
+  requests. The chain's cost is within that noise of direct.
+- Caveman's compat mount removed 0 tokens in these sessions. It compresses
+  JSON and logs, not prose. Headroom removed about 200k tokens over 224
+  requests, mostly from content that the cache already held.
+
+#### billion-context (evaluated 2026-11-01, not installed)
+
+billion-context (ranxianglei/billion-context, MIT) lets the model fold old
+turns into summaries, through its own pi extension and loopback proxy. We
+tested 0.1.210, 0.1.211 and the build of its PR #4898, and did not install it:
+- On Opus 5.5 with thinking, one session failed after its third fold. Every
+  later request got 400 "`thinking` or `redacted_thinking` blocks in the latest
+  assistant message cannot be modified" (billion-context#4885). The fix, PR
+  #4898, is not in a release. Two later fold sessions, on 0.1.211 and on the PR
+  build, finished.
+- Its tools join the request only from the second request of a session, so
+  each session, and each subagent run, re-writes about 20k cache tokens once
+  (billion-context#5459).
+- Cost against direct: +31% (Haiku 4.5, 8 prompts, 4 runs), +13% (Haiku 4.5,
+  16 prompts with long reads, 2 runs) and +25% (Opus 5.5, through the chain,
+  no fold). In one Haiku run, the model answered 2 recall questions wrongly
+  after a fold.
+- Its subagent tools (`acp_delegate`) overlap chorus-pi's `subagent`.
+  `"pi": {"subagents": false}` in `~/.config/billion-context/billion-context.json`
+  turns them off.
+
+Run `chain-ab.sh direct bili bilicavehr` again when a release includes #4898.
+billion-context updates itself only through an unpinned `npm:billion-context`
+entry, and `piAgent.packages` accepts only pinned specs today.
 
 ### Server auto-upgrade and human SSH keys (paphos, oracle)
 

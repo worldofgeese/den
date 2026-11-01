@@ -65,9 +65,11 @@ are taken from the gateway's own setup docs, published as React pages in
 pi's models get `cost` and `promptCache`. pi keeps a prompt cache warm during a
 long tool run only for a model that has both, and it shows a session cost only
 when `cost` is set. omp gets no `cost`, because one unknown key disables every
-custom provider in omp. On M-02877, pi's `lego-claude` goes straight to the
-gateway's `/anthropic` endpoint (`agentProviders.pi.baseUrl`). The other
-harnesses keep Headroom as their first hop.
+custom provider in omp. On M-02877, pi's `lego-claude` first goes to Caveman's
+`lego-claude` compat mount (`http://127.0.0.1:8787/compat/lego-claude`,
+`agentProviders.pi.baseUrl`), then to Headroom, and then to the gateway's
+`/claude` endpoint. It also sends `x-headroom-cwd` (OPERATIONS.md, "pi through
+the chain"). The other harnesses use Headroom as their first hop.
 
 The credential is never a value in this repository. It crosses as a *command*
 that prints it when an agent process starts, so it reaches neither the store nor
@@ -183,6 +185,7 @@ configure Olivetti separately for this workflow.
 | `just secretspec-age-backup` | Copies the backup key from the old Keychain item to the clipboard; cleared after 60 s | `Justfile` |
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
 | `~/.pi/agent/mcp.json` | pi's built-in MCP config. Activation merges the declared `piAgent.mcpServers` in by name (`nixos` on every host; `chorus`, `github-spaces` and `codegraph` on M-02877), deletes each `piAgent.removedMcpServers` name, and keeps every other entry. M-02877 deletes `context-mode`: the context-mode pi package registers its tools through its own MCP bridge, and the entry started a second server with 11 duplicate tools (den#55). Credentials are `${VAR}` or `!command` values, never literals | `modules/pi.nix` |
+| `~/.caveman/caveman.yaml` | Caveman's proxy config, a read-only Home Manager file. It holds a safe `anthropic` upstream (the gateway's `/claude`) and pi's `lego-claude` compat mount: Headroom as `base_url`, `wire_dialect: anthropic`, `forward_headers: [x-headroom-cwd]`. The proxy also needs `CAVE_SSRF_ALLOWLIST=127.0.0.1` for that loopback upstream | `modules/M-02877/token-toolchain.nix` |
 | `~/.pi/agent/settings.json` `skills` | pi's skill filters. Activation adds each declared `piAgent.skills` entry that is missing, after the existing entries, and never deletes one. On M-02877 the one entry is `-~/.agents/skills/research`: see pi Team Integrations | `modules/pi.nix` |
 
 ## pi Team Integrations (M-02877)

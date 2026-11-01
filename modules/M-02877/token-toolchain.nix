@@ -9,11 +9,11 @@
   #   5 context-mode pi package (it brings its own MCP bridge)
   #   6 CodeGraph   MCP server
   #
-  # A pi request goes straight to the gateway's /anthropic endpoint (see
-  # agentProviders.pi). Headroom, local-model-proxy and Phoenix are not in
-  # pi's path. Caveman's proxy (127.0.0.1:8787) is not in that path either; it
-  # serves the pi extension's tool-output recovery. Headroom stays in
-  # darwin.nix for the other harnesses.
+  # A pi request takes the guide's proxy chain, with Caveman's proxy in front
+  # (see agentProviders.pi): pi -> Caveman (127.0.0.1:8787, compat mount
+  # lego-claude) -> Headroom (darwin.nix) -> the gateway's /claude endpoint.
+  # The same Caveman proxy serves the pi extension's tool-output recovery.
+  # local-model-proxy and Phoenix are gone (OPERATIONS.md).
   den.aspects.dktaohan.homeManager = {
     pkgs,
     lib,
@@ -26,6 +26,9 @@
     # default gateway; headroom's 8787 is container-internal on this host,
     # so the two do not collide.
     cavemanListen = "127.0.0.1:8787";
+
+    # Headroom's loopback URL on this Mac (darwin.nix runs the container).
+    headroomUrl = gateway.headroom.loopbackUrl "M-02877";
 
     # The Caveman CLI and its native binaries come from npm
     # (@caveman-ai/cli, `caveman setup --install`), not Nix: ~/.caveman/bin.
@@ -63,19 +66,34 @@
         # telemetry off` records the choice in ~/.caveman/cloud.json, and
         # DO_NOT_TRACK keeps it off if that file is ever reset.
         export DO_NOT_TRACK=1
+        # The lego-claude mount's upstream is Headroom on loopback. Caveman's
+        # SSRF guard blocks loopback upstreams unless they are listed
+        # (caveman#841), and a blocked request only gets a bare 502
+        # cave_upstream_unavailable (caveman#1440).
+        export CAVE_SSRF_ALLOWLIST=127.0.0.1
         exec "$bin" serve
       '';
     };
 
     # Without this file the proxy's anthropic upstream is api.anthropic.com,
     # which would send the LEGO gateway key to Anthropic's public API. No model
-    # traffic uses this upstream now; it must only be safe. The /claude
-    # endpoint is the one that Claude Code uses.
+    # traffic uses that upstream; it must only be safe. The /claude endpoint
+    # is the one that Claude Code uses.
+    #
+    # pi's model traffic uses the lego-claude compat mount. A compat mount
+    # keeps the inbound bearer (caveman#1215), which is the only credential
+    # the gateway accepts. It forwards only standard headers, so it names
+    # x-headroom-cwd (see agentProviders.pi).
     cavemanConfig = ''
       # Managed by den (modules/M-02877/token-toolchain.nix).
       providers:
         anthropic:
           base_url: ${gateway.claudeUrl}
+      compat:
+        lego-claude:
+          base_url: ${headroomUrl}
+          wire_dialect: anthropic
+          forward_headers: [x-headroom-cwd]
     '';
 
     # Loads the npm-installed extension, and degrades to nothing when it is
@@ -114,30 +132,31 @@
     cavemanSkills = ["caveman" "caveman-commit" "caveman-compress" "caveman-help" "caveman-review" "caveman-stats"];
   in {
     agentProviders.pi = {
-      # Straight to the gateway, with no proxy in between. Measured
-      # 2026-10-14 from the gateway's request log: Headroom 0.40.0 in cache
-      # mode loses its prefix lineage at each new pi prompt, then forwards the
-      # original bytes of turns that it compressed before. The provider writes
-      # the conversation to the cache again, up to 274k tokens for one prompt
-      # (headroomlabs-ai/headroom#4213). Headroom saved 0.6% of input tokens.
-      # /anthropic is the gateway's documented endpoint for pi, and it caches
-      # like /claude in an A/B test.
+      # Through the chain: Caveman's lego-claude compat mount, then Headroom,
+      # then the gateway. From 2026-10-14 to 2026-11-01 pi went straight to
+      # the gateway, for two reasons that are now fixed:
+      # - Headroom 0.40.0 re-wrote the prompt cache at each prompt, up to 274k
+      #   tokens for one (headroom#4213). 0.41.0 and 0.42.0 keep the cache.
+      # - Caveman's built-in anthropic upstream forwarded x-api-key, not the
+      #   bearer, so the gateway answered 401 (caveman#1215). A compat mount
+      #   keeps the bearer.
+      # Measured 2026-11-01 with Headroom 0.42.0 and the bin-v4.0.2 proxy
+      # (OPERATIONS.md, "pi through the chain"): the cache holds through both
+      # hops, Opus thinking works, and cost is within run-to-run noise of
+      # direct.
       #
-      # Caveman's proxy stays out of the path too. pi sends the key as the
-      # bearer and as x-api-key. On its built-in anthropic upstream, the
-      # bin-v4.0.1 proxy forwards only x-api-key, and the gateway accepts only
-      # the bearer (401, measured 2026-10-14). The 4.0.1 fix for
-      # JuliusBrussee/caveman#1215 keeps the bearer only on a named compat
-      # mount (compat.<name> in caveman.yaml). That route can work, but request
-      # compression through Caveman saved ~0 tokens (`caveman stats`: -0.0% over
-      # 1,327 requests), and a proxy that rewrites requests can break the prompt
-      # cache. Tool-output shrinking does not use this route.
-      baseUrl = gateway.anthropicUrl;
-      # Load-bearing: Caveman's pi extension refuses to route a provider whose
-      # x-api-key is empty ("keep the provider direct"), and that refusal is
-      # what keeps it from rerouting this provider into the 401 above. The
-      # gateway ignores the empty header. Same check in 4.0.1.
-      headers."x-api-key" = "";
+      # The extension sees that this URL is the proxy itself, so it does not
+      # route the provider again ("pass-through ... points at the Caveman
+      # proxy itself" at each session start).
+      baseUrl = "http://${cavemanListen}/compat/lego-claude";
+      headers = {
+        # pi sends the key as the bearer and as x-api-key. The empty value
+        # keeps the key out of x-api-key; the gateway reads only the bearer.
+        "x-api-key" = "";
+        # Headroom files memories per project and does not find pi's working
+        # directory itself (headroom#4442). pi expands ${PWD} per request.
+        "x-headroom-cwd" = "\${PWD}";
+      };
     };
 
     piAgent = {

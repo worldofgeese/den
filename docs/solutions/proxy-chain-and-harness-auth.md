@@ -12,11 +12,22 @@ to connect a harness to the chain.
 
 The chain is **not** the same on both machines, and that is deliberate.
 
-### M-02877 (darwin) — headroom, and pi direct
+### M-02877 (darwin) — headroom, with Caveman in front for pi
 
 ```
-Claude Code, omp, Caveman Code
-    │  base URL http://127.0.0.1:18787 (modules/agent-providers.nix)
+pi (lego-claude, modules/M-02877/token-toolchain.nix)
+    │  base URL http://127.0.0.1:8787/compat/lego-claude
+    ▼
+┌──────────────────────────────────────────────────────────┐
+│  Caveman proxy       (launchd, 127.0.0.1:8787)           │
+│  • compat mount lego-claude, wire_dialect: anthropic     │
+│  • keeps the bearer; forwards x-headroom-cwd             │
+│  • CAVE_SSRF_ALLOWLIST=127.0.0.1 for the loopback hop    │
+└──────────────────────────────────────────────────────────┘
+    │  http://127.0.0.1:18787
+    │
+    │  Claude Code, omp and Caveman Code join here: base URL
+    │  http://127.0.0.1:18787 (modules/agent-providers.nix)
     ▼
 ┌──────────────────────────────────────────────────────────┐
 │  headroom            (host 18787 → container 8787)       │
@@ -30,20 +41,20 @@ Claude Code, omp, Caveman Code
     │  ANTHROPIC_TARGET_API_URL=https://api.genai.thelegogroup.com/claude
     ▼
   LEGO AI Model Gateway ──► upstream model vendor
-    ▲
-    │  https://api.genai.thelegogroup.com/anthropic
-pi (lego-claude, modules/M-02877/token-toolchain.nix)
 ```
 
 We deleted local-model-proxy and Phoenix on 2026-10-14. local-model-proxy only
 counted tokens and sent traces to Phoenix. The gateway request log records the
 same data with billed costs (see Reference: observability).
 
-**pi does not use headroom.** Since 2026-10-14, den's `lego-claude` provider
-goes straight to `/anthropic`. headroom's `cache` mode wrote pi's whole
-conversation to the prompt cache again at every new prompt
-(headroomlabs-ai/headroom#4213). `.decapod/managed/specs/OPERATIONS.md`, section
-"Token proxy chain (M-02877)", has the measurements.
+**pi uses headroom, behind Caveman's proxy.** From 2026-10-14 to 2026-11-01,
+den's `lego-claude` provider went straight to `/anthropic`, because headroom
+0.40.0's `cache` mode wrote pi's whole conversation to the prompt cache again
+at every new prompt (headroomlabs-ai/headroom#4213). 0.41.0 fixed that. pi now
+sends `x-headroom-cwd`, because headroom does not find pi's working directory
+itself (headroomlabs-ai/headroom#4442). `.decapod/managed/specs/OPERATIONS.md`,
+"Token proxy chain (M-02877)" and "pi through the chain", has the
+measurements.
 
 ### mahakala (Guix System + Guix Home) — headroom only
 

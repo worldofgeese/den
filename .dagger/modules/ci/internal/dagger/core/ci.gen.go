@@ -214,8 +214,9 @@ type CiShepherdOpts struct {
 
 // For each open pull request, ask the reviewer to review the head when the
 // head has no review (plan P3), and print a Markdown table of the steps.
-// After 3 requests without a review, add the needs-human label. With
-// dryRun, post nothing.
+// After 3 requests without a review, add the needs-human label. The table
+// also gives the verdict of the merge rules for each pull request (plan P4);
+// the shepherd merges nothing. With dryRun, post nothing.
 func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts) (string, error) {
 	assertNotNil("token", token)
 	if r.shepherd != nil {

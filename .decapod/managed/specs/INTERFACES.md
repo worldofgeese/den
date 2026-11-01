@@ -278,7 +278,8 @@ interface).
   and after 3 requests it adds the label `needs-human` with a comment. It
   skips drafts, the stop labels and authors outside `authors`, and it needs
   `reviewer = "app/chatgpt-codex-connector"`. `ci:shepherd-rules` tests its
-  steps. The workflow `.github/workflows/shepherd.yml` runs it every 15
+  steps. The table also gives the verdict of the merge rules for each pull
+  request, in the words of `automerge-dry-run` (plan P4, first step). The workflow `.github/workflows/shepherd.yml` runs it every 15
   minutes and after each `dagger` run, with the token `DEN_SHEPHERD_TOKEN`.
 - **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
   GitHub. The shepherd writes only the request comment `@codex review`, the
@@ -306,7 +307,7 @@ Make the container once with `just dagger-check`, then call for example
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `c9215c809578f264037fa6920070fca912bde77a37866203080ef84857b05975`
+- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -635,11 +635,17 @@ func (m *Ci) AutomergeDryRun(
 	if err != nil {
 		return "", err
 	}
+	return fmt.Sprintf("#%d: %s\n", pr, m.verdict(repo)), nil
+}
+
+// verdict judges an open pull request by the merge rules, and says what a
+// merge would do.
+func (m *Ci) verdict(repo *gqlRepo) string {
 	s := snapshotFrom(repo.PullRequest, repo.DefaultBranchRef.Name, false)
 	if rule, why := judge(&s, m.policy(), false); rule != "" {
-		return fmt.Sprintf("#%d: would not merge (%s): %s\n", pr, rule, why), nil
+		return fmt.Sprintf("would not merge (%s): %s", rule, why)
 	}
-	return fmt.Sprintf("#%d: would merge head %s with the %s method\n", pr, short(s.Head), mergeMethod(repo)), nil
+	return fmt.Sprintf("would merge head %s with the %s method", short(s.Head), mergeMethod(repo))
 }
 
 // Judge the newest merged pull requests as of their merge, and print a

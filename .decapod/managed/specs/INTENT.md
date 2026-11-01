@@ -130,9 +130,11 @@ requires the checks `den/dagger-check` and `validate`, and the rules also
 refuse until GitHub reports that branch protection lets the head merge. Each
 refusal names its rule and its reason. A pull request from an author outside the list gets the checks
 only. The shepherd asks the Codex connector to review each new head, so a
-head does not wait for a person to ask (plan P3). Until plan P4 the rules
-only judge, with `automerge-dry-run` and `automerge-replay`, and a person or
-an agent merges.
+head does not wait for a person to ask (plan P3). Until plan P4 merges by
+itself, the rules only judge, with `automerge-dry-run`, `automerge-replay`
+and the verdict column of the shepherd, and a person or an agent merges. An
+agent merges only a head that the last report of the shepherd calls
+mergeable.
 
 ## First Implementation Slice
 - [ ] Define the smallest user-visible workflow to ship first.
@@ -183,7 +185,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `c9215c809578f264037fa6920070fca912bde77a37866203080ef84857b05975`
+- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

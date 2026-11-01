@@ -182,8 +182,9 @@ func shepherdPRFrom(n gqlOpenPR) shepherdPR {
 
 // For each open pull request, ask the reviewer to review the head when the
 // head has no review (plan P3), and print a Markdown table of the steps.
-// After 3 requests without a review, add the needs-human label. With
-// dryRun, post nothing.
+// After 3 requests without a review, add the needs-human label. The table
+// also gives the verdict of the merge rules for each pull request (plan P4);
+// the shepherd merges nothing. With dryRun, post nothing.
 // +cache="never"
 func (m *Ci) Shepherd(
 	ctx context.Context,
@@ -215,7 +216,8 @@ func (m *Ci) Shepherd(
 	}
 	now := time.Now()
 	var b strings.Builder
-	b.WriteString("| PR | Head | Step | Reason |\n|---|---|---|---|\n")
+	var failed []string
+	b.WriteString("| PR | Head | Review step | Reason | Merge verdict |\n|---|---|---|---|---|\n")
 	for _, n := range prs.Nodes {
 		pr := shepherdPRFrom(n)
 		step, why := nextStep(pr, m.policy(), now)
@@ -224,10 +226,22 @@ func (m *Ci) Shepherd(
 				return b.String(), fmt.Errorf("#%d: %w", pr.Number, err)
 			}
 		}
-		fmt.Fprintf(&b, "| #%d | %s | %s | %s |\n", pr.Number, short(pr.Head), step, why)
+		// Plan P4 starts with reports: the shepherd says what the merge rules
+		// decide, and it merges nothing.
+		verdict := ""
+		if repo, err := m.fetch(ctx, g, owner, name, pr.Number); err != nil {
+			verdict = "error: " + err.Error()
+			failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
+		} else {
+			verdict = m.verdict(repo)
+		}
+		fmt.Fprintf(&b, "| #%d | %s | %s | %s | %s |\n", pr.Number, short(pr.Head), step, why, verdict)
 	}
 	if dryRun {
 		b.WriteString("\nDry run: the shepherd posted nothing.\n")
+	}
+	if len(failed) > 0 {
+		return b.String(), fmt.Errorf("merge verdicts: %s", strings.Join(failed, "; "))
 	}
 	return b.String(), nil
 }

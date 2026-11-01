@@ -118,6 +118,19 @@
         inherit (config.agentProviders.pi) headers;
       };
     piProviderJson = pkgs.writeText "pi-lego-claude.json" (builtins.toJSON piProvider);
+    # The same models, straight to the gateway's /anthropic endpoint (pi's
+    # documented one), with no proxy in between. Swapping is a pi model pick:
+    # `/model lego-claude-direct/<id>` or back to `lego-claude/<id>`, and
+    # Ctrl+S in the picker saves the pick for new sessions. The empty
+    # x-api-key keeps the key out of that header; the gateway reads only the
+    # bearer.
+    piDirectProvider =
+      mkProvider piModel
+      // {
+        baseUrl = gateway.anthropicUrl;
+        headers."x-api-key" = "";
+      };
+    piDirectProviderJson = pkgs.writeText "pi-lego-claude-direct.json" (builtins.toJSON piDirectProvider);
     piModels = builtins.toJSON {providers.lego-claude = mkProvider piModel;};
     ompModels = builtins.toJSON {providers.lego-claude = mkProvider ompModel;};
 
@@ -170,16 +183,17 @@
 
     config.home.activation = {
       ompGatewayProvider = seedJson "omp-models.json" "${home}/.omp/agent/models.json" ompModels;
-      # pi's file is merged, not seeded: `lego-claude` is den's and is replaced
-      # on every switch, and every other provider is left as it is. A seeded
-      # file never received the provider once one existed, so pi kept a
-      # hand-made provider that went straight to the gateway.
+      # pi's file is merged, not seeded: `lego-claude` and `lego-claude-direct`
+      # are den's and are replaced on every switch, and every other provider is
+      # left as it is. A seeded file never received the provider once one
+      # existed, so pi kept a hand-made provider that went straight to the
+      # gateway.
       piGatewayProvider = lib.hm.dag.entryAfter ["writeBoundary"] ''
         models=${lib.escapeShellArg "${home}/.pi/agent/models.json"}
         current='{}'
         [ -e "$models" ] && current="$(cat "$models")"
-        if merged="$(printf '%s' "$current" | ${lib.getExe pkgs.jq} --slurpfile p ${piProviderJson} \
-            '.providers = ((.providers // {}) + {"lego-claude": $p[0]})')"; then
+        if merged="$(printf '%s' "$current" | ${lib.getExe pkgs.jq} --slurpfile p ${piProviderJson} --slurpfile d ${piDirectProviderJson} \
+            '.providers = ((.providers // {}) + {"lego-claude": $p[0], "lego-claude-direct": $d[0]})')"; then
           if [ ! -e "$models" ] || [ "$merged" != "$(${lib.getExe pkgs.jq} . "$models")" ]; then
             run mkdir -p ${lib.escapeShellArg "${home}/.pi/agent"}
             if [ -z "''${DRY_RUN:-}" ]; then

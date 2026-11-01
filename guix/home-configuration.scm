@@ -298,10 +298,27 @@ mv \"$tmp\" \"$target\""))
                           ;; loopback; gateway.json carries the reasoning.
                           (string-append "HEADROOM_ALLOW_UNAUTHENTICATED_BIND="
                                          (gateway-ref "headroom" "allowUnauthenticatedBind"))
-                          (string-append "HEADROOM_STORE_URL="
-                                         (gateway-ref "headroom" "storeUrl"))
-                          (string-append "HEADROOM_SAVINGS_PATH="
-                                         (gateway-ref "headroom" "savingsPath"))
+                          ;; All of headroom's state, and its HuggingFace model
+                          ;; cache, on the headroom-data volume. The image runs as
+                          ;; root with HOME=/root, so anything else sits in the
+                          ;; container layer and resets at each restart
+                          ;; (headroomlabs-ai/headroom#4443, den#62), and every
+                          ;; start downloads ~350 MB of models before it listens.
+                          ;; Same values as modules/M-02877/darwin.nix. The
+                          ;; storeUrl and savingsPath keys these lines used to read
+                          ;; left gateway.json on 2026-10-23, and gateway-ref
+                          ;; stopped `guix home reconfigure` on the missing key.
+                          (string-append "HEADROOM_WORKSPACE_DIR="
+                                         (gateway-ref "headroom" "workspaceDir"))
+                          (string-append "HEADROOM_MEMORY_DB_PATH="
+                                         (gateway-ref "headroom" "workspaceDir")
+                                         "/memory.db")
+                          (string-append "HF_HOME="
+                                         (gateway-ref "headroom" "workspaceDir")
+                                         "/huggingface")
+                          ;; The xet transfer stalled at 0 bytes on 2026-11-01
+                          ;; while plain HTTPS downloads moved.
+                          "HF_HUB_DISABLE_XET=1"
                           (string-append "HEADROOM_TELEMETRY="
                                          (gateway-ref "headroom" "telemetry"))
                           ;; Was missing here entirely; see the note above.
@@ -327,8 +344,14 @@ mv \"$tmp\" \"$target\""))
                         ;; working set measured ~967 MB with no swap, so an
                         ;; unbounded container just moves the OOM up to the host.
                         ;; See modules/M-02877/darwin.nix for the measurement.
+                        ;;
+                        ;; --pull newer, not always: podman then runs the local
+                        ;; image when the registry cannot be reached. On
+                        ;; 2026-10-30 shepherd started headroom at login before
+                        ;; the network was up; every `--pull always` run exited
+                        ;; 125, and shepherd disabled the service for days.
                         (extra-arguments
-                         (list "--pull" "always"
+                         (list "--pull" "newer"
                                "-m" (gateway-ref "headroom" "memory")))
                         (respawn? #t)
                         (auto-start? #t)

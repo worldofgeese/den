@@ -463,8 +463,20 @@
                 # HEADROOM_ALLOW_UNAUTHENTICATED_BIND: newer images refuse to bind
                 # 0.0.0.0 without it and exit at start. gateway.json carries why it
                 # is safe here (loopback-only publish) and why a proxy token is not.
+                #
+                # HF_HOME: at each start headroom gets its models from HuggingFace
+                # (Kompress int8 ONNX 261 MB, MiniLM ONNX 86 MB) and only then
+                # listens. The default cache is under HOME=/root, in the container
+                # layer (headroomlabs-ai/headroom#4443), so every --rm restart
+                # downloaded them again. On 2026-11-01 the Mac's Wi-Fi gave
+                # 0.1 MB/s: the watchdog recycled each new container before its
+                # download ended, and pi, Claude Code and omp had no headroom for
+                # hours. On the volume the models download once, and an
+                # interrupted download resumes.
+                # HF_HUB_DISABLE_XET: that day the xet transfer stayed at 0 bytes
+                # while plain HTTPS downloads moved.
                 ${pullOrCached gateway.headroom.image}
-                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e HEADROOM_WORKSPACE_DIR=${gateway.headroom.workspaceDir} -e HEADROOM_MEMORY_DB_PATH=${gateway.headroom.workspaceDir}/memory.db -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
+                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e HEADROOM_WORKSPACE_DIR=${gateway.headroom.workspaceDir} -e HEADROOM_MEMORY_DB_PATH=${gateway.headroom.workspaceDir}/memory.db -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} -e HF_HOME=${gateway.headroom.workspaceDir}/huggingface -e HF_HUB_DISABLE_XET=1 ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;

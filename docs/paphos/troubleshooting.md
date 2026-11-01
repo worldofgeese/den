@@ -11,10 +11,11 @@
 
 1. `journalctl -u paphos-forgejo-backup.service -e`
 2. Secret present: `ls -l /run/agenix/paphos-mother-backup-ssh-key`
-3. SSH test from paphos:
+3. SSH test from paphos, with the options of the service:
    ```bash
-   sudo ssh -i /run/agenix/paphos-mother-backup-ssh-key -p 2235 taohansen@mother.hound-celsius.ts.net echo ok
+   sudo ssh -i /run/agenix/paphos-mother-backup-ssh-key -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=yes -p 2235 taohansen@192.168.99.200 echo ok
    ```
+   "Permission denied (publickey)" means that mother refuses the key: check its `from=` addresses. "Host key verification failed" means that mother's key differs from the pin in `modules/_host-keys.nix`.
 4. Confirm mother backup path exists and is writable.
 
 ## Health check spams Telegram

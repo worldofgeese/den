@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "b37df2e4316a75d486006a6fefbe86b3f6985ca5",
+    "accepted_commit": "bc1d6f099123ed0bec0155324ff282f58e04bbb6",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,22 +40,22 @@
     }
   },
   "change": {
-    "id": "change_01M6BE227DT46329HVXSNS53H9",
-    "base_commit": "b37df2e4316a75d486006a6fefbe86b3f6985ca5",
+    "id": "change_01M6BGRMD4BBG4VENZ5DX4MFWG",
+    "base_commit": "bc1d6f099123ed0bec0155324ff282f58e04bbb6",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-dagger-p4-1",
-      "summary": "Dagger P4 step 1: the shepherd reports merge verdicts",
-      "input_digest": "sha256:180a0d0458250a5efef4c5f8497a4035053723929a225cbb302dde94317abc1a",
+      "id": "ckpt-paphos-backup-1",
+      "summary": "Fix paphos-forgejo-backup: LAN address and pinned host key",
+      "input_digest": "sha256:7eb18a41bd44bb8d75c2106914fc72e5002dd4816ff2ebf5a37e151eeb0075f5",
       "proof_refs": [
-        "dagger check passes"
+        "LAN login with the pin exited 0"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6BE227DT46329HVXSNS53H9": {
+    "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -65,11 +65,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6BE227DT46329HVXSNS53H9",
+      "id": "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Dagger P4 phase 1: the shepherd reports the merge verdict of each open pull request",
-      "refined_intent": "Dagger P4 phase 1: the shepherd reports the merge verdict of each open pull request",
+      "raw_intent": "Fix paphos-forgejo-backup: mother over the LAN, pinned host key",
+      "refined_intent": "Fix paphos-forgejo-backup: mother over the LAN, pinned host key",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -82,35 +82,38 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Dagger P4 step 1: the shepherd reports the merge verdict of each open pull request and merges nothing; live merges after 10 PRs that agree",
+      "intent": "Fix paphos-forgejo-backup: reach mother over the LAN, where its from= accepts the backup key, and pin mother's host key in place of trust on first use",
       "phases": [],
       "proof_hooks": [
-        "just check",
-        "dagger check"
+        "just check"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Dagger P4 phase 1: the shepherd reports the merge verdict of each open pull request",
+      "title": "Fix paphos-forgejo-backup: mother over the LAN, pinned host key",
       "todo_ids": [
-        "code_01m6be1dnhp5ajt8"
+        "bugs_01m6bf31x9mg7a5e"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793532884Z"
+      "updated_at": "1793535842Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:f4e5a0b12fc37169d326b1a0013142b3aef5f4d66d5fe2c6ff6b29a216955cd8",
+      "artifact_hash": "sha256:7192335b26e12e703674fdff37fd0d761d9d886a43e6ea31a6e2aa001ac0b5f8",
       "checks": [
         {
-          "name": "automerge-dry-run-output-unchanged",
+          "name": "backup-script-text",
           "status": "passed"
         },
         {
-          "name": "dagger-check-all-local",
+          "name": "lan-login-with-pin",
+          "status": "passed"
+        },
+        {
+          "name": "paphos-known-hosts-eval",
           "status": "passed"
         }
       ],
@@ -119,20 +122,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6BE227DT46329HVXSNS53H9",
+            "intent_id": "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6BE227DT46329HVXSNS53H9",
+            "intent_id": "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6BE229HSZFCSH9TGEJ7EFM4",
+            "detail": "trajectory:branch_01M6BGRMF60R82J22Y3E100XNH",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6BE227DT46329HVXSNS53H9",
+            "intent_id": "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -141,27 +144,29 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6BE229HSZFCSH9TGEJ7EFM4": {
+          "branch_01M6BGRMF60R82J22Y3E100XNH": {
             "evidence_only": true,
-            "id": "branch_01M6BE229HSZFCSH9TGEJ7EFM4",
-            "intent_id": "intent:change_01M6BE227DT46329HVXSNS53H9",
+            "id": "branch_01M6BGRMF60R82J22Y3E100XNH",
+            "intent_id": "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".dagger/modules/ci/shepherd.go",
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/dagger.gen.go",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/INTENT.md",
+                  "modules/_host-keys.nix",
+                  "modules/paphos/ops.nix",
+                  "docs/paphos/explanation-network-design.md",
+                  "docs/paphos/troubleshooting.md",
                   ".decapod/managed/specs/ARCHITECTURE.md",
-                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-                  "automerge-dry-run --pr 81 prints '#81: would not merge (open): the pull request is merged'"
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "paphos: sudo ssh with the backup key, the pin and StrictHostKeyChecking=yes to taohansen@192.168.99.200:2235 exited 0",
+                  "mother ed25519 SHA256:CQfFLRGxoJrNR1uoDvglj/0qBn5b0xye17ptvXpV05Q from three sources"
                 ],
                 "proof_refs": [
-                  "dagger-check-all-local",
-                  "automerge-dry-run-output-unchanged"
+                  "lan-login-with-pin",
+                  "paphos-known-hosts-eval",
+                  "backup-script-text"
                 ],
                 "scope": [
                   "root"
@@ -176,18 +181,19 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "automerge-dry-run --pr 81 prints '#81: would not merge (open): the pull request is merged'"
+        "mother ed25519 SHA256:CQfFLRGxoJrNR1uoDvglj/0qBn5b0xye17ptvXpV05Q from three sources",
+        "paphos: sudo ssh with the backup key, the pin and StrictHostKeyChecking=yes to taohansen@192.168.99.200:2235 exited 0"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6BE227DT46329HVXSNS53H9",
+      "intent_id": "intent:change_01M6BGRMD4BBG4VENZ5DX4MFWG",
       "modified_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/dagger.gen.go",
-        ".dagger/modules/ci/shepherd.go",
         ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "docs/paphos/explanation-network-design.md",
+        "docs/paphos/troubleshooting.md",
+        "modules/_host-keys.nix",
+        "modules/paphos/ops.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -195,10 +201,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6BE229HSZFCSH9TGEJ7EFM4",
+      "run_id": "branch_01M6BGRMF60R82J22Y3E100XNH",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6be1dnhp5ajt8",
+      "task_id": "bugs_01m6bf31x9mg7a5e",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

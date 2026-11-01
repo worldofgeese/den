@@ -1,5 +1,9 @@
 {den, ...}: let
   motherBackupBase = "/volume1/homes/taohansen/jd/70-79 Operations/71 Server backups/paphos/forgejo";
+  # mother's LAN address. Since 2026-10-31, mother's authorized_keys accepts
+  # the backup key only from paphos' own addresses (from=). Over MagicDNS,
+  # mother refuses the key, and over the LAN it accepts it.
+  motherLanAddress = "192.168.99.200";
   telegramChatId = "488228716";
   oracleTailscaleIp = "100.87.121.45";
   oracleHost = "oracle.hound-celsius.ts.net";
@@ -191,10 +195,11 @@ in {
 
       key_file="/run/agenix/paphos-mother-backup-ssh-key"
       remote_base="${motherBackupBase}"
-      remote_host="taohansen@mother.hound-celsius.ts.net"
+      remote_host="taohansen@${motherLanAddress}"
       stamp="$(${coreutils}/bin/date -u +%Y%m%dT%H%M%SZ)"
       work_dir="$(${coreutils}/bin/mktemp -d)"
-      ssh_cmd="${openssh}/bin/ssh -i $key_file -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=accept-new -p 2235"
+      # Only the pinned key in the global known_hosts counts (programs.ssh.knownHosts.mother).
+      ssh_cmd="${openssh}/bin/ssh -i $key_file -o IdentitiesOnly=yes -o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=yes -p 2235"
       trap 'rm -rf "$work_dir"' EXIT
 
       ${util-linux}/bin/runuser -u postgres -- \
@@ -347,6 +352,12 @@ in {
     programs.ssh.knownHosts.oracle = {
       hostNames = [oracleHost oracleTailscaleIp];
       publicKey = hostKeys.oracle;
+    };
+
+    # Pins mother's host key for the Forgejo backup above.
+    programs.ssh.knownHosts.mother = {
+      hostNames = ["[${motherLanAddress}]:2235"];
+      publicKey = hostKeys.mother;
     };
 
     systemd.services.paphos-oracle-relay-check = {

@@ -700,7 +700,9 @@ as `upgrade-status@oracle`, which can only run the forced command
 blind. The check identifies itself with paphos' host key, and oracle's host
 key is pinned in paphos' `known_hosts`. Both keys are defined once in
 `modules/_host-keys.nix`. If either host is reinstalled, update that file and
-rekey the agenix secrets for paphos.
+rekey the agenix secrets for paphos. The same file pins mother's host key for
+`paphos-forgejo-backup`. If mother's SSH host key changes, the backup fails
+with "Host key verification failed" until its pin changes.
 
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |

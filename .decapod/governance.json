@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "3d29ab40d9de13d024d99024b62cb00f62b98b4b",
+    "accepted_commit": "78a2fd3223c9d755fe2e3fe762d02bbc01b506bf",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,38 +40,22 @@
     }
   },
   "change": {
-    "id": "change_01M6BQCEV4078RQBQT3654VR3F",
-    "base_commit": "3d29ab40d9de13d024d99024b62cb00f62b98b4b",
+    "id": "change_01M6C2G4PAFF60S924V1WKQJJZ",
+    "base_commit": "78a2fd3223c9d755fe2e3fe762d02bbc01b506bf",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-shepherd-fix-1",
-      "summary": "Shepherd: grace only for a new PR, own requests only, run on comments",
-      "input_digest": "sha256:0453683f26b089d6f8a005328a75e81166fd9eddd209924fc8be5b50973ed0c3",
+      "id": "ckpt-decapod-0121-2-1",
+      "summary": "Decapod 0.121.2 entrypoints and bump refresh",
+      "input_digest": "sha256:ef78a703793b940750c024e731b2da17167ab3cab8726d280336250fc90132c4",
       "proof_refs": [
-        "ci:shepherd-rules passes"
-      ]
-    },
-    {
-      "id": "ckpt-shepherd-fix-2",
-      "summary": "Rebase onto c94a809: refreshed specs and digest",
-      "input_digest": "sha256:fde643c80531bf3d5c2697b62e94dc98501731a58c3566c33470ca01fa3f9b36",
-      "proof_refs": [
-        "rebase onto c94a809"
-      ]
-    },
-    {
-      "id": "ckpt-shepherd-fix-4",
-      "summary": "Rebase onto 10fc490: authored spec text merged again, generated specs and digest refreshed",
-      "input_digest": "sha256:6e2ce318831fa40a73dd376805efd690252af0afd609234fc04c41271b35fa6e",
-      "proof_refs": [
-        "rebase onto 10fc490"
+        "shellcheck scripts/bump-flake-inputs.sh"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6BQCEV4078RQBQT3654VR3F": {
+    "intent:change_01M6C2G4PAFF60S924V1WKQJJZ": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -81,11 +65,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
+      "id": "intent:change_01M6C2G4PAFF60S924V1WKQJJZ",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Shepherd: grace only before the first Codex summary; count only its own requests; run on comments",
-      "refined_intent": "Shepherd: grace only before the first Codex summary; count only its own requests; run on comments",
+      "raw_intent": "Decapod 0.121.2 entrypoints and bump refresh (home-manager-1l3.11)",
+      "refined_intent": "Decapod 0.121.2 entrypoints and bump refresh (home-manager-1l3.11)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -98,7 +82,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Shepherd: grace only before the first Codex summary; count only its own requests; run on new or edited comments",
+      "intent": "Decapod 0.121.2 entrypoints; the nightly bump installs a new locked Decapod release and commits its entrypoint refresh; keep decapod-validate.yml until a Dagger check sees the real change range",
       "phases": [],
       "proof_hooks": [
         "just check",
@@ -107,26 +91,26 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Shepherd: grace only before the first Codex summary; count only its own requests; run on comments",
+      "title": "Decapod 0.121.2 entrypoints and bump refresh (home-manager-1l3.11)",
       "todo_ids": [
-        "docs_01m6bqbkegb2jz4n"
+        "code_01m6c1kst1gxjwa9"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793542890Z"
+      "updated_at": "1793554223Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:c2488d8f73785ff5959def4236b9e698d31d5ea1978d4884e02922442c2cf0e5",
+      "artifact_hash": "sha256:18d43609ed62118ce0d6266f3bf419d2a8c4af6f781702d27985a59d18cb6587",
       "checks": [
         {
-          "name": "actionlint",
+          "name": "nix-eval-locked-decapod-version",
           "status": "passed"
         },
         {
-          "name": "shepherd-rules-18-cases",
+          "name": "shellcheck",
           "status": "passed"
         }
       ],
@@ -135,20 +119,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
+            "intent_id": "intent:change_01M6C2G4PAFF60S924V1WKQJJZ",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
+            "intent_id": "intent:change_01M6C2G4PAFF60S924V1WKQJJZ",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6BQCEXKZAZS39FD40F67CPK",
+            "detail": "trajectory:branch_01M6C2G4RF3ZV1VZ6F4BS1VGX5",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
+            "intent_id": "intent:change_01M6C2G4PAFF60S924V1WKQJJZ",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -157,28 +141,30 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6BQCEXKZAZS39FD40F67CPK": {
+          "branch_01M6C2G4RF3ZV1VZ6F4BS1VGX5": {
             "evidence_only": true,
-            "id": "branch_01M6BQCEXKZAZS39FD40F67CPK",
-            "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
+            "id": "branch_01M6C2G4RF3ZV1VZ6F4BS1VGX5",
+            "intent_id": "intent:change_01M6C2G4PAFF60S924V1WKQJJZ",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".dagger/modules/ci/shepherd.go",
-                  ".dagger/modules/ci/shepherd_checks.go",
-                  ".dagger/modules/ci/dagger.gen.go",
-                  ".github/workflows/shepherd.yml",
+                  "scripts/bump-flake-inputs.sh",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
                   ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/SECURITY.md",
+                  ".decapod/managed/specs/VALIDATION.md",
                   "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
                   ".decapod/config.toml",
-                  "live: run 41311223419 saw #85 head 39bf07b inside the grace period, and no schedule run came in 3 hours, so no request was posted"
+                  "decapod 0.121.2 validate --refresh-specs regenerated exactly AGENTS.md CLAUDE.md CODEX.md GEMINI.md Dockerfile.decapod and the manifest"
                 ],
                 "proof_refs": [
-                  "shepherd-rules-18-cases",
-                  "actionlint"
+                  "shellcheck",
+                  "nix-eval-locked-decapod-version"
                 ],
                 "scope": [
                   "root"
@@ -193,19 +179,21 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "live: run 41311223419 saw #85 head 39bf07b inside the grace period, and no schedule run came in 3 hours, so no request was posted"
+        "decapod 0.121.2 validate --refresh-specs regenerated exactly AGENTS.md CLAUDE.md CODEX.md GEMINI.md Dockerfile.decapod and the manifest"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6BQCEV4078RQBQT3654VR3F",
+      "intent_id": "intent:change_01M6C2G4PAFF60S924V1WKQJJZ",
       "modified_files": [
-        ".dagger/modules/ci/dagger.gen.go",
-        ".dagger/modules/ci/shepherd.go",
-        ".dagger/modules/ci/shepherd_checks.go",
         ".decapod/config.toml",
+        ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/SECURITY.md",
-        ".github/workflows/shepherd.yml",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
+        ".decapod/managed/specs/VALIDATION.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+        "scripts/bump-flake-inputs.sh"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -213,10 +201,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6BQCEXKZAZS39FD40F67CPK",
+      "run_id": "branch_01M6C2G4RF3ZV1VZ6F4BS1VGX5",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "docs_01m6bqbkegb2jz4n",
+      "task_id": "code_01m6c1kst1gxjwa9",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

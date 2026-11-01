@@ -302,7 +302,13 @@ interface).
   writes only the branch `bump/flake-inputs` and its pull request: the
   updated `flake.lock`, the renewed `reviewed_sources_digest`, the section
   "Flake Input Updates" of OPERATIONS.md and the spec refresh of
-  `decapod validate`.
+  `decapod validate`. When the update moves the Decapod of `flake.lock` to a
+  new release, the bump installs it, and validate writes that release into
+  `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`,
+  `.decapod/managed/Dockerfile.decapod` and the manifest. CI installs the
+  release in the header of `AGENTS.md`, so CI and the hosts run the same
+  Decapod after the merge. A rev before its release on crates.io keeps the
+  old header, and the bump warns.
 - **Settings** (`[modules.ci.settings]`): `repository` (owner/name),
   `authors` (a bot is `app/<login>`), `reviewer` (the login whose review of
   the head counts) and `riskyPaths` (path prefixes that a person merges).

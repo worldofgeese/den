@@ -172,7 +172,11 @@ Two limits apply:
 - `ci:decapod-validate` gets the files without their git history. The script
   commits an empty base and the files as the candidate, so the change range
   holds every file. The workflow `decapod-validate.yml` keeps the real change
-  range of a pull request until plan P2 deletes it.
+  range of a pull request. Only that range shows rules such as
+  `FINGERPRINT_ONLY_SPECS`, which read what the pull request changed. So the
+  workflow stays until a Dagger check gets the real range. Seven pull
+  requests passed both checks by 2026-11-01, so the count of plan P2 is not
+  the limit.
 
 ### Dagger Checks in CI
 

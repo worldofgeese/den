@@ -88,6 +88,23 @@ open(path, "w").write(text[:start] + section + text[stop:])
 print(f"bump: {len(rows)} node(s) of flake.lock changed")
 EOF
 
+# Den runs the Decapod of flake.lock (modules/overlays.nix), and CI runs the
+# release in the header of AGENTS.md. When the update moves Decapod, the
+# script installs that release, and validate below writes it into the
+# entrypoints, Dockerfile.decapod and the manifest. A rev of flake.lock can
+# come before its release on crates.io. Then the header stays, and the next
+# bump tries again.
+pinned="$(sed -n 's/^<!-- decapod-release: \([0-9][0-9.]*\) -->$/\1/p' AGENTS.md)"
+# shellcheck disable=SC2016 # Nix expands ${builtins.currentSystem}.
+locked="$(nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.decapod.packages.${builtins.currentSystem}.default.version')"
+if [[ -n "$locked" && "$locked" != "$pinned" ]]; then
+  if cargo binstall --no-confirm "decapod@${locked}"; then
+    echo "bump: Decapod ${pinned} -> ${locked}"
+  else
+    echo "::warning::bump: Decapod ${locked} has no release to install; the entrypoints stay at ${pinned}"
+  fi
+fi
+
 digest="$(decapod rpc --op agent.init | grep -o '"inventory_digest": *"sha256:[0-9a-f]*"' | grep -o 'sha256:[0-9a-f]*' | head -1)"
 if [[ -z "$digest" ]]; then
   echo "bump: decapod agent.init gave no inventory_digest" >&2
@@ -124,9 +141,10 @@ no_drift() {
   git diff --quiet -- . ':!.decapod/governance/' ':!.decapod/governance.json'
 }
 validate
-# validate refreshes the specs. The bump commits that refresh.
+# validate refreshes the specs, and after a new Decapod also the entrypoints.
+# The bump commits that refresh.
 if ! no_drift; then
-  git add .decapod/managed/specs
+  git add .decapod/managed AGENTS.md CLAUDE.md CODEX.md GEMINI.md
   git commit -q --amend --no-edit
   validate
   if ! no_drift; then

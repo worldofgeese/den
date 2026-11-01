@@ -258,7 +258,13 @@ interface).
 
 - **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
   `ci:decapod-overrides`, `ci:decapod-validate` and `ci:automerge-rules`.
-  VALIDATION.md (Dagger Checks) maps them to the `just check` steps.
+  VALIDATION.md (Dagger Checks) maps them to the `just check` steps. To run
+  one check, give its name to `--check`, for example
+  `dagger check --check ci/nix-eval`.
+- **CI** (`.github/workflows/dagger.yml`): two jobs on GitHub-hosted runners
+  run the checks, and the job `den/dagger-check` passes only when both pass.
+  Branch protection on `main` requires `den/dagger-check` and `validate`.
+  The jobs get no secret and a token that can only read.
 - **`automerge-dry-run --token <secret> --pr <n>`** judges an open pull
   request by the merge rules, and prints the verdict and the merge method.
 - **`automerge-replay --token <secret> [--count 30]`** judges the newest
@@ -273,6 +279,12 @@ interface).
   Each one is optional, and an empty value refuses.
 - **Incomplete data refuses.** When GitHub has more changed files, check
   contexts or label events than one query reads, the rules refuse.
+- **Branch protection.** The live rule `protected` reads GitHub's
+  `mergeStateStatus` and accepts only `CLEAN` or `HAS_HOOKS`. GitHub computes
+  that value from the branch protection of the base, so a required check that
+  has not started yet also refuses. An admin token can pass branch
+  protection, so the rules do not leave this to GitHub. A replay skips this
+  rule, as it skips `open` and `mergeable`.
 
 The token is a Dagger secret, for example `env://GH_TOKEN`. On M-02877,
 `DAGGER_ENGINE=container+podman://den-dagger-engine` is a session variable.
@@ -283,7 +295,7 @@ Make the container once with `just dagger-check`, then call for example
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `2d30f87d9cc2221fecf485b9bdfae0ee777f01cb40ac0ce93eb9e9acdc81bebf`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

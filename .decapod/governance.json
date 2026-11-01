@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "a1290a5a6cdd617669e0e332be5a7b459b0afaeb",
+    "accepted_commit": "75a8b76df401da378dc78433942b435233229c3a",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,22 +40,22 @@
     }
   },
   "change": {
-    "id": "change_01M68GKXDBQ08DR74GJSWV6XEQ",
-    "base_commit": "a1290a5a6cdd617669e0e332be5a7b459b0afaeb",
+    "id": "change_01M6B3KBCS1NDM1TQ92CQTZENP",
+    "base_commit": "75a8b76df401da378dc78433942b435233229c3a",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-remove-tramp-rpc-1",
-      "summary": "Remove tramp-rpc from den",
-      "input_digest": "sha256:e87cfe29cb25c4a3ed80f27b21b103732f7557b292c6c3d7a3b502b659bef34a",
+      "id": "ckpt-dagger-p2-1",
+      "summary": "Dagger P2: dagger check on GitHub-hosted runners and the protected merge rule",
+      "input_digest": "sha256:9ba6b54bc37a119e7f27da548f007d8e6ac27039882fcf3c0b67836e83c3d945",
       "proof_refs": [
-        "nix flake lock drops only the emacs-tramp-rpc node"
+        "dagger check: 7 checks pass on den-dagger-engine"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ": {
+    "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -65,11 +65,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
+      "id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Remove tramp-rpc from den",
-      "refined_intent": "Remove tramp-rpc from den",
+      "raw_intent": "Dagger P2: dagger check on GitHub-hosted runners, den/dagger-check, branch protection",
+      "refined_intent": "Dagger P2: dagger check on GitHub-hosted runners, den/dagger-check, branch protection",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -82,34 +82,39 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Remove tramp-rpc from den at the user's request: the flake input, the Emacs package overrides with the cross-built servers, and the Doom package and config",
+      "intent": "Dagger P2: run dagger check on GitHub-hosted runners (.github/workflows/dagger.yml) with a den/dagger-check summary job, add the live merge rule protected (mergeStateStatus), and record the 2026-11-01 decisions",
       "phases": [],
       "proof_hooks": [
-        "just check"
+        "just check",
+        "dagger check"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Remove tramp-rpc from den",
+      "title": "Dagger P2: dagger check on GitHub-hosted runners, den/dagger-check, branch protection",
       "todo_ids": [
-        "code_01m68gk4x618ytat"
+        "code_01m6b3jxjqatyj1v"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793434810Z"
+      "updated_at": "1793523157Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:da71d6d5c3941278403182964415bdd3a0b1b1fe13064c45380c9d5671838190",
+      "artifact_hash": "sha256:8b8c913beeb8e8ddf184f36b9782bd24432ff1894985af3cb69ccb425af67753",
       "checks": [
         {
-          "name": "lock-only-drops-tramp-node",
+          "name": "actionlint",
           "status": "passed"
         },
         {
-          "name": "no-leftover-references",
+          "name": "dagger-check-all-local",
+          "status": "passed"
+        },
+        {
+          "name": "dagger-install-beta21-linux",
           "status": "passed"
         }
       ],
@@ -118,20 +123,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
+            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
+            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M68GKXFP2Y34MEX4G3JSZW8E",
+            "detail": "trajectory:branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
+            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -140,28 +145,34 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M68GKXFP2Y34MEX4G3JSZW8E": {
+          "branch_01M6B3KBEVBAM01XSQ4PYYC8F8": {
             "evidence_only": true,
-            "id": "branch_01M68GKXFP2Y34MEX4G3JSZW8E",
-            "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
+            "id": "branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
+            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "flake.nix",
-                  "flake.lock",
-                  "modules/doom-emacs.nix",
-                  "modules/doom.d/packages.el",
-                  "modules/doom.d/config.el",
+                  ".github/workflows/dagger.yml",
+                  ".dagger/modules/ci/automerge.go",
+                  ".dagger/modules/ci/automerge_checks.go",
+                  ".dagger/modules/ci/dagger.gen.go",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/INTENT.md",
                   ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
                   ".decapod/config.toml",
-                  "nix flake lock: removed emacs-tramp-rpc and its two follows; no other node changed",
-                  "mahakala: aarch64 musl gcc cross build failed with No space left on device; the user chose to remove tramp-rpc"
+                  "dagger check on den-dagger-engine: 7 checks pass, ci/automerge-rules includes the protected cases",
+                  "dagger check --check ci/nix-eval runs only ci/nix-eval (30 s)",
+                  "dl.dagger.io serves v1.0.0-beta.21 linux_amd64 and linux_arm64 (HTTP 206, checksums)"
                 ],
                 "proof_refs": [
-                  "lock-only-drops-tramp-node",
-                  "no-leftover-references"
+                  "dagger-check-all-local",
+                  "actionlint",
+                  "dagger-install-beta21-linux"
                 ],
                 "scope": [
                   "root"
@@ -176,31 +187,36 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "mahakala: aarch64 musl gcc cross build failed with No space left on device; the user chose to remove tramp-rpc",
-        "nix flake lock: removed emacs-tramp-rpc and its two follows; no other node changed"
+        "dagger check --check ci/nix-eval runs only ci/nix-eval (30 s)",
+        "dagger check on den-dagger-engine: 7 checks pass, ci/automerge-rules includes the protected cases",
+        "dl.dagger.io serves v1.0.0-beta.21 linux_amd64 and linux_arm64 (HTTP 206, checksums)"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M68GKXDBQ08DR74GJSWV6XEQ",
+      "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
       "modified_files": [
+        ".dagger/modules/ci/automerge.go",
+        ".dagger/modules/ci/automerge_checks.go",
+        ".dagger/modules/ci/dagger.gen.go",
         ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
-        "flake.lock",
-        "flake.nix",
-        "modules/doom-emacs.nix",
-        "modules/doom.d/config.el",
-        "modules/doom.d/packages.el"
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/SECURITY.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        ".github/workflows/dagger.yml",
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "flake.nix, flake.lock, modules/doom-emacs.nix, modules/doom.d, ARCHITECTURE.md, readiness digest",
+        ".github/workflows/dagger.yml, .dagger/modules/ci, specs, plan doc, readiness digest",
         "root"
       ],
-      "run_id": "branch_01M68GKXFP2Y34MEX4G3JSZW8E",
+      "run_id": "branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m68gk4x618ytat",
+      "task_id": "code_01m6b3jxjqatyj1v",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

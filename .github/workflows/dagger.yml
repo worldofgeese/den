@@ -1,0 +1,78 @@
+# Runs the checks of the Dagger module .dagger/modules/ci on GitHub-hosted
+# runners (plan docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md,
+# P2). Standard runners are free for a public repository, and each job gets a
+# new virtual machine. The jobs get no secret, and the token can only read.
+#
+# Branch protection on main requires the job den/dagger-check. That job
+# passes only when each job of the matrix passes.
+name: dagger
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dagger-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: dagger check (${{ matrix.system }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The system of the engine on M-02877, so this job runs every
+          # check that `just dagger-check` runs there.
+          - system: aarch64-linux
+            runner: ubuntu-24.04-arm
+            args: ""
+          # The x86_64-linux checks build import-from-derivation steps on an
+          # x86_64-linux builder. An aarch64-linux engine skips them, so this
+          # job runs only ci/nix-eval, on an x86_64-linux engine.
+          - system: x86_64-linux
+            runner: ubuntu-24.04
+            args: --check ci/nix-eval
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The module pins its engine release in one file.
+      - name: Read the engine release of the module
+        id: engine
+        run: |
+          version="$(sed -n 's/^engineVersion = "v\(.*\)"$/\1/p' .dagger/modules/ci/dagger-module.toml)"
+          if [ -z "$version" ]; then
+            echo "::error::.dagger/modules/ci/dagger-module.toml has no engineVersion"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - uses: dagger/dagger-for-github@27b130bf0f79a7f6fbbbe0fbca6760dc9bb40a77 # v8.4.1
+        with:
+          version: ${{ steps.engine.outputs.version }}
+          verb: check
+          args: ${{ matrix.args }}
+
+  den-dagger-check:
+    name: den/dagger-check
+    needs: check
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Each check job passed
+        env:
+          RESULT: ${{ needs.check.result }}
+        run: |
+          if [ "$RESULT" != success ]; then
+            echo "::error::the check jobs ended with result $RESULT"
+            exit 1
+          fi

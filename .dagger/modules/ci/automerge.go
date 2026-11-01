@@ -65,11 +65,14 @@ type prSnapshot struct {
 	Body           string
 	ReviewDecision string
 	Mergeable      string
-	MergedAt       time.Time
-	Checks         []prCheck
-	Reviews        []prReview
-	Comments       []prComment
-	Files          []string
+	// MergeState is GitHub's mergeStateStatus. GitHub computes it from the
+	// branch protection of the base, so it names the checks that must pass.
+	MergeState string
+	MergedAt   time.Time
+	Checks     []prCheck
+	Reviews    []prReview
+	Comments   []prComment
+	Files      []string
 	// ChangedFiles is GitHub's count. A query reads at most 100 paths, so
 	// fewer Files than ChangedFiles means the list is incomplete.
 	ChangedFiles int
@@ -189,6 +192,16 @@ var mergeRules = []mergeRule{
 	{"mergeable", true, func(s *prSnapshot, _ mergePolicy) string {
 		if s.Mergeable != "MERGEABLE" {
 			return "mergeable is " + s.Mergeable
+		}
+		return ""
+	}},
+	// The checks rule judges only the checks that ran. Branch protection names
+	// the checks that must run, so a check that has not started yet also
+	// refuses. An admin can pass branch protection, so the rules do not leave
+	// this to GitHub.
+	{"protected", true, func(s *prSnapshot, _ mergePolicy) string {
+		if s.MergeState != "CLEAN" && s.MergeState != "HAS_HOOKS" {
+			return "merge state is " + s.MergeState + "; branch protection does not let head " + short(s.Head) + " merge"
 		}
 		return ""
 	}},
@@ -329,7 +342,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
     defaultBranchRef { name }
     mergeCommitAllowed squashMergeAllowed rebaseMergeAllowed
     pullRequest(number: $n) {
-      number state isDraft baseRefName headRefOid body reviewDecision mergeable mergedAt changedFiles
+      number state isDraft baseRefName headRefOid body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
       author { __typename login }
       labels(first: 50) { nodes { name } }
       timelineItems(first: 100, itemTypes: [LABELED_EVENT, UNLABELED_EVENT]) {
@@ -372,19 +385,20 @@ func (a *gqlActor) name() string {
 }
 
 type gqlPR struct {
-	Number         int
-	State          string
-	IsDraft        bool
-	BaseRefName    string
-	HeadRefOid     string
-	Body           string
-	ReviewDecision string
-	Mergeable      string
-	MergedAt       *time.Time
-	ChangedFiles   int
-	Author         *gqlActor
-	Labels         struct{ Nodes []struct{ Name string } }
-	TimelineItems  struct {
+	Number           int
+	State            string
+	IsDraft          bool
+	BaseRefName      string
+	HeadRefOid       string
+	Body             string
+	ReviewDecision   string
+	Mergeable        string
+	MergeStateStatus string
+	MergedAt         *time.Time
+	ChangedFiles     int
+	Author           *gqlActor
+	Labels           struct{ Nodes []struct{ Name string } }
+	TimelineItems    struct {
 		PageInfo struct{ HasNextPage bool }
 		Nodes    []struct {
 			Typename  string `json:"__typename"`
@@ -448,7 +462,8 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 	s := prSnapshot{
 		Number: pr.Number, State: pr.State, Draft: pr.IsDraft, Base: pr.BaseRefName,
 		Trunk: trunk, Author: pr.Author.name(), Head: pr.HeadRefOid, Body: pr.Body,
-		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable, ChangedFiles: pr.ChangedFiles,
+		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable, MergeState: pr.MergeStateStatus,
+		ChangedFiles: pr.ChangedFiles,
 	}
 	var cutoff time.Time
 	if replay && pr.MergedAt != nil {

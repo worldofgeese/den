@@ -140,6 +140,16 @@ The user answered D1, D2 and D6, and let the agent decide the rest. The user als
 | D5 | Move den to the newest Decapod in its own PR, and pin the same release in CI and on PATH. Then decide the readiness profile with that release | The standing rule to use the latest release. One release everywhere removes den#61's pin rewrite |
 | D6 | A public module, `.dagger/modules/ci` in den, with no company names, accounts, hosts or URLs in its code. Each repository gives those as settings in its own `dagger.toml`. AEC can install it at a pinned commit | A public module is acceptable when it holds no private or company information |
 
+### Decisions on 2026-11-01
+
+The user replaced the engine part of D1 and created the D3 token. The user also decided the update policy of the servers; TruePhoenix relayed that decision.
+
+| Gate | Decision | Reason |
+|---|---|---|
+| D1 | The checks run on GitHub-hosted runners: `.github/workflows/dagger.yml`. The shepherd of P3 to P8 also runs as a workflow on these runners. No den host runs an engine for CI | Standard runners are free for a public repository, with no minute limit, and each job gets a new virtual machine. Dagger Cloud Checks (the Dagger GitHub app) costs at least 20 USD a month. Blacksmith works only for organizations, so den would move, and its free plan has fewer minutes. The Forgejo runner on loving-kypris takes jobs only from the Forgejo on paphos, runs one job at a time, and gives its jobs no privilege. A privileged engine there would run PR code in the same podman account as Vaultwarden and OpenClaw |
+| D3 | The fine-grained token `den-shepherd` of `worldofgeese`, for `worldofgeese/den` only, for 366 days. It has write access to contents, pull requests, commit statuses and issues, and no workflows access. It is the secret `DEN_SHEPHERD_TOKEN` of the environment `shepherd`, and only jobs on `main` can read that environment | Without workflows access, GitHub refuses a push from the automation that changes a workflow file. A personal token cannot make check runs, so the shepherd writes commit statuses |
+| Server updates | paphos and oracle keep `--override-input nixpkgs github:NixOS/nixpkgs/nixos-unstable`. P6 does not hold the servers to `flake.lock`. P8 reports the deployed den commit and nixpkgs revision of each server | The user wants the servers on the newest `nixos-unstable`. A green check of `flake.lock` does not prove the nixpkgs revision that a server fetches later, so the report names the revision that each server runs |
+
 ## Phases
 
 Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
@@ -148,13 +158,13 @@ Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
 |---|---|---|
 | P0 | Answer D1 to D6. Port the merge rules in dry-run mode, and judge den's last 30 merged PRs as of their merge, as `--replay` does. Close or rebase PRs #24 and #25 | A table of the merges that the rules accept and refuse, with a reason for each refusal |
 | P1 | `dagger.toml`, `dagger.lock`, `.dagger/modules/ci` and the checks in item 1. Pin the engine image by digest, as devrel-infra pins `v1.0.0-beta.21@sha256:3444c48e...` | `dagger check` passes twice on M-02877, and the second run comes from the cache. A table maps each `just check` step to a Dagger check or a written exception |
-| P2 | The engine and the shepherd on paphos (D1), the `den/dagger-check` status, and branch protection on `main` that requires it. Delete `decapod-validate.yml` after 5 PRs where that status is required and green | A PR shows the `den/dagger-check` status, and a failing check stops its merge |
+| P2 | `dagger check` on GitHub-hosted runners (D1 as revised on 2026-11-01), the `den/dagger-check` check, and branch protection on `main` that requires it. The merge rules read `mergeStateStatus`. Delete `decapod-validate.yml` after 5 PRs where that check is required and green | A PR shows the `den/dagger-check` check, and a failing check stops its merge |
 | P3 | The reviewer in Dagger. Retire `com.dktaohan.pr-reviewer` after 5 PRs where the two reviewers agree | The review rounds stop at the cap. The code cannot send an `APPROVE` or `REQUEST_CHANGES` event |
 | P4 | Automerge in Dagger. Retire `com.dktaohan.pr-reviewer-automerge` | For 10 PRs, the dry-run verdicts agree with the launchd merger. Then the live merges start |
 | P5 | The fixer that pushes, and its poster | A test PR with a format error is fixed and merged without a person. A test PR that touches a denied path gets `needs-human` |
-| P6 | The nightly bump, and topgrade on M-02877 changed to pull and deploy only. A bump PR that changes `flake.lock` also renews `reviewed_sources_digest` in `.decapod/config.toml`, because the readiness inventory includes the lock | A flake update PR merges. On M-02877, `scripts/deploy-freshness.sh` passes and the deployed commit is `origin/main`. den#60 is closed |
+| P6 | The nightly bump of the pins in the repository: flake inputs, Dagger, Decapod, image digests and action commits. topgrade on M-02877 changed to pull and deploy only. In the same change, `scripts/deploy-freshness.sh` also refuses uncommitted edits; today it checks commits only, and a guard without the topgrade change stops each topgrade deploy. A bump PR that changes `flake.lock` also renews `reviewed_sources_digest` in `.decapod/config.toml`, because the readiness inventory includes the lock. The servers keep their own nixpkgs (Decisions on 2026-11-01) | A flake update PR merges. On M-02877, `scripts/deploy-freshness.sh` passes and the deployed commit is `origin/main`. den#60 is closed |
 | P7 | The issue shepherd | For 7 days, no issue without `needs-human` is open. Each close names its evidence |
-| P8 | The deploy report | A forced deploy failure opens one issue, and a fix PR closes it |
+| P8 | The deploy report. For each host, it names the deployed den commit and nixpkgs revision, because paphos and oracle fetch `nixos-unstable` themselves | A forced deploy failure opens one issue, and a fix PR closes it |
 
 ## Open Items Today
 

@@ -28,8 +28,10 @@ This project's architecture consists of the following key layers/directories:
   pinned container (VALIDATION.md, Dagger Checks). `automerge.go` holds the
   merge rules as a pure function over a snapshot of a pull request, and the
   read-only `automerge-dry-run` and `automerge-replay` read GitHub's GraphQL
-  API with a token secret. The shepherd, the reviewer, the fixer and the live
-  automerge of the Dagger plan come in its later phases.
+  API with a token secret. `.github/workflows/dagger.yml` runs the checks on
+  GitHub-hosted runners for each pull request and each push to `main`
+  (VALIDATION.md, Dagger Checks in CI). The shepherd, the reviewer, the fixer
+  and the live automerge of the Dagger plan come in its later phases.
 - `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
   servers and pinned pi packages; activation merges them into pi's own
   writable files (`mcp.json`, `settings.json`) instead of linking store files,
@@ -406,7 +408,7 @@ because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `03f0dbc7d3f73a1dece5855fe315556f1304f371d84ccabcb1eed813d729924f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (1 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `2d30f87d9cc2221fecf485b9bdfae0ee777f01cb40ac0ce93eb9e9acdc81bebf`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (10 files), `.github/` (2 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

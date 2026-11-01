@@ -591,6 +591,21 @@ Before 2026-10-23 only `proxy_savings.json` was on the volume. The memory,
 restart (den#62, headroomlabs-ai/headroom#4443). `HEADROOM_STORE_URL` is gone,
 because the proxy never read it.
 
+Since 2026-11-01 the HuggingFace model cache is on the volume too:
+`HF_HOME=/data/huggingface` and `HF_HUB_DISABLE_XET=1`. Headroom downloads its
+models (Kompress int8 ONNX 261 MB, MiniLM ONNX 86 MB) before it listens. With
+the cache in the container layer, every restart downloaded them again. On
+2026-11-01 the Mac's Wi-Fi gave 0.1 MB/s, and the xet transfer stayed at
+0 bytes. So each new container was still downloading when the watchdog
+recycled it, every 10 minutes, and pi, Claude Code and omp had no Headroom for
+hours. On the volume the models download once, and an interrupted download
+resumes over plain HTTPS.
+
+To keep the watchdog from recycling a Headroom that is still downloading, write
+a future time into its cooldown file:
+`echo $(( $(date +%s) + 7200 )) > /tmp/headroom-watchdog.cooldown`. The
+watchdog acts again 10 minutes after that time.
+
 pi offers CodeGraph's one tool, `codegraph_explore`, to the model directly
 (`exposure = "direct"`). With the default `codemode` exposure, the model made
 0 calls in 60 sessions (den#63).
@@ -620,9 +635,13 @@ pi's `lego-claude` provider (`agentProviders.pi` in
   is expected. Tool-output shrinking and `caveman_retrieve` still work.
 
 Both hops are now in pi's model path. If Caveman or Headroom is down, pi's
-requests fail, with no fallback to direct. launchd restarts Caveman, and
-`com.headroom.watchdog` recovers Headroom. Restart either one from a plain
-terminal, never from a pi session.
+requests fail with a 502 `cave_upstream_unavailable`, and there is no fallback
+to direct. launchd restarts Caveman, and `com.headroom.watchdog` recovers
+Headroom. Restart either one from a plain terminal, never from a pi session.
+While a hop is down, a pi session can use `/model anthropic-proxy/<model id>`,
+which goes straight to the gateway. To send all new sessions direct, set
+`lego-claude`'s `baseUrl` in `~/.pi/agent/models.json` to the gateway's
+`/anthropic` endpoint. The next switch puts the chain back.
 
 What we measured on 2026-11-01 with `~/.cache/chain-test/chain-ab.sh`: an
 isolated pi agent dir with a one-shot stand-in for Signet, a private bin-v4.0.2

@@ -87,7 +87,7 @@ owning a fork does not make its content personal.
 | pr-reviewer gateway virtual key (M-02877) | `~/Library/Application Support/pr-reviewer/gateway.key`, plaintext, 0600, FileVault at rest; a dedicated key so a locked keybag cannot block background reviews; never in Nix (the store holds only its path) | manual: replace the file | `com.dktaohan.pr-reviewer`'s claude harness, read per call by `apiKeyHelper` |
 | Gateway key last-known-good cache (M-02877, any host using `gateway.keyCommand`) | `~/.local/state/gateway-key.cache`, plaintext, 0600, FileVault at rest; copy of `LEGO_GATEWAY_API_KEY` written by `gateway.keyCommand` after each successful secretspec lookup, so a locked keybag does not fail agents in flight; never in Nix | automatic: refreshed on the next unlocked lookup after the secret changes; delete the file to force a fresh lookup | `gateway.keyCommand` (pi, Caveman Code, omp, Claude Code shell token, Doom agent-shell), read only when secretspec misses |
 | Team Signet API key (M-02877) | `~/.config/signet/token`, 0600, from LEGO/devrel-infra `projects/aws-signet` `scripts/enroll.sh`. `signet connect pi` also writes it into the header of `~/.pi/agent/extensions/signet-pi.js`, which activation (`signetPiExtensionMode`) sets to 0600 at each switch. Never in Nix | manual: enroll again, then run `signet connect pi` again | every Signet client through `SIGNET_API_KEY`; the pi extension uses its copy when `SIGNET_API_KEY` is unset |
-| `DEN_SHEPHERD_TOKEN` (the fine-grained token `den-shepherd` of `worldofgeese`) | Secret of the GitHub Actions environment `shepherd` of `worldofgeese/den`. Only jobs on `main` can read it. Never in the repository or the Nix store | manual: make a new token for `worldofgeese/den` only, then run `gh secret set DEN_SHEPHERD_TOKEN --env shepherd -R worldofgeese/den` | The shepherd workflow `.github/workflows/shepherd.yml` (Dagger plan P3 to P8). In P3 it posts only review requests and the label `needs-human` |
+| `DEN_SHEPHERD_TOKEN` (the fine-grained token `den-shepherd` of `worldofgeese`) | Secret of the GitHub Actions environment `shepherd` of `worldofgeese/den`. Only jobs on `main` can read it. Never in the repository or the Nix store | manual: make a new token for `worldofgeese/den` only, then run `gh secret set DEN_SHEPHERD_TOKEN --env shepherd -R worldofgeese/den` | The shepherd workflow `.github/workflows/shepherd.yml` (Dagger plan P3 to P8), which posts review requests and the label `needs-human`, and the bump workflow `.github/workflows/bump.yml` (P6), which pushes the branch `bump/flake-inputs` and opens its pull request |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
 
@@ -161,6 +161,8 @@ write it again.
   commit.
 - The token `den-shepherd` has no workflows access. So GitHub refuses a push
   from the automation that changes a file in `.github/workflows`.
+- The bump job checks out `main` only. It runs `nix flake update` and
+  Decapod on that code, and it pushes only to the branch `bump/flake-inputs`.
 - The shepherd job checks out `main` only, and it never runs pull request
   code. It reads pull requests as data and writes only a request comment, the
   label `needs-human` and its comment.
@@ -196,7 +198,7 @@ Describe the security primitives and security controls implemented in this repos
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

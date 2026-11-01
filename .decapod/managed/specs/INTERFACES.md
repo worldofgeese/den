@@ -288,6 +288,12 @@ interface).
   GitHub. The shepherd writes only the request comment `@codex review`, the
   label `needs-human` and its comment. No function sends a review event,
   writes a status or merges. Live merges come in plan P4.
+- **Nightly bump** (plan P6). `.github/workflows/bump.yml` runs
+  `scripts/bump-flake-inputs.sh` at 01:17 UTC with `DEN_SHEPHERD_TOKEN`. It
+  writes only the branch `bump/flake-inputs` and its pull request: the
+  updated `flake.lock`, the renewed `reviewed_sources_digest`, the section
+  "Flake Input Updates" of OPERATIONS.md and the spec refresh of
+  `decapod validate`.
 - **Settings** (`[modules.ci.settings]`): `repository` (owner/name),
   `authors` (a bot is `app/<login>`), `reviewer` (the login whose review of
   the head counts) and `riskyPaths` (path prefixes that a person merges).
@@ -310,7 +316,7 @@ Make the container once with `just dagger-check`, then call for example
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

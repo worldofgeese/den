@@ -33,8 +33,11 @@ This project's architecture consists of the following key layers/directories:
   (VALIDATION.md, Dagger Checks in CI). `shepherd.go` asks the Codex
   connector to review each new head and reports the verdict of the merge
   rules for each pull request, and `.github/workflows/shepherd.yml`
-  runs it with the token of the environment `shepherd`. The fixer and the
-  live automerge of the Dagger plan come in its later phases.
+  runs it with the token of the environment `shepherd`.
+  `.github/workflows/bump.yml` runs `scripts/bump-flake-inputs.sh` each night,
+  and the PR that it opens is the only path for new flake inputs (plan P6).
+  The fixer and the live automerge of the Dagger plan come in its later
+  phases.
 - `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
   servers and pinned pi packages; activation merges them into pi's own
   writable files (`mcp.json`, `settings.json`) instead of linking store files,
@@ -419,7 +422,7 @@ because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `3eca9c0b9c3b456c67155acab8be2b680ec29db34ca75067fa183572159dec7c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (3 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

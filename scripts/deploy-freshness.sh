@@ -9,13 +9,25 @@
 # 0.23.0 (PR #64) to 0.21.1 and removed the CodeGraph `exposure` of PR #66.
 # The deploy reported success.
 #
-# The check compares commits only. Uncommitted edits are a separate rule: see
-# "Deploy only committed inputs" in .decapod/managed/specs/OPERATIONS.md.
+# It also stops a deploy of uncommitted edits to tracked files ("Deploy only
+# committed inputs" in .decapod/managed/specs/OPERATIONS.md). Those edits are
+# not in any PR, so no check saw them. To deploy them on purpose, for example
+# to test a fix before its PR, set DEN_DEPLOY_DIRTY=1.
 #
 # If the fetch fails (no network), the check uses the origin/main ref of the
 # last fetch. To deploy an older commit on purpose, for example to roll back a
 # bad merge, set DEN_DEPLOY_STALE=1.
 set -euo pipefail
+
+if [[ -z "${DEN_DEPLOY_DIRTY:-}" ]] && ! git diff --quiet HEAD --; then
+  cat >&2 <<EOF
+deploy-freshness: this checkout has uncommitted edits to tracked files:
+$(git status --short --untracked-files=no | sed 's/^/  /')
+No check saw them. Merge them through a PR, or stash them, and deploy again.
+To deploy them on purpose, run: DEN_DEPLOY_DIRTY=1 just deploy-darwin
+EOF
+  exit 1
+fi
 
 if [[ -n "${DEN_DEPLOY_STALE:-}" ]]; then
   echo "deploy-freshness: DEN_DEPLOY_STALE is set; the origin/main check is skipped" >&2

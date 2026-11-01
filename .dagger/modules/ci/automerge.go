@@ -269,26 +269,35 @@ func cleanCodexReview(comments []prComment, reviewer, head string) bool {
 		if c.Author != reviewer {
 			continue
 		}
-		m := codexState.FindStringSubmatch(c.Body)
-		if m == nil {
-			continue
-		}
-		var state struct {
-			CodeReview struct {
-				CommitSHA  string `json:"commit_sha"`
-				Status     string `json:"status"`
-				Unresolved *bool  `json:"has_unresolved_findings"`
-			} `json:"code_review"`
-		}
-		if json.Unmarshal([]byte(m[1]), &state) != nil {
-			continue
-		}
-		r := state.CodeReview
-		if r.CommitSHA == head && r.Status == "completed" && (r.Unresolved == nil || !*r.Unresolved) {
+		r, ok := parseCodexState(c.Body)
+		if ok && r.CommitSHA == head && r.Status == "completed" && (r.Unresolved == nil || !*r.Unresolved) {
 			return true
 		}
 	}
 	return false
+}
+
+// codexReview is the code review in the state of a Codex summary comment.
+type codexReview struct {
+	CommitSHA  string `json:"commit_sha"`
+	Status     string `json:"status"`
+	Unresolved *bool  `json:"has_unresolved_findings"`
+}
+
+// parseCodexState reads the code review from the state that the Codex
+// connector keeps in its summary comment.
+func parseCodexState(body string) (codexReview, bool) {
+	m := codexState.FindStringSubmatch(body)
+	if m == nil {
+		return codexReview{}, false
+	}
+	var state struct {
+		CodeReview codexReview `json:"code_review"`
+	}
+	if json.Unmarshal([]byte(m[1]), &state) != nil {
+		return codexReview{}, false
+	}
+	return state.CodeReview, true
 }
 
 func short(sha string) string {

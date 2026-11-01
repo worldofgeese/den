@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "75a8b76df401da378dc78433942b435233229c3a",
+    "accepted_commit": "ede4d6d13c52a0ac879c0bfa3a19477deb2d5d0d",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -40,30 +40,22 @@
     }
   },
   "change": {
-    "id": "change_01M6B3KBCS1NDM1TQ92CQTZENP",
-    "base_commit": "75a8b76df401da378dc78433942b435233229c3a",
+    "id": "change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
+    "base_commit": "ede4d6d13c52a0ac879c0bfa3a19477deb2d5d0d",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-dagger-p2-1",
-      "summary": "Dagger P2: dagger check on GitHub-hosted runners and the protected merge rule",
-      "input_digest": "sha256:9ba6b54bc37a119e7f27da548f007d8e6ac27039882fcf3c0b67836e83c3d945",
+      "id": "ckpt-dagger-p3-1",
+      "summary": "Dagger P3: the shepherd asks Codex to review each new head",
+      "input_digest": "sha256:25090799a56d5c7a42520de412c72a0a7d145fd62308c738b5caff551ff5ab29",
       "proof_refs": [
-        "dagger check: 7 checks pass on den-dagger-engine"
-      ]
-    },
-    {
-      "id": "ckpt-dagger-p2-2",
-      "summary": "Dagger P2: one den/dagger-check job",
-      "input_digest": "sha256:2fbbba1719336d365302726585c63c3edff02b1fc35eb4189b6a1770c9d0ab67",
-      "proof_refs": [
-        "GitHub run 41290971141"
+        "dagger check: 8 checks pass"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP": {
+    "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -73,11 +65,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+      "id": "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Dagger P2: dagger check on GitHub-hosted runners, den/dagger-check, branch protection",
-      "refined_intent": "Dagger P2: dagger check on GitHub-hosted runners, den/dagger-check, branch protection",
+      "raw_intent": "Dagger P3: the shepherd asks the Codex connector to review each new head",
+      "refined_intent": "Dagger P3: the shepherd asks the Codex connector to review each new head",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -90,7 +82,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Dagger P2: one den/dagger-check job on ubuntu-24.04-arm; the x86_64 leg added no coverage",
+      "intent": "Dagger P3: the shepherd asks the Codex connector to review each new head (dagger call ci shepherd, .github/workflows/shepherd.yml), with review rules in modules/AGENTS.md and no model key in CI",
       "phases": [],
       "proof_hooks": [
         "just check",
@@ -99,19 +91,19 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Dagger P2: dagger check on GitHub-hosted runners, den/dagger-check, branch protection",
+      "title": "Dagger P3: the shepherd asks the Codex connector to review each new head",
       "todo_ids": [
-        "code_01m6b3jxjqatyj1v"
+        "code_01m6bcct521cy8g7"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793525612Z"
+      "updated_at": "1793531477Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:2451ae83da7d0cb04192e2690c2050f7262afe5fc4a2caac332b2265427e2f12",
+      "artifact_hash": "sha256:60cb1e7f13e4949b0f70ac6e8ef0543d3ac0e2624201513beb35c01348054c5a",
       "checks": [
         {
           "name": "actionlint",
@@ -122,11 +114,7 @@
           "status": "passed"
         },
         {
-          "name": "dagger-install-beta21-linux",
-          "status": "passed"
-        },
-        {
-          "name": "github-run-41290971141",
+          "name": "shepherd-dry-run",
           "status": "passed"
         }
       ],
@@ -135,89 +123,62 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+            "intent_id": "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+            "intent_id": "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
+            "detail": "trajectory:branch_01M6BCH7T2505XSB0YCYTPX9P7",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+            "intent_id": "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6B3KBEVBAM01XSQ4PYYC8F8": {
+          "branch_01M6BCH7T2505XSB0YCYTPX9P7": {
             "evidence_only": true,
-            "id": "branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
-            "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+            "id": "branch_01M6BCH7T2505XSB0YCYTPX9P7",
+            "intent_id": "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
             "steps": [
               {
                 "action": "validation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".github/workflows/dagger.yml",
+                  ".github/workflows/shepherd.yml",
+                  ".dagger/modules/ci/shepherd.go",
+                  ".dagger/modules/ci/shepherd_checks.go",
                   ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/automerge_checks.go",
                   ".dagger/modules/ci/dagger.gen.go",
-                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/AGENTS.md",
                   ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
                   ".decapod/managed/specs/SECURITY.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTENT.md",
                   "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
                   ".decapod/config.toml",
-                  "dagger check on den-dagger-engine: 7 checks pass, ci/automerge-rules includes the protected cases",
-                  "dagger check --check ci/nix-eval runs only ci/nix-eval (30 s)",
-                  "dl.dagger.io serves v1.0.0-beta.21 linux_amd64 and linux_arm64 (HTTP 206, checksums)"
+                  "dagger check: 8 checks pass on den-dagger-engine, ci/shepherd-rules with 16 cases",
+                  "dagger call ci shepherd --dry-run reads den's open pull requests"
                 ],
                 "proof_refs": [
                   "dagger-check-all-local",
                   "actionlint",
-                  "dagger-install-beta21-linux"
+                  "shepherd-dry-run"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "validation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".github/workflows/dagger.yml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/config.toml",
-                  "run 41290971141: both legs skipped only aarch64-darwin.M-02877; arm leg 3 min 10 s, x86 leg 3 min 25 s, den/dagger-check 2 s"
-                ],
-                "proof_refs": [
-                  "github-run-41290971141",
-                  "actionlint"
-                ],
-                "scope": [
-                  ".github/workflows/dagger.yml, .dagger/modules/ci, specs, plan doc, readiness digest",
-                  "root"
-                ],
-                "sequence": 5,
                 "validation_findings": []
               }
             ]
@@ -227,37 +188,37 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "dagger check --check ci/nix-eval runs only ci/nix-eval (30 s)",
-        "dagger check on den-dagger-engine: 7 checks pass, ci/automerge-rules includes the protected cases",
-        "dl.dagger.io serves v1.0.0-beta.21 linux_amd64 and linux_arm64 (HTTP 206, checksums)",
-        "run 41290971141: both legs skipped only aarch64-darwin.M-02877; arm leg 3 min 10 s, x86 leg 3 min 25 s, den/dagger-check 2 s"
+        "dagger call ci shepherd --dry-run reads den's open pull requests",
+        "dagger check: 8 checks pass on den-dagger-engine, ci/shepherd-rules with 16 cases"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6B3KBCS1NDM1TQ92CQTZENP",
+      "intent_id": "intent:change_01M6BCH7QGXMGJYHPRKAYDJ8JE",
       "modified_files": [
         ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/automerge_checks.go",
         ".dagger/modules/ci/dagger.gen.go",
+        ".dagger/modules/ci/shepherd.go",
+        ".dagger/modules/ci/shepherd_checks.go",
         ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTENT.md",
         ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/SECURITY.md",
         ".decapod/managed/specs/VALIDATION.md",
-        ".github/workflows/dagger.yml",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
+        ".github/workflows/shepherd.yml",
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+        "modules/AGENTS.md"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".github/workflows/dagger.yml, .dagger/modules/ci, specs, plan doc, readiness digest",
-        "root"
+        "root",
+        "shepherd function and workflow, review rules, specs, plan"
       ],
-      "run_id": "branch_01M6B3KBEVBAM01XSQ4PYYC8F8",
+      "run_id": "branch_01M6BCH7T2505XSB0YCYTPX9P7",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6b3jxjqatyj1v",
+      "task_id": "code_01m6bcct521cy8g7",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -1,0 +1,84 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"strings"
+	"time"
+)
+
+// The shepherd takes the expected step for fixed pull requests. No network
+// and no token.
+// +check
+func (m *Ci) ShepherdRules(_ context.Context) error {
+	now := fixtureTime
+	old := now.Add(-time.Hour)
+	summary := func(sha, status string) shepherdComment {
+		return shepherdComment{Author: fixturePolicy.Reviewer, Body: fmt.Sprintf(
+			`<!-- codex-review-state:v1 {"code_review":{"commit_sha":%q,"has_any_findings":false,"has_unresolved_findings":false,"status":%q}} -->`,
+			sha, status)}
+	}
+	request := func(sha string, at time.Time) shepherdComment {
+		return shepherdComment{Author: "alice", Body: "@codex review\n\n" + requestMarker(sha), At: at}
+	}
+	cases := []struct {
+		name   string
+		edit   func(*shepherdPR)
+		policy func(*mergePolicy)
+		want   shepherdStep
+	}{
+		{"a head with no review gets a request", nil, nil, stepRequest},
+		{"a draft waits", func(p *shepherdPR) { p.Draft = true }, nil, stepNone},
+		{"a stop label stops the shepherd", func(p *shepherdPR) { p.Labels = []string{"hold"} }, nil, stepNone},
+		{"an author outside the list gets checks only", func(p *shepherdPR) { p.Author = "mallory" }, nil, stepNone},
+		{"only the Codex connector can be asked", nil, func(p *mergePolicy) { p.Reviewer = "bob" }, stepNone},
+		{"incomplete comments stop the shepherd", func(p *shepherdPR) { p.CommentsIncomplete = true }, nil, stepNone},
+		{"a completed review of the head needs nothing", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{summary(fixtureHead, "completed")}
+		}, nil, stepNone},
+		{"a running review of the head waits", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{summary(fixtureHead, "running")}
+		}, nil, stepNone},
+		{"a failed review of the head gets a request", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{summary(fixtureHead, "failed")}
+		}, nil, stepRequest},
+		{"a review of an older head does not count", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{summary("feedface", "completed")}
+		}, nil, stepRequest},
+		{"a new head waits for the automatic review", func(p *shepherdPR) { p.HeadAt = now.Add(-time.Minute) }, nil, stepNone},
+		{"a recent request waits", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{request(fixtureHead, now.Add(-5*time.Minute))}
+		}, nil, stepNone},
+		{"an old request gets a second request", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{request(fixtureHead, old)}
+		}, nil, stepRequest},
+		{"a request for an older head does not count", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{request("feedface", old), request("feedface", old), request("feedface", old)}
+		}, nil, stepRequest},
+		{"the cap gives the pull request to a person", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{request(fixtureHead, old), request(fixtureHead, old), request(fixtureHead, old)}
+		}, nil, stepNeedsHuman},
+		{"a recent last request waits at the cap", func(p *shepherdPR) {
+			p.Comments = []shepherdComment{request(fixtureHead, old), request(fixtureHead, old), request(fixtureHead, now.Add(-time.Minute))}
+		}, nil, stepNone},
+	}
+	var failed []string
+	for _, c := range cases {
+		pr := shepherdPR{Number: 1, Author: "alice", Head: fixtureHead, HeadAt: old}
+		p := fixturePolicy
+		if c.edit != nil {
+			c.edit(&pr)
+		}
+		if c.policy != nil {
+			c.policy(&p)
+		}
+		if got, why := nextStep(pr, p, now); got != c.want {
+			failed = append(failed, fmt.Sprintf("shepherd case %q: step %q (%s), want %q", c.name, got, why, c.want))
+		}
+	}
+	if len(failed) > 0 {
+		return errors.New(strings.Join(failed, "\n"))
+	}
+	return nil
+}

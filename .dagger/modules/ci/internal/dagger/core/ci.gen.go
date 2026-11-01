@@ -25,6 +25,8 @@ type Ci struct { // ci (../../../../../../:0:0)
 	id               *ID
 	nixEval          *Void
 	shellcheck       *Void
+	shepherd         *string
+	shepherdRules    *Void
 }
 
 func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
@@ -200,6 +202,47 @@ func (r *Ci) Shellcheck(ctx context.Context) error {
 		return nil
 	}
 	q := r.query.Select("shellcheck")
+
+	return q.Execute(ctx)
+}
+
+// CiShepherdOpts contains options for Ci.Shepherd
+type CiShepherdOpts struct {
+	// Print the steps and post nothing.
+	DryRun bool
+}
+
+// For each open pull request, ask the reviewer to review the head when the
+// head has no review (plan P3), and print a Markdown table of the steps.
+// After 3 requests without a review, add the needs-human label. With
+// dryRun, post nothing.
+func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts) (string, error) {
+	assertNotNil("token", token)
+	if r.shepherd != nil {
+		return *r.shepherd, nil
+	}
+	q := r.query.Select("shepherd")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `dryRun` optional argument
+		if !querybuilder.IsZeroValue(opts[i].DryRun) {
+			q = q.Arg("dryRun", opts[i].DryRun)
+		}
+	}
+	q = q.Arg("token", token)
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// The shepherd takes the expected step for fixed pull requests. No network
+// and no token.
+func (r *Ci) ShepherdRules(ctx context.Context) error {
+	if r.shepherdRules != nil {
+		return nil
+	}
+	q := r.query.Select("shepherdRules")
 
 	return q.Execute(ctx)
 }

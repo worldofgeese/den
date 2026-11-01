@@ -165,7 +165,8 @@ write it again.
   Decapod on that code, and it pushes only to the branch `bump/flake-inputs`.
 - The shepherd job checks out `main` only, and it never runs pull request
   code. It reads pull requests as data and writes only a request comment, the
-  label `needs-human` and its comment.
+  label `needs-human` and its comment. It counts only the request comments
+  of its own login, so a comment by another person cannot fake a request.
 
 ## Security Change Review
 - [ ] New inputs and outputs are classified.
@@ -198,7 +199,7 @@ Describe the security primitives and security controls implemented in this repos
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

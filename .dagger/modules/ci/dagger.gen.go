@@ -433,9 +433,9 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("For each open pull request, ask the reviewer to review the head when the\nhead has no review (plan P3), and print a Markdown table of the steps.\nAfter 3 requests without a review, add the needs-human label. The table\nalso gives the verdict of the merge rules for each pull request (plan P4);\nthe shepherd merges nothing. With dryRun, post nothing.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("shepherd.go", 189, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token. Without dryRun, it needs write access to issues and\npull requests.", SourceMap: dag.SourceMap("shepherd.go", 193, 2)}).
-							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the steps and post nothing.", SourceMap: dag.SourceMap("shepherd.go", 196, 2)})).
+							WithSourceMap(dag.SourceMap("shepherd.go", 207, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token. Without dryRun, it needs write access to issues and\npull requests.", SourceMap: dag.SourceMap("shepherd.go", 211, 2)}).
+							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the steps and post nothing.", SourceMap: dag.SourceMap("shepherd.go", 214, 2)})).
 					WithFunction(
 						dag.Function("ShepherdRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).

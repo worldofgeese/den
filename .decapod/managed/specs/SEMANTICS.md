@@ -82,7 +82,7 @@ stateDiagram-v2
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

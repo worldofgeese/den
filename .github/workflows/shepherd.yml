@@ -6,6 +6,11 @@
 # The job runs the code of main only, and it never checks out a pull request.
 # The token DEN_SHEPHERD_TOKEN comes from the environment shepherd, which only
 # jobs on main can use. The job makes no deployment record.
+#
+# It runs after each dagger run, when a comment is made or edited (Codex edits
+# its summary when a review ends), by hand, and on the schedule. Comments are
+# data: the shepherd counts only its own requests. Its own request comment
+# starts a run that finds a recent request and does nothing.
 name: shepherd
 
 on:
@@ -14,6 +19,8 @@ on:
   workflow_run:
     workflows: [dagger]
     types: [completed]
+  issue_comment:
+    types: [created, edited]
   workflow_dispatch:
 
 permissions:

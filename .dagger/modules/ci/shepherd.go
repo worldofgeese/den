@@ -22,8 +22,8 @@ import (
 const codexReviewer = "app/chatgpt-codex-connector"
 
 const (
-	// A new head waits this long before the first request, so that the
-	// automatic review of an opened pull request can start.
+	// A new pull request waits this long before the first request, so that
+	// the automatic review of Codex can start.
 	reviewGrace = 10 * time.Minute
 	// The shepherd asks again when a request gets no review for this long.
 	reviewWait = 20 * time.Minute
@@ -64,8 +64,10 @@ const (
 )
 
 // nextStep returns what the shepherd does for a pull request at now, and
-// why. It is a pure function, so ci:shepherd-rules tests each case.
-func nextStep(pr shepherdPR, p mergePolicy, now time.Time) (shepherdStep, string) {
+// why. self is the login of the shepherd's token: only its own requests
+// count, because anyone can comment on a public repository. It is a pure
+// function, so ci:shepherd-rules tests each case.
+func nextStep(pr shepherdPR, p mergePolicy, self string, now time.Time) (shepherdStep, string) {
 	if pr.Draft {
 		return stepNone, "draft"
 	}
@@ -93,7 +95,7 @@ func nextStep(pr shepherdPR, p mergePolicy, now time.Time) (shepherdStep, string
 	}
 	n, last := 0, time.Time{}
 	for _, c := range pr.Comments {
-		if strings.Contains(c.Body, requestMarker(pr.Head)) {
+		if c.Author == self && strings.Contains(c.Body, requestMarker(pr.Head)) {
 			n++
 			if c.At.After(last) {
 				last = c.At
@@ -101,8 +103,10 @@ func nextStep(pr shepherdPR, p mergePolicy, now time.Time) (shepherdStep, string
 		}
 	}
 	switch {
-	case n == 0 && now.Sub(pr.HeadAt) < reviewGrace:
-		return stepNone, "new head; the automatic review can start"
+	// Codex reviews by itself only when a pull request opens. After its
+	// first summary, no review comes without a request.
+	case n == 0 && !hasCodexSummary(pr.Comments, p.Reviewer) && now.Sub(pr.HeadAt) < reviewGrace:
+		return stepNone, "new pull request; the automatic review can start"
 	case n == 0:
 		return stepRequest, "no review of the head"
 	case now.Sub(last) < reviewWait:
@@ -112,6 +116,19 @@ func nextStep(pr shepherdPR, p mergePolicy, now time.Time) (shepherdStep, string
 	default:
 		return stepNeedsHuman, fmt.Sprintf("no review after %d requests", n)
 	}
+}
+
+// hasCodexSummary reports whether the reviewer posted its summary comment,
+// for any head.
+func hasCodexSummary(comments []shepherdComment, reviewer string) bool {
+	for _, c := range comments {
+		if c.Author == reviewer {
+			if _, ok := parseCodexState(c.Body); ok {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // codexStatus returns the status of the reviewer's review of head, from the
@@ -130,6 +147,7 @@ func codexStatus(comments []shepherdComment, reviewer, head string) string {
 }
 
 const openPRsQuery = `query($o: String!, $r: String!) {
+  viewer { login }
   repository(owner: $o, name: $r) {
     pullRequests(states: OPEN, first: 50, orderBy: {field: CREATED_AT, direction: ASC}) {
       totalCount
@@ -200,6 +218,7 @@ func (m *Ci) Shepherd(
 		return "", err
 	}
 	var out struct {
+		Viewer     struct{ Login string }
 		Repository struct {
 			PullRequests struct {
 				TotalCount int
@@ -220,7 +239,7 @@ func (m *Ci) Shepherd(
 	b.WriteString("| PR | Head | Review step | Reason | Merge verdict |\n|---|---|---|---|---|\n")
 	for _, n := range prs.Nodes {
 		pr := shepherdPRFrom(n)
-		step, why := nextStep(pr, m.policy(), now)
+		step, why := nextStep(pr, m.policy(), out.Viewer.Login, now)
 		if !dryRun {
 			if err := m.post(ctx, g, owner, name, pr, step); err != nil {
 				return b.String(), fmt.Errorf("#%d: %w", pr.Number, err)

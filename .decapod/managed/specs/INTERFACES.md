@@ -279,14 +279,20 @@ interface).
   table.
 - **`shepherd --token <secret> [--dry-run]`** (plan P3) asks the Codex
   connector to review the head of each open pull request that has no review
-  of its head, and prints a Markdown table of its steps. A new head waits 10
-  minutes for the automatic review. The shepherd asks again after 20 minutes,
-  and after 3 requests it adds the label `needs-human` with a comment. It
-  skips drafts, the stop labels and authors outside `authors`, and it needs
+  of its head, and prints a Markdown table of its steps. A new pull request
+  waits 10 minutes for the automatic review of Codex. After the first summary
+  of Codex, each new head gets a request at once, because Codex reviews by
+  itself only when a pull request opens. The shepherd asks again after 20
+  minutes, and after 3 requests it adds the label `needs-human` with a
+  comment. Only the requests of its own login count, because anyone can
+  comment on a public repository. It skips drafts, the stop labels and
+  authors outside `authors`, and it needs
   `reviewer = "app/chatgpt-codex-connector"`. `ci:shepherd-rules` tests its
   steps. The table also gives the verdict of the merge rules for each pull
-  request, in the words of `automerge-dry-run` (plan P4, first step). The workflow `.github/workflows/shepherd.yml` runs it every 15
-  minutes and after each `dagger` run, with the token `DEN_SHEPHERD_TOKEN`.
+  request, in the words of `automerge-dry-run` (plan P4, first step). The
+  workflow `.github/workflows/shepherd.yml` runs it after each `dagger` run,
+  after each new or edited comment, by hand and every 15 minutes, with the
+  token `DEN_SHEPHERD_TOKEN`.
 - **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
   GitHub. The shepherd writes only the request comment `@codex review`, the
   label `needs-human` and its comment. No function sends a review event,
@@ -319,7 +325,7 @@ Make the container once with `just dagger-check`, then call for example
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `72e7949b5c62b51f9748762c8ebfa2fa86c8c9981e32d2682fe863ab3aa763e8`
+- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

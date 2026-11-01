@@ -52,6 +52,14 @@
       "proof_refs": [
         "shellcheck scripts/bump-flake-inputs.sh"
       ]
+    },
+    {
+      "id": "ckpt-decapod-0121-2-2",
+      "summary": "dagger.lock pins the digest of decapod:v0.121.2-debian",
+      "input_digest": "sha256:d6028ea1937351484575cd0eadf34171e7291c8aea3333f3951d10213175d138",
+      "proof_refs": [
+        "dagger check --check ci/decapod-overrides exit 0"
+      ]
     }
   ],
   "intents": {

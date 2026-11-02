@@ -418,6 +418,45 @@ The `modules/overlays.nix` wrapper adds `age-plugin-pq` (nixpkgs) and
 Homebrew's `age-plugin-se` to secretspec's PATH. Homebrew provides the plugin
 because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
+## Commit and Tag Signing
+
+The owner wants a signature on every commit and every tag. Home Manager's
+`programs.git.signing` sets it per deploy target. `signByDefault = true` writes
+`commit.gpgSign` and `tag.gpgSign`. A deploy target gets signing only when it
+holds a signing key. On a deploy target without the key, each commit fails.
+
+| Deploy target | Git config source | Signing |
+|---|---|---|
+| M-02877 (`dktaohan`) | `modules/M-02877/dktaohan.nix` | SSH. `user.signingKey` is `~/.ssh/my_ssh_key.pub`. `programs.ssh` gives the same key to `github.com` (`githubKey`), and GitHub has it as the SSH signing key of worldofgeese. `signing.allowedSigners` writes `~/.config/git/allowed_signers` (`tao.hansen@lego.com` and that key) and sets `gpg.ssh.allowedSignersFile`. |
+| mahakala (`homeConfigurations.worldofgeese`) | `modules/worldofgeese.nix` | OpenPGP key `63D28F81460A224A`, held by the gpg-agent of Guix Home. |
+| paphos, oracle | none | No signing. On paphos, kypris does not include `gitcommon`. oracle has no Home Manager user. Neither server makes commits. |
+| pixel-fold | `modules/pixel-fold/_home.nix` (the nix-on-droid Home Manager) | No signing. pixel-fold holds only `~/.ssh/id_ed25519`, and GitHub does not have that key as a signing key. |
+
+On M-02877 the signing key is the path of the public key file, not the key
+text. With the path, `ssh-keygen -Y sign` uses the SSH agent if the agent holds
+the key. If not, it reads the private key `~/.ssh/my_ssh_key`. With the key
+text, git gives ssh-keygen `-U`, and each commit then needs the key in the
+agent. After a restart, the agent holds no key until the first SSH connection,
+because `AddKeysToAgent yes` adds the key at that time. On 2026-11-02 the key
+text failed with "Couldn't find key in agent" when an empty agent answered. The
+path signed with no agent and with an empty agent.
+
+git verifies an SSH signature only against `gpg.ssh.allowedSignersFile`. To
+see the result, run `git log --show-signature`. A signature of any other key
+gives "No principal matched", and `git verify-commit` fails.
+
+With `tag.gpgSign`, `git tag <name>` makes a signed annotated tag, so git asks
+for a tag message. A script must give `-m`.
+
+Until 2026-11-02, `modules/M-02877/dktaohan.nix` put `signing` inside
+`programs.git.settings`. So git got an inert `[signing]` section and did not
+sign. A stopgap in `~/.gitconfig` on M-02877 signed instead: `user.signingkey`,
+`commit.gpgsign`, `tag.gpgsign` and `gpg.ssh.allowedSignersFile`
+(`~/.ssh/allowed_signers`). git reads `~/.gitconfig` after
+`~/.config/git/config`, so the stopgap values win while the file exists. They
+name the same key and the same signer. After `just deploy-darwin`, the user can
+delete the stopgap.
+
 ## NAS Recovery Boundary
 
 `scripts/fleet-maintenance/mother_recovery.py` runs with the Python 3.8 runtime on mother. `preflight` checks tools, RAID health, source coverage, subvolume layout, and free space. `prepare` uses separate read-only Btrfs views, system-directory copies, SQLite online copies, and PostgreSQL logical exports. Each subvolume and database has its own consistency boundary. The archive is not one atomic image of the NAS.

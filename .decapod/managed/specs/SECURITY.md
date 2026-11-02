@@ -74,7 +74,11 @@ owning a fork does not make its content personal.
 ## Supply Chain Security
 - Recommended scanners: `npm audit`, `osv-scanner`, `snyk`
 - Dependency update cadence:
-- Signed artifact/provenance strategy:
+- Signed artifact/provenance strategy: each deploy target that holds a signing
+  key signs every commit and every tag (ARCHITECTURE.md, Commit and Tag
+  Signing). M-02877 signs with SSH and mahakala with OpenPGP. GitHub shows a
+  commit as Verified when its key is a signing key of the account of the
+  committer. paphos, oracle and pixel-fold hold no signing key and do not sign.
 
 ## Secrets Management
 | Secret | Source | Rotation | Consumer |
@@ -88,6 +92,7 @@ owning a fork does not make its content personal.
 | Gateway key last-known-good cache (M-02877, any host using `gateway.keyCommand`) | `~/.local/state/gateway-key.cache`, plaintext, 0600, FileVault at rest; copy of `LEGO_GATEWAY_API_KEY` written by `gateway.keyCommand` after each successful secretspec lookup, so a locked keybag does not fail agents in flight; never in Nix | automatic: refreshed on the next unlocked lookup after the secret changes; delete the file to force a fresh lookup | `gateway.keyCommand` (pi, Caveman Code, omp, Claude Code shell token, Doom agent-shell), read only when secretspec misses |
 | Team Signet API key (M-02877) | `~/.config/signet/token`, 0600, from LEGO/devrel-infra `projects/aws-signet` `scripts/enroll.sh`. `signet connect pi` also writes it into the header of `~/.pi/agent/extensions/signet-pi.js`, which activation (`signetPiExtensionMode`) sets to 0600 at each switch. Never in Nix | manual: enroll again, then run `signet connect pi` again | every Signet client through `SIGNET_API_KEY`; the pi extension uses its copy when `SIGNET_API_KEY` is unset |
 | `DEN_SHEPHERD_TOKEN` (the fine-grained token `den-shepherd` of `worldofgeese`) | Secret of the GitHub Actions environment `shepherd` of `worldofgeese/den`. Only jobs on `main` can read it. Never in the repository or the Nix store | manual: make a new token for `worldofgeese/den` only, then run `gh secret set DEN_SHEPHERD_TOKEN --env shepherd -R worldofgeese/den` | The shepherd workflow `.github/workflows/shepherd.yml` (Dagger plan P3 to P8), which posts review requests and the label `needs-human`, and the bump workflow `.github/workflows/bump.yml` (P6), which pushes the branch `bump/flake-inputs` and opens its pull request |
+| Git signing key (M-02877) | `~/.ssh/my_ssh_key`, 0600, no passphrase, FileVault at rest; never in Nix. The repository holds only the public key, in `modules/M-02877/dktaohan.nix` (`signing.allowedSigners`) and `modules/_worldofgeese.keys` | manual: make a new key, add it on GitHub as an SSH signing key and as an authentication key, then change `githubKey` and `signing.allowedSigners` | git (`ssh-keygen -Y sign` for each commit and tag), and ssh to `github.com` |
 | External service auth material | managed runtime configuration | periodic | runtime services |
 | Artifact signing material | managed signing service/local secure store | periodic | release pipeline |
 

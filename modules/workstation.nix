@@ -84,6 +84,14 @@
       home.packages =
         (with pkgs; [
           ewm
+          # Pair Nix's module and Emacs to avoid Guix's older glibc.
+          # Guix's load-path variables also hide Nix Emacs's own Lisp files.
+          (writeShellScriptBin "ewm-start" ''
+            unset EMACSLOADPATH EMACSNATIVELOADPATH
+            exec ${emacs-pgtk}/bin/emacs --fg-daemon=ewm \
+              ${lib.concatMapStringsSep " " (p: "-L ${p}/share/emacs/site-lisp") ([ewm] ++ ewm.propagatedBuildInputs)} \
+              -l ewm -f ewm-start-module "$@"
+          '')
           brush
           gnomeExtensions.all-in-one-clipboard
           wl-clipboard

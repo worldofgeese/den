@@ -59,6 +59,17 @@ deploy-mahakala-hm-only:
     update-desktop-database ~/.local/share/applications
     @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
+# Reboot mahakala to its desktop with no passphrase (guix/agent-unlock.sh).
+# The session comes up locked; release it with `just mahakala-session-unlock`.
+mahakala-agent-reboot:
+    /run/privileged/bin/sudo /run/current-system/profile/bin/agent-unlock reboot
+
+# Release the lock an agent-unlock boot starts with. Any other lock is denied.
+mahakala-session-unlock:
+    XDG_RUNTIME_DIR="/run/user/$(id -u)" WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-1}" \
+      OMARCHY_PATH="$HOME/.local/state/nix/profiles/home-manager/home-path/share/omarchy" \
+      "$HOME/.local/state/nix/profiles/home-manager/home-path/bin/omarchy-shell" lock unlock
+
 # Deploy only Guix Home on mahakala (pulls user channels first)
 deploy-mahakala-guix:
     just guix-pull-home

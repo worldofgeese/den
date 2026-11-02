@@ -66,6 +66,79 @@
       lib,
       ...
     }: let
+      nixarchyPkgs = pkgs.extend inputs.nixarchy.overlays.default;
+      omarchy = nixarchyPkgs.omarchy;
+
+      # Guix replacements for Omarchy's package, update, DNS, channel and
+      # reminder flows (scripts/omarchy-guix/). @name@ placeholders are filled
+      # here; @table@ is filled in postInstall, where the table's path exists.
+      guixScript = name: file: vars:
+        pkgs.writeShellScript name (builtins.replaceStrings
+          (map (v: "@${v}@") (builtins.attrNames vars))
+          (builtins.attrValues vars)
+          (builtins.readFile (../scripts/omarchy-guix + "/${file}")));
+
+      # Omarchy app id -> nixpkgs attribute, from nixarchy's own app table.
+      # Apps that are a NixOS module (`option`) map to their package when the
+      # module is just programs.<package>; the rest need NixOS and stay out.
+      appMap = pkgs.writeText "omarchy-app-attrs.tsv" (lib.concatStrings (lib.mapAttrsToList
+        (id: app: let
+          option = app.option or [];
+          attr =
+            if (app.attr or null) != null
+            then app.attr
+            else if lib.length option == 2 && lib.head option == "programs"
+            then lib.last option
+            else null;
+        in
+          lib.optionalString (attr != null) "${id}\t${attr}\n")
+        (import "${inputs.nixarchy}/data/apps.nix")));
+
+      denApps = guixScript "omarchy-den-apps" "den-apps.sh" {};
+      guixPkgScripts = {
+        omarchy-pkg-add = "pkg-add.sh";
+        omarchy-pkg-drop = "pkg-drop.sh";
+        omarchy-pkg-remove = "pkg-remove.sh";
+        omarchy-pkg-install = "pkg-install.sh";
+        omarchy-pkg-aur-install = "pkg-install.sh";
+        omarchy-update = "update.sh";
+        omarchy-channel-set = "channel-set.sh";
+        omarchy-refresh-plymouth = "refresh-plymouth.sh";
+        omarchy-dns = "dns.sh";
+      };
+      guixPkgScriptDrvs = lib.mapAttrs (name: file:
+        guixScript name file {
+          appmap = "${appMap}";
+          denApps = "${denApps}";
+          table = "@table@";
+        })
+      guixPkgScripts;
+      setTimezone = guixScript "omarchy-guix-set-timezone" "set-timezone.sh" {};
+      reminderRun = guixScript "omarchy-guix-reminder-run" "reminder-run.sh" {
+        setsid = "${pkgs.util-linux}/bin/setsid";
+      };
+      # The Guix logo from the artwork commit Guix's own guix-icons package
+      # uses, rasterised because this quickshell has no SVG image plugin.
+      guixMenuIcon = pkgs.runCommand "guix-menu-icon.png" {
+        nativeBuildInputs = [pkgs.librsvg];
+        src = pkgs.fetchurl {
+          url = "https://codeberg.org/guix/artwork/raw/commit/08259679a0faef63e3ba169df5b937d836bd9262/logo/Guix.svg";
+          hash = "sha256-f9guYkqZR6aho/NesU2GUVX9i4s7GSSj/biLjo6GaP8=";
+        };
+      } ''rsvg-convert --keep-aspect-ratio --height 256 "$src" -o "$out"'';
+      guixPolkit = (pkgs.polkit.override {useSystemd = false;}).overrideAttrs (old: {
+        postPatch =
+          old.postPatch
+          + ''
+            substituteInPlace src/polkitagent/polkitagentsession.c \
+              --replace-fail '/run/wrappers/bin/' '/run/privileged/bin/'
+          '';
+      });
+      inputMethodPython = pkgs.python3.withPackages (ps: [ps.pygobject3]);
+      inputMethodIndicator = pkgs.writeShellScript "omarchy-input-method-indicator" ''
+        export GI_TYPELIB_PATH="${lib.getLib pkgs.glib}/lib/girepository-1.0''${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}"
+        exec ${inputMethodPython}/bin/python3 "$@"
+      '';
       # omarchy-launch-shell without systemd-cat.
       #
       # Upstream's version exists to keep Quickshell's log out of the tmpfs
@@ -82,6 +155,21 @@
       # The `# omarchy:` metadata lines are kept verbatim: bin/omarchy discovers
       # subcommands by grepping siblings for exactly those, so dropping them
       # removes the command from the CLI without an error.
+      # Whether the lock screen must lock as the shell starts: once per boot,
+      # after an unattended agent-unlock boot (guix/agent-unlock.sh). Exit 0
+      # means lock. Inert without /etc/agent-unlock, and fail-closed with it:
+      # anything but a recorded `interactive` boot locks, so a cleanup service
+      # that failed or has not run yet cannot leave an unattended desktop open.
+      agentBootLockCheck = pkgs.writeShellScript "omarchy-agent-boot-lock-check" ''
+        [ -e /etc/agent-unlock ] || exit 1
+        [ "$(cat /run/agent-unlock/boot-mode 2>/dev/null)" = interactive ] && exit 1
+        boot=$(cat /proc/sys/kernel/random/boot_id)
+        marker="''${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/agent-boot-locked"
+        [ "$(cat "$marker" 2>/dev/null)" = "$boot" ] && exit 1
+        mkdir -p "''${marker%/*}"
+        printf '%s\n' "$boot" >"$marker"
+      '';
+
       launchShell = pkgs.writeShellScript "omarchy-launch-shell" ''
         # omarchy:summary=Launch the Omarchy shell with its log kept in a file
         # omarchy:hidden=true
@@ -226,7 +314,10 @@
         # (pkgs/omarchy/default.nix:1030), which fails the same way for the same
         # reason.
         package =
-          ((pkgs.extend inputs.nixarchy.overlays.default).omarchy).overrideAttrs
+          (omarchy.override {
+            # Keep nixarchy's lock fixes, but use elogind to find the session.
+            quickshell = omarchy.passthru.quickshell.override {polkit = guixPolkit;};
+          }).overrideAttrs
           (old: {
             postInstall =
               (old.postInstall or "")
@@ -238,6 +329,14 @@
                   exit 1
                 fi
                 install -Dm755 ${launchShell} "$target"
+
+                substituteInPlace "$out/share/omarchy/shell/Commons/InputMethodState.qml" \
+                  --replace-fail '"/usr/bin/python3"' '"${inputMethodIndicator}"'
+                substituteInPlace "$out/share/omarchy/default/omarchy/omarchy-menu.jsonc" \
+                  --replace-fail '"action":"systemctl suspend"' \
+                    '"action":"/run/current-system/profile/bin/loginctl suspend"' \
+                  --replace-fail '"action":"systemctl hibernate"' \
+                    '"action":"/run/current-system/profile/bin/loginctl hibernate"'
 
                 # first-run's systemd step, made non-fatal.
                 #
@@ -415,6 +514,17 @@
                   exit 1
                 fi
 
+                # Wait for the detached sender so failures reach the caller.
+                substituteInPlace "$out/share/omarchy/bin/omarchy-menu-share" \
+                  --replace-fail \
+                    'systemd-run --user --quiet --collect localsend --headless send' \
+                    'exec setsid --fork --wait localsend --headless send'
+
+                substituteInPlace "$out/share/omarchy/bin/omarchy-update-time" \
+                  --replace-fail \
+                    'sudo systemctl restart systemd-timesyncd' \
+                    '/run/privileged/bin/sudo /run/current-system/profile/bin/herd restart ntpd'
+
                 # Log out, reboot and shut down, without the systemd user manager.
                 #
                 # Omarchy 4.5 folds the old omarchy-system-{logout,reboot,shutdown}
@@ -436,10 +546,10 @@
                 # Shutdown wraps itself in systemd-inhibit to hold off lid
                 # handling; elogind-inhibit is the same tool for elogind.
                 #
-                # Logout uses `hyprctl dispatch exit` instead of `uwsm stop`,
-                # which needs the user manager uwsm drives. omarchy-session execs
-                # Hyprland through start-hyprland, so Hyprland exiting returns
-                # the seat to the greeter, after its normal teardown.
+                # Logout uses the Lua dispatcher `hl.dsp.exit()` instead of
+                # `uwsm stop`, which needs a systemd user manager.
+                # omarchy-session execs Hyprland through start-hyprland, so its
+                # normal exit returns the seat to the greeter.
                 #
                 # The script already waits for windows to close before it runs
                 # the command, so the old 2-second defer is no longer needed.
@@ -452,7 +562,7 @@
                 substituteInPlace "$system" \
                   --replace-fail \
                     'logout) command=(uwsm stop) ;;' \
-                    'logout) command=(hyprctl dispatch exit) ;;' \
+                    'logout) command=(hyprctl dispatch "hl.dsp.exit()") ;;' \
                   --replace-fail \
                     'reboot) command=(systemctl reboot --no-wall) ;;' \
                     'reboot) command=(/run/current-system/profile/bin/loginctl reboot) ;;' \
@@ -474,6 +584,104 @@
                   grep -nE 'systemd-run|systemd-inhibit|systemctl|uwsm' "$system" >&2
                   exit 1
                 fi
+
+                # Package, update, DNS, channel and Plymouth flows, for Guix.
+                #
+                # Upstream drives yay/pacman and nixarchy drives /etc/nixos and
+                # ~/.config/nixarchy/apps.nix, none of which exist here. The
+                # Install and Remove menus edit den's modules/omarchy-apps.json
+                # and deploy Home Manager; Update deploys den. Whole scripts are
+                # replaced because nothing in them applies on Guix.
+                ${lib.concatStrings (lib.mapAttrsToList (name: drv: ''
+                    target=$out/share/omarchy/bin/${name}
+                    if [ ! -e "$target" ]; then
+                      echo "${name} no longer exists; the Guix replacement in modules/omarchy.nix is stale." >&2
+                      exit 1
+                    fi
+                    install -m755 ${drv} "$target"
+                    substituteInPlace "$target" \
+                      --replace-quiet @table@ "$out/share/omarchy/nixarchy-arch-packages.tsv"
+                  '')
+                  guixPkgScriptDrvs)}
+
+                # Timezones from tzdata instead of timedatectl, applied by
+                # rewriting (timezone ...) in den's guix/system.scm.
+                substituteInPlace "$out/share/omarchy/bin/omarchy-menu-timezone" \
+                  --replace-fail 'timedatectl list-timezones' \
+                    "awk '!/^#/ { print \$3 }' ${pkgs.tzdata}/share/zoneinfo/zone.tab | sort" \
+                  --replace-fail 'omarchy-notification-send "Timezone is part of your configuration: set time.timeZone = \"$timezone\"; then Apply changes"' \
+                    'exec omarchy-launch-floating-terminal-with-presentation "${setTimezone} $(printf %q "$timezone")"'
+
+                # Reminders as detached sleepers instead of systemd-run timers.
+                substituteInPlace "$out/share/omarchy/bin/omarchy-reminder" \
+                  --replace-fail \
+                    $'done < <(systemctl --user list-timers --all --output=json "omarchy-reminder-*.timer" 2>/dev/null | jq -r \'.[] | [.unit, .next] | @tsv\')' \
+                    'done < <(${reminderRun} --list)' \
+                  --replace-fail \
+                    $'units=$(systemctl --user list-timers --all --no-legend --no-pager "omarchy-reminder-*.timer" 2>/dev/null | awk \'{ print $(NF - 1), $NF }\')' \
+                    'units=$(${reminderRun} --clear)' \
+                  --replace-fail \
+                    'systemd-run --user --quiet --collect --on-active="''${minutes}m" --unit="$unit" \' \
+                    '${reminderRun} "$reminder_dir/$unit" "$((minutes * 60))" \' \
+                  --replace-fail 'xargs -r systemctl --user stop <<<"$units" || true' ':'
+
+                # Crash capture watches systemd-coredump's journal; Guix has neither.
+                substituteInPlace "$out/share/omarchy/bin/omarchy-toggle-crash-capture" \
+                  --replace-fail 'systemctl --user stop omarchy-crash-watch.service' ':' \
+                  --replace-fail 'systemctl --user start omarchy-crash-watch.service' \
+                    'omarchy-notification-send -g "$CRASH_GLYPH" "Crash capture needs systemd-coredump, which Guix does not run"; exit 0'
+
+                # XCompose: no fcitx5 user unit. Restart fcitx5 directly if it
+                # is installed; otherwise apps read ~/.XCompose when they start.
+                substituteInPlace "$out/share/omarchy/bin/omarchy-restart-xcompose" \
+                  --replace-fail 'systemctl --user stop omarchy-fcitx5.service' ':' \
+                  --replace-fail 'systemctl --user start omarchy-fcitx5.service' \
+                    'if command -v fcitx5 >/dev/null 2>&1; then setsid --fork fcitx5 -d >/dev/null 2>&1; else omarchy-notification-send "XCompose saved" "Apps read it when they next start."; fi'
+
+                for f in omarchy-reminder omarchy-toggle-crash-capture omarchy-restart-xcompose \
+                         omarchy-menu-timezone ${lib.concatStringsSep " " (lib.attrNames guixPkgScripts)}; do
+                  if grep -nE 'systemctl|systemd-run|timedatectl|pacman|yay |nixos-rebuild' \
+                       "$out/share/omarchy/bin/$f" | grep -vE '^[0-9]+:\s*#' | grep -q .; then
+                    echo "$f still calls systemd, pacman or NixOS tools after the Guix override:" >&2
+                    grep -nE 'systemctl|systemd-run|timedatectl|pacman|yay |nixos-rebuild' "$out/share/omarchy/bin/$f" >&2
+                    exit 1
+                  fi
+                done
+
+                # The menu button wears the Guix logo instead of nixarchy's
+                # NixOS snowflake. The logo is wider than tall, so fit it.
+                menuWidget="$out/share/omarchy/shell/plugins/menu/BarWidget.qml"
+                sed -Ei 's|source: "file:///nix/store/[^"]*nix-snowflake\.png"|source: "file://${guixMenuIcon}"\n      fillMode: Image.PreserveAspectFit|' "$menuWidget"
+                grep -qF '${guixMenuIcon}' "$menuWidget" || {
+                  echo "menu BarWidget.qml no longer names the snowflake PNG; update the Guix icon patch" >&2
+                  exit 1
+                }
+
+                # Agent-unlock boots (guix/agent-unlock.sh) skip the disk
+                # passphrase and GDM autologs in, so the session starts locked
+                # and only an agent-boot lock may be released over IPC
+                # (`omarchy-shell lock unlock`, as the session user). A lock the
+                # user or idle timer took still needs the password.
+                lock=$out/share/omarchy/shell/plugins/lock/Service.qml
+                substituteInPlace "$lock" \
+                  --replace-fail \
+                    $'  property bool strandedLockResolved: false' \
+                    $'  property bool strandedLockResolved: false\n  property bool agentBootLock: false\n  property bool agentBootChecked: false\n\n  function checkAgentBoot() {\n    if (agentBootChecked || !passwordPamConfigured) return\n    agentBootChecked = true\n    agentBootLockProc.running = true\n  }' \
+                  --replace-fail \
+                    $'    strandedLockRetryTimer.rearm()\n    checkStrandedLock()\n  }' \
+                    $'    strandedLockRetryTimer.rearm()\n    checkStrandedLock()\n    checkAgentBoot()\n  }' \
+                  --replace-fail \
+                    $'    checkStrandedLock()\n  }\n\n  ShellIpc {' \
+                    $'    checkStrandedLock()\n    checkAgentBoot()\n  }\n\n  Process {\n    id: agentBootLockProc\n    command: ["${agentBootLockCheck}"]\n    onExited: function(exitCode) {\n      if (exitCode !== 0 || root.currentlyLocked()) return\n      root.logEvent("lock-requested: agent-boot")\n      root.agentBootLock = root.beginLock()\n    }\n  }\n\n  ShellIpc {' \
+                  --replace-fail \
+                    $'    function isLocked(): string {' \
+                    $'    function unlock(): string {\n      if (!root.currentlyLocked()) return "not-locked"\n      if (!root.agentBootLock) return "denied"\n      root.agentBootLock = false\n      root.logEvent("unlock: agent-boot ipc")\n      root.finishUnlock()\n      return "ok"\n    }\n\n    function isLocked(): string {' \
+                  --replace-fail \
+                    $'    lockRequested = false\n    pendingSessionLock = false' \
+                    $'    lockRequested = false\n    agentBootLock = false\n    pendingSessionLock = false'
+
+                PATH=${lib.makeBinPath [pkgs.util-linux]}:$PATH \
+                  ${pkgs.bash}/bin/bash ${../scripts/test-omarchy-share.sh} "$out/share/omarchy"
               '';
           });
       };
@@ -662,12 +870,21 @@
       # 2026-10-13: with perl on PATH, `omarchy-menu-keybindings` opens
       # omarchy.menu and waits for a selection; without it the process exits
       # before any panel opens (SUPER+K on the keybindings menu).
-      home.packages = with pkgs; [
-        gsettings-desktop-schemas
-        gnome-themes-extra
-        nerd-fonts.jetbrains-mono
-        perl
-      ];
+      home.packages = with pkgs;
+        [
+          gsettings-desktop-schemas
+          gnome-themes-extra
+          nerd-fonts.jetbrains-mono
+          perl
+        ]
+        # What the Install menu added (scripts/omarchy-guix/den-apps.sh), as
+        # nixpkgs attribute paths resolved against nixarchy's overlay so its
+        # own apps (omacut, omawrite, ...) resolve too.
+        ++ map (attr:
+          lib.attrByPath (lib.splitString "." attr)
+          (throw "modules/omarchy-apps.json: nixpkgs has no package ${attr}")
+          nixarchyPkgs)
+        (lib.importJSON ./omarchy-apps.json);
     };
   };
 }

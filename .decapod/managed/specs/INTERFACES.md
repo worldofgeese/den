@@ -28,6 +28,13 @@ Generated interface specs should include:
 | `TODO` | `TODO` | `TODO` | `TODO` | `TODO` |
 
 ## Inbound Contracts
+- GDM invokes Guix's `ewm-session`. It executes
+  `$HOME/.local/state/nix/profiles/home-manager/home-path/bin/ewm-start`
+  and forwards all arguments. If the launcher is absent, it writes an error
+  to stderr and exits with status 1. Deploy both profiles before EWM login.
+- `ewm-start` clears `EMACSLOADPATH` and `EMACSNATIVELOADPATH`. It starts
+  Nix `emacs-pgtk` with the EWM package paths, `--fg-daemon=ewm`,
+  `-l ewm`, and `-f ewm-start-module`.
 - API / RPC entrypoints:
 - CLI surfaces:
 - Event/webhook consumers:

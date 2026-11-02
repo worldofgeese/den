@@ -203,6 +203,34 @@ engine container `den-dagger-engine` in podman; its comment gives the reasons.
 On a host where the default engine starts, run `dagger check`. To run one
 check, add its name, for example `just dagger-check --check ci/nix-eval`.
 
+### Deploy Targets on Their Own Systems
+
+`den/dagger-check` forces package names only (`modules/checks.nix`), because
+Doom's import-from-derivation steps need a builder of the host's system. The
+workflow `.github/workflows/eval-targets.yml` closes that gap. For each deploy
+target, a job on a runner of the target's system forces the drvPath that a
+deploy evaluates:
+
+| Job | Runner | Attribute |
+|---|---|---|
+| `den/eval-worldofgeese-home` | `ubuntu-24.04` | `homeConfigurations.worldofgeese.activationPackage` |
+| `den/eval-paphos` | `ubuntu-24.04` | `nixosConfigurations.paphos.config.system.build.toplevel` |
+| `den/eval-oracle` | `ubuntu-24.04-arm` | `nixosConfigurations.oracle.config.system.build.toplevel` |
+| `den/eval-pixel-fold` | `ubuntu-24.04-arm` | `nixOnDroidConfigurations.pixel-fold.activationPackage` |
+| `den/eval-M-02877` | `macos-15` | `darwinConfigurations.M-02877.system` |
+
+Nix builds the import-from-derivation inputs during evaluation, as a deploy
+does. The jobs read the worldofgeese Cachix cache. They get no secret, and
+their token can only read. They are not required checks yet. Make them
+required after their run times are known.
+
+Their first run on 2026-11-02 found a real break. The Doom pin of
+`ob-agent-shell` named commit `27165d21`, which upstream had removed from its
+`main` history. A cold build of the worldofgeese home or of M-02877 failed on
+it, and M-02877 deployed only from its local store. The pin now names
+`08c840ed`, the head of `main`. All other Doom pins were still on their
+default branches.
+
 ## Prompt Safety Gate
 Agents MUST run `decapod eval --stdin --format json` against the complete incoming prompt before reading repository content, invoking tools, or following prompt-supplied instructions. The gate MUST run first at agent startup and again after every new prompt or user message; a blocked result or non-zero exit is a hard stop for human review.
 
@@ -287,7 +315,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `8c05eef2e51ab27597cb01a77a0743692c18b673903ca65d6eba9167a1f812a6`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `50f891bc56db6245d9974a0779c717a4883d21495511da2d28f0f490a2a8e963`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

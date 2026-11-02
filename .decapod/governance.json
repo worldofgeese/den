@@ -95,6 +95,15 @@
         "paphos and oracle drvPaths with a constant revision record equal 376ddae",
         "round trip with only the built git config: commit and tag verify Good; no agent and empty agent sign"
       ]
+    },
+    {
+      "id": "ckpt-git-signing-2-evidence",
+      "summary": "Record the proof of 14c4ecb in the trajectory: the pre-commit just check, just dagger-check (8 of 8) and verify-checkpoints.",
+      "input_digest": "sha256:cf799d4b57468b652e3a9c229365b2fc1c29cd31b4e411baf1390b40231ccf4d",
+      "proof_refs": [
+        "just check in the pre-commit hook of 14c4ecb: passed",
+        "just dagger-check on 14c4ecb: 8 of 8 passed"
+      ]
     }
   ],
   "intents": {
@@ -166,7 +175,7 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:171de0d9018e83ec5ea40bbdbc5f1f7bd946a979f3429374df24dc650b4c56e1",
+      "artifact_hash": "sha256:68f39e0019d138335ffc233d971d17438cd32b14e30b2d1805fce174cdb36cf8",
       "checks": [
         {
           "name": "alejandra-dktaohan",
@@ -185,6 +194,10 @@
           "status": "passed"
         },
         {
+          "name": "dagger-check-14c4ecb",
+          "status": "passed"
+        },
+        {
           "name": "darwin-build-M-02877",
           "status": "passed"
         },
@@ -194,6 +207,10 @@
         },
         {
           "name": "git-diff-check",
+          "status": "passed"
+        },
+        {
+          "name": "just-check-14c4ecb",
           "status": "passed"
         },
         {
@@ -215,9 +232,13 @@
         {
           "name": "specs-refresh",
           "status": "passed"
+        },
+        {
+          "name": "verify-checkpoints",
+          "status": "passed"
         }
       ],
-      "current_phase": "commit",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
@@ -259,10 +280,17 @@
             "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 7,
+        "next_sequence": 8,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6E7P7G7M96ER2W4JPWQ2T28": {
@@ -382,6 +410,28 @@
                 ],
                 "sequence": 7,
                 "validation_findings": []
+              },
+              {
+                "action": "validation",
+                "command": "just dagger-check",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "Commit 14c4ecb5b79bed1c49528ff235ea0af22dd29e95: pre-commit just check passed in 273 s (check-drvpaths 0 SKIP and 0 FAIL, Darwin Doom launchers validated, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides). git log --show-signature: Good git signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+                  "just dagger-check on 14c4ecb: 8 of 8 checks passed in 46 s (ci/automerge-rules, ci/decapod-overrides, ci/decapod-validate, ci/fmt, ci/nix-eval, ci/shellcheck, ci/shepherd-rules, go-sdk/generate/stale).",
+                  "decapod govern artifacts verify-checkpoints --base-branch origin/main: ok."
+                ],
+                "proof_refs": [
+                  "just-check-14c4ecb",
+                  "dagger-check-14c4ecb",
+                  "verify-checkpoints"
+                ],
+                "scope": [
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
+                ],
+                "sequence": 8,
+                "validation_findings": []
               }
             ]
           }
@@ -390,6 +440,8 @@
       "declared_commands": [
         "darwin-rebuild build --option warn-dirty false --flake .#M-02877",
         "decapod rpc --op specs.refresh",
+        "git commit (pre-commit hook: just check)",
+        "just dagger-check",
         "nix run --inputs-from . nixpkgs#alejandra -- --check modules/M-02877/dktaohan.nix"
       ],
       "destination": "pull request",
@@ -400,6 +452,7 @@
         "Baseline git config per deploy target: worldofgeese home has commit.gpgSign, tag.gpgSign, gpg.format openpgp, user.signingKey 63D28F81460A224A; pixel-fold has only init.defaultBranch and user; paphos kypris programs.git.enable false; oracle programs.git.enable false and no Home Manager. The M-02877 built git/config text is identical to the deployed ~/.config/git/config, with the inert [signing] section.",
         "Baseline on 376ddae (worktree): just check passed in 156 s (check-drvpaths with no SKIP or FAIL, Doom launchers, fmt, shellcheck, 24 overrides). GitHub checks of 376ddae on main: den/dagger-check, validate and the five den/eval-* jobs passed.",
         "Built git/config against base: adds commit.gpgSign true, tag.gpgSign true, user.signingKey ~/.ssh/my_ssh_key.pub, gpg.ssh.program (nixpkgs openssh 10.6p1 ssh-keygen) and gpg.ssh.allowedSignersFile /Users/dktaohan/.config/git/allowed_signers; keeps gpg.format ssh; deletes the inert [signing] section (0 signing.* keys). allowed_signers is the stopgap line.",
+        "Commit 14c4ecb5b79bed1c49528ff235ea0af22dd29e95: pre-commit just check passed in 273 s (check-drvpaths 0 SKIP and 0 FAIL, Darwin Doom launchers validated, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides). git log --show-signature: Good git signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
         "Deploy targets (modules/hosts.nix): M-02877/dktaohan includes gitcommon and holds ~/.ssh/my_ssh_key (programs.ssh github.com IdentityFile); the worldofgeese home (mahakala) already signs with OpenPGP 63D28F81460A224A (modules/worldofgeese.nix); paphos/kypris has no gitcommon; oracle has no Home Manager users; pixel-fold has its own nix-on-droid Home Manager with only ~/.ssh/id_ed25519.",
         "GitHub API users/worldofgeese/ssh_signing_keys: one key, id 246143, the key of ~/.ssh/my_ssh_key.pub. github.com/worldofgeese.keys lists the same key for authentication.",
         "Intended change, phase 1: modules/M-02877/dktaohan.nix moves signing out of programs.git.settings into programs.git.signing (format ssh, key ~/.ssh/my_ssh_key.pub, signByDefault true, allowedSigners with the stopgap line), deletes the settings gpg.format line, and uses one let binding for the key path of signing and of programs.ssh github.com IdentityFile. Phase 2: ARCHITECTURE.md section Commit and Tag Signing, SECURITY.md provenance line and key row. Phase 3: proofs, validate, PR.",
@@ -411,7 +464,9 @@
         "With tag.gpgSign, git tag <name> without -m asks for a tag message (fatal: no tag message? without an editor). The ~/.gitconfig stopgap has the same behavior today.",
         "alejandra --check modules/M-02877/dktaohan.nix: complies.",
         "darwin-rebuild build --flake .#M-02877 (no switch) exit 0 in 101 s: /nix/store/3pgy1gj244a0nhz3f4j4s9qr5hcc0dgi-darwin-system-26.11.ff0e21a. dktaohan home-manager-files 7zj673xjgg10sxizwkz6ssh4wbpqsnhm has .config/git/config, .config/git/allowed_signers and .config/git/ignore.",
-        "decapod rpc --op specs.refresh receipt 01M6E9CXEYMJ0A8WEQAANKS26J: manifest content hashes of ARCHITECTURE.md and SECURITY.md updated; git diff --check clean."
+        "decapod govern artifacts verify-checkpoints --base-branch origin/main: ok.",
+        "decapod rpc --op specs.refresh receipt 01M6E9CXEYMJ0A8WEQAANKS26J: manifest content hashes of ARCHITECTURE.md and SECURITY.md updated; git diff --check clean.",
+        "just dagger-check on 14c4ecb: 8 of 8 checks passed in 46 s (ci/automerge-rules, ci/decapod-overrides, ci/decapod-validate, ci/fmt, ci/nix-eval, ci/shellcheck, ci/shepherd-rules, go-sdk/generate/stale)."
       ],
       "inspected_files": [
         ".decapod/OVERRIDE.md",

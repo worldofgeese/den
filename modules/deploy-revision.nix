@@ -1,16 +1,29 @@
 # Records the den commit that each deploy target was built from.
 #
 # The deploy report (scripts/deploy-report.py, plan step P8) reads
-# /etc/den-revision on each host and asks GitHub which commits of main are
-# missing. paphos and oracle rebuild themselves from github:worldofgeese/den,
-# so `self.rev` is the commit of main that they fetched. A build from a checkout
-# with uncommitted edits records `<rev>-dirty`, which GitHub does not know. The
-# report then names the host as `den-revision-unknown`, on purpose.
+# /etc/den-revision on each host. The file has three lines: the commit, the
+# narHash of the flake source, and its lastModified time.
+#
+# paphos and oracle rebuild with `--override-input nixpkgs ...`. Nix then drops
+# self.rev, but it keeps narHash and lastModified (measured on 2026-11-02). The
+# report finds the main commit that has that commit time, and confirms it by
+# its narHash. A build from a checkout with uncommitted edits records
+# `<rev>-dirty`, which GitHub does not know, so the report names the host
+# `den-revision-unknown` on purpose.
 {inputs, ...}: let
-  revision = inputs.self.rev or inputs.self.dirtyRev or "unknown";
+  rev = inputs.self.rev or inputs.self.dirtyRev or "";
+  narHash = inputs.self.narHash or "";
+  lastModified = toString (inputs.self.lastModified or 0);
   record = {
-    system.configurationRevision = revision;
-    environment.etc."den-revision".text = revision + "\n";
+    system.configurationRevision =
+      if rev != ""
+      then rev
+      else "nar:${narHash}";
+    environment.etc."den-revision".text = ''
+      ${rev}
+      ${narHash}
+      ${lastModified}
+    '';
   };
 in {
   den.aspects.server.nixos = record;

@@ -16,17 +16,21 @@ type Ci struct { // ci (../../../../../../:0:0)
 	// field again.
 	refetchID bool
 
-	automergeDryRun  *string
-	automergeReplay  *string
-	automergeRules   *Void
-	decapodOverrides *Void
-	decapodValidate  *Void
-	fmt              *Void
-	id               *ID
-	nixEval          *Void
-	shellcheck       *Void
-	shepherd         *string
-	shepherdRules    *Void
+	approveBotRuns         *string
+	approveBotRunsRules    *Void
+	automergeDryRun        *string
+	automergeReplay        *string
+	automergeRules         *Void
+	decapodOverrides       *Void
+	decapodValidate        *Void
+	fmt                    *Void
+	id                     *ID
+	nixEval                *Void
+	shellcheck             *Void
+	shepherd               *string
+	shepherdRules          *Void
+	workflowIsolation      *Void
+	workflowIsolationRules *Void
 }
 
 func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
@@ -36,6 +40,43 @@ func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
 		// must be reevaluated.
 		refetchID: true,
 	}
+}
+
+// Approve the pull_request runs that GitHub holds for approval
+// (action_required) on a head that a job pushed with its GITHUB_TOKEN. Call
+// it after the push, with the token of that job. It approves each held run
+// of this repository on the head. It looks again every 10 seconds, until no
+// run waits 30 seconds after the last approval, or until 3 minutes pass. A
+// run of a fork stays held for a person. It fails only when runs waited and
+// GitHub approved none of them: then the token needs actions: write. The
+// setting approveBotRuns must be true.
+func (r *Ci) ApproveBotRuns(ctx context.Context, token *Secret, sha string) (string, error) {
+	assertNotNil("token", token)
+	if r.approveBotRuns != nil {
+		return *r.approveBotRuns, nil
+	}
+	q := r.query.Select("approveBotRuns")
+	q = q.Arg("token", token)
+	q = q.Arg("sha", sha)
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx)
+}
+
+// approve-bot-runs approves the held runs of a head as expected, against a
+// fake GitHub API and a fake clock: no runs, runs that appear late, runs
+// that GitHub does not approve, the give-up time, and runs of a fork or of
+// another head. With the setting off, it sends no request. No network and no
+// token.
+func (r *Ci) ApproveBotRunsRules(ctx context.Context) error {
+	if r.approveBotRunsRules != nil {
+		return nil
+	}
+	q := r.query.Select("approveBotRunsRules")
+
+	return q.Execute(ctx)
 }
 
 // Judge an open pull request by the merge rules, and say what a merge would
@@ -258,6 +299,46 @@ func (r *Ci) ShepherdRules(ctx context.Context) error {
 	return q.Execute(ctx)
 }
 
+// Each job in .github/workflows holds only what its kind allows. The jobKinds
+// setting gives each job its kind, and a job that it does not name fails.
+// Each workflow sets `permissions: {}`, and each job its own scopes. No
+// workflow starts on pull_request_target. A workflow with a job of another
+// kind than CHECK starts only on events that run the copy of the workflow on
+// main. If one of those events is workflow_dispatch, which can pick a branch,
+// the condition of that job requires github.ref == 'refs/heads/main'. A CHECK
+// job holds at most contents: read, no secret and no cache. An AGENT job runs
+// in agentEnvironment and holds at most contents: read and the secret of the
+// AGENT jobs. A GITHUB job holds only the token of the job and the scopes
+// that it can have. Only the pagesDeploy jobs hold pages and id-token. AGENT,
+// GITHUB, SCAN and LEGACY jobs never check out or fetch the code of a pull
+// request. Each job uses only the allowed actions, pinned to a commit SHA,
+// and no checkout keeps the token of the job. A LEGACY job keeps exactly what
+// the table records for it, and the other rules apply to it. With no
+// jobKinds, the check is off: it reads no workflow.
+func (r *Ci) WorkflowIsolation(ctx context.Context) error {
+	if r.workflowIsolation != nil {
+		return nil
+	}
+	q := r.query.Select("workflowIsolation")
+
+	return q.Execute(ctx)
+}
+
+// The job kinds give the expected problems for fixed workflows and a fixed
+// jobKinds table. The passing fixture has a job of each kind and two LEGACY
+// jobs, and it gives no problem. Each rule case breaks one rule, and gives
+// that problem. A change to the table changes what the jobs can hold. A table
+// that is not valid is refused, and with no table the check is off. No
+// network and no token.
+func (r *Ci) WorkflowIsolationRules(ctx context.Context) error {
+	if r.workflowIsolationRules != nil {
+		return nil
+	}
+	q := r.query.Select("workflowIsolationRules")
+
+	return q.Execute(ctx)
+}
+
 // CiOpts contains options for Query.Ci
 type CiOpts struct {
 	// The GitHub repository, owner/name, that the merge rules read.
@@ -293,6 +374,15 @@ type CiOpts struct {
 	// prefix, for example ./plugins/. With none, a change of source needs a
 	// person.
 	ManifestSourcePrefix string
+	// With true, approve-bot-runs approves the pull_request runs that GitHub
+	// holds (action_required) on a head that a job pushed with its
+	// GITHUB_TOKEN. With false, the module approves no run.
+	ApproveBotRuns bool
+	// The job-kinds table of ci:workflow-isolation, in YAML: the kind of each
+	// job in .github/workflows (CHECK, AGENT, GITHUB, SCAN or LEGACY), and
+	// what the kinds can hold in this repository. With none, the check is
+	// off.
+	JobKinds string
 }
 
 func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
@@ -334,6 +424,14 @@ func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../..
 		// `manifestSourcePrefix` optional argument
 		if !querybuilder.IsZeroValue(opts[i].ManifestSourcePrefix) {
 			q = q.Arg("manifestSourcePrefix", opts[i].ManifestSourcePrefix)
+		}
+		// `approveBotRuns` optional argument
+		if !querybuilder.IsZeroValue(opts[i].ApproveBotRuns) {
+			q = q.Arg("approveBotRuns", opts[i].ApproveBotRuns)
+		}
+		// `jobKinds` optional argument
+		if !querybuilder.IsZeroValue(opts[i].JobKinds) {
+			q = q.Arg("jobKinds", opts[i].JobKinds)
 		}
 	}
 	q = q.Arg("ws", ws)

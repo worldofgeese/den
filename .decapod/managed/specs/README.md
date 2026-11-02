@@ -65,7 +65,7 @@ These files are the project-local contract for humans and agents.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `00b47b3d19d23a1b51df7bcc106409cc3f58230f53583adc815fbb520bcfe6e4`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (14 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `e0338c8eb82a5166854117ea33d00000a599c0174db2d9f8a42ffdf9df1b3f16`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (18 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

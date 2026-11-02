@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
+    "accepted_commit": "376ddae6edd0ad1d8f13c1c4602ec58d5053ada1",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -29,11 +29,14 @@
         "question": "Which project capability should replace this template claim first?",
         "status": "open"
       },
+      "plan:b459f3e5d6f6ee6d": "Does checkName also pin the workflow or the app of the check? Left to PR 4 (statusPrefix), in the PR description.",
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
       "trajectory:10eccbd015927b8c": "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux.",
+      "trajectory:1df243fb5dea8cf5": "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back.",
       "trajectory:2e73ace6f8b455ed": "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
       "trajectory:2fc25673715437ce": "Headroom's model loading uses huggingface_hub and honors HF_HOME (the image sets no HF_* variables)",
       "trajectory:4b9d0230624a5890": "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to",
+      "trajectory:4c3a11d1469258d8": "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
@@ -42,124 +45,98 @@
     }
   },
   "change": {
-    "id": "change_01M6CATQGMTQVT6HZ72KY2SACA",
-    "base_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
+    "id": "change_01M6E7P7D9Q3A9P14KBZEFS8VC",
+    "base_commit": "376ddae6edd0ad1d8f13c1c4602ec58d5053ada1",
     "target_base": "origin/main"
   },
   "claims": {
-    "claim:ci-authors-star": {
-      "statement": "authors = [\"*\"] accepts every author in the merge rules and in the shepherd, and an empty authors list still refuses each author.",
-      "falsifier": "A fixture with authors [\"*\"] refuses an author at the rule author or gets checks only from the shepherd, or a fixture with no authors accepts an author.",
+    "claim:allowed-signers-rejects-unknown": {
+      "statement": "Verification with the allowed signers file of den accepts only the key of tao.hansen@lego.com. It rejects a commit that another key signed, and an unsigned commit.",
+      "falsifier": "git verify-commit with the built config exits 0 for a commit that a throwaway key signed, or for an unsigned commit.",
       "status": "supported",
       "proof_refs": [
-        "ci:automerge-rules policyCases: no authors refuses, authors * accepts mallory",
-        "ci:shepherd-rules: no authors gives checks only, authors * gets a request",
-        "mutation test: the old author check fails both authors * cases"
+        "throwaway ED25519 key, committer tao.hansen@lego.com: No principal matched, verify-commit exit 1, %G? U",
+        "unsigned commit: verify-commit exit 1"
       ]
     },
-    "claim:ci-check-name": {
-      "statement": "With checkName set, the rules refuse a head unless the newest run of that check on the head succeeded; with no checkName, no verdict changes.",
-      "falsifier": "A fixture with checkName set and no run, or only a skipped run, merges; a fixture with a failed run merges; or a fixture with no checkName refuses at required-check.",
+    "claim:m02877-signs-commits-and-tags": {
+      "statement": "The git config that den builds for dktaohan on M-02877 signs every commit and every tag with the SSH key ~/.ssh/my_ssh_key.pub, and git verifies each signature against the allowed signers file that den writes.",
+      "falsifier": "With only the built ~/.config/git/config (GIT_CONFIG_GLOBAL, no ~/.gitconfig), git commit or git tag in a new repository makes an object without a signature, git verify-commit or git verify-tag fails on it, or the built file still has a [signing] section.",
       "status": "supported",
       "proof_refs": [
-        "ci:automerge-rules policyCases: checkName unset, succeeded, failed (checks), no run and skipped (required-check), commit status",
-        "ci:automerge-rules replayCases: checkName validate merges, deploy after the merge refuses at required-check",
-        "mutation test: with no required-check rule, 3 checkName cases fail"
+        "darwin-rebuild build --flake .#M-02877: /nix/store/3pgy1gj244a0nhz3f4j4s9qr5hcc0dgi-darwin-system-26.11.ff0e21a",
+        "git config -f built git/config --get-regexp ^signing.: 0 keys",
+        "round trip with GIT_CONFIG_GLOBAL=7zj673xj home-manager-files .config/git/config: commit and annotated tag verify Good for tao.hansen@lego.com SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U"
       ]
     },
-    "claim:ci-den-defaults-unchanged": {
-      "statement": "With the settings of den (prefix riskyPaths, a list of authors, no checkName), the merge rules and the shepherd give the same verdicts as on main 687368d.",
-      "falsifier": "A ci:automerge-rules or ci:shepherd-rules case that passed on 687368d fails, or a den riskyPaths prefix stops matching a path that it matched with strings.HasPrefix.",
+    "claim:other-deploy-targets-unchanged": {
+      "statement": "No deploy target other than M-02877 changes. The drvPaths of homeConfigurations.worldofgeese.activationPackage and nixOnDroidConfigurations.pixel-fold.activationPackage are the same on main 376ddae and on the candidate. paphos and oracle record the den commit in /etc/den-revision (modules/deploy-revision.nix), so their toplevel drvPath changes with each commit. With that record forced to a constant, their drvPaths are the same on 376ddae and on the candidate.",
+      "falsifier": "The eval-targets drvPath of the worldofgeese home or of pixel-fold on the candidate differs from main 376ddae (z5smx0kilnx1am6hfcpmy1958ar6had8, birl2h06dblfcal1z99zi7nr5vss0ixk), or the drvPath of paphos or oracle with a constant revision record differs between 376ddae and the candidate.",
       "status": "supported",
       "proof_refs": [
-        "ci:automerge-rules riskyPathCases: secrets/ and secretspec. match as prefixes",
-        "just dagger-check: ci:automerge-rules and ci:shepherd-rules pass with every case of 687368d unchanged"
+        "constant revision record: paphos myfbqvvc014f50w6dxi9afc8x9ssprdq and oracle l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1 on 376ddae and on the candidate",
+        "eval-targets run 41461732426 on 9a96e56: worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8, pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk, equal to run 41448751328 on 376ddae"
       ]
     },
-    "claim:ci-risky-path-globs": {
-      "statement": "A riskyPaths pattern with \"*\" matches the whole path, \"*\" stays in one level, \"**\" as a whole level matches zero or more levels, and a pattern without \"*\" matches as a prefix.",
-      "falsifier": "A matcher fixture of ci:automerge-rules fails, for example **/*.sh does not match a/b/run.sh, **/*.sh matches run.shx, or secrets/ matches modules/secrets/x.",
+    "claim:signing-without-agent": {
+      "statement": "Signing on M-02877 does not need the key in the SSH agent. With no agent, or with an agent that does not hold the key, ssh-keygen reads ~/.ssh/my_ssh_key.",
+      "falsifier": "With SSH_AUTH_SOCK unset, or set to an empty agent, git commit with the built config fails or makes an unsigned commit.",
       "status": "supported",
       "proof_refs": [
-        "ci:automerge-rules riskyPathCases (25 cases) and policyCases glob cases pass",
-        "mutation test: the old strings.HasPrefix matcher fails 11 matcher cases and 1 policy case"
+        "built config, SSH_AUTH_SOCK of an empty ssh-agent: commit verifies Good",
+        "built config, env -u SSH_AUTH_SOCK: commit verifies Good",
+        "contrast: the literal public key fails with Couldn't get agent socket and Couldn't find key in agent"
       ]
     }
   },
   "checkpoints": [
     {
-      "id": "ckpt-ci-settings-1",
-      "summary": "ci module: riskyPaths globs, authors \"*\" and checkName, with fixtures, regenerated bindings and the INTERFACES.md settings",
-      "input_digest": "sha256:37db241d23b3836749d7ab4d6cf85eec15ae7abc9eeb5ac1d5e3993f685537a6",
+      "id": "ckpt-git-signing-1",
+      "summary": "M-02877 signs every commit and tag through programs.git.signing (SSH key path ~/.ssh/my_ssh_key.pub, signByDefault, allowedSigners), and the inert [signing] section is gone. ARCHITECTURE.md and SECURITY.md describe signing per deploy target.",
+      "input_digest": "sha256:393b013a8ed128597a68f786422b69344ca8056706affbf10d81fdc1d0e0c34c",
       "proof_refs": [
-        "just dagger-check: 8 checks pass after decapod rpc --op specs.refresh",
-        "mutation test: 17 new cases fail with the old rules"
+        "darwin-rebuild build --flake .#M-02877: /nix/store/3pgy1gj244a0nhz3f4j4s9qr5hcc0dgi-darwin-system-26.11.ff0e21a",
+        "paphos and oracle drvPaths with a constant revision record equal 376ddae",
+        "round trip with only the built git config: commit and tag verify Good; no agent and empty agent sign"
       ]
     },
     {
-      "id": "ckpt-ci-settings-merge-e3495b2",
-      "summary": "Merge origin/main e3495b2 (#91) into the branch. governance.json keeps the document of this pull request, and decapod rpc --op specs.refresh writes the manifest hashes of the merged specs.",
-      "input_digest": "sha256:67801db472e8e43acf31edcdbf2d797ab0c83d82e465e6629ace6e86c0c5974b",
+      "id": "ckpt-git-signing-2-evidence",
+      "summary": "Record the proof of 14c4ecb in the trajectory: the pre-commit just check, just dagger-check (8 of 8) and verify-checkpoints.",
+      "input_digest": "sha256:cf799d4b57468b652e3a9c229365b2fc1c29cd31b4e411baf1390b40231ccf4d",
       "proof_refs": [
-        "decapod rpc --op specs.refresh (receipt 01M6DF3X5NZY90T2H87MR1S9ZJ)",
-        "git merge --no-ff --no-commit origin/main: conflicts only in governance.json and .manifest.json"
+        "just check in the pre-commit hook of 14c4ecb: passed",
+        "just dagger-check on 14c4ecb: 8 of 8 passed"
       ]
     },
     {
-      "id": "ckpt-ci-settings-2",
-      "summary": "ci:automerge-rules tests a policy with no riskyPaths. INTERFACES.md says that den's dagger.toml has no '*' pattern, no author '*' and no checkName. The specs are refreshed.",
-      "input_digest": "sha256:c9e0edab8b1d71e5c7414c0445735d8b4c1774e6646a922b9011253222818aa4",
+      "id": "ckpt-git-signing-3-validate",
+      "summary": "Record plain decapod validate on 9a96e56 (pass=186 fail=1, only DecapodLabs/decapod#1474, owner-approved), the eval-targets drvPath comparison and the supported claims. Keep the manifest generated_at that validation refreshed.",
+      "input_digest": "sha256:c9bff653e96c7246cac7eba7b33486827eeab1de74f09aed6c250ef6053af984",
       "proof_refs": [
-        "just dagger-check: 8 of 8 checks passed",
-        "mutation: a refusal on empty riskyPaths fails only the new case"
-      ]
-    },
-    {
-      "id": "ckpt-ci-settings-merge-8febc46",
-      "summary": "Merge origin/main 8febc46 (#92, #93) into the branch. governance.json keeps the document of this pull request and records the obligation trajectory:1df243fb5dea8cf5 of main as an unresolved assumption. decapod rpc --op specs.refresh writes the attestations and the manifest.",
-      "input_digest": "sha256:5598efc55fdb8facc48ddb54119ead1d587cf04a7e3e879e5e72fbad3ad67646",
-      "proof_refs": [
-        "git merge --no-ff --no-commit origin/main: conflicts only in governance.json, .manifest.json and the spec attestation blocks",
-        "just dagger-check on the merged tree: 8 of 8 checks passed"
-      ]
-    },
-    {
-      "id": "ckpt-ci-settings-validate-blocker",
-      "summary": "Record the plain decapod validate result: pass=185 fail=1, only the missing validation receipt of DecapodLabs/decapod#1474. The pull request waits for a human decision.",
-      "input_digest": "sha256:cd2b0ae73f94e01ebc45617f8d23eabdabf075c6785f6172a3a6d5793deec986",
-      "proof_refs": [
-        "decapod validate on 7d60297: publication_readiness READINESS_BLOCKED sections/validation (invalid)",
-        "https://github.com/DecapodLabs/decapod/issues/1474"
-      ]
-    },
-    {
-      "id": "ckpt-ci-settings-signed-squash",
-      "summary": "One SSH-signed commit on origin/main 040a18b replaces the 5 unsigned commits a2acf15, eae7f8d, 5a8c6ec, 7d60297 and 8d6baad, with the owner's approval. The change is identical: the three settings, their fixtures, the regenerated bindings and the INTERFACES.md settings. decapod rpc --op specs.refresh writes the attestations and the manifest.",
-      "input_digest": "sha256:cb41fff171181b9fddb23d36ca2d1a7fc03a46636033f6f7d3ebc30a84d037ab",
-      "proof_refs": [
-        "Chorus task f4bbad07 comment 6228873b: owner decisions of 2026-11-02 (signing, force-push, PR with the decapod#1474 blocker)",
-        "https://github.com/DecapodLabs/decapod/issues/1474",
-        "just dagger-check on the squashed tree: 8 of 8 checks passed",
-        "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H"
+        "decapod validate on 9a96e56: pass=186 fail=1 warn=5 skip=13, publication_readiness READINESS_BLOCKED sections/validation (decapod#1474)",
+        "eval-targets run 41461732426 on 9a96e56: worldofgeese home and pixel-fold drvPaths equal main 376ddae"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6CATQGMTQVT6HZ72KY2SACA": {
+    "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "root"
+        "modules/M-02877/dktaohan.nix",
+        "modules/git-common.nix",
+        ".decapod/managed/specs"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+      "id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "den PR for shared-module merge options (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a, den PR 1 of the agreed order. The governance plan of the work branch holds the scope.",
-      "refined_intent": "den PR for shared-module merge options (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a, den PR 1 of the agreed order. The governance plan of the work branch holds the scope.",
+      "raw_intent": "Sign every commit and tag on every den host: programs.git.signing (SSH) on M-02877, no host breaks\n\nOwner (worldofgeese) mandates signed commits and tags everywhere. den writes ~/.config/git/config with gpg.format=ssh, but modules/M-02877/dktaohan.nix nests signing.{signByDefault,key} under programs.git.settings, so git gets an inert [signing] section and never signs; M-02877 relies on a ~/.gitconfig stopgap (user.signingkey ~/.ssh/my_ssh_key.pub, commit.gpgsign, tag.gpgsign, gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers). Make den own it through home-manager programs.git.signing (key, signByDefault, format ssh) plus signing.allowedSigners, only on hosts that hold the key; keep mahakala's OpenPGP signing; paphos, oracle and pixel-fold unchanged. Checks: just dagger-check, just check, M-02877 darwin build (no switch), drvPath comparison for other hosts. Plain decapod validate: only DecapodLabs/decapod#1474 may fail (owner-approved). Signed commits only. Tracked in AEC bead aec-trv.",
+      "refined_intent": "Sign every commit and tag on every den host: programs.git.signing (SSH) on M-02877, no host breaks\n\nOwner (worldofgeese) mandates signed commits and tags everywhere. den writes ~/.config/git/config with gpg.format=ssh, but modules/M-02877/dktaohan.nix nests signing.{signByDefault,key} under programs.git.settings, so git gets an inert [signing] section and never signs; M-02877 relies on a ~/.gitconfig stopgap (user.signingkey ~/.ssh/my_ssh_key.pub, commit.gpgsign, tag.gpgsign, gpg.ssh.allowedSignersFile ~/.ssh/allowed_signers). Make den own it through home-manager programs.git.signing (key, signByDefault, format ssh) plus signing.allowedSigners, only on hosts that hold the key; keep mahakala's OpenPGP signing; paphos, oracle and pixel-fold unchanged. Checks: just dagger-check, just check, M-02877 darwin build (no switch), drvPath comparison for other hosts. Plain decapod validate: only DecapodLabs/decapod#1474 may fail (owner-approved). Signed commits only. Tracked in AEC bead aec-trv.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -169,116 +146,120 @@
       "constraints": {
         "file_touch_budget": null,
         "forbidden_paths": [
-          "dagger.toml",
-          "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
+          "modules/worldofgeese.nix",
+          "modules/pixel-fold",
+          "modules/paphos",
+          "modules/oracle"
         ]
       },
       "deferred_questions": [
-        "Does checkName also pin the workflow or the app of the check? Left to PR 4 (statusPrefix), in the PR description."
+        "pixel-fold holds only ~/.ssh/id_ed25519, which is not a GitHub signing key. To sign there, the owner must register a signing key for it. Out of scope for this PR.",
+        "mahakala does not get the allowed signers file, so it cannot verify the SSH signatures of M-02877. Out of scope for this PR.",
+        "programs.git.settings in modules/M-02877/dktaohan.nix also writes an inert [aliases] section (git reads [alias]) and lfs.enable (not programs.git.lfs.enable). This PR does not change them."
       ],
       "human_questions": [],
-      "intent": "Add three optional settings to the Dagger module .dagger/modules/ci. The empty value of each one keeps the current behavior of den. (a) riskyPaths: a pattern with \"*\" is a glob that must match the whole path, and \"**\" as a whole level matches zero or more levels. A pattern without \"*\" stays a path prefix, so the settings of den keep their meaning. (b) authors: an empty list still refuses, and \"*\" accepts every author, in the merge rules and in the shepherd. (c) checkName: when it is set, the newest run of that check on the head must succeed (new rule required-check). With no checkName, the rules rely on branch protection, as before. The values in dagger.toml do not change. Fixtures go in ci:automerge-rules and ci:shepherd-rules. INTERFACES.md (Dagger ci Module) describes the settings. Chorus task f4bbad07, AEC bead aec-16x.2, PR 1 of the order that MintRaven agreed.",
+      "intent": "The owner (worldofgeese) wants a signature on every commit and tag. den writes ~/.config/git/config with gpg.format=ssh, but modules/M-02877/dktaohan.nix puts signing.{signByDefault,key} inside programs.git.settings. So git gets an inert [signing] section and does not sign. M-02877 signs only because of a ~/.gitconfig stopgap. Change: M-02877 gets the Home Manager options programs.git.signing (format ssh, key ~/.ssh/my_ssh_key.pub, signByDefault true) and programs.git.signing.allowedSigners with the line of the stopgap. mahakala keeps its OpenPGP signing. paphos, oracle and pixel-fold get no signing, because they do not hold the key. No deploy, no switch, and no edit of ~/.gitconfig. Bead aec-trv in the AEC bead store.",
       "phases": [],
       "proof_hooks": [
+        "just check",
         "just dagger-check",
+        "darwin-rebuild build --flake .#M-02877 (build only, no switch)",
+        "drvPath comparison of each deploy target: base 376ddae against the candidate",
+        "signing round trip in a temporary repository with only the built git config",
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [
-        "A change to the merge flow in shepherd.go or automerge.go beyond these three rules: stop, and write the question in the PR description.",
-        "Decapod emits a Decision Gate, or a step needs a person."
+        "Decapod emits a Decision Gate.",
+        "An exclusive claim of another agent blocks this work unit: wait for its lease to end, do not break it.",
+        "A deploy target other than M-02877 changes its drvPath.",
+        "The change needs a signing key on a deploy target that does not hold it."
       ],
-      "title": "ci module: riskyPaths globs, authors \"*\" and checkName (AEC task M, den PR 1)",
+      "title": "Sign every commit and tag on every den host: programs.git.signing (SSH) on M-02877, no host breaks",
       "todo_ids": [
-        "code_01m6bp4rpxzwke3w"
+        "secu_01m6e7jy2y9he656"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793563999Z"
+      "updated_at": "1793627040Z"
     },
     "trajectory": {
       "active_boundaries": [
-        ".dagger/modules/ci (reserved for this PR on the mesh)",
-        ".decapod/managed/specs/INTERFACES.md (Dagger ci Module section)",
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:c2bea739adb578519da163e21c6db38f3c9ba528b440cb79b095443a3e97b2ed",
+      "artifact_hash": "sha256:5b4a237b477e8192779e860ba28a86a0e4d77408a8091bf5d7d441e6933be7b5",
       "checks": [
         {
-          "name": "baseline-automerge-and-shepherd-rules",
+          "name": "alejandra-dktaohan",
           "status": "passed"
         },
         {
-          "name": "change-identical-to-8d6baad",
+          "name": "allowed-signers-abuse-cases",
           "status": "passed"
         },
         {
-          "name": "ci-automerge-rules",
+          "name": "baseline-ci-376ddae",
           "status": "passed"
         },
         {
-          "name": "ci-decapod-overrides",
+          "name": "baseline-just-check",
           "status": "passed"
         },
         {
-          "name": "ci-decapod-validate",
+          "name": "dagger-check-14c4ecb",
           "status": "passed"
         },
         {
-          "name": "ci-fmt",
+          "name": "darwin-build-M-02877",
           "status": "passed"
         },
         {
-          "name": "ci-nix-eval",
-          "status": "passed"
-        },
-        {
-          "name": "ci-shellcheck",
-          "status": "passed"
-        },
-        {
-          "name": "ci-shepherd-rules",
-          "status": "passed"
-        },
-        {
-          "name": "dagger-check-merged-8febc46",
-          "status": "passed"
-        },
-        {
-          "name": "dagger-check-squash-040a18b",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-validate",
+          "name": "decapod-validate-9a96e56",
           "status": "failed"
         },
         {
-          "name": "decapod-validate-5a8c6ec",
-          "status": "failed"
-        },
-        {
-          "name": "fixture-mutation-test",
+          "name": "drvpath-worldofgeese-pixel-fold-unchanged",
           "status": "passed"
         },
         {
-          "name": "fixture-mutation-test-squash",
+          "name": "eval-targets-9a96e56",
           "status": "passed"
         },
         {
-          "name": "go-sdk-generate-stale",
+          "name": "git-config-unchanged-worldofgeese-pixel-fold",
           "status": "passed"
         },
         {
-          "name": "go-vet",
+          "name": "git-diff-check",
           "status": "passed"
         },
         {
-          "name": "gofmt",
+          "name": "just-check-14c4ecb",
           "status": "passed"
         },
         {
-          "name": "rules-before-merge",
+          "name": "neutral-drvpaths-paphos-oracle",
+          "status": "passed"
+        },
+        {
+          "name": "signing-key-form-test",
+          "status": "passed"
+        },
+        {
+          "name": "signing-round-trip",
+          "status": "passed"
+        },
+        {
+          "name": "signing-without-agent",
+          "status": "passed"
+        },
+        {
+          "name": "specs-refresh",
+          "status": "passed"
+        },
+        {
+          "name": "verify-checkpoints",
           "status": "passed"
         }
       ],
@@ -287,299 +268,253 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 5
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:6",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 6
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:7",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 7
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:8",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 8
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:9",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 9
           },
           {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
             "event_id": "event:10",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 10
-          },
-          {
-            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
-            "event_id": "event:11",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
-            "kind": "trajectory_step_recorded",
-            "sequence": 11
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 11,
+        "next_sequence": 10,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6CATQJNV4SVJJ4Y3CKEQT9H": {
+          "branch_01M6E7P7G7M96ER2W4JPWQ2T28": {
             "evidence_only": true,
-            "id": "branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
-            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "id": "branch_01M6E7P7G7M96ER2W4JPWQ2T28",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "steps": [
               {
-                "action": "implementation",
+                "action": "research",
                 "custody_event_id": "event:4",
                 "observations": [
                   "AGENTS.md",
                   "CLAUDE.md",
                   ".decapod/config.toml",
                   ".decapod/OVERRIDE.md",
-                  "dagger.toml",
-                  ".dagger/modules/ci/main.go",
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/automerge_checks.go",
-                  ".dagger/modules/ci/shepherd.go",
-                  ".dagger/modules/ci/shepherd_checks.go",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/hosts.nix",
+                  "modules/git-common.nix",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/worldofgeese.nix",
+                  "modules/pixel-fold/_home.nix",
+                  "modules/ssh.nix",
+                  "modules/checks.nix",
                   "Justfile",
-                  "Baseline on 687368d: dagger check --check ci/automerge-rules --check ci/shepherd-rules on den-dagger-engine exits 0.",
-                  "Prior blocker cleared: cicd_01m6bnwergmd1444 is yielded with no owner, and the exclusive claim of code_01m6bp4rpxzwke3w succeeded (claim 01M6CARP65GJSYG61N3THJ7H4V)."
+                  ".githooks/pre-commit",
+                  "scripts/check-drvpaths.sh",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/SECURITY.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "Pinned home-manager 095fef2 (modules/programs/git.nix) offers programs.git.signing.{key,format,signByDefault,signer,allowedSigners}. signByDefault sets commit.gpgSign and tag.gpgSign. allowedSigners writes $XDG_CONFIG_HOME/git/allowed_signers and sets gpg.ssh.allowedSignersFile. format ssh sets gpg.format and gpg.ssh.program (nixpkgs openssh ssh-keygen).",
+                  "The deployed ~/.config/git/config on M-02877 has [signing] key and signbydefault (inert: git reads no signing.* keys). git config --show-origin: user.signingkey, commit.gpgsign, tag.gpgsign and gpg.ssh.allowedsignersfile come only from the ~/.gitconfig stopgap.",
+                  "Deploy targets (modules/hosts.nix): M-02877/dktaohan includes gitcommon and holds ~/.ssh/my_ssh_key (programs.ssh github.com IdentityFile); the worldofgeese home (mahakala) already signs with OpenPGP 63D28F81460A224A (modules/worldofgeese.nix); paphos/kypris has no gitcommon; oracle has no Home Manager users; pixel-fold has its own nix-on-droid Home Manager with only ~/.ssh/id_ed25519.",
+                  "Signing key form test (git 2.56.0, nixpkgs openssh 10.6p1 ssh-keygen): user.signingKey ~/.ssh/my_ssh_key.pub signs with the agent, with no agent, with an unreachable socket and with an empty agent. The literal public key fails without the agent (Couldn't get agent socket) and with an empty agent (Couldn't find key in agent), because git passes -U. So the key is the path."
                 ],
                 "proof_refs": [
-                  "baseline-automerge-and-shepherd-rules"
+                  "signing-key-form-test"
                 ],
                 "scope": [
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator."
-                ]
-              },
-              {
-                "action": "validation",
-                "command": "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".dagger/modules/ci/main.go",
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/automerge_checks.go",
-                  ".dagger/modules/ci/shepherd.go",
-                  ".dagger/modules/ci/shepherd_checks.go",
-                  ".dagger/modules/ci/dagger.gen.go",
-                  ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "just dagger-check: 7 of 8 checks passed; ci:decapod-validate passed validation (171 pass, 0 fail) but showed spec drift until decapod rpc --op specs.refresh; after the refresh dagger check --check ci/decapod-validate exits 0.",
-                  "Mutation test: with the old strings.HasPrefix matcher, the old author loop and no required-check rule, ci:automerge-rules and ci:shepherd-rules fail 17 cases (13 matcher, 4 policy and replay) and pass again after the restore.",
-                  "ci:nix-eval skipped only aarch64-darwin.M-02877 (no remote builder), as VALIDATION.md describes."
-                ],
-                "proof_refs": [
-                  "ci-automerge-rules",
-                  "ci-shepherd-rules",
-                  "go-sdk-generate-stale",
-                  "ci-nix-eval",
-                  "ci-fmt",
-                  "ci-shellcheck",
-                  "ci-decapod-overrides",
-                  "ci-decapod-validate",
-                  "gofmt",
-                  "go-vet",
-                  "fixture-mutation-test"
-                ],
-                "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
-                ],
-                "sequence": 5,
-                "tool": "nix shell --inputs-from . nixpkgs#go -c gofmt -l .dagger/modules/ci (no file listed)",
                 "validation_findings": []
               },
               {
-                "action": "trajectory.record",
+                "action": "implementation",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "Baseline on 376ddae (worktree): just check passed in 156 s (check-drvpaths with no SKIP or FAIL, Doom launchers, fmt, shellcheck, 24 overrides). GitHub checks of 376ddae on main: den/dagger-check, validate and the five den/eval-* jobs passed.",
+                  "Baseline drvPaths: eval-targets run 41448751328 on 376ddae gives worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8 and pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk, the same as on 040a18b. paphos, oracle and M-02877 change with each commit, because modules/deploy-revision.nix writes the den commit to /etc/den-revision. With that record forced to a constant: paphos myfbqvvc014f50w6dxi9afc8x9ssprdq, oracle l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1 (same for the clean rev and the worktree).",
+                  "Baseline git config per deploy target: worldofgeese home has commit.gpgSign, tag.gpgSign, gpg.format openpgp, user.signingKey 63D28F81460A224A; pixel-fold has only init.defaultBranch and user; paphos kypris programs.git.enable false; oracle programs.git.enable false and no Home Manager. The M-02877 built git/config text is identical to the deployed ~/.config/git/config, with the inert [signing] section.",
+                  "GitHub API users/worldofgeese/ssh_signing_keys: one key, id 246143, the key of ~/.ssh/my_ssh_key.pub. github.com/worldofgeese.keys lists the same key for authentication.",
+                  "Intended change, phase 1: modules/M-02877/dktaohan.nix moves signing out of programs.git.settings into programs.git.signing (format ssh, key ~/.ssh/my_ssh_key.pub, signByDefault true, allowedSigners with the stopgap line), deletes the settings gpg.format line, and uses one let binding for the key path of signing and of programs.ssh github.com IdentityFile. Phase 2: ARCHITECTURE.md section Commit and Tag Signing, SECURITY.md provenance line and key row. Phase 3: proofs, validate, PR."
+                ],
+                "proof_refs": [
+                  "baseline-just-check",
+                  "baseline-ci-376ddae"
+                ],
+                "scope": [
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "verification",
+                "command": "nix run --inputs-from . nixpkgs#alejandra -- --check modules/M-02877/dktaohan.nix",
                 "custody_event_id": "event:6",
                 "observations": [
-                  "Correction to the mutation-test count: the 17 cases that failed are 11 matcher cases, 4 policy cases, 1 replay case and 1 shepherd case."
+                  "modules/M-02877/dktaohan.nix",
+                  "alejandra --check modules/M-02877/dktaohan.nix: complies.",
+                  "darwin-rebuild build --flake .#M-02877 (no switch) exit 0 in 101 s: /nix/store/3pgy1gj244a0nhz3f4j4s9qr5hcc0dgi-darwin-system-26.11.ff0e21a. dktaohan home-manager-files 7zj673xjgg10sxizwkz6ssh4wbpqsnhm has .config/git/config, .config/git/allowed_signers and .config/git/ignore.",
+                  "Built git/config against base: adds commit.gpgSign true, tag.gpgSign true, user.signingKey ~/.ssh/my_ssh_key.pub, gpg.ssh.program (nixpkgs openssh 10.6p1 ssh-keygen) and gpg.ssh.allowedSignersFile /Users/dktaohan/.config/git/allowed_signers; keeps gpg.format ssh; deletes the inert [signing] section (0 signing.* keys). allowed_signers is the stopgap line.",
+                  "Round trip with only the built config (GIT_CONFIG_GLOBAL=<built git/config>, GIT_CONFIG_NOSYSTEM=1): git commit makes 1 gpgsig header, verify-commit Good signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U; git tag -a makes an SSH signature, verify-tag Good. Without SSH_AUTH_SOCK and with an empty agent, commits are signed and verify Good.",
+                  "Abuse cases with the built allowed_signers: an unsigned commit fails verify-commit (exit 1); a commit that a throwaway key signed under tao.hansen@lego.com fails verify-commit with No principal matched (exit 1, %G? U).",
+                  "With tag.gpgSign, git tag <name> without -m asks for a tag message (fatal: no tag message? without an editor). The ~/.gitconfig stopgap has the same behavior today.",
+                  "Other deploy targets on the worktree: paphos and oracle drvPaths with a constant revision record are the same as on 376ddae (myfbqvvc014f50w6dxi9afc8x9ssprdq, l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1). worldofgeese home git iniContent and xdg.configFile names, and pixel-fold git iniContent, are byte-identical to 376ddae."
                 ],
-                "proof_refs": [],
+                "proof_refs": [
+                  "alejandra-dktaohan",
+                  "darwin-build-M-02877",
+                  "signing-round-trip",
+                  "signing-without-agent",
+                  "allowed-signers-abuse-cases",
+                  "neutral-drvpaths-paphos-oracle",
+                  "git-config-unchanged-worldofgeese-pixel-fold"
+                ],
                 "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
                 ],
                 "sequence": 6,
                 "validation_findings": []
               },
               {
-                "action": "trajectory.record",
-                "command": "git merge --no-ff --no-commit origin/main",
+                "action": "commit",
+                "command": "decapod rpc --op specs.refresh",
                 "custody_event_id": "event:7",
                 "observations": [
-                  ".github/workflows/decapod-validate.yml",
-                  "scripts/decapod-validate-ci.sh",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/SECURITY.md",
                   ".decapod/managed/specs/.manifest.json",
-                  "Third attempt: the exclusive claim 01M6DEZJJH2XFS1F6YM88DAWHR of code_01m6bp4rpxzwke3w succeeded after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone, because this worktree exists.",
-                  "Review of a2acf15 against the task: riskyPaths globs with a prefix for a pattern without '*', authors '*' in the merge rules and the shepherd, and checkName (rule required-check) match the spec. The empty value of each setting keeps the verdicts of main, and dagger.toml does not change.",
-                  "Before the merge: dagger check --check ci/automerge-rules --check ci/shepherd-rules passed on a2acf15 (2 passed).",
-                  "The uncommitted .manifest.json change moved only generated_at (1793564483Z to 1793564823Z). decapod-validate.yml and scripts/decapod-validate-ci.sh do not count that as drift and put the committed value back, so the committed value was put back before the merge.",
-                  "main moved to e3495b2 (#91: modules/omarchy.nix and OPERATIONS.md). origin/main was merged into the branch. governance.json keeps the document of this pull request, whose baseline is equal to the baseline of e3495b2. decapod rpc --op specs.refresh resolved the manifest conflict."
+                  "ARCHITECTURE.md: new section Commit and Tag Signing with the table per deploy target, the reason for the key path, verification, the tag message rule and the stopgap history. SECURITY.md: provenance strategy line and a Secrets Management row for the M-02877 signing key (0600, no passphrase, FileVault On, measured).",
+                  "decapod rpc --op specs.refresh receipt 01M6E9CXEYMJ0A8WEQAANKS26J: manifest content hashes of ARCHITECTURE.md and SECURITY.md updated; git diff --check clean."
                 ],
                 "proof_refs": [
-                  "rules-before-merge"
+                  "specs-refresh",
+                  "git-diff-check"
                 ],
                 "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
                 ],
                 "sequence": 7,
                 "validation_findings": []
               },
               {
-                "action": "trajectory.record",
+                "action": "validation",
                 "command": "just dagger-check",
                 "custody_event_id": "event:8",
                 "observations": [
-                  ".dagger/modules/ci/automerge_checks.go",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "New policy case in ci:automerge-rules: with no riskyPaths, no path needs a person (secrets/a.age and .github/workflows/check.yml merge). A mutation that refuses an empty riskyPaths list fails only this case.",
-                  "Mutation test on the merged branch: the old prefix matcher, the old author check and no required-check together fail 16 cases of ci:automerge-rules (11 matcher, 4 policy, 1 replay).",
-                  "INTERFACES.md (Dagger ci Module, Settings): den's dagger.toml has no '*' in riskyPaths, no author '*' and no checkName, so the globs, the author '*' and checkName do not change its verdicts. The Tests bullet names the case with no riskyPaths.",
-                  "just dagger-check on the merged branch with these changes: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale)."
+                  "Commit 14c4ecb5b79bed1c49528ff235ea0af22dd29e95: pre-commit just check passed in 273 s (check-drvpaths 0 SKIP and 0 FAIL, Darwin Doom launchers validated, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides). git log --show-signature: Good git signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+                  "just dagger-check on 14c4ecb: 8 of 8 checks passed in 46 s (ci/automerge-rules, ci/decapod-overrides, ci/decapod-validate, ci/fmt, ci/nix-eval, ci/shellcheck, ci/shepherd-rules, go-sdk/generate/stale).",
+                  "decapod govern artifacts verify-checkpoints --base-branch origin/main: ok."
                 ],
                 "proof_refs": [
-                  "ci-automerge-rules",
-                  "ci-shepherd-rules",
-                  "ci-decapod-validate",
-                  "ci-decapod-overrides",
-                  "ci-fmt",
-                  "ci-nix-eval",
-                  "ci-shellcheck",
-                  "go-sdk-generate-stale",
-                  "gofmt",
-                  "go-vet",
-                  "fixture-mutation-test"
+                  "just-check-14c4ecb",
+                  "dagger-check-14c4ecb",
+                  "verify-checkpoints"
                 ],
                 "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
                 ],
                 "sequence": 8,
-                "tool": "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations (copy deleted after)",
                 "validation_findings": []
               },
               {
-                "action": "trajectory.record",
-                "command": "git merge --no-ff --no-commit origin/main",
+                "action": "validation",
+                "command": "decapod validate",
                 "custody_event_id": "event:9",
                 "observations": [
-                  "Custody gap: Decapod session cleanup (todo.session.cleanup at 1793600800Z) released claim 01M6DEZJJH2XFS1F6YM88DAWHR, because this worktree still had the expired session record of the earlier attempt. So eae7f8d and 5a8c6ec were committed with no live claim. No other agent claimed code_01m6bp4rpxzwke3w in that time.",
-                  "The claim came back as 01M6DJQJ7XAVPWMW3MAM1KD6Y1 at 1793604700Z, after the exclusive leases of copilot-mahakala and QuickWolf on the repository root ended.",
-                  "Another process used the agent ID ironunion-aec-m: it claimed code_01m6dg43ps33dyn7 of QuickWolf at 1793604939Z and tried a todo handoff at 1793605184Z. This worker did not touch that todo, and it put a comment on it.",
-                  "First plain decapod validate on 5a8c6ec: pass=185 fail=1. ENTRYPOINT_COMMIT_DISCIPLINE: the accepted base is not an ancestor of the candidate, because main moved to 8febc46 (#92, #93).",
-                  "origin/main 8febc46 was merged into the branch. The spec conflicts were only in the attestation blocks. governance.json keeps the document of this pull request, and decapod rpc --op specs.refresh wrote the attestations and the manifest of the merged tree.",
-                  "The baseline of 8febc46 has one obligation that this document does not have: trajectory:1df243fb5dea8cf5. It is recorded here with the same text as an unresolved assumption, so that the next PR boundary carries it with the same key.",
-                  "just dagger-check on the merged tree: 8 of 8 checks passed."
+                  "Plain decapod validate on 9a96e56 (accepted target origin/main 376ddae): pass=186 fail=1 warn=5 skip=13 in 11.16 s; the --format json run: pass=185 fail=1 warn=5 skip=13. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid). That is DecapodLabs/decapod#1474: native validation never writes the receipt. The owner approved a PR with only this failure (prompt of 2026-11-02).",
+                  "The warnings are not blockers: risk map missing, STALE_SPECS_TEMPLATE scaffold-v4 against scaffold-v5, stale workspaces of other agents preserved, watcher audit trail missing, branch not pushed (before the push).",
+                  "decapod govern artifacts inventory --repair: sections/validation present and invalid (schema_or_integrity_invalid, receipt_must_bind_current_trajectory); the remediation is to run decapod validate again. governance.json did not change. This is the loop of #1474.",
+                  "The first validate run refreshed only generated_at in .decapod/managed/specs/.manifest.json; the second run applied no repair (self_heal empty)."
                 ],
                 "proof_refs": [
-                  "decapod-validate-5a8c6ec",
-                  "dagger-check-merged-8febc46"
+                  "decapod-validate-9a96e56"
                 ],
                 "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
                 ],
                 "sequence": 9,
                 "validation_findings": [
-                  "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
+                  "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
                 ]
               },
               {
-                "action": "publication-blocked",
+                "action": "publish-with-human-override",
+                "command": "gh workflow run eval-targets.yml --ref agent/ironunion-aec-m/secu_01m6e7jy2y9he656-git-signing",
                 "custody_event_id": "event:10",
                 "observations": [
-                  "Plain decapod validate on 7d60297 (origin/main 8febc46 is an ancestor): pass=185 fail=1 warn=5. The only failure is publication_readiness: READINESS_BLOCKED: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid).",
-                  "decapod govern artifacts inventory --repair, as the report says, exits 1 and changes no file. The validation section stays invalid (receipt_must_bind_current_trajectory), and its remediation is decapod validate again.",
-                  "This is DecapodLabs/decapod#1474 (open): in native mode no command writes the sections/validation receipt, so local validate cannot reach publication_ready. #92 merged after an explicit approval by the user. This run did not report the justfile error of #1470; the readiness stage stopped first at #1474.",
-                  "The task allows the PR only after decapod validate passes. So the branch is pushed, and the PR waits for a human decision."
+                  "eval-targets run 41461732426 (workflow_dispatch) on 9a96e56: the five den/eval-* jobs passed. worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8 and pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk are the same as on main 376ddae (run 41448751328). paphos, oracle and M-02877 differ: paphos and oracle only by the den revision record (local drvPaths with a constant record are equal), M-02877 by this change.",
+                  "Owner approval: worldofgeese approved on 2026-11-02 that a den PR opens when its only decapod validate failure is DecapodLabs/decapod#1474 (task brief of AEC bead aec-trv). The merge gate of den stays the required checks den/dagger-check and validate, and the shepherd merges."
                 ],
                 "proof_refs": [
-                  "decapod-validate"
+                  "eval-targets-9a96e56",
+                  "drvpath-worldofgeese-pixel-fold-unchanged"
                 ],
                 "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
                 ],
                 "sequence": 10,
-                "validation_findings": []
-              },
-              {
-                "action": "publish-with-human-override",
-                "command": "git reset --hard origin/main",
-                "custody_event_id": "event:11",
-                "observations": [
-                  "Fourth attempt, 2026-11-02. The owner decided two things in Chorus comment 6228873b. First, open PR 1 although plain decapod validate fails only on DecapodLabs/decapod#1474, as for #92. Every other gate must pass. Second, every commit must be signed. The owner allowed a force-push of this branch, because it is ours and no PR uses it.",
-                  "The claim 01M6E3P3CRN5KZ4F17V2C2R9FZ of code_01m6bp4rpxzwke3w succeeded at 1793622477Z, after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone.",
-                  "The branch had 5 unsigned commits: a2acf15, eae7f8d, 5a8c6ec, 7d60297 and 8d6baad. den merges with merge commits, so they would land on main. git reset --hard origin/main (040a18b) and git merge --squash 8d6baad made one candidate. governance.json keeps the document of this change. The spec conflicts were only in the attestation blocks, and decapod rpc --op specs.refresh wrote them again.",
-                  "The squash keeps the change identical. For automerge.go, automerge_checks.go, main.go, shepherd.go, shepherd_checks.go and the INTERFACES.md prose, the added and removed lines against origin/main equal those of 8febc46..8d6baad. dagger generate -y wrote dagger.gen.go; its change differs only in SourceMap line numbers.",
-                  "just dagger-check on the squashed tree: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale). gofmt -l lists no file, and go vet passes.",
-                  "Mutation test on the squashed tree: the old prefix matcher fails 12 ci:automerge-rules cases. The old author check fails 1 of them and 1 ci:shepherd-rules case. No required-check rule fails 3, and a refusal of empty riskyPaths fails 1. The three old rules together fail 16 ci:automerge-rules cases and 1 ci:shepherd-rules case."
-                ],
-                "proof_refs": [
-                  "change-identical-to-8d6baad",
-                  "dagger-check-squash-040a18b",
-                  "fixture-mutation-test-squash"
-                ],
-                "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "root"
-                ],
-                "sequence": 11,
-                "tool": "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations, on the squashed tree (copy deleted after)",
                 "validation_findings": [
-                  "The owner approved opening the PR without a local publication_ready=true. The blocker is DecapodLabs/decapod#1474."
+                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner approved this. Every other gate passed."
                 ]
               }
             ]
@@ -587,107 +522,89 @@
         }
       },
       "declared_commands": [
-        "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
+        "darwin-rebuild build --option warn-dirty false --flake .#M-02877",
+        "decapod govern artifacts inventory --repair --base-branch main",
         "decapod rpc --op specs.refresh",
         "decapod validate",
-        "git merge --no-ff --no-commit origin/main",
-        "git merge --squash 8d6baad",
-        "git push --force-with-lease",
-        "git reset --hard origin/main",
+        "decapod validate --format json",
+        "gh workflow run eval-targets.yml --ref agent/ironunion-aec-m/secu_01m6e7jy2y9he656-git-signing",
+        "git commit (pre-commit hook: just check)",
         "just dagger-check",
-        "nix shell --inputs-from . nixpkgs#go -c gofmt -l .dagger/modules/ci"
+        "nix run --inputs-from . nixpkgs#alejandra -- --check modules/M-02877/dktaohan.nix"
       ],
       "destination": "pull request",
       "evidence": [
-        "Another process used the agent ID ironunion-aec-m: it claimed code_01m6dg43ps33dyn7 of QuickWolf at 1793604939Z and tried a todo handoff at 1793605184Z. This worker did not touch that todo, and it put a comment on it.",
-        "Baseline on 687368d: dagger check --check ci/automerge-rules --check ci/shepherd-rules on den-dagger-engine exits 0.",
-        "Before the merge: dagger check --check ci/automerge-rules --check ci/shepherd-rules passed on a2acf15 (2 passed).",
-        "Correction to the mutation-test count: the 17 cases that failed are 11 matcher cases, 4 policy cases, 1 replay case and 1 shepherd case.",
-        "Custody gap: Decapod session cleanup (todo.session.cleanup at 1793600800Z) released claim 01M6DEZJJH2XFS1F6YM88DAWHR, because this worktree still had the expired session record of the earlier attempt. So eae7f8d and 5a8c6ec were committed with no live claim. No other agent claimed code_01m6bp4rpxzwke3w in that time.",
-        "First plain decapod validate on 5a8c6ec: pass=185 fail=1. ENTRYPOINT_COMMIT_DISCIPLINE: the accepted base is not an ancestor of the candidate, because main moved to 8febc46 (#92, #93).",
-        "Fourth attempt, 2026-11-02. The owner decided two things in Chorus comment 6228873b. First, open PR 1 although plain decapod validate fails only on DecapodLabs/decapod#1474, as for #92. Every other gate must pass. Second, every commit must be signed. The owner allowed a force-push of this branch, because it is ours and no PR uses it.",
-        "INTERFACES.md (Dagger ci Module, Settings): den's dagger.toml has no '*' in riskyPaths, no author '*' and no checkName, so the globs, the author '*' and checkName do not change its verdicts. The Tests bullet names the case with no riskyPaths.",
-        "Mutation test on the merged branch: the old prefix matcher, the old author check and no required-check together fail 16 cases of ci:automerge-rules (11 matcher, 4 policy, 1 replay).",
-        "Mutation test on the squashed tree: the old prefix matcher fails 12 ci:automerge-rules cases. The old author check fails 1 of them and 1 ci:shepherd-rules case. No required-check rule fails 3, and a refusal of empty riskyPaths fails 1. The three old rules together fail 16 ci:automerge-rules cases and 1 ci:shepherd-rules case.",
-        "Mutation test: with the old strings.HasPrefix matcher, the old author loop and no required-check rule, ci:automerge-rules and ci:shepherd-rules fail 17 cases (13 matcher, 4 policy and replay) and pass again after the restore.",
-        "New policy case in ci:automerge-rules: with no riskyPaths, no path needs a person (secrets/a.age and .github/workflows/check.yml merge). A mutation that refuses an empty riskyPaths list fails only this case.",
-        "Plain decapod validate on 7d60297 (origin/main 8febc46 is an ancestor): pass=185 fail=1 warn=5. The only failure is publication_readiness: READINESS_BLOCKED: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid).",
-        "Prior blocker cleared: cicd_01m6bnwergmd1444 is yielded with no owner, and the exclusive claim of code_01m6bp4rpxzwke3w succeeded (claim 01M6CARP65GJSYG61N3THJ7H4V).",
-        "Review of a2acf15 against the task: riskyPaths globs with a prefix for a pattern without '*', authors '*' in the merge rules and the shepherd, and checkName (rule required-check) match the spec. The empty value of each setting keeps the verdicts of main, and dagger.toml does not change.",
-        "The baseline of 8febc46 has one obligation that this document does not have: trajectory:1df243fb5dea8cf5. It is recorded here with the same text as an unresolved assumption, so that the next PR boundary carries it with the same key.",
-        "The branch had 5 unsigned commits: a2acf15, eae7f8d, 5a8c6ec, 7d60297 and 8d6baad. den merges with merge commits, so they would land on main. git reset --hard origin/main (040a18b) and git merge --squash 8d6baad made one candidate. governance.json keeps the document of this change. The spec conflicts were only in the attestation blocks, and decapod rpc --op specs.refresh wrote them again.",
-        "The claim 01M6E3P3CRN5KZ4F17V2C2R9FZ of code_01m6bp4rpxzwke3w succeeded at 1793622477Z, after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone.",
-        "The claim came back as 01M6DJQJ7XAVPWMW3MAM1KD6Y1 at 1793604700Z, after the exclusive leases of copilot-mahakala and QuickWolf on the repository root ended.",
-        "The squash keeps the change identical. For automerge.go, automerge_checks.go, main.go, shepherd.go, shepherd_checks.go and the INTERFACES.md prose, the added and removed lines against origin/main equal those of 8febc46..8d6baad. dagger generate -y wrote dagger.gen.go; its change differs only in SourceMap line numbers.",
-        "The task allows the PR only after decapod validate passes. So the branch is pushed, and the PR waits for a human decision.",
-        "The uncommitted .manifest.json change moved only generated_at (1793564483Z to 1793564823Z). decapod-validate.yml and scripts/decapod-validate-ci.sh do not count that as drift and put the committed value back, so the committed value was put back before the merge.",
-        "Third attempt: the exclusive claim 01M6DEZJJH2XFS1F6YM88DAWHR of code_01m6bp4rpxzwke3w succeeded after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone, because this worktree exists.",
-        "This is DecapodLabs/decapod#1474 (open): in native mode no command writes the sections/validation receipt, so local validate cannot reach publication_ready. #92 merged after an explicit approval by the user. This run did not report the justfile error of #1470; the readiness stage stopped first at #1474.",
-        "ci:nix-eval skipped only aarch64-darwin.M-02877 (no remote builder), as VALIDATION.md describes.",
-        "decapod govern artifacts inventory --repair, as the report says, exits 1 and changes no file. The validation section stays invalid (receipt_must_bind_current_trajectory), and its remediation is decapod validate again.",
-        "just dagger-check on the merged branch with these changes: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale).",
-        "just dagger-check on the merged tree: 8 of 8 checks passed.",
-        "just dagger-check on the squashed tree: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale). gofmt -l lists no file, and go vet passes.",
-        "just dagger-check: 7 of 8 checks passed; ci:decapod-validate passed validation (171 pass, 0 fail) but showed spec drift until decapod rpc --op specs.refresh; after the refresh dagger check --check ci/decapod-validate exits 0.",
-        "main moved to e3495b2 (#91: modules/omarchy.nix and OPERATIONS.md). origin/main was merged into the branch. governance.json keeps the document of this pull request, whose baseline is equal to the baseline of e3495b2. decapod rpc --op specs.refresh resolved the manifest conflict.",
-        "origin/main 8febc46 was merged into the branch. The spec conflicts were only in the attestation blocks. governance.json keeps the document of this pull request, and decapod rpc --op specs.refresh wrote the attestations and the manifest of the merged tree."
+        "ARCHITECTURE.md: new section Commit and Tag Signing with the table per deploy target, the reason for the key path, verification, the tag message rule and the stopgap history. SECURITY.md: provenance strategy line and a Secrets Management row for the M-02877 signing key (0600, no passphrase, FileVault On, measured).",
+        "Abuse cases with the built allowed_signers: an unsigned commit fails verify-commit (exit 1); a commit that a throwaway key signed under tao.hansen@lego.com fails verify-commit with No principal matched (exit 1, %G? U).",
+        "Baseline drvPaths: eval-targets run 41448751328 on 376ddae gives worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8 and pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk, the same as on 040a18b. paphos, oracle and M-02877 change with each commit, because modules/deploy-revision.nix writes the den commit to /etc/den-revision. With that record forced to a constant: paphos myfbqvvc014f50w6dxi9afc8x9ssprdq, oracle l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1 (same for the clean rev and the worktree).",
+        "Baseline git config per deploy target: worldofgeese home has commit.gpgSign, tag.gpgSign, gpg.format openpgp, user.signingKey 63D28F81460A224A; pixel-fold has only init.defaultBranch and user; paphos kypris programs.git.enable false; oracle programs.git.enable false and no Home Manager. The M-02877 built git/config text is identical to the deployed ~/.config/git/config, with the inert [signing] section.",
+        "Baseline on 376ddae (worktree): just check passed in 156 s (check-drvpaths with no SKIP or FAIL, Doom launchers, fmt, shellcheck, 24 overrides). GitHub checks of 376ddae on main: den/dagger-check, validate and the five den/eval-* jobs passed.",
+        "Built git/config against base: adds commit.gpgSign true, tag.gpgSign true, user.signingKey ~/.ssh/my_ssh_key.pub, gpg.ssh.program (nixpkgs openssh 10.6p1 ssh-keygen) and gpg.ssh.allowedSignersFile /Users/dktaohan/.config/git/allowed_signers; keeps gpg.format ssh; deletes the inert [signing] section (0 signing.* keys). allowed_signers is the stopgap line.",
+        "Commit 14c4ecb5b79bed1c49528ff235ea0af22dd29e95: pre-commit just check passed in 273 s (check-drvpaths 0 SKIP and 0 FAIL, Darwin Doom launchers validated, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides). git log --show-signature: Good git signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+        "Deploy targets (modules/hosts.nix): M-02877/dktaohan includes gitcommon and holds ~/.ssh/my_ssh_key (programs.ssh github.com IdentityFile); the worldofgeese home (mahakala) already signs with OpenPGP 63D28F81460A224A (modules/worldofgeese.nix); paphos/kypris has no gitcommon; oracle has no Home Manager users; pixel-fold has its own nix-on-droid Home Manager with only ~/.ssh/id_ed25519.",
+        "GitHub API users/worldofgeese/ssh_signing_keys: one key, id 246143, the key of ~/.ssh/my_ssh_key.pub. github.com/worldofgeese.keys lists the same key for authentication.",
+        "Intended change, phase 1: modules/M-02877/dktaohan.nix moves signing out of programs.git.settings into programs.git.signing (format ssh, key ~/.ssh/my_ssh_key.pub, signByDefault true, allowedSigners with the stopgap line), deletes the settings gpg.format line, and uses one let binding for the key path of signing and of programs.ssh github.com IdentityFile. Phase 2: ARCHITECTURE.md section Commit and Tag Signing, SECURITY.md provenance line and key row. Phase 3: proofs, validate, PR.",
+        "Other deploy targets on the worktree: paphos and oracle drvPaths with a constant revision record are the same as on 376ddae (myfbqvvc014f50w6dxi9afc8x9ssprdq, l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1). worldofgeese home git iniContent and xdg.configFile names, and pixel-fold git iniContent, are byte-identical to 376ddae.",
+        "Owner approval: worldofgeese approved on 2026-11-02 that a den PR opens when its only decapod validate failure is DecapodLabs/decapod#1474 (task brief of AEC bead aec-trv). The merge gate of den stays the required checks den/dagger-check and validate, and the shepherd merges.",
+        "Pinned home-manager 095fef2 (modules/programs/git.nix) offers programs.git.signing.{key,format,signByDefault,signer,allowedSigners}. signByDefault sets commit.gpgSign and tag.gpgSign. allowedSigners writes $XDG_CONFIG_HOME/git/allowed_signers and sets gpg.ssh.allowedSignersFile. format ssh sets gpg.format and gpg.ssh.program (nixpkgs openssh ssh-keygen).",
+        "Plain decapod validate on 9a96e56 (accepted target origin/main 376ddae): pass=186 fail=1 warn=5 skip=13 in 11.16 s; the --format json run: pass=185 fail=1 warn=5 skip=13. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid). That is DecapodLabs/decapod#1474: native validation never writes the receipt. The owner approved a PR with only this failure (prompt of 2026-11-02).",
+        "Round trip with only the built config (GIT_CONFIG_GLOBAL=<built git/config>, GIT_CONFIG_NOSYSTEM=1): git commit makes 1 gpgsig header, verify-commit Good signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U; git tag -a makes an SSH signature, verify-tag Good. Without SSH_AUTH_SOCK and with an empty agent, commits are signed and verify Good.",
+        "Signing key form test (git 2.56.0, nixpkgs openssh 10.6p1 ssh-keygen): user.signingKey ~/.ssh/my_ssh_key.pub signs with the agent, with no agent, with an unreachable socket and with an empty agent. The literal public key fails without the agent (Couldn't get agent socket) and with an empty agent (Couldn't find key in agent), because git passes -U. So the key is the path.",
+        "The deployed ~/.config/git/config on M-02877 has [signing] key and signbydefault (inert: git reads no signing.* keys). git config --show-origin: user.signingkey, commit.gpgsign, tag.gpgsign and gpg.ssh.allowedsignersfile come only from the ~/.gitconfig stopgap.",
+        "The first validate run refreshed only generated_at in .decapod/managed/specs/.manifest.json; the second run applied no repair (self_heal empty).",
+        "The warnings are not blockers: risk map missing, STALE_SPECS_TEMPLATE scaffold-v4 against scaffold-v5, stale workspaces of other agents preserved, watcher audit trail missing, branch not pushed (before the push).",
+        "With tag.gpgSign, git tag <name> without -m asks for a tag message (fatal: no tag message? without an editor). The ~/.gitconfig stopgap has the same behavior today.",
+        "alejandra --check modules/M-02877/dktaohan.nix: complies.",
+        "darwin-rebuild build --flake .#M-02877 (no switch) exit 0 in 101 s: /nix/store/3pgy1gj244a0nhz3f4j4s9qr5hcc0dgi-darwin-system-26.11.ff0e21a. dktaohan home-manager-files 7zj673xjgg10sxizwkz6ssh4wbpqsnhm has .config/git/config, .config/git/allowed_signers and .config/git/ignore.",
+        "decapod govern artifacts inventory --repair: sections/validation present and invalid (schema_or_integrity_invalid, receipt_must_bind_current_trajectory); the remediation is to run decapod validate again. governance.json did not change. This is the loop of #1474.",
+        "decapod govern artifacts verify-checkpoints --base-branch origin/main: ok.",
+        "decapod rpc --op specs.refresh receipt 01M6E9CXEYMJ0A8WEQAANKS26J: manifest content hashes of ARCHITECTURE.md and SECURITY.md updated; git diff --check clean.",
+        "eval-targets run 41461732426 (workflow_dispatch) on 9a96e56: the five den/eval-* jobs passed. worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8 and pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk are the same as on main 376ddae (run 41448751328). paphos, oracle and M-02877 differ: paphos and oracle only by the den revision record (local drvPaths with a constant record are equal), M-02877 by this change.",
+        "just dagger-check on 14c4ecb: 8 of 8 checks passed in 46 s (ci/automerge-rules, ci/decapod-overrides, ci/decapod-validate, ci/fmt, ci/nix-eval, ci/shellcheck, ci/shepherd-rules, go-sdk/generate/stale)."
       ],
       "inspected_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/automerge_checks.go",
-        ".dagger/modules/ci/main.go",
-        ".dagger/modules/ci/shepherd.go",
-        ".dagger/modules/ci/shepherd_checks.go",
         ".decapod/OVERRIDE.md",
         ".decapod/config.toml",
-        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/SECURITY.md",
         ".decapod/managed/specs/VALIDATION.md",
-        ".github/workflows/decapod-validate.yml",
+        ".githooks/pre-commit",
         "AGENTS.md",
         "CLAUDE.md",
         "Justfile",
-        "dagger.toml",
-        "scripts/decapod-validate-ci.sh"
+        "modules/M-02877/dktaohan.nix",
+        "modules/checks.nix",
+        "modules/git-common.nix",
+        "modules/hosts.nix",
+        "modules/pixel-fold/_home.nix",
+        "modules/ssh.nix",
+        "modules/worldofgeese.nix",
+        "scripts/check-drvpaths.sh"
       ],
-      "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+      "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
       "modified_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/automerge_checks.go",
-        ".dagger/modules/ci/dagger.gen.go",
-        ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
-        ".dagger/modules/ci/main.go",
-        ".dagger/modules/ci/shepherd.go",
-        ".dagger/modules/ci/shepherd_checks.go",
         ".decapod/managed/specs/.manifest.json",
-        ".decapod/managed/specs/INTERFACES.md"
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/SECURITY.md",
+        "modules/M-02877/dktaohan.nix"
       ],
       "next_transitions": [
-        "A person decides about DecapodLabs/decapod#1474: approve the PR with the receipt blocker (as for #92), or wait for a Decapod release that writes the receipt. Then open the PR from this branch.",
-        "Commit the riskyPaths case and the INTERFACES.md correction, then run plain decapod validate against the exact candidate",
-        "Commit the squashed candidate with an SSH signature, run plain decapod validate on it, push it with --force-with-lease, open the PR to worldofgeese/den, and check that GitHub shows each commit as Verified",
-        "Implement the three settings with fixtures, regenerate the bindings, update INTERFACES.md, run just dagger-check, commit, then plain decapod validate",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".dagger/modules/ci",
-        ".decapod/managed/specs/INTERFACES.md",
-        "root"
+        ".decapod/managed/specs",
+        "modules/M-02877/dktaohan.nix",
+        "modules/git-common.nix"
       ],
-      "run_id": "branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+      "run_id": "branch_01M6E7P7G7M96ER2W4JPWQ2T28",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [
-        "The owner approved opening the PR without a local publication_ready=true. The blocker is DecapodLabs/decapod#1474."
+        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner approved this. Every other gate passed."
       ],
-      "task_id": "code_01m6bp4rpxzwke3w",
-      "tool_calls": [
-        "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations (copy deleted after)",
-        "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations, on the squashed tree (copy deleted after)",
-        "nix shell --inputs-from . nixpkgs#go -c go vet . in .dagger/modules/ci (exit 0)",
-        "nix shell --inputs-from . nixpkgs#go -c gofmt -l .dagger/modules/ci (no file listed)"
-      ],
+      "task_id": "secu_01m6e7jy2y9he656",
+      "tool_calls": [],
       "unresolved_assumptions": [
-        "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
-        "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
+        "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
       ]
     }
   },

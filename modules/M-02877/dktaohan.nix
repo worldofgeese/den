@@ -18,6 +18,10 @@
         runtimeInputs = with pkgs; [openssl secretspec coreutils gawk gnused gnugrep];
         text = builtins.readFile ../../scripts/hm-app-signing.sh;
       };
+
+      # GitHub has this key of worldofgeese as an authentication key and as
+      # the SSH signing key. Of the deploy targets, only this Mac holds it.
+      githubKey = "~/.ssh/my_ssh_key";
     in {
       # After copyApps: it rsyncs the ad-hoc build back over the app on every
       # activation. A failing step aborts the rest of nix-darwin activation, so
@@ -115,19 +119,29 @@
 
       programs.git = {
         enable = true;
+        # The owner wants a signature on every commit and tag. This aspect sets
+        # the signing key, because on a deploy target without the key each
+        # commit fails.
+        #
+        # The key is the path of the public key file. If the SSH agent does
+        # not hold the key, for example after a restart, ssh-keygen reads the
+        # private key file. With the public key text, git gives ssh-keygen -U,
+        # and then each commit needs the agent.
+        signing = {
+          format = "ssh";
+          key = "${githubKey}.pub";
+          signByDefault = true;
+          # git verifies an SSH signature only against this list of signers.
+          allowedSigners = "tao.hansen@lego.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAbIQYGvgicAePeJgXJY2wTFMjna8zHSIfqppFB0edOV";
+        };
         settings = {
           user.name = "Tao Hansen";
           user.email = "tao.hansen@lego.com";
           feature.manyFiles = true;
-          gpg.format = "ssh";
           aliases = {
             pushall = "!git remote | xargs -L1 git push --all";
             graph = "log --decorate --oneline --graph";
             add-nowhitespace = "!git diff -U0 -w --no-color | git apply --cached --ignore-whitespace --unidiff-zero -";
-          };
-          signing = {
-            signByDefault = true;
-            key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAbIQYGvgicAePeJgXJY2wTFMjna8zHSIfqppFB0edOV";
           };
           lfs.enable = true;
         };
@@ -426,7 +440,7 @@
       # den.aspects.ssh. Only macOS-specific overrides here.
       programs.ssh.settings = {
         "*".AddKeysToAgent = "yes";
-        "github.com".IdentityFile = "~/.ssh/my_ssh_key";
+        "github.com".IdentityFile = githubKey;
       };
 
       programs.zsh.dotDir = "${config.xdg.configHome}/zsh";

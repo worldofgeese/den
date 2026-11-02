@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "50664e4938f94b0eff604784f310641fac26f805",
+    "accepted_commit": "3aec3293230d6af107f1c3e67da126906ad42872",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -32,6 +32,7 @@
       "plan:43cf9cbacfcdecc5": "pixel-fold holds only ~/.ssh/id_ed25519, which is not a GitHub signing key. To sign there, the owner must register a signing key for it. Out of scope for this PR.",
       "plan:b459f3e5d6f6ee6d": "Does checkName also pin the workflow or the app of the check? Left to PR 4 (statusPrefix), in the PR description.",
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
+      "plan:cd3a746148e88892": "Does den want .dagger/ in its riskyPaths, so that a person merges each change to the merge rules? Asked in PR 1 and again in the PR 2 description.",
       "plan:d64d9fd467edd968": "mahakala does not get the allowed signers file, so it cannot verify the SSH signatures of M-02877. Out of scope for this PR.",
       "plan:ee94f0c7cf76e2ed": "programs.git.settings in modules/M-02877/dktaohan.nix also writes an inert [aliases] section (git reads [alias]) and lfs.enable (not programs.git.lfs.enable). This PR does not change them.",
       "trajectory:10eccbd015927b8c": "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux.",
@@ -49,67 +50,66 @@
     }
   },
   "change": {
-    "id": "change_01M6ECKDQZWEHN6CT6F0CRNW89",
-    "base_commit": "50664e4938f94b0eff604784f310641fac26f805",
+    "id": "change_01M6EJ1NFEN92DTJHPFP1BJ87C",
+    "base_commit": "3aec3293230d6af107f1c3e67da126906ad42872",
     "target_base": "origin/main"
   },
   "claims": {
-    "claim:ci-executable-bit": {
-      "statement": "With riskyExecutableBit, the rule executable-bit refuses a pull request that adds a file with git mode 100755 or changes the mode of a file to 100755, and it refuses with the reason when GitHub cut a Git tree. A file that keeps its mode needs no person.",
-      "falsifier": "A fixture with a new 100755 file, a mode change to 100755, a cut tree or unread trees merges with the setting on; or a 100644 or 100755 file that keeps its mode refuses.",
+    "claim:ci-approve-bot-runs": {
+      "statement": "With approveBotRuns on, approve-bot-runs approves each pull_request run of the repository that waits for approval on the head. It looks again until a quiet period of 30 s follows the last approval, or until 3 minutes pass. It fails only when runs waited and it approved none. It approves no run of a fork and no run of another head.",
+      "falsifier": "A fake-API fixture fails: no runs gives an error or stops before the give-up time; a run that appears late is not approved; some approved and some failing gives an error; none approvable gives no error; a run that appears after the give-up time is approved, or the loop runs past it; a run of a fork or of another head is approved.",
       "status": "supported",
       "proof_refs": [
-        "ci:automerge-rules filesCases: new 100755 file, mode 100644 to 100755, cut tree with its reason, unread trees and a missing file refuse; 100644 and 100755 files that keep their mode merge",
-        "ci:automerge-rules treeCases: modes from the JSON of the REST git/trees API; a truncated tree gives Truncated and no files; a replay keeps the trees",
-        "live read: den#93 refuses at executable-bit for scripts/deploy-report.py",
-        "mutation tests: the old rules fail 23 fixtures; additions only, any head 100755 and an ignored cut tree each fail a fixture"
+        "ci:approve-bot-runs-rules: 12 fake-API cases (no runs, runs that appear late, some approved and some failing, none approvable, the give-up limit, a refusal that ends, a fork run, only a fork run, another head, a run listed again, a list that fails after an approval, lists that fail) and 3 gate cases",
+        "live read (GET only): held fork runs of cli/cli and NixOS/nixpkgs stay held; GitHub gives held runs the conclusion action_required",
+        "mutation tests: 21 of 21 approve-bot-runs mutations fail fixtures"
       ]
     },
-    "claim:ci-file-rules-den-defaults-unchanged": {
-      "statement": "With the settings of den (no riskyExecutableBit and no manifestFiles), the merge rules and the shepherd give the same verdicts as on main 50664e4, and fetch reads no Git tree.",
-      "falsifier": "A ruleCases, policyCases, replayCases, riskyPathCases or ci:shepherd-rules case that passed on 50664e4 fails; or a rule with its setting off refuses a pull request without trees.",
+    "claim:ci-pr3-den-defaults-unchanged": {
+      "statement": "With the dagger.toml of den (no approveBotRuns and no jobKinds), approve-bot-runs refuses before any GitHub call, ci:workflow-isolation reads no workflow and passes, and the checks of main 3aec329 pass unchanged.",
+      "falsifier": "With the settings off, the fake API gets a request, ci:workflow-isolation fails or reads .github/workflows, dagger.toml changes, or a check that passed on 3aec329 fails.",
       "status": "supported",
       "proof_refs": [
+        "ci:approve-bot-runs-rules gate case: the setting off refuses with a nil token, so a call to GitHub fails the case",
+        "ci:workflow-isolation-rules: WorkflowIsolation with an empty jobKinds passes with a nil Source",
         "dagger.toml does not change (git diff origin/main -- dagger.toml is empty)",
-        "just dagger-check: ci:automerge-rules and ci:shepherd-rules pass every case of 50664e4 unchanged",
-        "mutation tests: with the rules always on, 41 and 38 cases with den's settings fail, so the off switch is tested"
+        "just dagger-check: the 8 checks of 3aec329 pass, with ci:automerge-rules and ci:shepherd-rules unchanged"
       ]
     },
-    "claim:ci-manifest-fields": {
-      "statement": "With manifestFiles, the rule manifest-fields refuses a matching manifest whose head adds, removes or changes a top-level field outside manifestSafeFields, an entry whose source is not a relative path under manifestSourcePrefix, and a manifest that does not parse as one JSON object or is not a regular file.",
-      "falsifier": "A fixture with an author, hooks or mcpServers change, a new manifest with an author, a URL, object, outside or .. source, JSON that does not parse or a symbolic link merges; or a fixture with only safe fields or a source under the prefix refuses.",
+    "claim:ci-workflow-isolation": {
+      "statement": "With a jobKinds table, ci:workflow-isolation reports each way to break the job kinds that the 55 AEC rule cases of docs:workflow-isolation-rule test, and the passing AEC fixture gives no problem. A job that the table does not name fails.",
+      "falsifier": "In ci:workflow-isolation-rules, a rule case gives no problem with its expected text, the passing fixture gives a problem, or a mutation that removes a rule leaves every fixture passing.",
       "status": "supported",
       "proof_refs": [
-        "ci:automerge-rules filesCases: 21 manifest cases with the AEC values (plugin.json and marketplace.json)",
-        "ci:automerge-rules sourceCases: 12 sources under ./plugins/ and no prefix",
-        "live read: AEC#125, #126 and #127 refuse at manifest-fields on marketplace.json (skills of an entry)",
-        "mutation tests: 14 manifest and source mutations each fail at least one fixture"
+        "ci:workflow-isolation-rules: the passing fixture, 56 rule cases (the 55 AEC cases with neutral names and one for a guard that a later || can skip), 10 table cases and 12 jobKinds cases pass",
+        "live trial: a jobKinds table in dagger.toml reaches the module, and the check reports 31 problems on the workflows of den",
+        "mutation tests: 47 of 47 ci:workflow-isolation mutations fail fixtures; with no rules 66 fixtures fail"
       ]
     }
   },
   "checkpoints": [
     {
-      "id": "ckpt-exec-bit-manifests-1",
-      "summary": "ci module: riskyExecutableBit (rule executable-bit) and manifestFiles, manifestSafeFields and manifestSourcePrefix (rule manifest-fields), with the Git trees of the merge base and the head, fixtures, regenerated bindings and the INTERFACES.md settings. dagger.toml does not change.",
-      "input_digest": "sha256:b5c1ac4429a1800691665bd4cd2d0d58c5aef40a5da66805a16351bcf05d605e",
+      "id": "ckpt-approve-runs-isolation-1",
+      "summary": "den PR 3 of AEC task M: the setting approveBotRuns and the function approve-bot-runs (approve.go), the setting jobKinds and the checks ci:workflow-isolation and ci:workflow-isolation-rules (workflows.go), their fixtures, gopkg.in/yaml.v3, the generated bindings, and the specs INTERFACES.md, VALIDATION.md and ARCHITECTURE.md. dagger.toml does not change.",
+      "input_digest": "sha256:c95bbc3981b9c4ce20114d96b63e18842cc9ad84c5849e839df248245f98a1a4",
       "proof_refs": [
-        "just dagger-check: 8 of 8 checks pass",
-        "live read (GitHub GET only): den#93 refuses at executable-bit; den#101 and den#99 pass both file rules",
-        "mutation tests: 20 of 20 mutations fail fixtures; the old rules fail 23 fixtures"
+        "just dagger-check: 11 of 11 checks pass",
+        "live read (GitHub GET only): held fork runs of cli/cli and NixOS/nixpkgs stay held",
+        "mutation tests: 68 of 68 mutations fail fixtures"
       ]
     },
     {
-      "id": "ckpt-exec-bit-manifests-validate",
-      "summary": "Record the plain decapod validate result of 6806973: pass=186 fail=1, only the missing validation receipt of DecapodLabs/decapod#1474, which the owner approved for den PRs. The source does not change.",
-      "input_digest": "sha256:6b5b75d8e4a1955efeaa7d5b7afbaac21b1fc686dcb072baf0a8e9754a0792d3",
+      "id": "ckpt-approve-runs-isolation-validate",
+      "summary": "Record the plain decapod validate result of 8971a3b: pass=186 fail=1, only the missing validation receipt of DecapodLabs/decapod#1474, which the owner approved for den PRs. The source does not change.",
+      "input_digest": "sha256:67c630bb99b23c8e9b6851ae5b711134f3deb3b9106a806c8dc5ef4d412b4742",
       "proof_refs": [
-        "decapod validate on 6806973: publication_readiness READINESS_BLOCKED sections/validation (invalid)",
+        "decapod validate on 8971a3b: publication_readiness READINESS_BLOCKED sections/validation (invalid)",
         "https://github.com/DecapodLabs/decapod/issues/1474"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89": {
+    "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -120,11 +120,11 @@
         ".decapod/managed/specs"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+      "id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "den PR 2 for AEC task M: riskyExecutableBit and the manifest field allowlist (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a (AEC task M), den PR 2 of the agreed order: setting d (riskyExecutableBit) and setting e (manifestFiles, manifestSafeFields and the source prefix of manifest entries) in .dagger/modules/ci. Each setting is optional, and its empty default keeps the verdicts of den. The governance plan on the work branch holds the scope.",
-      "refined_intent": "den PR 2 for AEC task M: riskyExecutableBit and the manifest field allowlist (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a (AEC task M), den PR 2 of the agreed order: setting d (riskyExecutableBit) and setting e (manifestFiles, manifestSafeFields and the source prefix of manifest entries) in .dagger/modules/ci. Each setting is optional, and its empty default keeps the verdicts of den. The governance plan on the work branch holds the scope.",
+      "raw_intent": "den PR 3 for AEC task M: approveBotRuns and ci:workflow-isolation (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a (AEC task M), den PR 3 of the agreed order: part j (approveBotRuns, a function that approves the held pull_request runs that a push with a job token starts) and part k (ci:workflow-isolation, a check of the job kinds of each workflow, with the table of job kinds as a setting) in .dagger/modules/ci. Each part is optional, and its empty default keeps the behavior of den. The governance plan on the work branch holds the scope.",
+      "refined_intent": "den PR 3 for AEC task M: approveBotRuns and ci:workflow-isolation (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a (AEC task M), den PR 3 of the agreed order: part j (approveBotRuns, a function that approves the held pull_request runs that a push with a job token starts) and part k (ci:workflow-isolation, a check of the job kinds of each workflow, with the table of job kinds as a setting) in .dagger/modules/ci. Each part is optional, and its empty default keeps the behavior of den. The governance plan on the work branch holds the scope.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -135,14 +135,16 @@
         "file_touch_budget": null,
         "forbidden_paths": [
           "dagger.toml",
-          "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
+          "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+          ".github/workflows"
         ]
       },
       "deferred_questions": [
-        "Does den want .dagger/ in its riskyPaths, so that a person merges each change to the merge rules? Asked in PR 1 and again in the PR 2 description."
+        "Does den want .dagger/ in its riskyPaths, so that a person merges each change to the merge rules? Asked in PR 1 and PR 2, and again in the PR 3 description.",
+        "Must the approveBotRuns setting also gate an explicit call of approve-bot-runs, or only the flows of the module? Asked in the PR 3 description."
       ],
       "human_questions": [],
-      "intent": "Add two optional settings to the merge rules of .dagger/modules/ci. The empty value of each setting keeps the verdicts of den. (d) riskyExecutableBit: when it is true, the new rule executable-bit refuses a pull request that adds a file with git mode 100755, or that changes the mode of a file to 100755. The rules read the modes from the Git trees of the merge base and the head (GitHub REST git/trees, recursive). When GitHub cuts a tree (truncated), the rule refuses and gives the reason. (e) manifestFiles, manifestSafeFields and manifestSourcePrefix: for each changed file that a manifestFiles pattern matches (the riskyPaths semantics), the new rule manifest-fields compares the JSON object at the merge base and at the head. A top-level field outside manifestSafeFields that the pull request adds, removes or changes refuses. In a top-level list of entries, each entry is compared field by field, and source is safe only as a relative path under manifestSourcePrefix. A file that does not parse as a JSON object refuses. With no manifestFiles, the rule is off. The dagger.toml of den does not change, and the module code names no company, host, account or URL. Fixtures go in ci:automerge-rules, with mutation tests. INTERFACES.md (Dagger ci Module) describes the settings. Chorus task f4bbad07, AEC bead aec-16x.2, PR 2 of the order that MintRaven agreed.",
+      "intent": "den PR 3 of AEC task M (Chorus f4bbad07, bead aec-16x.2) adds two optional parts to .dagger/modules/ci. Part j: the setting approveBotRuns (default false) and the function approve-bot-runs. The function approves the pull_request runs that wait for approval (action_required) on a head that a job pushed with its GITHUB_TOKEN, with POST /repos/{owner}/{repo}/actions/runs/{id}/approve (actions: write). It looks again until a quiet period follows the last approval, or until a give-up time passes. It fails only when runs waited and it approved none. It never approves a run of a fork. Part k: the setting jobKinds, a YAML table that gives each job of .github/workflows a kind (CHECK, AGENT, GITHUB, SCAN, or LEGACY with its recorded exceptions), and the checks ci:workflow-isolation and ci:workflow-isolation-rules. They are a port of the AEC checks docs:workflow-isolation and docs:workflow-isolation-rule, with the 55 AEC rule cases as fixtures. With an empty jobKinds, the check is off. The dagger.toml of den does not change, so the behavior of den does not change. The AEC copy stays in place.",
       "phases": [],
       "proof_hooks": [
         "just dagger-check",
@@ -155,28 +157,28 @@
       "stop_conditions": [
         "Decapod emits a Decision Gate.",
         "An exclusive claim of another agent blocks this work unit: wait for its lease to end, do not break it.",
-        "A change to the merge flow in shepherd.go or automerge.go beyond the two new rules and the data that they read: stop, and write the question in the PR description."
+        "A change to the shepherd flow, the merge rules or the workflows of den: stop, and write the question in the PR description."
       ],
-      "title": "ci module: riskyExecutableBit and the manifest field allowlist (AEC task M, den PR 2)",
+      "title": "ci module: approveBotRuns and ci:workflow-isolation (AEC task M, den PR 3)",
       "todo_ids": [
-        "code_01m6ecj4nqdd3n7c"
+        "cicd_01m6ej0ckxez3w6m"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793632624Z"
+      "updated_at": "1793638279Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:521bf13e94cdcd42b36db7c9401ebaabda1932b9ec63894373c0821f7c0aff92",
+      "artifact_hash": "sha256:47c7fcf2e01447310b440923e28d40e87e783a8dfe5c41714f9c2faaa41c5ee8",
       "checks": [
         {
-          "name": "baseline-dagger-check-50664e4",
+          "name": "baseline-dagger-check-3aec329",
           "status": "passed"
         },
         {
-          "name": "commit-signature-6806973",
+          "name": "commit-signature-8971a3b",
           "status": "passed"
         },
         {
@@ -184,7 +186,7 @@
           "status": "passed"
         },
         {
-          "name": "decapod-validate-6806973",
+          "name": "decapod-validate-8971a3b",
           "status": "failed"
         },
         {
@@ -196,7 +198,7 @@
           "status": "passed"
         },
         {
-          "name": "harness-automerge-and-shepherd-rules",
+          "name": "harness-rule-checks",
           "status": "passed"
         },
         {
@@ -204,11 +206,15 @@
           "status": "failed"
         },
         {
-          "name": "just-check-6806973",
+          "name": "just-check-8971a3b",
           "status": "passed"
         },
         {
           "name": "live-read-github",
+          "status": "passed"
+        },
+        {
+          "name": "live-trial-jobkinds",
           "status": "passed"
         },
         {
@@ -218,10 +224,6 @@
         {
           "name": "specs-refresh",
           "status": "passed"
-        },
-        {
-          "name": "verify-checkpoints-6806973",
-          "status": "passed"
         }
       ],
       "current_phase": "publish-with-human-override",
@@ -229,34 +231,34 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6ECKDT66TV333V9SXH58GJE",
+            "detail": "trajectory:branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M6ECKDT66TV333V9SXH58GJE",
+            "detail": "trajectory:branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "kind": "trajectory_step_recorded",
             "sequence": 5
           },
           {
-            "detail": "trajectory:branch_01M6ECKDT66TV333V9SXH58GJE",
+            "detail": "trajectory:branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
             "event_id": "event:6",
-            "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "kind": "trajectory_step_recorded",
             "sequence": 6
           }
@@ -265,28 +267,34 @@
         "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6ECKDT66TV333V9SXH58GJE": {
+          "branch_01M6EJ1NHEYWH8TJHEZNT7585Y": {
             "evidence_only": true,
-            "id": "branch_01M6ECKDT66TV333V9SXH58GJE",
-            "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+            "id": "branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "steps": [
               {
                 "action": "implement",
                 "command": "just dagger-check",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/automerge_checks.go",
                   ".dagger/modules/ci/main.go",
                   ".dagger/modules/ci/shepherd.go",
+                  ".dagger/modules/ci/automerge.go",
+                  ".dagger/modules/ci/automerge_checks.go",
                   ".dagger/modules/ci/shepherd_checks.go",
                   ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
                   "dagger.toml",
-                  "Baseline on origin/main 50664e4 in the work branch: just dagger-check passed 8 of 8 checks (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale) in 36 s.",
-                  "GitHub GraphQL baseRefOid of an open pull request is the base commit at the last push, not the current tip: on 2026-11-02 #99 has 040a18b and #94 has 8febc46 while main is 50664e4. Both equal the merge base. den's branch protection has strict false, so a pull request can merge while it is behind. The rules therefore read the trees of the merge base (GitHub compare API, merge_base_commit) and of the head."
+                  ".github/workflows/dagger.yml",
+                  ".github/workflows/shepherd.yml",
+                  ".github/workflows/bump.yml",
+                  "Baseline on origin/main 3aec329 in the work branch: just dagger-check passed 8 of 8 checks (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale) in 35 s.",
+                  "Prior art read, not copied: the approval loop of a devrel-infra github.go (list runs with head_sha and status action_required, POST approve, poll 10 s, quiet 30 s, give up after 3 min, error only when runs waited and none was approved), and the AEC workflows.go at origin/main 8789923 (job kinds, 55 rule cases, LEGACY rules of AEC PR 135).",
+                  "The workflows of den use actions outside an AEC-like allowlist, a token from the environment shepherd and top-level permissions other than {}, so a table for den is a later change; with an empty jobKinds the check is off."
                 ],
                 "proof_refs": [
-                  "baseline-dagger-check-50664e4"
+                  "baseline-dagger-check-3aec329"
                 ],
                 "scope": [
                   ".dagger/modules/ci",
@@ -300,28 +308,32 @@
                 "command": "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
                 "custody_event_id": "event:5",
                 "observations": [
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/automerge_files.go",
-                  ".dagger/modules/ci/automerge_checks.go",
-                  ".dagger/modules/ci/automerge_files_checks.go",
+                  ".dagger/modules/ci/approve.go",
+                  ".dagger/modules/ci/approve_checks.go",
+                  ".dagger/modules/ci/workflows.go",
+                  ".dagger/modules/ci/workflows_checks.go",
                   ".dagger/modules/ci/main.go",
-                  ".dagger/modules/ci/shepherd.go",
+                  ".dagger/modules/ci/go.mod",
+                  ".dagger/modules/ci/go.sum",
                   ".dagger/modules/ci/dagger.gen.go",
                   ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
                   ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
                   ".decapod/managed/specs/ARCHITECTURE.md",
-                  "Mutation tests (pr2-mutations.sh, copies under /tmp, deleted): 20 of 20 mutations fail fixtures. The old rules (no executable-bit and no manifest-fields rule) fail 23 fixtures: 22 files cases and the replay case. The rules always on fail 41 and 38 cases of den's settings. Other mutations: additions only, any head 100755, a cut tree ignored in treeFiles or in the rule, the snapshot drops the trees, .. in a source, any string source, source as a safe field, a parse failure as an empty object, no check of text after the object, no mode check, removed fields ignored, a new file as unchanged, lists compared whole, safe fields ignored at the top level or in entries, and entries without unique names.",
-                  "Live read (GitHub GET only, token of gh, file rules on with the AEC values): den#93 gives executable-bit 'it adds scripts/deploy-report.py with mode 100755'. den#101 and den#99 give no file refusal. AEC#125, #126 and #127 (fork pull requests) give manifest-fields on .claude-plugin/marketplace.json, because skills of a plugin entry is not in the planned safe fields. No tree was truncated (den 269 entries, AEC 334).",
-                  "just dagger-check on the work tree: 8 of 8 checks pass after dagger generate -y and decapod rpc --op specs.refresh. An earlier run failed ci:fmt on a Nix fetcher cache race (creating symlink flake-registry.json: File exists) and go-sdk:generate/stale after a doc comment change; the regenerated code and a new run fixed both."
+                  "just dagger-check on the work tree: 11 of 11 checks pass (ci:approve-bot-runs-rules, ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, ci:workflow-isolation, ci:workflow-isolation-rules, go-sdk:generate/stale). A first run failed ci:decapod-validate on spec drift before decapod rpc --op specs.refresh.",
+                  "Mutation tests (pr3-mutations.sh, copies under /tmp, deleted): 68 of 68 mutations fail fixtures. 47 for ci:workflow-isolation: with no rules 66 fixtures fail, without the job rules 59; each rule removed fails 1 to 13. 21 for approve-bot-runs: a loop that approves nothing fails 12 cases; each guard, stop condition and error rule removed fails 1 to 12. A first run found that the 55 earlier cases do not test a guard that a later || can skip; a new case kills that mutation.",
+                  "Live data (GitHub GET only): a held run has status completed and conclusion action_required (cli/cli, microsoft/vscode, NixOS/nixpkgs). The first draft checked the status, and it approved nothing; the code and the fake API now use the conclusion. The live approval loop with repository cli/cli and NixOS/nixpkgs on a held fork head sent only GETs and left 3 and 1 fork runs held.",
+                  "A trial jobKinds table in dagger.toml (5 jobs of den, allowlist actions/checkout) reaches the module as a multi-line TOML string: ci:workflow-isolation reports 31 problems on the workflows of den. dagger.toml is restored, byte for byte (git diff is empty)."
                 ],
                 "proof_refs": [
                   "gofmt",
                   "go-vet",
-                  "harness-automerge-and-shepherd-rules",
+                  "harness-rule-checks",
                   "mutation-tests",
                   "live-read-github",
-                  "dagger-check-worktree",
-                  "specs-refresh"
+                  "live-trial-jobkinds",
+                  "specs-refresh",
+                  "dagger-check-worktree"
                 ],
                 "scope": [
                   ".dagger/modules/ci",
@@ -332,17 +344,16 @@
               },
               {
                 "action": "publish-with-human-override",
-                "command": "git commit -S (pre-commit hook: just check)",
+                "command": "git commit (signed; pre-commit hook: just check)",
                 "custody_event_id": "event:6",
                 "observations": [
-                  "Commit 6806973: the pre-commit hook just check passed in 229 s (check-drvpaths, Darwin Doom launchers, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides applied). git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
-                  "Plain decapod validate on 6806973: pass=186 fail=1 warn=5 skip=13. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid), DecapodLabs/decapod#1474 (open). decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file. Warnings: no risk map, specs template scaffold-v4, stale workspaces kept for review, no watcher audit trail, branch not pushed."
+                  "Commit 8971a3b: the pre-commit hook just check passed in 205 s (check-drvpaths, Darwin Doom launchers, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides applied). git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+                  "Plain decapod validate on 8971a3b: pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid), DecapodLabs/decapod#1474 (open). The JSON report gives pass=185 and the same one failure. decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file. Warnings: no risk map, specs template scaffold-v4, stale workspaces kept for review, no watcher audit trail, branch not pushed. The repair of validate changed only generated_at in .decapod/managed/specs/.manifest.json, and that change is not kept."
                 ],
                 "proof_refs": [
-                  "just-check-6806973",
-                  "commit-signature-6806973",
-                  "verify-checkpoints-6806973",
-                  "decapod-validate-6806973",
+                  "just-check-8971a3b",
+                  "commit-signature-8971a3b",
+                  "decapod-validate-8971a3b",
                   "inventory-repair"
                 ],
                 "scope": [
@@ -351,7 +362,7 @@
                 ],
                 "sequence": 6,
                 "validation_findings": [
-                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 2 dispatch). Every other gate passed.",
+                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 3 dispatch). Every other gate passed.",
                   "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
                 ]
               }
@@ -361,27 +372,30 @@
       },
       "declared_commands": [
         "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
+        "dagger check ci/workflow-isolation with a trial jobKinds in dagger.toml, then dagger.toml restored",
         "decapod govern artifacts inventory --repair --base-branch origin/main",
-        "decapod govern artifacts verify-checkpoints --base-branch origin/main",
         "decapod rpc --op specs.refresh",
         "decapod validate",
         "decapod validate --format json",
-        "git commit -S (pre-commit hook: just check)",
+        "git commit (signed; pre-commit hook: just check)",
         "git log --show-signature",
-        "go test of a harness in a copy of the module under /tmp (AutomergeRules and ShepherdRules)",
-        "go test of a live read in a copy under /tmp (GitHub GET only)",
+        "go test of a harness in a copy of the module under /tmp (the four rule checks)",
+        "go test of a live read in a copy under /tmp (GitHub GET only, a transport that blocks every other method)",
+        "gofmt -l and go vet ./... (go 1.26.10 of flake.lock)",
         "just dagger-check",
-        "~/.cache/aec-m/pr2-mutations.sh (20 mutations in copies under /tmp)"
+        "~/.cache/aec-m/pr3-mutations.sh (68 mutations in copies under /tmp)"
       ],
       "destination": "pull request",
       "evidence": [
-        "Baseline on origin/main 50664e4 in the work branch: just dagger-check passed 8 of 8 checks (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale) in 36 s.",
-        "Commit 6806973: the pre-commit hook just check passed in 229 s (check-drvpaths, Darwin Doom launchers, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides applied). git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
-        "GitHub GraphQL baseRefOid of an open pull request is the base commit at the last push, not the current tip: on 2026-11-02 #99 has 040a18b and #94 has 8febc46 while main is 50664e4. Both equal the merge base. den's branch protection has strict false, so a pull request can merge while it is behind. The rules therefore read the trees of the merge base (GitHub compare API, merge_base_commit) and of the head.",
-        "Live read (GitHub GET only, token of gh, file rules on with the AEC values): den#93 gives executable-bit 'it adds scripts/deploy-report.py with mode 100755'. den#101 and den#99 give no file refusal. AEC#125, #126 and #127 (fork pull requests) give manifest-fields on .claude-plugin/marketplace.json, because skills of a plugin entry is not in the planned safe fields. No tree was truncated (den 269 entries, AEC 334).",
-        "Mutation tests (pr2-mutations.sh, copies under /tmp, deleted): 20 of 20 mutations fail fixtures. The old rules (no executable-bit and no manifest-fields rule) fail 23 fixtures: 22 files cases and the replay case. The rules always on fail 41 and 38 cases of den's settings. Other mutations: additions only, any head 100755, a cut tree ignored in treeFiles or in the rule, the snapshot drops the trees, .. in a source, any string source, source as a safe field, a parse failure as an empty object, no check of text after the object, no mode check, removed fields ignored, a new file as unchanged, lists compared whole, safe fields ignored at the top level or in entries, and entries without unique names.",
-        "Plain decapod validate on 6806973: pass=186 fail=1 warn=5 skip=13. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid), DecapodLabs/decapod#1474 (open). decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file. Warnings: no risk map, specs template scaffold-v4, stale workspaces kept for review, no watcher audit trail, branch not pushed.",
-        "just dagger-check on the work tree: 8 of 8 checks pass after dagger generate -y and decapod rpc --op specs.refresh. An earlier run failed ci:fmt on a Nix fetcher cache race (creating symlink flake-registry.json: File exists) and go-sdk:generate/stale after a doc comment change; the regenerated code and a new run fixed both."
+        "A trial jobKinds table in dagger.toml (5 jobs of den, allowlist actions/checkout) reaches the module as a multi-line TOML string: ci:workflow-isolation reports 31 problems on the workflows of den. dagger.toml is restored, byte for byte (git diff is empty).",
+        "Baseline on origin/main 3aec329 in the work branch: just dagger-check passed 8 of 8 checks (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale) in 35 s.",
+        "Commit 8971a3b: the pre-commit hook just check passed in 205 s (check-drvpaths, Darwin Doom launchers, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides applied). git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+        "Live data (GitHub GET only): a held run has status completed and conclusion action_required (cli/cli, microsoft/vscode, NixOS/nixpkgs). The first draft checked the status, and it approved nothing; the code and the fake API now use the conclusion. The live approval loop with repository cli/cli and NixOS/nixpkgs on a held fork head sent only GETs and left 3 and 1 fork runs held.",
+        "Mutation tests (pr3-mutations.sh, copies under /tmp, deleted): 68 of 68 mutations fail fixtures. 47 for ci:workflow-isolation: with no rules 66 fixtures fail, without the job rules 59; each rule removed fails 1 to 13. 21 for approve-bot-runs: a loop that approves nothing fails 12 cases; each guard, stop condition and error rule removed fails 1 to 12. A first run found that the 55 earlier cases do not test a guard that a later || can skip; a new case kills that mutation.",
+        "Plain decapod validate on 8971a3b: pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid), DecapodLabs/decapod#1474 (open). The JSON report gives pass=185 and the same one failure. decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file. Warnings: no risk map, specs template scaffold-v4, stale workspaces kept for review, no watcher audit trail, branch not pushed. The repair of validate changed only generated_at in .decapod/managed/specs/.manifest.json, and that change is not kept.",
+        "Prior art read, not copied: the approval loop of a devrel-infra github.go (list runs with head_sha and status action_required, POST approve, poll 10 s, quiet 30 s, give up after 3 min, error only when runs waited and none was approved), and the AEC workflows.go at origin/main 8789923 (job kinds, 55 rule cases, LEGACY rules of AEC PR 135).",
+        "The workflows of den use actions outside an AEC-like allowlist, a token from the environment shepherd and top-level permissions other than {}, so a table for den is a later change; with an empty jobKinds the check is off.",
+        "just dagger-check on the work tree: 11 of 11 checks pass (ci:approve-bot-runs-rules, ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, ci:workflow-isolation, ci:workflow-isolation-rules, go-sdk:generate/stale). A first run failed ci:decapod-validate on spec drift before decapod rpc --op specs.refresh."
       ],
       "inspected_files": [
         ".dagger/modules/ci/automerge.go",
@@ -389,38 +403,43 @@
         ".dagger/modules/ci/main.go",
         ".dagger/modules/ci/shepherd.go",
         ".dagger/modules/ci/shepherd_checks.go",
+        ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        ".github/workflows/bump.yml",
+        ".github/workflows/dagger.yml",
+        ".github/workflows/shepherd.yml",
         "dagger.toml"
       ],
-      "intent_id": "intent:change_01M6ECKDQZWEHN6CT6F0CRNW89",
+      "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
       "modified_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/automerge_checks.go",
-        ".dagger/modules/ci/automerge_files.go",
-        ".dagger/modules/ci/automerge_files_checks.go",
+        ".dagger/modules/ci/approve.go",
+        ".dagger/modules/ci/approve_checks.go",
         ".dagger/modules/ci/dagger.gen.go",
+        ".dagger/modules/ci/go.mod",
+        ".dagger/modules/ci/go.sum",
         ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
         ".dagger/modules/ci/main.go",
-        ".dagger/modules/ci/shepherd.go",
+        ".dagger/modules/ci/workflows.go",
+        ".dagger/modules/ci/workflows_checks.go",
         ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTERFACES.md"
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/VALIDATION.md"
       ],
       "next_transitions": [
         "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
-        "Checkpoint, commit with a signature, then plain decapod validate",
-        "Implement riskyExecutableBit and the manifest rule with fixtures, then mutation tests",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         ".dagger/modules/ci",
         ".decapod/managed/specs"
       ],
-      "run_id": "branch_01M6ECKDT66TV333V9SXH58GJE",
+      "run_id": "branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [
-        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 2 dispatch). Every other gate passed."
+        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 3 dispatch). Every other gate passed."
       ],
-      "task_id": "code_01m6ecj4nqdd3n7c",
+      "task_id": "cicd_01m6ej0ckxez3w6m",
       "tool_calls": [],
       "unresolved_assumptions": [
         "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."

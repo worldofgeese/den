@@ -311,10 +311,41 @@ interface).
   release in the header of `AGENTS.md`, so CI and the hosts run the same
   Decapod after the merge. A rev before its release on crates.io keeps the
   old header, and the bump warns.
-- **Settings** (`[modules.ci.settings]`): `repository` (owner/name),
-  `authors` (a bot is `app/<login>`), `reviewer` (the login whose review of
-  the head counts) and `riskyPaths` (path prefixes that a person merges).
-  Each one is optional, and an empty value refuses.
+- **Settings** (`[modules.ci.settings]`). Each setting is optional. The
+  `dagger.toml` of this repository sets the first four. Its `riskyPaths`
+  have no `*`, its `authors` do not include `"*"`, and it does not set
+  `checkName`. So the globs, the author `"*"` and `checkName` do not change
+  its verdicts.
+  - `repository`: the GitHub repository, owner/name, that the functions
+    read.
+  - `authors`: the logins whose pull requests can merge without a person.
+    A bot is `app/<login>`, and `"*"` is every author. With no authors, each
+    pull request needs a person, and the shepherd gives it checks only.
+  - `reviewer`: the login whose review of the head counts. With none,
+    nothing merges.
+  - `riskyPaths`: a person merges each pull request that changes a matching
+    path. A pattern without `*` is a path prefix: `secrets/` matches
+    `secrets/a.age`, but not `modules/secrets/a.age`. A pattern with `*` is
+    a glob that must match the whole path. `*` matches in one level, and
+    `**` as a whole level matches zero or more levels. So `**/*.sh` matches
+    `run.sh` and `a/b/run.sh` but not `run.shx`, and `.github/**` matches
+    each path under `.github/`. To match a directory and each path under
+    it, end the glob in `/**`. Only `*` is special: `?`, `[` and `\` match
+    themselves. `matchRiskyPath` in `automerge.go` does the match. With no
+    patterns, no path needs a person.
+  - `checkName`: when it is set, the rule `required-check` requires that
+    the newest run of that check on the head succeeded. A check run or a
+    commit status of that name counts. A skipped or neutral run is green
+    for the rule `checks`, but it does not count here. A replay judges this
+    rule with the runs from before the merge. With no `checkName`, the rules
+    leave the required checks to branch protection (the rule `protected`).
+    A repository whose branch protection requires no check can be `CLEAN`
+    before any check runs, so that repository sets `checkName`.
+  - Tests: `ci:automerge-rules` has a glob and a prefix that match and that
+    do not match, one glob for each kind of risky path, and a policy with
+    no `riskyPaths`. It tests authors empty, set and `["*"]`. It tests `checkName` unset, with no run, and
+    with a run that succeeded, failed or was skipped. `ci:shepherd-rules`
+    tests authors empty, set and `["*"]`.
 - **Incomplete data refuses.** When GitHub has more changed files, check
   contexts or label events than one query reads, the rules refuse.
 - **Branch protection.** The live rule `protected` reads GitHub's
@@ -351,7 +382,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e2ab71ba07bbc746d7c581071c8ecab1981692396d1ef54de2252a73b26f8e6a`
+- Repository signal fingerprint: `c3f0cb60ca347753d052552f11e9885c302bfd257306db7fce628e0bdd77b8ae`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

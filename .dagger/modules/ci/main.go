@@ -78,6 +78,12 @@ type Ci struct {
 	ReviewTimeoutHours int
 	// +private
 	RequireReviewGate bool
+	// The fork policy (fork.go).
+	// +private
+	ForkPolicy string
+	// The age rule of the bump targets (release.go).
+	// +private
+	MinReleaseAgeDays int
 }
 
 func New(
@@ -163,6 +169,16 @@ func New(
 	// head (the rule review-gate).
 	// +optional
 	requireReviewGate bool,
+	// What the module does with a pull request from a fork. checks-only (the
+	// default): the same as for each pull request. review-and-suggest: a fork
+	// pull request that conflicts with its base gets the needs-human action,
+	// because the token cannot update a fork.
+	// +optional
+	forkPolicy string,
+	// release-age chooses the newest bump target that is at least this many
+	// days old. With 0, it chooses the newest target.
+	// +optional
+	minReleaseAgeDays int,
 ) *Ci {
 	return &Ci{
 		Repository:           repository,
@@ -181,6 +197,8 @@ func New(
 		SecondPersonApproval: secondPersonApproval,
 		ReviewTimeoutHours:   reviewTimeoutHours,
 		RequireReviewGate:    requireReviewGate,
+		ForkPolicy:           forkPolicy,
+		MinReleaseAgeDays:    minReleaseAgeDays,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

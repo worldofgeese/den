@@ -97,6 +97,15 @@
         "live read (GitHub GET only): held fork runs of cli/cli and NixOS/nixpkgs stay held",
         "mutation tests: 68 of 68 mutations fail fixtures"
       ]
+    },
+    {
+      "id": "ckpt-approve-runs-isolation-validate",
+      "summary": "Record the plain decapod validate result of 8971a3b: pass=186 fail=1, only the missing validation receipt of DecapodLabs/decapod#1474, which the owner approved for den PRs. The source does not change.",
+      "input_digest": "sha256:67c630bb99b23c8e9b6851ae5b711134f3deb3b9106a806c8dc5ef4d412b4742",
+      "proof_refs": [
+        "decapod validate on 8971a3b: publication_readiness READINESS_BLOCKED sections/validation (invalid)",
+        "https://github.com/DecapodLabs/decapod/issues/1474"
+      ]
     }
   ],
   "intents": {
@@ -162,15 +171,23 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:e1eea7a684658838422db1c61ca2cc41ac15fa41569bc7e6d538223a243bf7fb",
+      "artifact_hash": "sha256:47c7fcf2e01447310b440923e28d40e87e783a8dfe5c41714f9c2faaa41c5ee8",
       "checks": [
         {
           "name": "baseline-dagger-check-3aec329",
           "status": "passed"
         },
         {
+          "name": "commit-signature-8971a3b",
+          "status": "passed"
+        },
+        {
           "name": "dagger-check-worktree",
           "status": "passed"
+        },
+        {
+          "name": "decapod-validate-8971a3b",
+          "status": "failed"
         },
         {
           "name": "go-vet",
@@ -182,6 +199,14 @@
         },
         {
           "name": "harness-rule-checks",
+          "status": "passed"
+        },
+        {
+          "name": "inventory-repair",
+          "status": "failed"
+        },
+        {
+          "name": "just-check-8971a3b",
           "status": "passed"
         },
         {
@@ -201,7 +226,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "implement",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -229,10 +254,17 @@
             "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6EJ1NFEN92DTJHPFP1BJ87C",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6EJ1NHEYWH8TJHEZNT7585Y": {
@@ -309,6 +341,30 @@
                 ],
                 "sequence": 5,
                 "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "command": "git commit (signed; pre-commit hook: just check)",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "Commit 8971a3b: the pre-commit hook just check passed in 205 s (check-drvpaths, Darwin Doom launchers, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides applied). git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+                  "Plain decapod validate on 8971a3b: pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid), DecapodLabs/decapod#1474 (open). The JSON report gives pass=185 and the same one failure. decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file. Warnings: no risk map, specs template scaffold-v4, stale workspaces kept for review, no watcher audit trail, branch not pushed. The repair of validate changed only generated_at in .decapod/managed/specs/.manifest.json, and that change is not kept."
+                ],
+                "proof_refs": [
+                  "just-check-8971a3b",
+                  "commit-signature-8971a3b",
+                  "decapod-validate-8971a3b",
+                  "inventory-repair"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs"
+                ],
+                "sequence": 6,
+                "validation_findings": [
+                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 3 dispatch). Every other gate passed.",
+                  "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+                ]
               }
             ]
           }
@@ -317,7 +373,12 @@
       "declared_commands": [
         "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
         "dagger check ci/workflow-isolation with a trial jobKinds in dagger.toml, then dagger.toml restored",
+        "decapod govern artifacts inventory --repair --base-branch origin/main",
         "decapod rpc --op specs.refresh",
+        "decapod validate",
+        "decapod validate --format json",
+        "git commit (signed; pre-commit hook: just check)",
+        "git log --show-signature",
         "go test of a harness in a copy of the module under /tmp (the four rule checks)",
         "go test of a live read in a copy under /tmp (GitHub GET only, a transport that blocks every other method)",
         "gofmt -l and go vet ./... (go 1.26.10 of flake.lock)",
@@ -328,8 +389,10 @@
       "evidence": [
         "A trial jobKinds table in dagger.toml (5 jobs of den, allowlist actions/checkout) reaches the module as a multi-line TOML string: ci:workflow-isolation reports 31 problems on the workflows of den. dagger.toml is restored, byte for byte (git diff is empty).",
         "Baseline on origin/main 3aec329 in the work branch: just dagger-check passed 8 of 8 checks (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale) in 35 s.",
+        "Commit 8971a3b: the pre-commit hook just check passed in 205 s (check-drvpaths, Darwin Doom launchers, check-guix skipped on darwin, check-fmt, check-shellcheck, 24 overrides applied). git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
         "Live data (GitHub GET only): a held run has status completed and conclusion action_required (cli/cli, microsoft/vscode, NixOS/nixpkgs). The first draft checked the status, and it approved nothing; the code and the fake API now use the conclusion. The live approval loop with repository cli/cli and NixOS/nixpkgs on a held fork head sent only GETs and left 3 and 1 fork runs held.",
         "Mutation tests (pr3-mutations.sh, copies under /tmp, deleted): 68 of 68 mutations fail fixtures. 47 for ci:workflow-isolation: with no rules 66 fixtures fail, without the job rules 59; each rule removed fails 1 to 13. 21 for approve-bot-runs: a loop that approves nothing fails 12 cases; each guard, stop condition and error rule removed fails 1 to 12. A first run found that the 55 earlier cases do not test a guard that a later || can skip; a new case kills that mutation.",
+        "Plain decapod validate on 8971a3b: pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid), DecapodLabs/decapod#1474 (open). The JSON report gives pass=185 and the same one failure. decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file. Warnings: no risk map, specs template scaffold-v4, stale workspaces kept for review, no watcher audit trail, branch not pushed. The repair of validate changed only generated_at in .decapod/managed/specs/.manifest.json, and that change is not kept.",
         "Prior art read, not copied: the approval loop of a devrel-infra github.go (list runs with head_sha and status action_required, POST approve, poll 10 s, quiet 30 s, give up after 3 min, error only when runs waited and none was approved), and the AEC workflows.go at origin/main 8789923 (job kinds, 55 rule cases, LEGACY rules of AEC PR 135).",
         "The workflows of den use actions outside an AEC-like allowlist, a token from the environment shepherd and top-level permissions other than {}, so a table for den is a later change; with an empty jobKinds the check is off.",
         "just dagger-check on the work tree: 11 of 11 checks pass (ci:approve-bot-runs-rules, ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, ci:workflow-isolation, ci:workflow-isolation-rules, go-sdk:generate/stale). A first run failed ci:decapod-validate on spec drift before decapod rpc --op specs.refresh."
@@ -364,6 +427,7 @@
         ".decapod/managed/specs/VALIDATION.md"
       ],
       "next_transitions": [
+        "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
@@ -372,10 +436,14 @@
       ],
       "run_id": "branch_01M6EJ1NHEYWH8TJHEZNT7585Y",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 3 dispatch). Every other gate passed."
+      ],
       "task_id": "cicd_01m6ej0ckxez3w6m",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+      ]
     }
   },
   "legacy_digests": {

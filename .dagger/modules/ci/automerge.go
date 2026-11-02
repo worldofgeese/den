@@ -63,6 +63,9 @@ type mergePolicy struct {
 	ReviewTimeout time.Duration
 	// The rule review-gate requires the success of the gate on the head.
 	RequireReviewGate bool
+	// What the shepherd does with a fork pull request (fork.go). With none,
+	// the policy is checks-only.
+	ForkPolicy string
 }
 
 // allowsAuthor reports whether the pull requests of login can merge without
@@ -794,6 +797,9 @@ func mergeMethod(r *gqlRepo) string {
 }
 
 func (m *Ci) github(ctx context.Context, token *dagger.Secret) (*githubClient, string, string, error) {
+	if err := checkForkPolicy(m.ForkPolicy); err != nil {
+		return nil, "", "", err
+	}
 	owner, name, ok := strings.Cut(m.Repository, "/")
 	if !ok || owner == "" || name == "" {
 		return nil, "", "", fmt.Errorf("set the repository setting to owner/name, not %q", m.Repository)
@@ -810,7 +816,8 @@ func (m *Ci) policy() mergePolicy {
 		RiskyExecutableBit: m.RiskyExecutableBit, ManifestFiles: m.ManifestFiles,
 		ManifestSafeFields: m.ManifestSafeFields, ManifestSourcePrefix: m.ManifestSourcePrefix,
 		StatusPrefix: m.StatusPrefix, ReviewMarker: m.ReviewMarker, SecondPersonApproval: m.SecondPersonApproval,
-		ReviewTimeout: time.Duration(m.ReviewTimeoutHours) * time.Hour, RequireReviewGate: m.RequireReviewGate}
+		ReviewTimeout: time.Duration(m.ReviewTimeoutHours) * time.Hour, RequireReviewGate: m.RequireReviewGate,
+		ForkPolicy: m.ForkPolicy}
 }
 
 // queryPR reads pull request n with prQuery.

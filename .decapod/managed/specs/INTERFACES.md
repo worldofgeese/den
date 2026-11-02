@@ -267,7 +267,8 @@ interface).
 - **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
   `ci:decapod-overrides`, `ci:decapod-validate`, `ci:automerge-rules`,
   `ci:shepherd-rules`, `ci:approve-bot-runs-rules`, `ci:workflow-isolation`,
-  `ci:workflow-isolation-rules` and `ci:review-gate-rules`. VALIDATION.md (Dagger Checks) maps them to the
+  `ci:workflow-isolation-rules`, `ci:review-gate-rules` and
+  `ci:release-age-rules`. VALIDATION.md (Dagger Checks) maps them to the
   `just check` steps. To run
   one check, give its name to `--check`, for example
   `dagger check --check ci/nix-eval`.
@@ -346,9 +347,26 @@ interface).
     an older review count. A comment that starts with a longer name, for
     example `aec-review:v10`, is not a block. Other reviews of that login do
     not count.
-- **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
-  GitHub. The shepherd writes only the request comment `@codex review`, the
-  label `needs-human` and its comment. With `--merge`, it also merges at
+- **`release-age --candidates <json>`** (`release.go`, part f of AEC task
+  M) is the age rule of the bump targets. A bump gives it the candidates of
+  one pin as a JSON list, newest first:
+  `[{"version": "v1.2.0", "published": "2026-10-20T12:00:00Z"}]`. For a
+  release, `published` is its publish time. For a commit, it is the
+  committer date of the commit on the default branch of the upstream
+  repository. The function chooses the first candidate in the list that is
+  at least `minReleaseAgeDays` old. It lists each newer candidate that it
+  skipped, with the reason: its age, no publish time, or a publish time
+  after now. With no candidate that is old enough, `chosen` is `null`, and
+  the bump keeps the pin. The order of the list decides, not the publish
+  time, so a bump gives releases in the order of their versions. The output
+  is JSON with `minReleaseAgeDays`, `chosen` and `skipped`. The function
+  reads no network and changes nothing. A list that does not parse, an
+  unknown field, an item with no version, or text after the list refuses.
+  No flow of this repository calls it: the nightly bump of plan P6 runs
+  `nix flake update`, which chooses the newest commit of each flake input.
+- **Write boundary.** `automerge-dry-run`, `automerge-replay` and
+  `release-age` only read. The shepherd writes only the request comment
+  `@codex review`, the label `needs-human` and its comment. With `--merge`, it also merges at
   most one pull request in each run that the merge rules accept (plan P4,
   step 2). `approve-bot-runs` writes only approvals of held runs of the
   repository on the head that it gets. `review-gate` writes only the commit
@@ -375,7 +393,9 @@ interface).
   `approveBotRuns` or `jobKinds` either, so the module approves no run, and
   `ci:workflow-isolation` reads no workflow and passes. It sets none of the
   five settings of the review gate, so `review-gate` refuses, and the rules
-  read no status of the gate.
+  read no status of the gate. It sets no `forkPolicy`, so the policy is
+  `checks-only` and the shepherd takes no fork action. It sets no
+  `minReleaseAgeDays`, so `release-age` chooses the newest candidate.
   - `repository`: the GitHub repository, owner/name, that the functions
     read.
   - `authors`: the logins whose pull requests can merge without a person.
@@ -555,6 +575,59 @@ interface).
     when a commit status that is not pending was posted. `queryPR` reads a
     pull request, and `fetch` adds the Git trees for the file rules. The
     gate reads no tree.
+  - `forkPolicy` (default `checks-only`, also when it is empty): what the
+    module does with a fork pull request, whose head branch is in another
+    repository. `fork.go` holds the policy, and `forkAction` decides.
+  - With `checks-only`, the module does what it did before this setting.
+    The merge rules and the shepherd judge a fork pull request as each pull
+    request. So a fork pull request from an author outside `authors` gets
+    checks only, and a fork pull request from an author in `authors` can
+    merge when each rule accepts it.
+  - With `review-and-suggest`, a fork pull request goes through the same
+    merge rules as a branch of this repository, and it merges when each rule
+    accepts it. One action is new. A fork pull request that conflicts with
+    its base (`mergeable` is `CONFLICTING`) gets the label `needs-human`
+    and a comment from the shepherd. An update of the branch writes to the
+    fork, and the token cannot push to a fork. A draft, a pull request with
+    a stop label, and a state of `UNKNOWN` get no action. The label then
+    stops all automation, so the shepherd adds it once. With `--dry-run`,
+    the table says "would add needs-human", and the shepherd posts nothing.
+    The shepherd takes the action also without `--merge`.
+  - A fork pull request that is behind its base without a conflict merges as
+    it is. No function of the module updates a branch, for a fork or for a
+    branch of this repository. With branch protection that requires an
+    up-to-date branch, GitHub gives such a head the merge state `BEHIND`,
+    and the rule `protected` refuses it.
+  - A fix for a fork pull request is a suggestion comment, never a push.
+    The module has no fixer yet, so this part of `review-and-suggest`
+    applies when a fixer comes. A conflict on a branch of this repository
+    gets no action from this setting.
+  - Another value refuses before a function reads the token. `m.github`
+    calls `checkForkPolicy` first.
+  - `minReleaseAgeDays` (default `0`): the minimum age of a bump target in
+    days, for `release-age`. With `0`, the rule is off, and the function
+    chooses the first candidate. A negative value refuses.
+  - Tests: `ci:shepherd-rules` runs the shepherd against a fake GitHub API
+    (an `http.RoundTripper` for the two GraphQL queries, the label, the
+    comment and the merge) for each `forkPolicy`. With `review-and-suggest`:
+    a fork that conflicts gets `needs-human` and the comment, also without
+    `--merge`, and a dry run only reports it. A fork that each rule accepts
+    merges, also when it is behind main. A fork that a rule refuses does not
+    merge. A label that is there, a stop label, a draft, a merged pull
+    request and `UNKNOWN` get no action, and a failed label fails the run.
+    With no setting and with `checks-only`, a fork that conflicts gets no
+    action, and a fork that each rule accepts merges. Inverted: a branch of
+    this repository that conflicts gets no action. The tables of the three
+    values are the same for each pull request with no action. No fixture
+    sends an update of a branch or a push. Values that the module does not
+    know refuse before a call.
+  - Tests: `ci:release-age-rules` tests `chooseRelease` with 7 days for
+    releases and for commits by committer date, exactly 7 days, one second
+    less, no candidate old enough, no publish time, a publish time after
+    now, the order of the list, and no candidates. Switched off (`0`), it
+    chooses the newest candidate. Inverted, the newest candidate is old
+    enough and nothing is skipped. It also tests the JSON input and output,
+    and each refusal.
   - In this module, the login of a bot is `app/<login>`, as `gh` prints it.
     So a repository whose pipeline posts reviews with its `GITHUB_TOKEN`
     sets `reviewer = "app/github-actions"`.
@@ -610,7 +683,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `51b5339c3ca691cbdf5e123e18c4d7e1d3788cd0df96894348e53ad41e816f2f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (20 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `bc077343dc762274aa7bb9de55d392d796a2fcefb5b0c25ba35d8d481248637c`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (24 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

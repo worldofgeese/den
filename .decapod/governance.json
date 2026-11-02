@@ -63,6 +63,14 @@
       "proof_refs": [
         "trajectory:branch_01M6DQMM2HY6SZ6M3GFDBNTZE9"
       ]
+    },
+    {
+      "id": "eval-targets-nod-cache",
+      "summary": "Read the nix-on-droid cache for the pixel-fold evaluation.",
+      "input_digest": "sha256:50af7de3211b395ec59ad25f3c957e868de8d831572fe9d0066ff852ed26f202",
+      "proof_refs": [
+        "https://nix-on-droid.cachix.org"
+      ]
     }
   ],
   "intents": {
@@ -113,11 +121,23 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7ed9e4c4c843b846a147a235e1d1b5b1e619af7a8c1c3ddebb641663b7e4edcb",
+      "artifact_hash": "sha256:9a00343db24c85dac08ff4452afa1028ee760df6a656a9079fa53fdbeb27f638",
       "checks": [
         {
           "name": "attribute-presence",
           "status": "passed"
+        },
+        {
+          "name": "eval-M-02877",
+          "status": "passed"
+        },
+        {
+          "name": "eval-home",
+          "status": "passed"
+        },
+        {
+          "name": "eval-pixel-fold",
+          "status": "failed"
         },
         {
           "name": "first-eval-run",
@@ -132,7 +152,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "candidate-fix",
+      "current_phase": "candidate-fix-2",
       "custody": {
         "events": [
           {
@@ -160,10 +180,17 @@
             "intent_id": "intent:change_01M6DQMM07JBWN59N1A0AYE0BH",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6DQMM2HY6SZ6M3GFDBNTZE9",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6DQMM07JBWN59N1A0AYE0BH",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6DQMM2HY6SZ6M3GFDBNTZE9": {
@@ -207,6 +234,24 @@
                 ],
                 "sequence": 5,
                 "validation_findings": []
+              },
+              {
+                "action": "candidate-fix-2",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".github/workflows/eval-targets.yml",
+                  "After the pin fix, eval-worldofgeese-home and eval-M-02877 pass. pixel-fold failed only because proot-termux-static is not in any configured substituter. nix-on-droid.cachix.org serves that narinfo (HTTP 200), and its signing key comes from the Cachix API."
+                ],
+                "proof_refs": [
+                  "eval-home",
+                  "eval-M-02877",
+                  "eval-pixel-fold"
+                ],
+                "scope": [
+                  "private-fleet-maintenance"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -215,6 +260,7 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
+        "After the pin fix, eval-worldofgeese-home and eval-M-02877 pass. pixel-fold failed only because proot-termux-static is not in any configured substituter. nix-on-droid.cachix.org serves that narinfo (HTTP 200), and its signing key comes from the Cachix API.",
         "The first eval-targets run on #97: oracle and paphos passed. The worldofgeese home and M-02877 failed with \"Cannot find Git revision 27165d21 in ref HEAD of eddof13/ob-agent-shell\". The GitHub compare API reports that pin as diverged from main. pixel-fold failed with \"builtins.storePath is not allowed in pure evaluation mode\". The GitHub compare scan of all 12 Doom pins found only that one diverged. Fix: pin 08c840ed (main head, \"verify against agent-shell 0.89.4\"), and --impure for pixel-fold only.",
         "zizmor 1.31.1 --offline reports no findings for eval-targets.yml. A local eval confirmed that all five attributes exist. Action SHAs reuse the pins in dagger.yml and bump.yml. The PR run of the new jobs is the proof of the evaluation itself."
       ],

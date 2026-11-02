@@ -11,7 +11,8 @@
 #
 # Standard runners are free for a public repository. The jobs get no secret,
 # and the token can only read. They read the worldofgeese Cachix cache, which
-# `just cachix-push` fills from M-02877. They build only what evaluation needs.
+# `just cachix-push` fills from M-02877, and the nix-on-droid cache, which has
+# the static proot binary that the pixel-fold activation package needs. They build only what evaluation needs.
 name: eval-targets
 
 on:
@@ -65,8 +66,8 @@ jobs:
       - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
         with:
           extra_nix_config: |
-            extra-substituters = https://worldofgeese.cachix.org
-            extra-trusted-public-keys = worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=
+            extra-substituters = https://worldofgeese.cachix.org https://nix-on-droid.cachix.org
+            extra-trusted-public-keys = worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs= nix-on-droid.cachix.org-1:56snoMJTXmDRC1Ei24CmKoUqvHJ9XCp+nidK7qkMQrU=
       - name: Evaluate ${{ matrix.attr }}
         env:
           ATTR: ${{ matrix.attr }}

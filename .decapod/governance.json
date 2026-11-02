@@ -54,6 +54,14 @@
       "proof_refs": [
         "trajectory:run_mother_checkpoint_swamp"
       ]
+    },
+    {
+      "id": "plan-scope-boundary",
+      "summary": "Move the out-of-scope installer note from plan unknowns to the trajectory boundary.",
+      "input_digest": "sha256:991a3161a21300d18dbdc5a48a11e335ddf026cf6c8120f7f4716b84e7672d3f",
+      "proof_refs": [
+        "trajectory:run_mother_checkpoint_swamp"
+      ]
     }
   ],
   "intents": {
@@ -90,7 +98,7 @@
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
+      "state": "DRAFT",
       "stop_conditions": [
         "An API warning, an old success, a stale receipt, a changed resource binding or a failed independent restore must not count as a verified checkpoint."
       ],
@@ -98,11 +106,9 @@
       "todo_ids": [
         "feat_01m6b5dpmhpyqacw"
       ],
-      "unknowns": [
-        "Unattended DSM, SRM and BIOS installation is outside this change."
-      ],
+      "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793599906Z"
+      "updated_at": "1793600205Z"
     },
     "trajectory": {
       "active_boundaries": [

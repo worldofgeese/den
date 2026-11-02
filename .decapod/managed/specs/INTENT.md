@@ -5,6 +5,7 @@
 - In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
 - On M-02877, pi is wired to the team services in LEGO/devrel-infra: Chorus (built-in MCP, `chorus-pi`, and a wakeable `chorus daemon --agent pi` serving `~/projects`), Beads (`pi-beads-extension` for agent context; `pi-tasks` was removed on 2026-10-08), team Signet for every Signet client, and the LEGO TechWriter toolbox (toolbox-docs skills replace the hand-copied ones, plus a `techwriter` pi agent that reads the LEGO style guide from Copilot Spaces).
 - On Mahakala, use `just deploy-mahakala` to update and apply the Guix System, Guix Home, and Home Manager profiles. The boot configuration also requests the ath10k warm-only reset mode for the verified QCA6174 card.
+- On mahakala, GDM starts EWM through Home Manager's `ewm-start`. Nix supplies both Emacs and `ewm-core`, which must use compatible glibc versions.
 
 ## What This Project Is
 home-manager is a service_or_library project built using shell.

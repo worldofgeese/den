@@ -58,6 +58,12 @@ This project's architecture consists of the following key layers/directories:
   (Chorus, Beads, team Signet, toolbox-docs), the Chorus pi daemon launchd
   agent, and the session environment that points Signet clients at the team
   pool.
+- `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
+  `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
+  module together. The launcher clears Guix's Emacs load-path variables.
+- `modules/omarchy.nix` adapts Omarchy to Guix. Its Quickshell uses an
+  elogind-aware polkit library and the Guix privileged helper. The keyboard
+  indicator uses Python with PyGObject and the GLib typelibs.
 
 ## Data Flows
 - Inbound request/command parses and validates at the entrypoint.

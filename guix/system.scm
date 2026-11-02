@@ -139,9 +139,15 @@
                  (call-with-output-file (string-append bin "/ewm-session")
                    (lambda (port)
                      (display "#!/bin/sh
-# EWM session launcher — uses Guix emacs-pgtk + Nix-built EWM module
-HM_SITE_LISP=\"$HOME/.local/state/nix/profiles/home-manager/home-path/share/emacs/site-lisp\"
-exec /run/current-system/profile/bin/emacs \\\n  --fg-daemon=ewm \\\n  -L \"$HM_SITE_LISP\" \\\n  -l ewm \\\n  -f ewm-start-module \\\n  \"$@\"\n" port)))
+# EWM session launcher. Delegates to Home Manager's ewm-start, which runs
+# Nix Emacs: the Nix-built ewm-core.so needs Nix's glibc, and loading it
+# into Guix Emacs fails (GDM then reports an authentication error).
+EWM_START=\"$HOME/.local/state/nix/profiles/home-manager/home-path/bin/ewm-start\"
+if [ ! -x \"$EWM_START\" ]; then
+  echo \"ewm-session: $EWM_START missing; deploy Home Manager\" >&2
+  exit 1
+fi
+exec \"$EWM_START\" \"$@\"\n" port)))
                  (chmod (string-append bin "/ewm-session") #o755))
                ;; Install .desktop file for GDM wayland session picker
                (let ((sessions (string-append #$output "/share/wayland-sessions")))

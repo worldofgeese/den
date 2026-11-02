@@ -861,6 +861,57 @@ uncommented systemd call remains. Omarchy 4.5.0-rc2 merged the old
 nixarchy replaces `enable-user-units.sh` with a no-op. The guard patches that
 script only while it still calls `systemctl`.
 
+### mahakala desktop: the EWM session
+
+GDM's EWM entry comes from the `ewm-desktop-session` package in
+`guix/system.scm`. Its `ewm-session` script only runs the Home Manager
+`ewm-start` launcher from `modules/workstation.nix`. That launcher unsets
+`EMACSLOADPATH` and `EMACSNATIVELOADPATH`, then starts the Nix `emacs-pgtk`
+with the `ewm` and `ewm-core` store paths on its load path.
+
+Until 2026-11-02 the Guix script started the Guix Emacs (glibc 2.41) and
+loaded the Nix `ewm-core.so` (glibc 2.44). The module load failed with
+`version GLIBC_2.44 not found`, Emacs exited, and GDM reported
+"authentication error". GDM remembers the last session, so the error remained
+after the Omarchy fix until the user picked Omarchy again. Guix also exports
+`EMACSLOADPATH` without a trailing colon. A Nix Emacs that inherits it cannot
+find its own lisp (`Cannot open load file ... cl-lib`), so the launcher must
+unset it.
+
+- **Check**: run the `emacs` from `ewm-start` with `--batch`, its `-L` flags
+  and `-l ewm`, with `EMACSLOADPATH` unset. `(featurep 'ewm-core)` must be
+  `t`.
+- **Deploy**: the change needs both the HM deploy (for `ewm-start`) and
+  `just deploy-mahakala-system` (for the new `ewm-session`). Until HM is
+  deployed, `ewm-session` prints an error and exits.
+
+### mahakala desktop: Omarchy on elogind
+
+`modules/omarchy.nix` keeps nixarchy's Quickshell patches and changes its
+polkit dependency to use elogind. The default systemd library cannot find
+the Guix desktop session. The agent then reports `No session for pid`.
+The polkit client uses `/run/privileged/bin/polkit-agent-helper-1`, which
+Guix supplies, instead of the NixOS path `/run/wrappers/bin`.
+
+The keyboard indicator requires PyGObject and GLib typelibs. Its QML process
+uses a Nix wrapper that supplies both dependencies. A plain Python
+interpreter cannot import `gi`. Guix also has no `/usr/bin/python3`.
+The Suspend and Hibernate menu actions use Guix's `loginctl`, not `systemctl`.
+
+The bar settings remain writable in `~/.config/omarchy/shell.json`.
+On 2026-11-02, this file used an opaque background and `alwaysShow` for
+`omarchy.indicators`. The clock used identical `format` and `formatAlt`
+values to prevent a width change on hover. These settings survived the
+Home Manager generation 364 deployment. Their appearance still needs
+user verification.
+
+Do not restart Quickshell while its session lock is active.
+Deploy the profile first. Unlock the desktop before a shell restart.
+The Keybindings menu action started its selector through the shell's
+`learn.keybindings` route during the investigation. The original failure
+did not recur in that probe. A visible menu test still needs an unlocked
+desktop.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

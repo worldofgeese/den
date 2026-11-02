@@ -66,6 +66,20 @@
       lib,
       ...
     }: let
+      omarchy = (pkgs.extend inputs.nixarchy.overlays.default).omarchy;
+      guixPolkit = (pkgs.polkit.override {useSystemd = false;}).overrideAttrs (old: {
+        postPatch =
+          old.postPatch
+          + ''
+            substituteInPlace src/polkitagent/polkitagentsession.c \
+              --replace-fail '/run/wrappers/bin/' '/run/privileged/bin/'
+          '';
+      });
+      inputMethodPython = pkgs.python3.withPackages (ps: [ps.pygobject3]);
+      inputMethodIndicator = pkgs.writeShellScript "omarchy-input-method-indicator" ''
+        export GI_TYPELIB_PATH="${lib.getLib pkgs.glib}/lib/girepository-1.0''${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}"
+        exec ${inputMethodPython}/bin/python3 "$@"
+      '';
       # omarchy-launch-shell without systemd-cat.
       #
       # Upstream's version exists to keep Quickshell's log out of the tmpfs
@@ -226,7 +240,10 @@
         # (pkgs/omarchy/default.nix:1030), which fails the same way for the same
         # reason.
         package =
-          ((pkgs.extend inputs.nixarchy.overlays.default).omarchy).overrideAttrs
+          (omarchy.override {
+            # Keep nixarchy's lock fixes, but use elogind to find the session.
+            quickshell = omarchy.passthru.quickshell.override {polkit = guixPolkit;};
+          }).overrideAttrs
           (old: {
             postInstall =
               (old.postInstall or "")
@@ -238,6 +255,14 @@
                   exit 1
                 fi
                 install -Dm755 ${launchShell} "$target"
+
+                substituteInPlace "$out/share/omarchy/shell/Commons/InputMethodState.qml" \
+                  --replace-fail '"/usr/bin/python3"' '"${inputMethodIndicator}"'
+                substituteInPlace "$out/share/omarchy/default/omarchy/omarchy-menu.jsonc" \
+                  --replace-fail '"action":"systemctl suspend"' \
+                    '"action":"/run/current-system/profile/bin/loginctl suspend"' \
+                  --replace-fail '"action":"systemctl hibernate"' \
+                    '"action":"/run/current-system/profile/bin/loginctl hibernate"'
 
                 # first-run's systemd step, made non-fatal.
                 #

@@ -210,13 +210,17 @@ func (r *Ci) Shellcheck(ctx context.Context) error {
 type CiShepherdOpts struct {
 	// Print the steps and post nothing.
 	DryRun bool
+	// Merge at most one pull request that the merge rules accept (plan P4,
+	// step 2). The token then needs write access to contents.
+	Merge bool
 }
 
 // For each open pull request, ask the reviewer to review the head when the
 // head has no review (plan P3), and print a Markdown table of the steps.
 // After 3 requests without a review, add the needs-human label. The table
-// also gives the verdict of the merge rules for each pull request (plan P4);
-// the shepherd merges nothing. With dryRun, post nothing.
+// also gives the verdict of the merge rules for each pull request (plan P4).
+// With merge, it merges the first accepted pull request, pinned to the head
+// commit that the rules judged. With dryRun, post and merge nothing.
 func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts) (string, error) {
 	assertNotNil("token", token)
 	if r.shepherd != nil {
@@ -227,6 +231,10 @@ func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts
 		// `dryRun` optional argument
 		if !querybuilder.IsZeroValue(opts[i].DryRun) {
 			q = q.Arg("dryRun", opts[i].DryRun)
+		}
+		// `merge` optional argument
+		if !querybuilder.IsZeroValue(opts[i].Merge) {
+			q = q.Arg("merge", opts[i].Merge)
 		}
 	}
 	q = q.Arg("token", token)

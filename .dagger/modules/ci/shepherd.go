@@ -16,7 +16,8 @@ import (
 // The shepherd of plan P3. For each open pull request, it asks the reviewer
 // to review the head when the head has no review. It writes only the request
 // comment and, after the cap, the needs-human label with a comment. It sends
-// no review event, and it merges nothing: live merges come in plan P4.
+// no review event. With merge (plan P4, step 2), it merges at most one pull
+// request per run that the merge rules accept.
 
 // The only reviewer that answers a comment: `@codex review`.
 const codexReviewer = "app/chatgpt-codex-connector"
@@ -201,8 +202,9 @@ func shepherdPRFrom(n gqlOpenPR) shepherdPR {
 // For each open pull request, ask the reviewer to review the head when the
 // head has no review (plan P3), and print a Markdown table of the steps.
 // After 3 requests without a review, add the needs-human label. The table
-// also gives the verdict of the merge rules for each pull request (plan P4);
-// the shepherd merges nothing. With dryRun, post nothing.
+// also gives the verdict of the merge rules for each pull request (plan P4).
+// With merge, it merges the first accepted pull request, pinned to the head
+// commit that the rules judged. With dryRun, post and merge nothing.
 // +cache="never"
 func (m *Ci) Shepherd(
 	ctx context.Context,
@@ -212,6 +214,10 @@ func (m *Ci) Shepherd(
 	// Print the steps and post nothing.
 	// +optional
 	dryRun bool,
+	// Merge at most one pull request that the merge rules accept (plan P4,
+	// step 2). The token then needs write access to contents.
+	// +optional
+	merge bool,
 ) (string, error) {
 	g, owner, name, err := m.github(ctx, token)
 	if err != nil {
@@ -236,6 +242,7 @@ func (m *Ci) Shepherd(
 	now := time.Now()
 	var b strings.Builder
 	var failed []string
+	merged := false
 	b.WriteString("| PR | Head | Review step | Reason | Merge verdict |\n|---|---|---|---|---|\n")
 	for _, n := range prs.Nodes {
 		pr := shepherdPRFrom(n)
@@ -245,14 +252,30 @@ func (m *Ci) Shepherd(
 				return b.String(), fmt.Errorf("#%d: %w", pr.Number, err)
 			}
 		}
-		// Plan P4 starts with reports: the shepherd says what the merge rules
-		// decide, and it merges nothing.
+		// The shepherd says what the merge rules decide. With merge, it merges
+		// the first pull request that they accept. A merge changes the base
+		// of the others, so the next run judges them again.
 		verdict := ""
 		if repo, err := m.fetch(ctx, g, owner, name, pr.Number); err != nil {
 			verdict = "error: " + err.Error()
 			failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
 		} else {
-			verdict = m.verdict(repo)
+			ok, text, head, method := m.decision(repo)
+			verdict = text
+			switch {
+			case !ok || !merge || dryRun:
+			case merged:
+				verdict += "; waits for the next run (one merge per run)"
+			default:
+				path := fmt.Sprintf("/repos/%s/%s/pulls/%d/merge", owner, name, pr.Number)
+				if err := g.rest(ctx, "PUT", path, map[string]any{"sha": head, "merge_method": method}); err != nil {
+					verdict = "merge failed: " + err.Error()
+					failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
+				} else {
+					verdict = fmt.Sprintf("merged head %s with the %s method", short(head), method)
+				}
+				merged = true
+			}
 		}
 		fmt.Fprintf(&b, "| #%d | %s | %s | %s | %s |\n", pr.Number, short(pr.Head), step, why, verdict)
 	}

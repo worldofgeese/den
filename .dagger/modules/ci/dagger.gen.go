@@ -318,7 +318,14 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg dryRun", err))
 				}
 			}
-			return (*Ci).Shepherd(&parent, ctx, token, dryRun)
+			var merge bool
+			if inputArgs["merge"] != nil {
+				err = json.Unmarshal([]byte(inputArgs["merge"]), &merge)
+				if err != nil {
+					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg merge", err))
+				}
+			}
+			return (*Ci).Shepherd(&parent, ctx, token, dryRun, merge)
 		case "ShepherdRules":
 			var parent Ci
 			err = json.Unmarshal(parentJSON, &parent)
@@ -389,9 +396,9 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge the newest merged pull requests as of their merge, and print a\nMarkdown table of the verdicts.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 654, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 657, 2)}).
-							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 660, 2), DefaultValue: dagger.JSON("30")})).
+							WithSourceMap(dag.SourceMap("automerge.go", 666, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 669, 2)}).
+							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 672, 2), DefaultValue: dagger.JSON("30")})).
 					WithFunction(
 						dag.Function("AutomergeRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
@@ -431,11 +438,12 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					WithFunction(
 						dag.Function("Shepherd",
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
-							WithDescription("For each open pull request, ask the reviewer to review the head when the\nhead has no review (plan P3), and print a Markdown table of the steps.\nAfter 3 requests without a review, add the needs-human label. The table\nalso gives the verdict of the merge rules for each pull request (plan P4);\nthe shepherd merges nothing. With dryRun, post nothing.").
+							WithDescription("For each open pull request, ask the reviewer to review the head when the\nhead has no review (plan P3), and print a Markdown table of the steps.\nAfter 3 requests without a review, add the needs-human label. The table\nalso gives the verdict of the merge rules for each pull request (plan P4).\nWith merge, it merges the first accepted pull request, pinned to the head\ncommit that the rules judged. With dryRun, post and merge nothing.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("shepherd.go", 207, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token. Without dryRun, it needs write access to issues and\npull requests.", SourceMap: dag.SourceMap("shepherd.go", 211, 2)}).
-							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the steps and post nothing.", SourceMap: dag.SourceMap("shepherd.go", 214, 2)})).
+							WithSourceMap(dag.SourceMap("shepherd.go", 209, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token. Without dryRun, it needs write access to issues and\npull requests.", SourceMap: dag.SourceMap("shepherd.go", 213, 2)}).
+							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the steps and post nothing.", SourceMap: dag.SourceMap("shepherd.go", 216, 2)}).
+							WithArg("merge", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Merge at most one pull request that the merge rules accept (plan P4,\nstep 2). The token then needs write access to contents.", SourceMap: dag.SourceMap("shepherd.go", 220, 2)})).
 					WithFunction(
 						dag.Function("ShepherdRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).

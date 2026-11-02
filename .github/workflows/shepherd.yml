@@ -1,7 +1,8 @@
 # The shepherd of plan P3 (docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md).
 # For each open pull request, it asks the Codex connector to review the head
 # when the head has no review: `dagger call ci shepherd`. After 3 requests
-# without a review, it adds the label needs-human.
+# without a review, it adds the label needs-human. With --merge, it merges at
+# most one pull request per run that the merge rules accept.
 #
 # The job runs the code of main only, and it never checks out a pull request.
 # The token DEN_SHEPHERD_TOKEN comes from the environment shepherd, which only
@@ -60,5 +61,7 @@ jobs:
         with:
           version: ${{ steps.engine.outputs.version }}
           verb: call
-          args: ci shepherd --token env://DEN_SHEPHERD_TOKEN
+          # --merge: plan P4, step 2. Ten pull requests had a report that agreed
+          # with the merge (bead home-manager-1l3.5), so the shepherd merges.
+          args: ci shepherd --token env://DEN_SHEPHERD_TOKEN --merge
           enable-github-summary: true

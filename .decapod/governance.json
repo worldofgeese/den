@@ -113,6 +113,11 @@
       "id": "ckpt-review-gate-1",
       "summary": "den PR 4 (AEC task M, part h): the settings statusPrefix, reviewMarker, secondPersonApproval, reviewTimeoutHours and requireReviewGate, the function review-gate, the merge rule review-gate, the fixtures ci:review-gate-rules and the gate cases of ci:automerge-rules, and the living specs",
       "input_digest": "sha256:51e5b375dbc213789b660ec63698661394197ccd4714ec0e3f10cef26889ac93"
+    },
+    {
+      "id": "ckpt-review-gate-validate",
+      "summary": "The validation record of den PR 4: plain decapod validate on 1be5a00 fails only on DecapodLabs/decapod#1474 (publication_readiness, sections/validation), which the owner approved; inventory --repair changes nothing",
+      "input_digest": "sha256:6ebe28b366bc35f392a31a0ed31ae38bbd8548fa750c00df9b71bf7fd5db543c"
     }
   ],
   "intents": {
@@ -180,15 +185,23 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:fe3859c8f5a4bb4282985ea0a1696173ad8d3418b9ae728fd8af2de596dd84e2",
+      "artifact_hash": "sha256:e977c02c5b4eafc57d5948bc00398ef20dcf4aeadb335c168878c68cee9ec102",
       "checks": [
         {
           "name": "baseline-dagger-check-facb1e5",
           "status": "passed"
         },
         {
+          "name": "commit-signature-1be5a00",
+          "status": "passed"
+        },
+        {
           "name": "dagger-check-worktree",
           "status": "passed"
+        },
+        {
+          "name": "decapod-validate-1be5a00",
+          "status": "failed"
         },
         {
           "name": "go-vet",
@@ -200,6 +213,14 @@
         },
         {
           "name": "harness-rule-checks",
+          "status": "passed"
+        },
+        {
+          "name": "inventory-repair",
+          "status": "failed"
+        },
+        {
+          "name": "just-check-1be5a00",
           "status": "passed"
         },
         {
@@ -223,7 +244,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -244,10 +265,17 @@
             "intent_id": "intent:change_01M6EQQ04D2CSPJ2PB1HES11B2",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6EQQ06HN7TD3P64ZXSKGNV6",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6EQQ04D2CSPJ2PB1HES11B2",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6EQQ06HN7TD3P64ZXSKGNV6": {
@@ -314,6 +342,30 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "Commit 1be5a00: the pre-commit hook just check passed in 232 s. git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+                  "Plain decapod validate on 1be5a00: summary pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness: READINESS_BLOCKED: Validation error: Cannot publish: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid). This is DecapodLabs/decapod#1474 (open). Validate moved only generated_at in .manifest.json, and the committed value is back.",
+                  "decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file."
+                ],
+                "proof_refs": [
+                  "commit-signature-1be5a00",
+                  "just-check-1be5a00",
+                  "decapod-validate-1be5a00",
+                  "inventory-repair"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 4 dispatch). Every other gate passed.",
+                  "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+                ]
               }
             ]
           }
@@ -330,11 +382,14 @@
       "destination": "pull request",
       "evidence": [
         "Baseline on origin/main facb1e5 in the work branch: just dagger-check passed 11 of 11 checks in 37 s.",
+        "Commit 1be5a00: the pre-commit hook just check passed in 232 s. git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
         "Live reads (dry run, GET only): with statusPrefix den, #94 and #99 of den would get success. With the planned AEC settings on LEGO/agentic-engineering-community, #139 has no aec-review:v1 review and its check finished 8 h before, so its row gives needs-human: review by a person: approve head bde122e074af?. The permission API gives admin, read and none; the activity API filters by ref and actor.",
         "Mutation tests (pr4-mutations.sh, copies under /tmp, deleted): 88 of 88 mutations fail fixtures. The first run found 6 gaps (a Codex summary of an older head, of a running review and of another login with unresolved findings; a check run with the name of the gate; the gate status time in the timeout case; fetch without its trees), and fixtures now cover each.",
+        "Plain decapod validate on 1be5a00: summary pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness: READINESS_BLOCKED: Validation error: Cannot publish: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid). This is DecapodLabs/decapod#1474 (open). Validate moved only generated_at in .manifest.json, and the committed value is back.",
         "Settings off: automerge-replay --count 30 and --count 100 give byte-identical tables with main facb1e5 and this branch (sha256 7a878d14 and 8d0f9cea; 29 of 30 and 32 of 83 accepted). automerge-dry-run #99 and #94 and shepherd --dry-run are identical too.",
         "The design is in the PR description before the code (~/.cache/aec-m/den-pr4-pr-body.md), as MintRaven asked: five settings, each empty by default, the function review-gate, the rule review-gate, and no change to shepherd.go.",
         "Work unit: the earlier attempt of the same PR 4 dispatch created todo bugs_01m6eqntbfzzs8g4 (18:17Z), claimed it (exclusive, ironunion-aec-m) and made this workspace, then stopped with an API error. This attempt ran the eval gate again (allow, sha256 6693a8de), ran session status in the worktree before it used the claim, and continued with that work unit instead of a duplicate todo.",
+        "decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file.",
         "just dagger-check on the work tree: 12 of 12 checks pass, with the new ci:review-gate-rules. just check passed in 214 s (24 overrides applied). gofmt -l lists no file, go vet passes."
       ],
       "inspected_files": [
@@ -372,6 +427,7 @@
       ],
       "next_transitions": [
         "Checkpoint and commit the change, run plain decapod validate on the exact candidate, record the validation, push, open the PR",
+        "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
@@ -380,10 +436,14 @@
       ],
       "run_id": "branch_01M6EQQ06HN7TD3P64ZXSKGNV6",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 4 dispatch). Every other gate passed."
+      ],
       "task_id": "bugs_01m6eqntbfzzs8g4",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+      ]
     }
   },
   "legacy_digests": {

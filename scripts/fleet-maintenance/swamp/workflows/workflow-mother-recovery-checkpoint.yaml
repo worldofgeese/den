@@ -1,0 +1,22 @@
+id: f76dd1f6-ab7c-4f3d-baf4-daae384eddf5
+name: mother-recovery-checkpoint
+description: Prepare a fresh limited Mother recovery archive, back it up with Zerobyte, restore it independently with Restic, then clean temporary copies. Fails closed and never retries an uncertain attempt.
+tags:
+  target: mother
+concurrency: 1
+jobs:
+  - name: checkpoint
+    description: Single serial checkpoint run
+    steps:
+      - name: verified-checkpoint
+        description: Runs mother_checkpoint.py --execute
+        task:
+          type: model_method
+          modelIdOrName: mother-checkpoint
+          methodName: execute
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn: []
+    weight: 0
+version: 1

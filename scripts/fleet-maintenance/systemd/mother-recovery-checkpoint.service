@@ -1,0 +1,21 @@
+[Unit]
+Description=Swamp workflow: verified limited Mother recovery checkpoint
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+Environment=SWAMP_REPO_DIR=%h/.local/share/fleet-maintenance/swamp
+Environment=SWAMP_API_KEY_FILE=%h/.config/swamp/fleet-api-key
+Environment=SWAMP_CLUB_URL=https://swamp-club.com
+Environment=SWAMP_NO_TELEMETRY=1
+Environment=SWAMP_NO_INBOX_NOTICE=1
+Environment=PATH=%h/.local/share/fleet-maintenance/bin:/usr/local/bin:/usr/bin:/bin
+WorkingDirectory=%h/.local/share/fleet-maintenance/swamp
+ExecStart=%h/.local/bin/swamp workflow run mother-recovery-checkpoint --json --no-telemetry
+ExecStartPost=%h/.local/share/fleet-maintenance/checkpoint/checkpoint-heartbeat.sh
+TimeoutStartSec=4h
+MemoryHigh=4G
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

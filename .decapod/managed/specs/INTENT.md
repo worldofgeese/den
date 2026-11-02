@@ -171,6 +171,14 @@ deploy of M-02877 uses only inputs that CI checked (plan P6).
 | Which interfaces are versioned at launch? | TBD | YYYY-MM-DD | |
 | Which non-functional target is hardest to hit? | TBD | YYYY-MM-DD | |
 
+## Limited NAS Recovery
+
+The repository supplies code and tests for the approved NAS recovery set. `scripts/fleet-maintenance/mother_recovery.py` prepares configuration and application data from mother. The user selected loving-kypris as the destination. Bulk media, downloads, Docker images, and the Drive internal repository stay outside this scope.
+
+An encrypted backup must pass an independent read and restore test before the operator deletes its plaintext source copies. A local Btrfs snapshot does not protect against loss of the NAS. A partial restore test does not prove a full NAS rebuild or a supported DSM downgrade.
+
+Dagger tests repository code and policy. Swamp will coordinate the private operational workflow after its safety gates pass. Credentials, source archives, and detailed runtime evidence stay outside public CI and team memory. Swamp must use an observer that survives target reboots and WAN loss before unattended installation starts.
+
 <!-- decapod:declared-capabilities:start -->
 
 ## Declared Capability Surfaces
@@ -186,7 +194,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a8a0862a365fa864afb86fa6c4ea434394ec6e6007433c59069f919f26eca482`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (6 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

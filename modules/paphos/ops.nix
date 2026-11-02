@@ -8,6 +8,11 @@
   oracleTailscaleIp = "100.87.121.45";
   oracleHost = "oracle.hound-celsius.ts.net";
   hostKeys = import ../_host-keys.nix;
+  # loving-kypris refreshes this file after each verified Mother recovery
+  # checkpoint (scripts/fleet-maintenance/checkpoint-heartbeat.sh). The key
+  # can only write the current time to this one file.
+  heartbeatDir = "/var/lib/fleet-heartbeat";
+  motherCheckpointKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPQtJL7eaPwnIbpe2Ur3/kEaKvP95f3r9p/1JJc9cyBI fleet-heartbeat@loving-kypris";
 in {
   den.aspects.paphos.nixos = {
     config,
@@ -71,6 +76,20 @@ in {
         fi
       else
         record_failure forgejo-backup-never
+      fi
+
+      # Absent or old heartbeat: the daily checkpoint on loving-kypris failed,
+      # did not run, or loving-kypris is down.
+      beat_file="${heartbeatDir}/mother-checkpoint"
+      if [[ -f "$beat_file" ]]; then
+        beat_epoch=$(${coreutils}/bin/cat "$beat_file")
+        [[ "$beat_epoch" =~ ^[0-9]+$ ]] || beat_epoch=0
+        beat_age_hours=$(( ($(${coreutils}/bin/date +%s) - beat_epoch) / 3600 ))
+        if [[ "$beat_age_hours" -gt 36 ]]; then
+          record_failure "mother-checkpoint-stale-''${beat_age_hours}h"
+        fi
+      else
+        record_failure mother-checkpoint-never
       fi
 
       # An installed kernel that is not booted means unattended reboots are not
@@ -231,6 +250,18 @@ in {
     nix.optimise.automatic = true;
 
     networking.firewall.trustedInterfaces = ["tailscale0"];
+
+    users.groups.fleet-heartbeat = {};
+    users.users.fleet-heartbeat = {
+      isSystemUser = true;
+      group = "fleet-heartbeat";
+      home = heartbeatDir;
+      createHome = true;
+      shell = pkgs.bash;
+      openssh.authorizedKeys.keys = [
+        ''restrict,from="192.168.99.134,100.80.28.13",command="${coreutils}/bin/date +%s > ${heartbeatDir}/mother-checkpoint" ${motherCheckpointKey}''
+      ];
+    };
 
     systemd.services.tailscale-serve-forgejo = {
       description = "Expose Forgejo on Tailscale HTTPS serve";

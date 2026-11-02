@@ -150,15 +150,32 @@ in {
       alert_after=600
       repeat_after=7200
 
+      # Returns non-zero, and logs why, when Telegram does not accept the
+      # message. A failed alert or recovery message is sent again at the next
+      # sample, and the unit fails, so the journal shows the gap.
+      delivery_failed=false
       notify() {
-        local text="$1"
-        if [[ -f "$token_file" ]]; then
-          ${curl}/bin/curl -fsS -X POST \
-            "https://api.telegram.org/bot$(cat "$token_file")/sendMessage" \
-            -d "chat_id=$chat_id" \
-            --data-urlencode "text=$text" >/dev/null || true
+        local text="$1" answer
+        if [[ ! -f "$token_file" ]]; then
+          echo "telegram delivery failed: $token_file is missing" >&2
+          delivery_failed=true
+          return 1
+        fi
+        answer=$(${curl}/bin/curl -sS --max-time 20 -X POST \
+          "https://api.telegram.org/bot$(cat "$token_file")/sendMessage" \
+          -d "chat_id=$chat_id" \
+          --data-urlencode "text=$text" 2>&1 || true)
+        if [[ "$answer" != *'"ok":true'* ]]; then
+          echo "telegram delivery failed: ''${answer:0:200}" >&2
+          delivery_failed=true
+          return 1
         fi
       }
+
+      if [[ "''${1:-}" == --test ]]; then
+        notify "TEST: loving-kypris liveness alert path from paphos (no outage)"
+        exit $?
+      fi
 
       host_up() {
         ${iputils}/bin/ping -c 2 -W 2 ${lkLanAddress} >/dev/null 2>&1 && return 0
@@ -179,8 +196,9 @@ in {
         if [[ "$up" == true ]]; then
           if [[ -f "$file" ]]; then
             read -r first alerted <"$file" || true
-            if [[ "''${alerted:-0}" -gt 0 ]]; then
-              notify "loving-kypris RECOVERED: $label back after $(( (now - first) / 60 )) min"
+            if [[ "''${alerted:-0}" -gt 0 ]] &&
+              ! notify "loving-kypris RECOVERED: $label back after $(( (now - first) / 60 )) min"; then
+              return 0  # keep the file, so the next sample sends the recovery again
             fi
             rm -f "$file"
           fi
@@ -193,8 +211,9 @@ in {
           first=$now
         fi
         if (( now - first >= alert_after )) && (( alerted == 0 || now - alerted >= repeat_after )); then
-          notify "loving-kypris DOWN: $label failing for $(( (now - first) / 60 )) min"
-          alerted=$now
+          if notify "loving-kypris DOWN: $label failing for $(( (now - first) / 60 )) min"; then
+            alerted=$now
+          fi
         fi
         printf '%s %s\n' "$first" "$alerted" >"$file"
         return 1
@@ -205,6 +224,9 @@ in {
       track host "host (LAN ping, SSH or Tailscale)" "$host" || status=1
       ha=false; ha_up && ha=true
       track ha "Home Assistant (https://${haTailnetName})" "$ha" || status=1
+      if [[ "$delivery_failed" == true ]]; then
+        exit 2
+      fi
       exit "$status"
     '';
 
@@ -507,6 +529,18 @@ in {
         Type = "oneshot";
         ExecStart = lkLivenessScript;
         StateDirectory = "paphos-lk-liveness";
+      };
+    };
+
+    # Sends one TEST message through the same notify() and fails when Telegram
+    # does not accept it. Run it by hand after a change to the alert path.
+    systemd.services.paphos-loving-kypris-liveness-notify-test = {
+      description = "Send one TEST message through the loving-kypris liveness alert path";
+      after = ["network-online.target"];
+      wants = ["network-online.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${lkLivenessScript} --test";
       };
     };
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "5bdd109fb9bc38b009394c1c152dbb488b8b93b6",
+    "accepted_commit": "8febc46afc2cdb02dfba1ba73532c6f85cb47c79",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -43,30 +43,22 @@
     }
   },
   "change": {
-    "id": "change_01M6DJ66R7D434JMRE8RV26X1C",
-    "base_commit": "5bdd109fb9bc38b009394c1c152dbb488b8b93b6",
+    "id": "change_01M6DMS38H6X2Z5YA1B2XPMZWY",
+    "base_commit": "8febc46afc2cdb02dfba1ba73532c6f85cb47c79",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "p8-deploy-report-liveness",
-      "summary": "P8 deploy report, the l-k liveness alert, and fwupd failure reporting.",
-      "input_digest": "sha256:89f69152ce98bacce49674174107fa32522652b7b471c7bd8d0f10472ff228bf",
+      "id": "revision-nar-and-delivery",
+      "summary": "Resolve the den commit under --override-input, and check Telegram delivery of the liveness alert.",
+      "input_digest": "sha256:fc3be86ae2c53048393b114d80f0ed6875ca933405202eabfc2da079a1d7d0e2",
       "proof_refs": [
-        "trajectory:run_deploy_report_p8"
-      ]
-    },
-    {
-      "id": "p8-trajectory-evidence",
-      "summary": "Trajectory evidence for P8, liveness and the fwupd change.",
-      "input_digest": "sha256:e0b7cc3161c628cd904cdd16f9b4eb3eb08f4acab61bffb863a15f974f6fd76f",
-      "proof_refs": [
-        "trajectory:branch_01M6DJ66TG1TSR27H51QFPP406"
+        "trajectory:branch_01M6DMS3AR0VPXZMHWN9S9GBYS"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6DJ66R7D434JMRE8RV26X1C": {
+    "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -76,7 +68,7 @@
         "private-fleet-maintenance"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
+      "id": "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY",
       "out_of_scope": [],
       "proof_requirements": [],
       "raw_intent": "Assess and design the Swamp fleet maintenance implementation\n\nUser chose loving-kypris for the limited encrypted NAS recovery backup. Inspect and reuse existing backup tooling, establish a consistent source view, preserve a recoverable encryption key, and verify restoration. Keep bulk media and the Drive internal repository excluded. No firmware update or reboot is part of backup preparation.",
@@ -93,7 +85,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Plan step P8: record the deployed den commit on paphos, oracle and M-02877, report each host daily from M-02877, and keep one GitHub issue per failing deploy step. Add a 10-minute loving-kypris and Home Assistant liveness alert from paphos, and make the paphos firmware job fail on real fwupdmgr errors.",
+      "intent": "Record narHash and lastModified next to the flake revision, so the deploy report can name the den commit of paphos and oracle, whose upgrade drops self.rev. Make the loving-kypris liveness alert retry failed Telegram deliveries, fail its unit, and offer a test unit.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -101,20 +93,19 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "P8 deploy report, loving-kypris liveness alert, and fwupd failure reporting",
+      "title": "Resolve the den commit under --override-input, and check Telegram delivery",
       "todo_ids": [
         "feat_01m6b5dpmhpyqacw"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793604390Z"
+      "updated_at": "1793607057Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "No power cycling, no l-k host changes, no shepherd or automerge code."
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:bdf3fad3973a4a9625dd63a0b2f8e56c77a1285a937ff6ac11308bd80bfe46b1",
+      "artifact_hash": "sha256:2493339cb8dc11df6d313d3ef4f5ec897a7f5e3aa6f10a81dcdcca162a738528",
       "checks": [
         {
           "name": "alejandra",
@@ -125,31 +116,27 @@
           "status": "passed"
         },
         {
-          "name": "deploy-report-dry-run",
-          "status": "passed"
-        },
-        {
           "name": "deploy-report-tests",
           "status": "passed"
         },
         {
-          "name": "firmware-shellcheck",
+          "name": "live-narhash-resolution",
           "status": "passed"
         },
         {
-          "name": "liveness-shellcheck",
+          "name": "liveness-delivery-simulation",
           "status": "passed"
         },
         {
-          "name": "liveness-simulation",
-          "status": "passed"
-        },
-        {
-          "name": "oracle-eval",
+          "name": "override-records-narhash",
           "status": "passed"
         },
         {
           "name": "paphos-eval",
+          "status": "passed"
+        },
+        {
+          "name": "ty",
           "status": "passed"
         }
       ],
@@ -158,20 +145,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
+            "intent_id": "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
+            "intent_id": "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6DJ66TG1TSR27H51QFPP406",
+            "detail": "trajectory:branch_01M6DMS3AR0VPXZMHWN9S9GBYS",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
+            "intent_id": "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -180,39 +167,35 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6DJ66TG1TSR27H51QFPP406": {
+          "branch_01M6DMS3AR0VPXZMHWN9S9GBYS": {
             "evidence_only": true,
-            "id": "branch_01M6DJ66TG1TSR27H51QFPP406",
-            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
+            "id": "branch_01M6DMS3AR0VPXZMHWN9S9GBYS",
+            "intent_id": "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY",
             "steps": [
               {
                 "action": "candidate-ready",
                 "custody_event_id": "event:4",
                 "observations": [
+                  "modules/deploy-revision.nix",
+                  "modules/paphos/ops.nix",
                   "scripts/deploy-report.py",
                   "scripts/test_deploy_report.py",
-                  "modules/deploy-revision.nix",
-                  "modules/M-02877/deploy-report.nix",
-                  "modules/paphos/ops.nix",
                   "docs/paphos/how-to-health-checks.md",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "8 unit tests pass for the judging and issue-planning rules. A live --dry-run read paphos, oracle and M-02877 and planned den-revision-unknown on each, which is correct before deployment. nix eval passes for the paphos and M-02877 toplevels and for oracle /etc/den-revision.",
-                  "The rendered liveness script passes bash -n and shellcheck. The stubbed simulation showed an alert after 10 minutes, separate host and HA tracking, a repeat after 2 h, and one recovery message each. HA /manifest.json returned 200 from paphos.",
-                  "fwupd src/fu-cli-common.h defines EXIT_NOTHING_TO_DO 2. The job accepts 0 and 2 and fails on any other code.",
-                  "QuickWolf, owner of the l-k reboot investigation, asked for this alert without an actuator and without a blackout window, and yielded the root lease 07:21-07:51 UTC.",
-                  "Publication follows the user decision of 2026-11-02 to finish autonomously. Local publication readiness cannot pass, because no command writes the receipt (DecapodLabs/decapod#1474). The required GitHub checks gate the merge."
+                  "A local temporary flake showed that `nix eval --override-input` drops self.rev and keeps narHash and lastModified. With the override, paphos /etc/den-revision now evaluates to the three lines. On paphos, the deployed 8febc46 had shown `unknown`.",
+                  "resolve_revision found 8febc46 live from narHash and lastModified, through the GitHub commits API (since=until=lastModified) and nix flake metadata. 10 unit tests and ty pass.",
+                  "The stubbed liveness simulation showed: the --test mode exits 0 when Telegram answers ok:true and 1 otherwise; a failed DOWN alert is resent at the next sample; a failed RECOVERED message is kept and resent; the unit exits 2 on a delivery failure.",
+                  "The lease was free after the ironunion-aec-m leases expired at 08:07 UTC. Publication follows the user decision of 2026-11-02, with the known receipt blocker DecapodLabs/decapod#1474."
                 ],
                 "proof_refs": [
                   "deploy-report-tests",
-                  "deploy-report-dry-run",
-                  "paphos-eval",
-                  "oracle-eval",
-                  "darwin-eval",
+                  "ty",
                   "alejandra",
-                  "liveness-shellcheck",
-                  "liveness-simulation",
-                  "firmware-shellcheck"
+                  "paphos-eval",
+                  "darwin-eval",
+                  "override-records-narhash",
+                  "live-narhash-resolution",
+                  "liveness-delivery-simulation"
                 ],
                 "scope": [
                   "private-fleet-maintenance"
@@ -227,19 +210,16 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "8 unit tests pass for the judging and issue-planning rules. A live --dry-run read paphos, oracle and M-02877 and planned den-revision-unknown on each, which is correct before deployment. nix eval passes for the paphos and M-02877 toplevels and for oracle /etc/den-revision.",
-        "Publication follows the user decision of 2026-11-02 to finish autonomously. Local publication readiness cannot pass, because no command writes the receipt (DecapodLabs/decapod#1474). The required GitHub checks gate the merge.",
-        "QuickWolf, owner of the l-k reboot investigation, asked for this alert without an actuator and without a blackout window, and yielded the root lease 07:21-07:51 UTC.",
-        "The rendered liveness script passes bash -n and shellcheck. The stubbed simulation showed an alert after 10 minutes, separate host and HA tracking, a repeat after 2 h, and one recovery message each. HA /manifest.json returned 200 from paphos.",
-        "fwupd src/fu-cli-common.h defines EXIT_NOTHING_TO_DO 2. The job accepts 0 and 2 and fails on any other code."
+        "A local temporary flake showed that `nix eval --override-input` drops self.rev and keeps narHash and lastModified. With the override, paphos /etc/den-revision now evaluates to the three lines. On paphos, the deployed 8febc46 had shown `unknown`.",
+        "The lease was free after the ironunion-aec-m leases expired at 08:07 UTC. Publication follows the user decision of 2026-11-02, with the known receipt blocker DecapodLabs/decapod#1474.",
+        "The stubbed liveness simulation showed: the --test mode exits 0 when Telegram answers ok:true and 1 otherwise; a failed DOWN alert is resent at the next sample; a failed RECOVERED message is kept and resent; the unit exits 2 on a delivery failure.",
+        "resolve_revision found 8febc46 live from narHash and lastModified, through the GitHub commits API (since=until=lastModified) and nix flake metadata. 10 unit tests and ty pass."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
+      "intent_id": "intent:change_01M6DMS38H6X2Z5YA1B2XPMZWY",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
         "docs/paphos/how-to-health-checks.md",
-        "modules/M-02877/deploy-report.nix",
         "modules/deploy-revision.nix",
         "modules/paphos/ops.nix",
         "scripts/deploy-report.py",
@@ -251,7 +231,7 @@
       "repo_scope": [
         "private-fleet-maintenance"
       ],
-      "run_id": "branch_01M6DJ66TG1TSR27H51QFPP406",
+      "run_id": "branch_01M6DMS3AR0VPXZMHWN9S9GBYS",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "feat_01m6b5dpmhpyqacw",

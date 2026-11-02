@@ -44,6 +44,14 @@ sudo systemctl start paphos-loving-kypris-liveness.service
 sudo journalctl -u paphos-loving-kypris-liveness.service -n 20
 ```
 
+To test the alert path without an outage, send one TEST message. The unit fails when Telegram does not accept it:
+
+```bash
+sudo systemctl start paphos-loving-kypris-liveness-notify-test.service
+```
+
+If Telegram does not accept a DOWN or RECOVERED message, the next sample sends it again, and the unit fails until delivery succeeds. `journalctl` shows `telegram delivery failed`.
+
 ## Oracle relay checks (hourly)
 
 `paphos-oracle-relay-check.timer` runs `paphos-oracle-relay-check.service`:

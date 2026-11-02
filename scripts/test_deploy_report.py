@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("deploy_report", Path(__file__).with_name("deploy-report.py"))
 assert spec and spec.loader
@@ -50,6 +51,23 @@ class JudgeTests(unittest.TestCase):
     def test_a_missing_den_commit_fails(self) -> None:
         o = healthy("M-02877")
         o.den_revision = None
+        self.assertEqual(list(report.judge(o, NOW)), ["den-revision-unknown"])
+
+
+class ResolveTests(unittest.TestCase):
+    def test_a_build_without_rev_resolves_by_time_and_nar_hash(self) -> None:
+        o = report.Observation("paphos", True, nar_hash="sha256-good", last_modified=1793605008)
+        calls: list = []
+        with patch.object(report, "gh_json", lambda args: calls.append(args) or [{"sha": "b" * 40}, {"sha": "c" * 40}]):
+            report.resolve_revision(o, nar_of=lambda sha: "sha256-good" if sha == "c" * 40 else "sha256-other")
+        self.assertEqual(o.den_revision, "c" * 40)
+        self.assertIn("since=2026-11-02T", calls[0][1])
+
+    def test_no_match_stays_unknown(self) -> None:
+        o = report.Observation("paphos", True, nar_hash="sha256-good", last_modified=1793605008)
+        with patch.object(report, "gh_json", lambda args: [{"sha": "b" * 40}]):
+            report.resolve_revision(o, nar_of=lambda sha: "sha256-other")
+        self.assertIsNone(o.den_revision)
         self.assertEqual(list(report.judge(o, NOW)), ["den-revision-unknown"])
 
 

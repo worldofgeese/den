@@ -43,15 +43,17 @@ HOSTS = {
 NIXOS_PROBE = r"""
 set -u
 sw=/run/current-system/sw/bin
-rev=$("$sw/cat" /etc/den-revision 2>/dev/null | "$sw/tr" -cd '0-9a-f')
+rev=$("$sw/sed" -n 1p /etc/den-revision 2>/dev/null | "$sw/tr" -cd '0-9a-f')
+nar=$("$sw/sed" -n 2p /etc/den-revision 2>/dev/null | "$sw/tr" -cd 'A-Za-z0-9+/=-')
+modified=$("$sw/sed" -n 3p /etc/den-revision 2>/dev/null | "$sw/tr" -cd '0-9')
 build=$("$sw/sed" -n 's/^BUILD_ID="\{0,1\}\([0-9A-Za-z.]*\)"\{0,1\}$/\1/p' /etc/os-release)
 failed=false; "$sw/systemctl" is-failed --quiet nixos-upgrade.service && failed=true
 booted=$("$sw/readlink" -f /run/booted-system/kernel)
 current=$("$sw/readlink" -f /run/current-system/kernel)
 switched=$("$sw/stat" -c %Y /run/current-system)
 pending=false; [ "$booted" = "$current" ] || pending=true
-printf '{"den_revision":"%s","build_id":"%s","upgrade_failed":%s,"kernel_pending":%s,"switched_epoch":%s}\n' \
-  "$rev" "$build" "$failed" "$pending" "$switched"
+printf '{"den_revision":"%s","nar_hash":"%s","last_modified":"%s","build_id":"%s","upgrade_failed":%s,"kernel_pending":%s,"switched_epoch":%s}\n' \
+  "$rev" "$nar" "$modified" "$build" "$failed" "$pending" "$switched"
 """
 
 
@@ -60,6 +62,8 @@ class Observation:
     host: str
     reachable: bool
     den_revision: str | None = None
+    nar_hash: str | None = None
+    last_modified: int | None = None
     nixpkgs_revision: str | None = None
     nixos_version: str | None = None
     upgrade_failed: bool = False
@@ -97,6 +101,8 @@ def observe_nixos(host: str, ssh: str | None) -> Observation:
         build = str(data["build_id"])
         version = re.fullmatch(r"(\d+\.\d+)\.(\d{8})\.([0-9a-f]{7,40})", build)
         return Observation(host, True, den_revision=data["den_revision"] or None,
+                           nar_hash=data.get("nar_hash") or None,
+                           last_modified=int(data.get("last_modified") or 0) or None,
                            nixpkgs_revision=version.group(3) if version else None,
                            nixos_version=build or None,
                            upgrade_failed=data["upgrade_failed"] is True,
@@ -108,15 +114,46 @@ def observe_nixos(host: str, ssh: str | None) -> Observation:
 
 def observe_darwin(host: str) -> Observation:
     try:
-        revision = Path("/etc/den-revision").read_text().strip() or None
+        lines = Path("/etc/den-revision").read_text().splitlines() + ["", "", ""]
     except OSError:
-        revision = None
+        lines = ["", "", ""]
+    revision = lines[0].strip() or None
+    nar_hash = lines[1].strip() or None
+    last_modified = int(lines[2].strip()) if lines[2].strip().isdigit() else None
     exe = shutil.which("darwin-version") or "/run/current-system/sw/bin/darwin-version"
     try:
         data = json.loads(run([exe, "--json"]).stdout)
     except (OSError, ValueError, subprocess.TimeoutExpired):
         data = {}
-    return Observation(host, True, den_revision=revision, nixpkgs_revision=data.get("nixpkgsRevision"))
+    return Observation(host, True, den_revision=revision, nar_hash=nar_hash, last_modified=last_modified,
+                       nixpkgs_revision=data.get("nixpkgsRevision"))
+
+
+def flake_nar_hash(revision: str) -> str | None:
+    result = run(["nix", "flake", "metadata", "--json", f"github:{REPO}/{revision}"], timeout=300)
+    if result.returncode:
+        return None
+    return json.loads(result.stdout).get("locked", {}).get("narHash")
+
+
+def resolve_revision(observation: Observation, nar_of=flake_nar_hash) -> None:
+    """Find the main commit of a build without self.rev, by commit time and narHash.
+
+    `nixos-upgrade --override-input nixpkgs ...` drops self.rev but keeps
+    narHash and lastModified. lastModified of a GitHub flake is the commit time.
+    """
+    if observation.den_revision or not (observation.nar_hash and observation.last_modified):
+        return
+    stamp = datetime.fromtimestamp(observation.last_modified, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        commits = gh_json(["api", f"repos/{REPO}/commits?sha=main&since={stamp}&until={stamp}&per_page=20"]) or []
+    except RuntimeError:
+        return
+    for commit in commits:
+        sha = commit.get("sha", "")
+        if re.fullmatch(r"[0-9a-f]{40}", sha) and nar_of(sha) == observation.nar_hash:
+            observation.den_revision = sha
+            return
 
 
 def compare_with_main(observation: Observation) -> None:
@@ -210,6 +247,7 @@ def main() -> int:
     for host, spec in HOSTS.items():
         o = observe_nixos(host, spec["ssh"]) if spec["kind"] == "nixos" else observe_darwin(host)
         if o.reachable:
+            resolve_revision(o)
             compare_with_main(o)
         o.failures = judge(o, now)
         observations.append(o)

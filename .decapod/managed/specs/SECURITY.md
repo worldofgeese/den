@@ -199,7 +199,7 @@ Describe the security primitives and security controls implemented in this repos
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `20e29ee6a7565b003eb608f3a7740888561f54e09eaaa11b24520035dea8b16c`
+- Repository signal fingerprint: `cd8a45b7a5bdf08405653365c86ba1df985313e42e9d5c69ce74fc515b61d92e`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

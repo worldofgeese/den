@@ -854,12 +854,18 @@ re-points the driver link.
 
 `modules/omarchy.nix` replaces Omarchy's systemd-only calls in
 `omarchy-system` (`uwsm stop`, `systemctl reboot`/`poweroff`,
-`systemd-inhibit`, `systemd-run --user`) with `hyprctl dispatch exit`, elogind
+`systemd-inhibit`, `systemd-run --user`) with
+`hyprctl dispatch 'hl.dsp.exit()'`, elogind
 `loginctl`/`elogind-inhibit`, and `setsid --fork`. The build fails if any
 uncommented systemd call remains. Omarchy 4.5.0-rc2 merged the old
 `omarchy-system-{logout,reboot,shutdown}` scripts into `omarchy-system`.
 nixarchy replaces `enable-user-units.sh` with a no-op. The guard patches that
 script only while it still calls `systemctl`.
+
+Hyprland's Lua configuration does not accept `hyprctl dispatch exit`.
+It interprets that argument as `hl.dispatch(exit)`, but the global `exit`
+does not exist. The launcher then reports `Logout failed`. Use the Lua
+dispatcher constructor `hl.dsp.exit()` through `hyprctl dispatch`.
 
 ### mahakala desktop: the EWM session
 
@@ -902,15 +908,109 @@ The bar settings remain writable in `~/.config/omarchy/shell.json`.
 On 2026-11-02, this file used an opaque background and `alwaysShow` for
 `omarchy.indicators`. The clock used identical `format` and `formatAlt`
 values to prevent a width change on hover. These settings survived the
-Home Manager generation 364 deployment. Their appearance still needs
-user verification.
+Home Manager generation 364 and 365 deployments. A cropped screenshot
+confirmed the opaque bar after the shell restart. The clock formats match;
+the pointer-hover behavior still needs user verification.
 
 Do not restart Quickshell while its session lock is active.
 Deploy the profile first. Unlock the desktop before a shell restart.
-The Keybindings menu action started its selector through the shell's
-`learn.keybindings` route during the investigation. The original failure
-did not recur in that probe. A visible menu test still needs an unlocked
-desktop.
+With generation 365 active, the live shell logged `omarchy polkit agent
+registered`. Its keyboard indicator process stayed active. The
+`learn.keybindings` menu route displayed the populated Keybindings dialog
+after the shell restart. The original failure did not recur.
+
+The bar's menu button shows the Guix logo (`guixMenuIcon`: `logo/Guix.svg` from
+the Guix artwork commit that Guix's `guix-icons` uses, rasterized to PNG
+because this Quickshell build has no SVG image plugin) instead of nixarchy's
+NixOS snowflake.
+
+The PowerProfilesDaemon service remains absent. Its warning does not prevent
+the bar or Keybindings dialog from starting.
+
+Launcher actions that assume Arch or systemd are replaced at build time by
+scripts in `scripts/omarchy-guix/`, installed over `share/omarchy/bin`:
+
+- Install and Remove (`omarchy-pkg-add`, `-pkg-install`, `-pkg-aur-install`,
+  `-pkg-remove`, `-pkg-drop`) map Arch names through nixarchy's
+  `nixarchy-arch-packages.tsv` and app table to nixpkgs attributes. They edit
+  `modules/omarchy-apps.json` in the den checkout (`DEN_DIR`, default
+  `~/.config/home-manager`) and run `just deploy-mahakala-hm-only`, restoring
+  the list if the deploy fails. NixOS options and PHP extensions are refused.
+  `pkg-drop` only removes entries from that list and fails for anything
+  declared elsewhere, which stops the `omarchy-remove-*` scripts safely.
+- `omarchy-update` fast-forwards den and runs the three mahakala deploys.
+- `omarchy-channel-set`, `omarchy-refresh-plymouth`, and `omarchy-dns` explain
+  what governs that setting here (the nixarchy input, no Plymouth, Tailscale
+  MagicDNS) instead of acting.
+- The timezone menu lists `tzdata`'s `zone.tab` and edits `(timezone ...)` in
+  `guix/system.scm`, then deploys the system. New logins pick it up.
+- Reminders use detached `setsid` sleepers with state in
+  `$XDG_RUNTIME_DIR/omarchy-reminders` instead of `systemd-run` timers.
+- Crash capture (systemd-coredump) reports that it is unavailable; XCompose
+  restarts fcitx5 when present.
+
+The build fails if `systemctl`, `systemd-run`, `timedatectl`, `pacman`, `yay`,
+or `nixos-rebuild` remains in a patched script. On 2026-11-02 the reminder
+lifecycle (set, `show --json`, clear, sleeper killed), the timezone list, DNS,
+channel, Plymouth, and the `pkg-add` refusals were exercised on mahakala.
+The EWM module load check passed, but a full GDM login remains unverified.
+
+### mahakala boot: one password, and agent reboots
+
+`/boot` is inside the LUKS1 root (`cryptroot`), so GRUB asks for the disk
+passphrase. Guix passes GRUB's volume key to the initrd through
+`(proc)/luks_script`, so the initrd does not ask again. GDM autologs in
+`worldofgeese` (`guix/system.scm`, `gdm-configuration`). A cold boot therefore
+needs the passphrase once. Autologin gives the GNOME keyring no password to
+unlock with, so on 2026-11-02 the `login` and `Default_keyring` keyrings were
+re-keyed to an empty password (`ChangeWithMasterPassword` over the Secret
+Service). They now open at login without a prompt and are stored unencrypted
+in `~/.local/share/keyrings`; LUKS protects them at rest. gnome-keyring 48
+crashes when it has to show a gcr prompt, so a keyring that needs a password
+again cannot be unlocked from the GUI. Re-key it the same way.
+
+The GRUB menu is hidden: `bootloader-configuration` sets `(timeout 0)`, and
+`grub-efi-hidden-menu-bootloader` in `guix/system.scm` adds
+`set timeout_style=hidden` to the generated `grub.cfg`, because Guix has no
+field for it. GRUB boots the default entry straight after the passphrase and
+checks for keys once. Hold Shift, or press Esc or F4, while it starts to get
+the menu (old generations, for example).
+
+An agent can reboot to the desktop without the user. `sudo agent-unlock
+reboot` (`guix/agent-unlock.sh`, package `agent-unlock`) performs these steps:
+
+1. It writes a random 64-byte key into LUKS slot 7. It uses the volume key of
+   the open mapping, so no passphrase is needed.
+2. It copies that key to `/boot/efi/EFI/agent-unlock/key`.
+3. It builds a standalone GRUB image at `/EFI/agent-unlock/grubx64.efi`. That
+   image tries the key, falls back to the normal passphrase prompt, and then
+   loads Guix's `grub.cfg`.
+4. It creates an `Agent unlock` boot entry with `--create-only`, so the entry
+   never enters `BootOrder`.
+5. It sets `BootNext` to that entry and reboots.
+
+The one-shot `agent-unlock` Shepherd service runs `agent-unlock cleanup` on
+every boot. It removes slot 7 and shreds the ESP key, so each key opens the
+disk at most once. It also writes `/run/agent-unlock/boot-mode`: `agent` when
+slot 7 or the ESP key was still present, `interactive` otherwise. The firmware's
+`BootCurrent` is not used, because this Dell reported `0000` (a stale Garuda
+entry) after a verified `BootNext` agent boot.
+
+On a host with `/etc/agent-unlock`, the patched Omarchy lock screen
+(`modules/omarchy.nix`, `agentBootLockCheck`) locks once per boot unless the
+mode reads `interactive`. A missing mode locks, so the check fails closed.
+The session user releases only that lock with `just mahakala-session-unlock`
+(`omarchy-shell lock unlock`) over tailnet SSH. `just mahakala-agent-reboot`
+is the whole reboot. That call returns `denied` for any other lock.
+
+Tradeoffs:
+- Between arming and the next boot, the key is readable on the FAT ESP.
+- GRUB tries slot 0's slow PBKDF before slot 7.
+
+Slot 0, the user's passphrase, is never modified.
+
+Deep sleep is the default (`mem_sleep_default=deep`). Overnight S3 drained
+about 98 mAh/h.
 
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |

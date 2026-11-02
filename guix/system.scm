@@ -107,7 +107,12 @@
     (gdm-service-type config =>
                       (gdm-configuration
                        (inherit config)
-                       (wayland? #t)))
+                       (wayland? #t)
+                       ;; The disk passphrase GRUB asks for is the only one a
+                       ;; cold boot needs. The GNOME keyring stays locked
+                       ;; until first use asks for the same password.
+                       (auto-login? #t)
+                       (default-user username)))
     ;; Tailscale owns /etc/resolv.conf on this host (nameserver 100.100.100.100,
     ;; MagicDNS verified resolving), and `resolvconf` is not installed. Without
     ;; dns="none" NetworkManager retries the commit forever and logs
@@ -225,6 +230,87 @@ on Guix System, resolving the Omarchy tree and the compositor out of the Home
 Manager profile at run time.")
     (license license:expat)))
 
+;; One unattended reboot for agents, in the manner of BitLocker's "suspend
+;; for one reboot". `sudo agent-unlock reboot` adds a single-use random key
+;; to LUKS slot 7 (from the open mapping's volume key, so no passphrase),
+;; puts it on the ESP, and sets BootNext to a standalone GRUB that tries it
+;; before falling back to the normal passphrase prompt. The agent-unlock
+;; service below kills slot 7 and wipes the key on every boot, so the key
+;; opens the disk at most once; it also records the boot mode, and Omarchy's
+;; lock screen starts locked after an agent boot (modules/omarchy.nix) until
+;; the agent releases it with `omarchy-shell lock unlock`.
+;;
+;; Tradeoff: between arming and the next boot the key sits readable on the
+;; ESP, so a powered-off machine seized in that window can be unlocked.
+
+;; Boot straight to the default entry with no menu. Guix only emits
+;; `set timeout', and GRUB polls for Esc, F4 or a held Shift only when
+;; timeout_style is hidden, so add that line to the generated grub.cfg.
+(define grub-efi-hidden-menu-bootloader
+  (bootloader
+   (inherit grub-efi-bootloader)
+   (configuration-file-generator
+    (lambda args
+      (let ((cfg (apply (bootloader-configuration-file-generator
+                         grub-efi-bootloader)
+                        args)))
+        (computed-file
+         "grub.cfg"
+         #~(begin
+             (use-modules (ice-9 textual-ports) (ice-9 regex))
+             (let ((text (call-with-input-file #$cfg get-string-all)))
+               (unless (string-match "\nset timeout=[0-9]+\n" text)
+                 (error "grub.cfg has no timeout line"))
+               (call-with-output-file #$output
+                 (lambda (port)
+                   (display (regexp-substitute
+                             #f (string-match "\nset timeout=[0-9]+\n" text)
+                             'pre 0 "set timeout_style=hidden\n" 'post)
+                            port)))))))))))
+
+(define %agent-unlock-luks-uuid "c667edf6-fb07-4ce4-bd62-060d7b835cd3")
+(define %agent-unlock-esp-uuid "2C9C-4D34")
+
+(define agent-unlock
+  (package
+    (name "agent-unlock")
+    (version "0.1")
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     (list #:modules '((guix build utils))
+           #:builder
+           (with-imported-modules '((guix build utils))
+             #~(begin
+                 (use-modules (guix build utils))
+                 (let ((bin (string-append #$output "/bin/agent-unlock")))
+                   (mkdir-p (dirname bin))
+                   (copy-file #$(local-file "agent-unlock.sh") bin)
+                   (substitute* bin
+                     (("@bash@") (string-append #$(specification->package "bash-minimal") "/bin/bash"))
+                     (("@path@")
+                      (string-join
+                       (map (lambda (p) (string-append p "/bin:" p "/sbin"))
+                            (list #$(specification->package "coreutils")
+                                  #$(specification->package "grep")
+                                  #$(specification->package "sed")
+                                  #$(specification->package "gawk")
+                                  #$(specification->package "util-linux")
+                                  #$(specification->package "cryptsetup")
+                                  #$(specification->package "lvm2")
+                                  #$(specification->package "efibootmgr")))
+                       ":"))
+                     (("@grub@") #$(specification->package "grub-efi"))
+                     (("@luks_uuid@") #$%agent-unlock-luks-uuid)
+                     (("@esp_uuid@") #$%agent-unlock-esp-uuid)
+                     (("@slot@") "7"))
+                   (chmod bin #o555))))))
+    (home-page "https://github.com/worldofgeese/den")
+    (synopsis "One unattended LUKS reboot for agents")
+    (description "Arms a single-use LUKS key and GRUB BootNext entry so an
+agent can reboot mahakala to a locked desktop without the disk passphrase.")
+    (license license:expat)))
+
 (operating-system
   ;; BORE scheduler active; keep ananicy-cpp disabled (conflicts with BORE).
   (kernel linux-cachyos-bore)
@@ -252,7 +338,10 @@ Manager profile at run time.")
   ;; then "failed to reset chip: -5". A warm-only reset cannot revive a chip
   ;; whose power was removed. Removed so the driver keeps its default
   ;; cold-capable reset path.
-  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y pcie_port_pm=off snd_hda_intel.power_save=1 mce=dont_log_ce" %default-kernel-arguments))
+  ;; mem_sleep_default=deep: S3 instead of s2idle. Measured overnight on
+  ;; this XPS 13 9380, deep drained ~98 mAh/h; s2idle does not reach package
+  ;; C10 here and drains far faster.
+  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y pcie_port_pm=off snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
   (firmware (list linux-firmware))
   (locale "en_US.utf8")
   (timezone "Europe/Copenhagen")
@@ -311,7 +400,7 @@ root ALL=(ALL) ALL
                            ;; that does not boot.
                            "xdg-desktop-portal-hyprland"
                            "xdg-desktop-portal-gtk"))
-                    (list ewm-desktop-session omarchy-desktop-session)
+                    (list ewm-desktop-session omarchy-desktop-session agent-unlock)
                     %base-packages))
   (services
    (cons*
@@ -645,6 +734,23 @@ COMMIT
                                  #$(file-append (specification->package "undervolt") "/bin/undervolt")
                                  " --core -80 --cache -80 --gpu -50 --analogio 0 --uncore 0")))
                       (stop #~(const #f)))))
+    ;; Single-use guarantee for agent-unlock (see its package above): kill
+    ;; LUKS slot 7 and wipe the ESP key on every boot, and record whether this
+    ;; boot used them. /etc/agent-unlock tells the lock screen to trust only
+    ;; a recorded `interactive` boot.
+    (simple-service 'agent-unlock shepherd-root-service-type
+                    (list
+                     (shepherd-service
+                      (provision '(agent-unlock))
+                      (requirement '(file-systems))
+                      (documentation "Retire the one-shot agent-unlock disk key.")
+                      (one-shot? #t)
+                      (start #~(make-system-constructor
+                                #$(file-append agent-unlock "/bin/agent-unlock")
+                                " cleanup"))
+                      (stop #~(const #f)))))
+    (simple-service 'agent-unlock-marker etc-service-type
+                    (list `("agent-unlock" ,(plain-file "agent-unlock" "slot 7\n"))))
     (simple-service 'cgroup-setup shepherd-root-service-type
                     (list
                      (shepherd-service
@@ -742,8 +848,9 @@ COMMIT
 "))))
     %my-services))
   (bootloader (bootloader-configuration
-               (bootloader grub-efi-bootloader)
+               (bootloader grub-efi-hidden-menu-bootloader)
                (targets (list "/boot/efi"))
+               (timeout 0)
                (keyboard-layout keyboard-layout)))
   (mapped-devices (list (mapped-device
                          (source (uuid "c667edf6-fb07-4ce4-bd62-060d7b835cd3"))

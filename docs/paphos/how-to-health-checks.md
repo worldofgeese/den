@@ -12,6 +12,7 @@
 | `forgesync-github.timer` active (if present) | `forgesync-timer` |
 | Root disk &lt; 90% | `disk-root-Npct` |
 | Last backup &lt; 36h | `forgejo-backup-stale-Nh` or `forgejo-backup-never` |
+| Mother recovery checkpoint heartbeat from loving-kypris &lt; 36h | `mother-checkpoint-stale-Nh` or `mother-checkpoint-never` |
 
 On failure, a Telegram message is sent using agenix secret `telegram-lbob-bot-token` and chat id `488228716` (in `modules/paphos/ops.nix`).
 

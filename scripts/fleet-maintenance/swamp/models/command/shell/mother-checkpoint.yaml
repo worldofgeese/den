@@ -1,0 +1,18 @@
+type: command/shell
+typeVersion: 2026.02.09.1
+id: 2ca7e028-b549-45d9-85c1-0bdfdf02d7d3
+name: mother-checkpoint
+version: 1
+tags:
+  purpose: mother-recovery
+globalArguments: {}
+methods:
+  execute:
+    arguments:
+      # Swamp does not expand ~ or %h. The deployed copy uses the absolute home path.
+      run: /usr/bin/python3 /var/home/worldofgeese/.local/share/fleet-maintenance/checkpoint/mother_checkpoint.py --config /var/home/worldofgeese/.config/fleet-maintenance/mother-checkpoint.json --execute
+      workingDir: /var/home/worldofgeese/.local/share/fleet-maintenance/checkpoint
+      timeout: 10800000
+      env:
+        PATH: /var/home/worldofgeese/.local/share/fleet-maintenance/bin:/usr/local/bin:/usr/bin:/bin
+        HOME: /var/home/worldofgeese

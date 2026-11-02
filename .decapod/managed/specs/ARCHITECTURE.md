@@ -418,11 +418,21 @@ The `modules/overlays.nix` wrapper adds `age-plugin-pq` (nixpkgs) and
 Homebrew's `age-plugin-se` to secretspec's PATH. Homebrew provides the plugin
 because only its Xcode-built bottle supports post-quantum Secure Enclave keys.
 
+## NAS Recovery Boundary
+
+`scripts/fleet-maintenance/mother_recovery.py` runs with the Python 3.8 runtime on mother. `preflight` checks tools, RAID health, source coverage, subvolume layout, and free space. `prepare` uses separate read-only Btrfs views, system-directory copies, SQLite online copies, and PostgreSQL logical exports. Each subvolume and database has its own consistency boundary. The archive is not one atomic image of the NAS.
+
+`stream` sends the archive through binary stdout. The consumer must compare its size and SHA-256 before it publishes the temporary source file on loving-kypris. Zerobyte owns the encrypted repository and retention. The helper owns only its private source runs and temporary snapshots. `cleanup` never deletes original NAS source directories.
+
+Swamp authentication uses a private API-key file outside the repository. The installed CLI and its runtime state do not yet form a scheduled recovery or update service. The archive helper does not control DSM, SRM, firmware, reboots, or the other backup jobs.
+
+`scripts/fleet-maintenance/mother_checkpoint.py` is the caller for the limited checkpoint. It holds a local lock and keeps a private journal. It compares the approved Zerobyte binding before a backup request. It requires a new snapshot and an independent native restore before cleanup. Its failure path preserves the incomplete state for review instead of replaying an uncertain request. A systemd user timer on loving-kypris starts the caller through a Swamp workflow at 00:30 UTC each day. Swamp records each run. The design does not use `swamp serve`, because that server can run shell behaviors for any local client. After each verified run, loving-kypris refreshes a heartbeat file on paphos through a restricted key. `paphos-health-check` alerts when the heartbeat is absent or older than 36 hours.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a8a0862a365fa864afb86fa6c4ea434394ec6e6007433c59069f919f26eca482`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (6 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

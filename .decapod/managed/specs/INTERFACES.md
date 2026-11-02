@@ -329,11 +329,25 @@ The token is a Dagger secret, for example `env://GH_TOKEN`. On M-02877,
 Make the container once with `just dagger-check`, then call for example
 `dagger call ci automerge-dry-run --token env://GH_TOKEN --pr 73`.
 
+## Mother Recovery Commands
+
+`scripts/fleet-maintenance/mother_recovery.py` exposes `plan`, `prepare`, `stream RUN_ID`, and `cleanup RUN_ID`. The default `plan` command reads state without snapshots or filesystem changes. `prepare` returns a JSON receipt with the run identifier, archive size, and SHA-256. A ready receipt requires successful archive creation and deletion of the temporary source snapshots.
+
+`stream RUN_ID` writes binary archive data to stdout. Its caller must direct those bytes to a private file, not a text log. `cleanup RUN_ID` requires the exact owned run identifier. It checks the private directory, state, and any remaining snapshot UUID before deletion.
+
+The helper refuses unknown persistent mounts, source escapes, substituted symlinks, and unsupported subvolume coverage. `container_identity` sorts complete mount records but preserves the order of `Env`, `Cmd`, and `Entrypoint`. A change to a mount source or its access mode must still stop preparation.
+
+Zerobyte 0.44 uses its organization recovery key for a new repository. `customPassword` only selects a key when `isExistingRepository` is true. An API response that accepts the field does not prove independent recovery. The native Restic test must use the exported organization key.
+
+`mother_checkpoint.py --config FILE` checks local prerequisites and the dedicated Zerobyte binding. `--execute` also prepares, transfers, backs up, restores, and cleans the new source. The configuration identifies the two resources, private paths, secret files, and approved binding hash. The caller prints a bounded JSON result and excludes external program output from its error text.
+
+`completed_snapshot` requires a newer `lastBackupAt`, status `success`, no error, and no active backup task. It also requires a new snapshot identifier, the correct job tag, the expected source path, and a timestamp after the trigger. A `warning` result cannot pass.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a8a0862a365fa864afb86fa6c4ea434394ec6e6007433c59069f919f26eca482`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (6 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

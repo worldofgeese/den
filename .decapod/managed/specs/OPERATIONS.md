@@ -1057,11 +1057,23 @@ The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026
 | `xdph` | ba31964 (2026-08-29) | 0121b2e (2026-10-12) |
 | `zen-browser` | ec2c94c (2026-09-06) | 4434539 (2026-10-27) |
 
+## Limited NAS Recovery Evidence
+
+The procedure is in `scripts/fleet-maintenance/README.md`. Bead `home-manager-zym` records the private deployment evidence. The first checkpoint passed native Restic `check --read-data` and a byte-identical archive restore on 2026-11-01. Three restored SQLite databases passed `PRAGMA quick_check`. The archive also contained all 14 PostgreSQL exports. These results do not prove a full NAS or application rebuild.
+
+The organization recovery key has a separate copy in the Mac Keychain. The source receipt, encrypted snapshot, restore result, and key reference must describe the same repository. The operator deleted both owned NAS runs and the plaintext archive on loving-kypris after the restore passed. The encrypted snapshot remains.
+
+The new recurring job stays disabled until each run prepares fresh source data and checks its age and identity. Existing backup jobs and native updaters remain unchanged. A successful timer exit alone does not prove current firmware or successful application after a reboot.
+
+Swamp authentication passed with the supplied API key through `SWAMP_API_KEY_FILE`. The private key file has mode `0600`. Telemetry is disabled in the private Swamp profile. The CLI installation does not prove a scheduled service, a safe repair procedure, or an unattended firmware update. SRM recovery and an independent observer still need proof. The installed loving-kypris BIOS used the user's manual F7 selection, not an autonomous flash.
+
+The checkpoint caller passes offline tests for stale receipts, changed bindings, old success results, partial backups, bounded copies, and restored artifacts. Its simulated full run requires restoration before cleanup. Two live runs passed on 2026-11-01. A direct run made snapshot `88b1a016`. A run through the Swamp service made `02562414`. Each run restored a byte-identical archive and passed all its archive checks. The Zerobyte API has no per-repository key scopes. The user approved a dedicated key without expiry and with organization-wide access. The user timer `mother-recovery-checkpoint.timer` runs the workflow at 00:30 UTC each day. `paphos-health-check` reports `mother-checkpoint-stale-Nh` or `mother-checkpoint-never` when the heartbeat from loving-kypris stops.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `5371f099c82dff3f089be18adcdf8588732f8eb97cf2a2b40241123943dc16e6`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (1 files), `terraform/` (1 files)
+- Repository signal fingerprint: `a8a0862a365fa864afb86fa6c4ea434394ec6e6007433c59069f919f26eca482`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (6 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

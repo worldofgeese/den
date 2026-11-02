@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily verified Mother recovery checkpoint (00:30 UTC, before the 02:00 UTC backups)
+
+[Timer]
+OnCalendar=*-*-* 00:30:00 UTC
+Persistent=false
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

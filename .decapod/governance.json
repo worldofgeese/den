@@ -42,41 +42,36 @@
     }
   },
   "change": {
-    "id": "change_01M6CHMYBR825DXWF5003RD99H",
+    "id": "change_mother_checkpoint_swamp",
     "base_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
-    "target_base": "origin/main"
+    "target_base": "main"
   },
   "checkpoints": [
     {
-      "id": "apis_01m6cd4e9x88y59n",
-      "summary": "Fix stale Omarchy 4.5.0-rc2 guards so a fresh HM generation (glibc-consistent Hyprland/Mesa) builds on mahakala; document GPU driver ABI runbook",
-      "input_digest": "sha256:ff024fdb1bdab8d0b35721fe924edd981351988c9015f3bda7ff91520fd06323"
-    },
-    {
-      "id": "mahakala-login-fix-1",
-      "summary": "Fix stale Omarchy 4.5.0-rc2 guards (enable-user-units stub, merged omarchy-system) so a glibc-consistent HM generation builds on mahakala; document GPU driver ABI runbook",
-      "input_digest": "sha256:103986886933c2ec7c47eda565ea7b1e8e238f95b4badc96e163cc1415f5737c",
+      "id": "mother-checkpoint-candidate",
+      "summary": "Daily verified Mother checkpoint through Swamp, with a paphos heartbeat check. Two live runs verified.",
+      "input_digest": "sha256:21f6a96640eb3f2a0e20b7cb1a923fb4e2504d3a8e8dc2c668a6636cfd9edc61",
       "proof_refs": [
-        "mahakala:/tmp/hm-candidate=/nix/store/gm31k9lyrvhmrx66gh54yr35bx5abf2h-home-manager-generation built; libgallium-26.2.6 preload with Hyprland glibc-2.44-25 resolves"
+        "trajectory:run_mother_checkpoint_swamp"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6CHMYBR825DXWF5003RD99H": {
+    "intent:run_mother_checkpoint_swamp": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "Current claimed task and isolated work branch"
+        "No firmware or DSM/SRM installer actions. Existing backup jobs, SSH restrictions and credentials stay unchanged."
       ],
       "constraints": [
-        "root"
+        "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6CHMYBR825DXWF5003RD99H",
+      "id": "intent:run_mother_checkpoint_swamp",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Restore mahakala desktop login and correct graphics/EWM ABI compatibility",
-      "refined_intent": "Restore mahakala desktop login and correct graphics/EWM ABI compatibility",
+      "raw_intent": "Back up the limited Mother recovery set to loving-kypris and run it through Swamp, autonomously, with verified restores.",
+      "refined_intent": "Run the limited Mother recovery checkpoint each day through a Swamp workflow on loving-kypris. Each run prepares fresh source data, makes a new Zerobyte snapshot, restores it independently with Restic, and deletes temporary copies only after that proof. paphos alerts through its existing Telegram health check when no verified checkpoint arrives within 36 hours.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -89,7 +84,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Restore mahakala desktop login: unblock a fresh HM generation (glibc-consistent Hyprland/Mesa) by fixing stale Omarchy 4.5.0-rc2 guards in modules/omarchy.nix; document GPU driver ABI runbook. User authorized: 'Fix it now — restore Omarchy access, then correct package compatibility.'",
+      "intent": "Run the limited Mother recovery checkpoint each day through a Swamp workflow on loving-kypris. Each run prepares fresh source data, makes a new Zerobyte snapshot, restores it independently with Restic, and deletes temporary copies only after that proof. paphos alerts through its existing Telegram health check when no verified checkpoint arrives within 36 hours.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -97,61 +92,177 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [
-        "Candidate HM generation fails glibc/Mesa preload check"
+        "An API warning, an old success, a stale receipt, a changed resource binding or a failed independent restore must not count as a verified checkpoint."
       ],
-      "title": "Restore mahakala desktop login and correct graphics/EWM ABI compatibility",
+      "title": "Verified daily Mother recovery checkpoint through Swamp, with an independent observer",
       "todo_ids": [
-        "apis_01m6cd4e9x88y59n"
+        "feat_01m6b5dpmhpyqacw"
       ],
-      "unknowns": [],
+      "unknowns": [
+        "Unattended DSM, SRM and BIOS installation is outside this change."
+      ],
       "unresolved_contradictions": [],
-      "updated_at": "1793572666Z"
+      "updated_at": "1793599906Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "No firmware or DSM/SRM installer actions. Existing backup jobs, SSH restrictions and credentials stay unchanged."
       ],
-      "artifact_hash": "sha256:3a943265bab3ae2d0ec0207c4f6b74f7dd8929f34fe0e00271d26fb437f41f63",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:4e025b0c54fd0cd0394649538fbe3a2573b0a3a6cf343cb989c3fb2f995ef8cd",
+      "checks": [
+        {
+          "name": "alejandra",
+          "status": "passed"
+        },
+        {
+          "name": "fleet-maintenance-tests",
+          "status": "passed"
+        },
+        {
+          "name": "live-checkpoint-direct",
+          "status": "passed"
+        },
+        {
+          "name": "live-checkpoint-swamp-service",
+          "status": "passed"
+        },
+        {
+          "name": "paphos-eval",
+          "status": "passed"
+        },
+        {
+          "name": "shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "srm-full-mesh-readonly",
+          "status": "passed"
+        },
+        {
+          "name": "ty",
+          "status": "passed"
+        }
+      ],
+      "current_phase": "candidate-ready",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6CHMYBR825DXWF5003RD99H",
+            "intent_id": "intent:run_mother_checkpoint_swamp",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6CHMYBR825DXWF5003RD99H",
+            "intent_id": "intent:run_mother_checkpoint_swamp",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:run_mother_checkpoint_swamp",
+            "event_id": "event:4",
+            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "run_mother_checkpoint_swamp": {
+            "evidence_only": true,
+            "id": "run_mother_checkpoint_swamp",
+            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "steps": [
+              {
+                "action": "candidate-ready",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "scripts/fleet-maintenance/mother_recovery.py",
+                  "scripts/fleet-maintenance/mother_checkpoint.py",
+                  "scripts/fleet-maintenance/test_mother_recovery.py",
+                  "scripts/fleet-maintenance/test_mother_checkpoint.py",
+                  "scripts/fleet-maintenance/README.md",
+                  "scripts/fleet-maintenance/checkpoint-heartbeat.sh",
+                  "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.service",
+                  "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.timer",
+                  "scripts/fleet-maintenance/swamp/models/command/shell/mother-checkpoint.yaml",
+                  "scripts/fleet-maintenance/swamp/workflows/workflow-mother-recovery-checkpoint.yaml",
+                  "modules/paphos/ops.nix",
+                  "docs/paphos/how-to-health-checks.md",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "On 2026-11-01, two live runs verified. The direct run made snapshot 88b1a016. The Swamp service run 99fa57f6 succeeded and made snapshot 02562414. Each passed restic check --read-data and restored a byte-identical archive with 353,662 entries, 14 PostgreSQL exports and 3 intact SQLite databases.",
+                  "The read-only SRM API, behind the pinned certificate, reported three nodes on SRM 1.3.2-9366 Update 3. Mesh status was good, no upgrade was pending, and no patch was available.",
+                  "nix eval for nixosConfigurations.paphos passes. 23 tests, ty, shellcheck, alejandra and the decapod override check pass.",
+                  "Three historical done-but-unverified records were reset with decapod qa verify prune, on the user decision. The deadlock is filed upstream as DecapodLabs/decapod#1473."
+                ],
+                "proof_refs": [
+                  "live-checkpoint-direct",
+                  "live-checkpoint-swamp-service",
+                  "srm-full-mesh-readonly",
+                  "paphos-eval",
+                  "alejandra",
+                  "shellcheck",
+                  "fleet-maintenance-tests",
+                  "ty"
+                ],
+                "scope": [
+                  "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
+                ],
+                "sequence": 4,
+                "validation_findings": [
+                  "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
+                ]
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
-      "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "On 2026-11-01, two live runs verified. The direct run made snapshot 88b1a016. The Swamp service run 99fa57f6 succeeded and made snapshot 02562414. Each passed restic check --read-data and restored a byte-identical archive with 353,662 entries, 14 PostgreSQL exports and 3 intact SQLite databases.",
+        "The read-only SRM API, behind the pinned certificate, reported three nodes on SRM 1.3.2-9366 Update 3. Mesh status was good, no upgrade was pending, and no patch was available.",
+        "Three historical done-but-unverified records were reset with decapod qa verify prune, on the user decision. The deadlock is filed upstream as DecapodLabs/decapod#1473.",
+        "nix eval for nixosConfigurations.paphos passes. 23 tests, ty, shellcheck, alejandra and the decapod override check pass."
+      ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6CHMYBR825DXWF5003RD99H",
-      "modified_files": [],
+      "intent_id": "intent:run_mother_checkpoint_swamp",
+      "modified_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "docs/paphos/how-to-health-checks.md",
+        "modules/paphos/ops.nix",
+        "scripts/fleet-maintenance/README.md",
+        "scripts/fleet-maintenance/checkpoint-heartbeat.sh",
+        "scripts/fleet-maintenance/mother_checkpoint.py",
+        "scripts/fleet-maintenance/mother_recovery.py",
+        "scripts/fleet-maintenance/swamp/models/command/shell/mother-checkpoint.yaml",
+        "scripts/fleet-maintenance/swamp/workflows/workflow-mother-recovery-checkpoint.yaml",
+        "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.service",
+        "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.timer",
+        "scripts/fleet-maintenance/test_mother_checkpoint.py",
+        "scripts/fleet-maintenance/test_mother_recovery.py"
+      ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "After merge: deploy paphos, re-enable the ExecStartPost heartbeat on loving-kypris, and confirm the first heartbeat."
       ],
       "repo_scope": [
-        "root"
+        "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
       ],
-      "run_id": "branch_01M6CHMYDQVRJWHW93NH4P3YFX",
+      "run_id": "run_mother_checkpoint_swamp",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "apis_01m6cd4e9x88y59n",
+      "task_id": "feat_01m6b5dpmhpyqacw",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
+      ]
     }
   },
   "legacy_digests": {

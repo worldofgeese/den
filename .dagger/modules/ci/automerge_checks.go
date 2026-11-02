@@ -11,8 +11,9 @@ import (
 // The merge rules give the expected verdict for fixed pull requests and
 // settings, the risky-path patterns match the expected paths, and a replay
 // reads a merged pull request as of its merge. The rules read file modes and
-// manifests from Git trees and blobs in the JSON of the GitHub REST API. No
-// network and no token.
+// manifests from Git trees and blobs in the JSON of the GitHub REST API. The
+// rule review-gate reads the status of the review gate, and that status is
+// never a review or a check that ran. No network and no token.
 // +check
 func (m *Ci) AutomergeRules(_ context.Context) error {
 	var failed []string
@@ -23,6 +24,8 @@ func (m *Ci) AutomergeRules(_ context.Context) error {
 	failed = append(failed, filesCases()...)
 	failed = append(failed, sourceCases()...)
 	failed = append(failed, treeCases()...)
+	failed = append(failed, gateRuleCases()...)
+	failed = append(failed, gateSnapshotCases()...)
 	if len(failed) > 0 {
 		return errors.New(strings.Join(failed, "\n"))
 	}
@@ -244,6 +247,156 @@ func riskyPathCases() []string {
 	return failed
 }
 
+// gateRuleCases judge a ready pull request with the settings of the review
+// gate (reviewgate.go). With no statusPrefix, a status that has the name
+// den/review is a usual commit status, as on main.
+func gateRuleCases() []string {
+	gate := func(name, state string, at time.Time) func(*prSnapshot) {
+		return func(s *prSnapshot) {
+			s.Checks = append(s.Checks, prCheck{Name: name, Workflow: "status", State: state, At: at})
+		}
+	}
+	success, failure := gate("den/review", "SUCCESS", fixtureTime), gate("den/review", "FAILURE", fixtureTime)
+	onlyGate := func(s *prSnapshot) {
+		s.Checks = []prCheck{{Name: "den/review", Workflow: "status", State: "SUCCESS", At: fixtureTime}}
+	}
+	on := func(p *mergePolicy) { p.StatusPrefix = "den" }
+	require := func(p *mergePolicy) { p.StatusPrefix, p.RequireReviewGate = "den", true }
+	cases := []struct {
+		name   string
+		policy func(*mergePolicy)
+		edit   func(*prSnapshot)
+		replay bool
+		want   string // the rule that refuses; "" merges
+		why    string // a part of the reason, or ""
+	}{
+		// Each setting of the gate empty: the verdicts of main.
+		{"no statusPrefix: a failed den/review status refuses at checks, as on main", nil, failure, false, "checks", ""},
+		{"no statusPrefix: a den/review success alone is a check that ran, as on main", nil, onlyGate, false, "", ""},
+		{"no statusPrefix: a status with the name /review alone is a check that ran", nil, func(s *prSnapshot) {
+			s.Checks = []prCheck{{Name: "/review", Workflow: "status", State: "SUCCESS", At: fixtureTime}}
+		}, false, "", ""},
+		{"no statusPrefix: checkName can name den/review, as on main", func(p *mergePolicy) { p.CheckName = "den/review" }, success, false, "", ""},
+		{"no statusPrefix: requireReviewGate alone refuses", func(p *mergePolicy) { p.RequireReviewGate = true }, success, false,
+			"review-gate", "statusPrefix is empty"},
+		// requireReviewGate.
+		{"requireReviewGate with the success of the gate merges", require, success, false, "", ""},
+		{"requireReviewGate with the failure of the gate refuses", require, failure, false, "review-gate", "den/review is failure"},
+		{"requireReviewGate with a pending status of the gate refuses", require, gate("den/review", "PENDING", fixtureTime), false, "review-gate", ""},
+		{"requireReviewGate with no status of the gate refuses", require, nil, false, "review-gate", "has no den/review status"},
+		{"requireReviewGate reads the newest status of the gate", require, func(s *prSnapshot) {
+			gate("den/review", "SUCCESS", fixtureTime.Add(-time.Hour))(s)
+			failure(s)
+		}, false, "review-gate", ""},
+		{"requireReviewGate reads only a commit status, not a check run with that name", require, func(s *prSnapshot) {
+			s.Checks = append(s.Checks, prCheck{Name: "den/review", Workflow: "Review", Status: "COMPLETED", Conclusion: "SUCCESS", At: fixtureTime})
+		}, false, "review-gate", "has no den/review status"},
+		{"the context of the gate can have another case", require, gate("DEN/review", "SUCCESS", fixtureTime), false, "", ""},
+		{"without requireReviewGate, a head with no status of the gate merges", on, nil, false, "", ""},
+		{"a replay judges review-gate", require, failure, true, "review-gate", ""},
+		// The result of the gate is never evidence for a merge.
+		{"the success of the gate is not a review", require, func(s *prSnapshot) {
+			s.Reviews = nil
+			success(s)
+		}, false, "reviewed", ""},
+		{"the success of the gate alone is not a check that ran", on, onlyGate, false, "checks", "no check ran"},
+		{"the failure of the gate refuses at checks", on, failure, false, "checks", ""},
+		{"the status of the gate is not the check of checkName", func(p *mergePolicy) {
+			p.StatusPrefix, p.CheckName = "den", "den/review"
+		}, success, false, "required-check", ""},
+	}
+	var failed []string
+	for _, c := range cases {
+		s := readyPR()
+		if c.edit != nil {
+			c.edit(&s)
+		}
+		p := fixturePolicy
+		if c.policy != nil {
+			c.policy(&p)
+		}
+		if rule, why := judge(&s, p, c.replay); rule != c.want || !strings.Contains(why, c.why) {
+			failed = append(failed, fmt.Sprintf("gate rule case %q: rule %q (%s), want %q (%s)", c.name, rule, why, c.want, c.why))
+		}
+	}
+	// policy gives the merge rules the five settings of the gate.
+	p := (&Ci{StatusPrefix: "den", ReviewMarker: "aec-review:v1", SecondPersonApproval: true, ReviewTimeoutHours: 2,
+		RequireReviewGate: true}).policy()
+	if p.StatusPrefix != "den" || p.ReviewMarker != "aec-review:v1" || !p.SecondPersonApproval ||
+		p.ReviewTimeout != 2*time.Hour || !p.RequireReviewGate {
+		failed = append(failed, fmt.Sprintf("gate rule case: policy %+v does not have the five settings of the gate", p))
+	}
+	return failed
+}
+
+// gateSnapshotCases: snapshotFrom reads what the review gate needs, live and
+// as of a merge.
+func gateSnapshotCases() []string {
+	at := func(d time.Duration) *time.Time {
+		t := fixtureTime.Add(d)
+		return &t
+	}
+	pr := &gqlPR{Number: 3, State: "OPEN", BaseRefName: "main", HeadRefOid: fixtureHead, HeadRefName: "feature",
+		IsCrossRepository: true, Author: &gqlActor{Typename: "User", Login: "alice"}}
+	pr.Reviews.TotalCount = 2
+	pr.Reviews.Nodes = []gqlReview{{Author: &gqlActor{Typename: "User", Login: "bob"}, State: "APPROVED",
+		SubmittedAt: at(-time.Hour), Commit: &struct{ Oid string }{fixtureHead}, Body: "Fine."}}
+	rollup := &gqlRollup{}
+	rollup.Contexts.Nodes = []gqlContext{
+		{Typename: "CheckRun", Name: "validate", Status: "COMPLETED", Conclusion: "SUCCESS", StartedAt: at(-3 * time.Hour), CompletedAt: at(-2 * time.Hour)},
+		{Typename: "CheckRun", Name: "deploy", Status: "COMPLETED", Conclusion: "SUCCESS", StartedAt: at(-100 * time.Minute), CompletedAt: at(-80 * time.Minute)},
+		{Typename: "CheckRun", Name: "lint", Status: "IN_PROGRESS", StartedAt: at(-time.Hour)},
+		{Typename: "StatusContext", Context: "den/review", State: "SUCCESS", Description: "bob approved", CreatedAt: at(-30 * time.Minute)},
+		{Typename: "StatusContext", Context: "build", State: "PENDING", CreatedAt: at(-20 * time.Minute)},
+	}
+	pr.Commits.Nodes = []gqlCommitNode{{}}
+	pr.Commits.Nodes[0].Commit.StatusCheckRollup = rollup
+	var failed []string
+	checkDone := func(when string, s prSnapshot, want map[string]*time.Time) {
+		got := map[string]string{}
+		for _, c := range s.Checks {
+			got[c.Name] = c.Done.String()
+		}
+		for name, t := range want {
+			w := time.Time{}.String()
+			if t != nil {
+				w = t.String()
+			}
+			if got[name] != w {
+				failed = append(failed, fmt.Sprintf("gate snapshot %s: check %s done %s, want %s", when, name, got[name], w))
+			}
+		}
+		if len(got) != len(want) {
+			failed = append(failed, fmt.Sprintf("gate snapshot %s: checks %v, want %d", when, got, len(want)))
+		}
+	}
+
+	live := snapshotFrom(pr, "main", false)
+	if !live.Fork || live.HeadRef != "feature" || !live.ReviewsIncomplete {
+		failed = append(failed, fmt.Sprintf("gate snapshot live: fork %t, head ref %q, reviews incomplete %t; want true, feature, true",
+			live.Fork, live.HeadRef, live.ReviewsIncomplete))
+	}
+	if len(live.Reviews) != 1 || live.Reviews[0].Body != "Fine." || !live.Reviews[0].At.Equal(*at(-time.Hour)) {
+		failed = append(failed, fmt.Sprintf("gate snapshot live: reviews %+v, want the body and the time of the review", live.Reviews))
+	}
+	if c, ok := (mergePolicy{StatusPrefix: "den"}).gateStatusOf(&live); !ok || c.Description != "bob approved" {
+		failed = append(failed, fmt.Sprintf("gate snapshot live: gate status %+v, want the description bob approved", c))
+	}
+	checkDone("live", live, map[string]*time.Time{"validate": at(-2 * time.Hour), "deploy": at(-80 * time.Minute),
+		"lint": nil, "den/review": at(-30 * time.Minute), "build": nil})
+
+	// As of a merge 90 minutes before fixtureTime: deploy was running, and
+	// lint, the review and the statuses came later.
+	merged := *pr
+	merged.State, merged.MergedAt = "MERGED", at(-90*time.Minute)
+	replay := snapshotFrom(&merged, "main", true)
+	if len(replay.Reviews) != 0 {
+		failed = append(failed, "gate snapshot replay: a review from after the merge counts")
+	}
+	checkDone("replay", replay, map[string]*time.Time{"validate": at(-2 * time.Hour), "deploy": nil})
+	return failed
+}
+
 func replayCases() []string {
 	merged := fixtureTime
 	early, late := merged.Add(-time.Hour), merged.Add(time.Hour)
@@ -259,12 +412,8 @@ func replayCases() []string {
 	add("LabeledEvent", "hold", early.Add(-time.Hour))
 	add("UnlabeledEvent", "hold", early)
 	add("LabeledEvent", "released", late)
-	pr.Reviews.Nodes = append(pr.Reviews.Nodes, struct {
-		Author      *gqlActor
-		State       string
-		SubmittedAt *time.Time
-		Commit      *struct{ Oid string }
-	}{&gqlActor{Typename: "Bot", Login: "chatgpt-codex-connector"}, "COMMENTED", &late, &struct{ Oid string }{fixtureHead}})
+	pr.Reviews.Nodes = append(pr.Reviews.Nodes, gqlReview{Author: &gqlActor{Typename: "Bot", Login: "chatgpt-codex-connector"},
+		State: "COMMENTED", SubmittedAt: &late, Commit: &struct{ Oid string }{fixtureHead}})
 	pr.Commits.Nodes = append(pr.Commits.Nodes, gqlCommitNode{})
 	rollup := &gqlRollup{}
 	earlier := early.Add(-time.Hour)

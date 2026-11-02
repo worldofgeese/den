@@ -124,6 +124,11 @@
       "id": "ckpt-review-gate-2",
       "summary": "The fixes of the two Codex findings on den#104: a marker block that does not parse counts as a block, and an approval by a deleted account does not stop the decision; 6 new fixtures and 3 new mutations",
       "input_digest": "sha256:0f415477d23f9869cd7c0a2776b0233861e882e4bb0927fe230f8325c2b4b34c"
+    },
+    {
+      "id": "ckpt-review-gate-validate-2",
+      "summary": "The validation record of the review fixes: plain decapod validate on 4ddd936 fails only on DecapodLabs/decapod#1474, which the owner approved",
+      "input_digest": "sha256:4064a435dd7aff1559c8bab2638159990bbf85b886f22079e842a866904c8abe"
     }
   ],
   "intents": {
@@ -191,7 +196,7 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:dc1438df8844400ca1712ce44f4434087e471c7ebd8d780eefa2fff70eadc509",
+      "artifact_hash": "sha256:5f25773e4b0a476cd4db52d821c84dc2e155af3ad2adc2afa434ce4bd6592135",
       "checks": [
         {
           "name": "baseline-dagger-check-facb1e5",
@@ -206,11 +211,19 @@
           "status": "passed"
         },
         {
+          "name": "commit-signature-4ddd936",
+          "status": "passed"
+        },
+        {
           "name": "dagger-check-worktree",
           "status": "passed"
         },
         {
           "name": "decapod-validate-1be5a00",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-4ddd936",
           "status": "failed"
         },
         {
@@ -231,6 +244,10 @@
         },
         {
           "name": "just-check-1be5a00",
+          "status": "passed"
+        },
+        {
+          "name": "just-check-4ddd936",
           "status": "passed"
         },
         {
@@ -258,7 +275,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -293,10 +310,17 @@
             "intent_id": "intent:change_01M6EQQ04D2CSPJ2PB1HES11B2",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M6EQQ06HN7TD3P64ZXSKGNV6",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M6EQQ04D2CSPJ2PB1HES11B2",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6EQQ06HN7TD3P64ZXSKGNV6": {
@@ -413,6 +437,25 @@
                 ],
                 "sequence": 6,
                 "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:7",
+                "observations": [
+                  "Commit 4ddd936: the pre-commit hook just check passed in 241 s. git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+                  "Plain decapod validate on 4ddd936: summary pass=185 fail=1 warn=5 skip=13 note=62. The only failure is publication_readiness (sections/validation, DecapodLabs/decapod#1474), which the owner approved."
+                ],
+                "proof_refs": [
+                  "commit-signature-4ddd936",
+                  "just-check-4ddd936",
+                  "decapod-validate-4ddd936"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs"
+                ],
+                "sequence": 7,
+                "validation_findings": []
               }
             ]
           }
@@ -430,10 +473,12 @@
       "evidence": [
         "Baseline on origin/main facb1e5 in the work branch: just dagger-check passed 11 of 11 checks in 37 s.",
         "Commit 1be5a00: the pre-commit hook just check passed in 232 s. git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+        "Commit 4ddd936: the pre-commit hook just check passed in 241 s. git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
         "Fix: markerBlocks now takes each HTML comment that starts with the marker name (a longer name such as aec-review:v10 is not a block), and the JSON decides after it; approvalRefusal refuses an empty login before any REST call. 6 new fixtures (79 gate cases), 3 new mutations (91 of 91 killed; the old expression fails 4 fixtures). just dagger-check 12 of 12 after dagger generate -y (source map lines) and specs.refresh.",
         "Live reads (dry run, GET only): with statusPrefix den, #94 and #99 of den would get success. With the planned AEC settings on LEGO/agentic-engineering-community, #139 has no aec-review:v1 review and its check finished 8 h before, so its row gives needs-human: review by a person: approve head bde122e074af?. The permission API gives admin, read and none; the activity API filters by ref and actor.",
         "Mutation tests (pr4-mutations.sh, copies under /tmp, deleted): 88 of 88 mutations fail fixtures. The first run found 6 gaps (a Codex summary of an older head, of a running review and of another login with unresolved findings; a check run with the name of the gate; the gate status time in the timeout case; fetch without its trees), and fixtures now cover each.",
         "Plain decapod validate on 1be5a00: summary pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness: READINESS_BLOCKED: Validation error: Cannot publish: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid). This is DecapodLabs/decapod#1474 (open). Validate moved only generated_at in .manifest.json, and the committed value is back.",
+        "Plain decapod validate on 4ddd936: summary pass=185 fail=1 warn=5 skip=13 note=62. The only failure is publication_readiness (sections/validation, DecapodLabs/decapod#1474), which the owner approved.",
         "Settings off: automerge-replay --count 30 and --count 100 give byte-identical tables with main facb1e5 and this branch (sha256 7a878d14 and 8d0f9cea; 29 of 30 and 32 of 83 accepted). automerge-dry-run #99 and #94 and shepherd --dry-run are identical too.",
         "The design is in the PR description before the code (~/.cache/aec-m/den-pr4-pr-body.md), as MintRaven asked: five settings, each empty by default, the function review-gate, the rule review-gate, and no change to shepherd.go.",
         "Work unit: the earlier attempt of the same PR 4 dispatch created todo bugs_01m6eqntbfzzs8g4 (18:17Z), claimed it (exclusive, ironunion-aec-m) and made this workspace, then stopped with an API error. This attempt ran the eval gate again (allow, sha256 6693a8de), ran session status in the worktree before it used the claim, and continued with that work unit instead of a duplicate todo.",
@@ -477,6 +522,7 @@
       "next_transitions": [
         "Checkpoint and commit the change, run plain decapod validate on the exact candidate, record the validation, push, open the PR",
         "Checkpoint and commit the fixes, validate the exact candidate, record the validation, push, reply to and resolve the two Codex threads",
+        "Checkpoint and commit this record, push, reply to and resolve the two Codex threads",
         "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],

@@ -70,6 +70,14 @@
       "proof_refs": [
         "trajectory:run_mother_checkpoint_swamp"
       ]
+    },
+    {
+      "id": "human-approved-publication",
+      "summary": "Record the explicit user approval to publish while the native-mode receipt blocker (decapod#1474) persists.",
+      "input_digest": "sha256:f9152fc1e9c9f6195f28dc8531b2a3b8140df13e086e75d64600f01c7f3d7cf1",
+      "proof_refs": [
+        "https://github.com/DecapodLabs/decapod/issues/1474"
+      ]
     }
   ],
   "intents": {
@@ -122,11 +130,15 @@
       "active_boundaries": [
         "No firmware or DSM/SRM installer actions. Existing backup jobs, SSH restrictions and credentials stay unchanged."
       ],
-      "artifact_hash": "sha256:4e025b0c54fd0cd0394649538fbe3a2573b0a3a6cf343cb989c3fb2f995ef8cd",
+      "artifact_hash": "sha256:560d8f9492b6f2e8910c6a1dd50ac741629d5a55318f589b1e488bb7851a91d8",
       "checks": [
         {
           "name": "alejandra",
           "status": "passed"
+        },
+        {
+          "name": "decapod-validate",
+          "status": "failed"
         },
         {
           "name": "fleet-maintenance-tests",
@@ -157,7 +169,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "candidate-ready",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -178,10 +190,24 @@
             "intent_id": "intent:run_mother_checkpoint_swamp",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:run_mother_checkpoint_swamp",
+            "event_id": "event:5",
+            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:run_mother_checkpoint_swamp",
+            "event_id": "event:6",
+            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "run_mother_checkpoint_swamp": {
@@ -231,6 +257,34 @@
                 "validation_findings": [
                   "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
                 ]
+              },
+              {
+                "action": "publication-blocked",
+                "custody_event_id": "event:5",
+                "observations": [],
+                "proof_refs": [
+                  "decapod-validate"
+                ],
+                "scope": [
+                  "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "On 2026-11-02 at 06:32 UTC, the user explicitly approved opening the PR. Local decapod validate cannot reach publication_ready in native mode because no command writes the required sections/validation receipt (DecapodLabs/decapod#1474). Every other local gate passes. Merge gating relies on the required GitHub checks den/dagger-check and validate."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
+                ],
+                "sequence": 6,
+                "validation_findings": [
+                  "PR opened without a local publication_ready=true, under explicit human approval. The blocker is DecapodLabs/decapod#1474."
+                ]
               }
             ]
           }
@@ -239,6 +293,7 @@
       "declared_commands": [],
       "evidence": [
         "On 2026-11-01, two live runs verified. The direct run made snapshot 88b1a016. The Swamp service run 99fa57f6 succeeded and made snapshot 02562414. Each passed restic check --read-data and restored a byte-identical archive with 353,662 entries, 14 PostgreSQL exports and 3 intact SQLite databases.",
+        "On 2026-11-02 at 06:32 UTC, the user explicitly approved opening the PR. Local decapod validate cannot reach publication_ready in native mode because no command writes the required sections/validation receipt (DecapodLabs/decapod#1474). Every other local gate passes. Merge gating relies on the required GitHub checks den/dagger-check and validate.",
         "The read-only SRM API, behind the pinned certificate, reported three nodes on SRM 1.3.2-9366 Update 3. Mesh status was good, no upgrade was pending, and no patch was available.",
         "Three historical done-but-unverified records were reset with decapod qa verify prune, on the user decision. The deadlock is filed upstream as DecapodLabs/decapod#1473.",
         "nix eval for nixosConfigurations.paphos passes. 23 tests, ty, shellcheck, alejandra and the decapod override check pass."
@@ -271,7 +326,9 @@
       ],
       "run_id": "run_mother_checkpoint_swamp",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "PR opened without a local publication_ready=true, under explicit human approval. The blocker is DecapodLabs/decapod#1474."
+      ],
       "task_id": "feat_01m6b5dpmhpyqacw",
       "tool_calls": [],
       "unresolved_assumptions": [

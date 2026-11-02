@@ -72,7 +72,11 @@
     "claim:other-deploy-targets-unchanged": {
       "statement": "No deploy target other than M-02877 changes. The drvPaths of homeConfigurations.worldofgeese.activationPackage and nixOnDroidConfigurations.pixel-fold.activationPackage are the same on main 376ddae and on the candidate. paphos and oracle record the den commit in /etc/den-revision (modules/deploy-revision.nix), so their toplevel drvPath changes with each commit. With that record forced to a constant, their drvPaths are the same on 376ddae and on the candidate.",
       "falsifier": "The eval-targets drvPath of the worldofgeese home or of pixel-fold on the candidate differs from main 376ddae (z5smx0kilnx1am6hfcpmy1958ar6had8, birl2h06dblfcal1z99zi7nr5vss0ixk), or the drvPath of paphos or oracle with a constant revision record differs between 376ddae and the candidate.",
-      "status": "open"
+      "status": "supported",
+      "proof_refs": [
+        "constant revision record: paphos myfbqvvc014f50w6dxi9afc8x9ssprdq and oracle l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1 on 376ddae and on the candidate",
+        "eval-targets run 41461732426 on 9a96e56: worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8, pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk, equal to run 41448751328 on 376ddae"
+      ]
     },
     "claim:signing-without-agent": {
       "statement": "Signing on M-02877 does not need the key in the SSH agent. With no agent, or with an agent that does not hold the key, ssh-keygen reads ~/.ssh/my_ssh_key.",
@@ -103,6 +107,15 @@
       "proof_refs": [
         "just check in the pre-commit hook of 14c4ecb: passed",
         "just dagger-check on 14c4ecb: 8 of 8 passed"
+      ]
+    },
+    {
+      "id": "ckpt-git-signing-3-validate",
+      "summary": "Record plain decapod validate on 9a96e56 (pass=186 fail=1, only DecapodLabs/decapod#1474, owner-approved), the eval-targets drvPath comparison and the supported claims. Keep the manifest generated_at that validation refreshed.",
+      "input_digest": "sha256:c9bff653e96c7246cac7eba7b33486827eeab1de74f09aed6c250ef6053af984",
+      "proof_refs": [
+        "decapod validate on 9a96e56: pass=186 fail=1 warn=5 skip=13, publication_readiness READINESS_BLOCKED sections/validation (decapod#1474)",
+        "eval-targets run 41461732426 on 9a96e56: worldofgeese home and pixel-fold drvPaths equal main 376ddae"
       ]
     }
   ],
@@ -175,7 +188,7 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:68f39e0019d138335ffc233d971d17438cd32b14e30b2d1805fce174cdb36cf8",
+      "artifact_hash": "sha256:5b4a237b477e8192779e860ba28a86a0e4d77408a8091bf5d7d441e6933be7b5",
       "checks": [
         {
           "name": "alejandra-dktaohan",
@@ -199,6 +212,18 @@
         },
         {
           "name": "darwin-build-M-02877",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate-9a96e56",
+          "status": "failed"
+        },
+        {
+          "name": "drvpath-worldofgeese-pixel-fold-unchanged",
+          "status": "passed"
+        },
+        {
+          "name": "eval-targets-9a96e56",
           "status": "passed"
         },
         {
@@ -238,7 +263,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "validation",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -287,10 +312,24 @@
             "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
             "kind": "trajectory_step_recorded",
             "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
+          },
+          {
+            "detail": "trajectory:branch_01M6E7P7G7M96ER2W4JPWQ2T28",
+            "event_id": "event:10",
+            "intent_id": "intent:change_01M6E7P7D9Q3A9P14KBZEFS8VC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 10
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 8,
+        "next_sequence": 10,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6E7P7G7M96ER2W4JPWQ2T28": {
@@ -432,6 +471,51 @@
                 ],
                 "sequence": 8,
                 "validation_findings": []
+              },
+              {
+                "action": "validation",
+                "command": "decapod validate",
+                "custody_event_id": "event:9",
+                "observations": [
+                  "Plain decapod validate on 9a96e56 (accepted target origin/main 376ddae): pass=186 fail=1 warn=5 skip=13 in 11.16 s; the --format json run: pass=185 fail=1 warn=5 skip=13. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid). That is DecapodLabs/decapod#1474: native validation never writes the receipt. The owner approved a PR with only this failure (prompt of 2026-11-02).",
+                  "The warnings are not blockers: risk map missing, STALE_SPECS_TEMPLATE scaffold-v4 against scaffold-v5, stale workspaces of other agents preserved, watcher audit trail missing, branch not pushed (before the push).",
+                  "decapod govern artifacts inventory --repair: sections/validation present and invalid (schema_or_integrity_invalid, receipt_must_bind_current_trajectory); the remediation is to run decapod validate again. governance.json did not change. This is the loop of #1474.",
+                  "The first validate run refreshed only generated_at in .decapod/managed/specs/.manifest.json; the second run applied no repair (self_heal empty)."
+                ],
+                "proof_refs": [
+                  "decapod-validate-9a96e56"
+                ],
+                "scope": [
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
+                ],
+                "sequence": 9,
+                "validation_findings": [
+                  "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+                ]
+              },
+              {
+                "action": "publish-with-human-override",
+                "command": "gh workflow run eval-targets.yml --ref agent/ironunion-aec-m/secu_01m6e7jy2y9he656-git-signing",
+                "custody_event_id": "event:10",
+                "observations": [
+                  "eval-targets run 41461732426 (workflow_dispatch) on 9a96e56: the five den/eval-* jobs passed. worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8 and pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk are the same as on main 376ddae (run 41448751328). paphos, oracle and M-02877 differ: paphos and oracle only by the den revision record (local drvPaths with a constant record are equal), M-02877 by this change.",
+                  "Owner approval: worldofgeese approved on 2026-11-02 that a den PR opens when its only decapod validate failure is DecapodLabs/decapod#1474 (task brief of AEC bead aec-trv). The merge gate of den stays the required checks den/dagger-check and validate, and the shepherd merges."
+                ],
+                "proof_refs": [
+                  "eval-targets-9a96e56",
+                  "drvpath-worldofgeese-pixel-fold-unchanged"
+                ],
+                "scope": [
+                  ".decapod/managed/specs",
+                  "modules/M-02877/dktaohan.nix",
+                  "modules/git-common.nix"
+                ],
+                "sequence": 10,
+                "validation_findings": [
+                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner approved this. Every other gate passed."
+                ]
               }
             ]
           }
@@ -439,7 +523,11 @@
       },
       "declared_commands": [
         "darwin-rebuild build --option warn-dirty false --flake .#M-02877",
+        "decapod govern artifacts inventory --repair --base-branch main",
         "decapod rpc --op specs.refresh",
+        "decapod validate",
+        "decapod validate --format json",
+        "gh workflow run eval-targets.yml --ref agent/ironunion-aec-m/secu_01m6e7jy2y9he656-git-signing",
         "git commit (pre-commit hook: just check)",
         "just dagger-check",
         "nix run --inputs-from . nixpkgs#alejandra -- --check modules/M-02877/dktaohan.nix"
@@ -457,15 +545,21 @@
         "GitHub API users/worldofgeese/ssh_signing_keys: one key, id 246143, the key of ~/.ssh/my_ssh_key.pub. github.com/worldofgeese.keys lists the same key for authentication.",
         "Intended change, phase 1: modules/M-02877/dktaohan.nix moves signing out of programs.git.settings into programs.git.signing (format ssh, key ~/.ssh/my_ssh_key.pub, signByDefault true, allowedSigners with the stopgap line), deletes the settings gpg.format line, and uses one let binding for the key path of signing and of programs.ssh github.com IdentityFile. Phase 2: ARCHITECTURE.md section Commit and Tag Signing, SECURITY.md provenance line and key row. Phase 3: proofs, validate, PR.",
         "Other deploy targets on the worktree: paphos and oracle drvPaths with a constant revision record are the same as on 376ddae (myfbqvvc014f50w6dxi9afc8x9ssprdq, l0ry1jz9yf0n1zvsmmrm47jcvawkpdc1). worldofgeese home git iniContent and xdg.configFile names, and pixel-fold git iniContent, are byte-identical to 376ddae.",
+        "Owner approval: worldofgeese approved on 2026-11-02 that a den PR opens when its only decapod validate failure is DecapodLabs/decapod#1474 (task brief of AEC bead aec-trv). The merge gate of den stays the required checks den/dagger-check and validate, and the shepherd merges.",
         "Pinned home-manager 095fef2 (modules/programs/git.nix) offers programs.git.signing.{key,format,signByDefault,signer,allowedSigners}. signByDefault sets commit.gpgSign and tag.gpgSign. allowedSigners writes $XDG_CONFIG_HOME/git/allowed_signers and sets gpg.ssh.allowedSignersFile. format ssh sets gpg.format and gpg.ssh.program (nixpkgs openssh ssh-keygen).",
+        "Plain decapod validate on 9a96e56 (accepted target origin/main 376ddae): pass=186 fail=1 warn=5 skip=13 in 11.16 s; the --format json run: pass=185 fail=1 warn=5 skip=13. The only failure: publication_readiness READINESS_BLOCKED, .decapod/governance.json#/sections/validation (invalid). That is DecapodLabs/decapod#1474: native validation never writes the receipt. The owner approved a PR with only this failure (prompt of 2026-11-02).",
         "Round trip with only the built config (GIT_CONFIG_GLOBAL=<built git/config>, GIT_CONFIG_NOSYSTEM=1): git commit makes 1 gpgsig header, verify-commit Good signature for tao.hansen@lego.com ED25519 SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U; git tag -a makes an SSH signature, verify-tag Good. Without SSH_AUTH_SOCK and with an empty agent, commits are signed and verify Good.",
         "Signing key form test (git 2.56.0, nixpkgs openssh 10.6p1 ssh-keygen): user.signingKey ~/.ssh/my_ssh_key.pub signs with the agent, with no agent, with an unreachable socket and with an empty agent. The literal public key fails without the agent (Couldn't get agent socket) and with an empty agent (Couldn't find key in agent), because git passes -U. So the key is the path.",
         "The deployed ~/.config/git/config on M-02877 has [signing] key and signbydefault (inert: git reads no signing.* keys). git config --show-origin: user.signingkey, commit.gpgsign, tag.gpgsign and gpg.ssh.allowedsignersfile come only from the ~/.gitconfig stopgap.",
+        "The first validate run refreshed only generated_at in .decapod/managed/specs/.manifest.json; the second run applied no repair (self_heal empty).",
+        "The warnings are not blockers: risk map missing, STALE_SPECS_TEMPLATE scaffold-v4 against scaffold-v5, stale workspaces of other agents preserved, watcher audit trail missing, branch not pushed (before the push).",
         "With tag.gpgSign, git tag <name> without -m asks for a tag message (fatal: no tag message? without an editor). The ~/.gitconfig stopgap has the same behavior today.",
         "alejandra --check modules/M-02877/dktaohan.nix: complies.",
         "darwin-rebuild build --flake .#M-02877 (no switch) exit 0 in 101 s: /nix/store/3pgy1gj244a0nhz3f4j4s9qr5hcc0dgi-darwin-system-26.11.ff0e21a. dktaohan home-manager-files 7zj673xjgg10sxizwkz6ssh4wbpqsnhm has .config/git/config, .config/git/allowed_signers and .config/git/ignore.",
+        "decapod govern artifacts inventory --repair: sections/validation present and invalid (schema_or_integrity_invalid, receipt_must_bind_current_trajectory); the remediation is to run decapod validate again. governance.json did not change. This is the loop of #1474.",
         "decapod govern artifacts verify-checkpoints --base-branch origin/main: ok.",
         "decapod rpc --op specs.refresh receipt 01M6E9CXEYMJ0A8WEQAANKS26J: manifest content hashes of ARCHITECTURE.md and SECURITY.md updated; git diff --check clean.",
+        "eval-targets run 41461732426 (workflow_dispatch) on 9a96e56: the five den/eval-* jobs passed. worldofgeese home z5smx0kilnx1am6hfcpmy1958ar6had8 and pixel-fold birl2h06dblfcal1z99zi7nr5vss0ixk are the same as on main 376ddae (run 41448751328). paphos, oracle and M-02877 differ: paphos and oracle only by the den revision record (local drvPaths with a constant record are equal), M-02877 by this change.",
         "just dagger-check on 14c4ecb: 8 of 8 checks passed in 46 s (ci/automerge-rules, ci/decapod-overrides, ci/decapod-validate, ci/fmt, ci/nix-eval, ci/shellcheck, ci/shepherd-rules, go-sdk/generate/stale)."
       ],
       "inspected_files": [
@@ -504,10 +598,14 @@
       ],
       "run_id": "branch_01M6E7P7G7M96ER2W4JPWQ2T28",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner approved this. Every other gate passed."
+      ],
       "task_id": "secu_01m6e7jy2y9he656",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+      ]
     }
   },
   "legacy_digests": {

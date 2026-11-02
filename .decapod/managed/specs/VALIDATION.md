@@ -152,6 +152,7 @@ the same alejandra and ShellCheck releases as a host.
 | none: `approve-bot-runs` | `ci:approve-bot-runs-rules` | The module's own Go: the live approval loop against a fake GitHub API and a fake clock. No network and no token |
 | none: the job kinds of `.github/workflows` | `ci:workflow-isolation` | The module's own Go: it reads the workflows with the table of the `jobKinds` setting. This repository sets no table, so the check is off and reads nothing |
 | none: the job kinds | `ci:workflow-isolation-rules` | The module's own Go: fixed workflows and a fixed table, with a case for each rule. No network and no token |
+| none: `review-gate` | `ci:review-gate-rules` | The module's own Go: the live gate against a fake GitHub API (GraphQL, the permission and activity APIs, and the statuses), and `fetch` with and without a file rule. No network and no token |
 | `check-doom-darwin` | none | It builds the Darwin Doom wrapper. A Linux engine cannot build for Darwin |
 | `check-guix` | none | It needs the pulled `guix` with the nonguix and rosenthal channels. Only a Guix host has them |
 | `install-hooks` | none | It installs the git hooks of a host checkout |
@@ -323,7 +324,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e0338c8eb82a5166854117ea33d00000a599c0174db2d9f8a42ffdf9df1b3f16`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (18 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `51b5339c3ca691cbdf5e123e18c4d7e1d3788cd0df96894348e53ad41e816f2f`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (20 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

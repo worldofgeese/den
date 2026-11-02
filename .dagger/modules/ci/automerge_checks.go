@@ -10,7 +10,9 @@ import (
 
 // The merge rules give the expected verdict for fixed pull requests and
 // settings, the risky-path patterns match the expected paths, and a replay
-// reads a merged pull request as of its merge. No network and no token.
+// reads a merged pull request as of its merge. The rules read file modes and
+// manifests from Git trees and blobs in the JSON of the GitHub REST API. No
+// network and no token.
 // +check
 func (m *Ci) AutomergeRules(_ context.Context) error {
 	var failed []string
@@ -18,6 +20,9 @@ func (m *Ci) AutomergeRules(_ context.Context) error {
 	failed = append(failed, policyCases()...)
 	failed = append(failed, riskyPathCases()...)
 	failed = append(failed, replayCases()...)
+	failed = append(failed, filesCases()...)
+	failed = append(failed, sourceCases()...)
+	failed = append(failed, treeCases()...)
 	if len(failed) > 0 {
 		return errors.New(strings.Join(failed, "\n"))
 	}

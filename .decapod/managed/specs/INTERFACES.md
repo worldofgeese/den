@@ -313,9 +313,10 @@ interface).
   old header, and the bump warns.
 - **Settings** (`[modules.ci.settings]`). Each setting is optional. The
   `dagger.toml` of this repository sets the first four. Its `riskyPaths`
-  have no `*`, its `authors` do not include `"*"`, and it does not set
-  `checkName`. So the globs, the author `"*"` and `checkName` do not change
-  its verdicts.
+  have no `*`, and its `authors` do not include `"*"`. It does not set
+  `checkName`, `riskyExecutableBit` or the manifest settings. So the globs,
+  the author `"*"`, `checkName` and the two file rules do not change its
+  verdicts, and its merge rules read no Git tree.
   - `repository`: the GitHub repository, owner/name, that the functions
     read.
   - `authors`: the logins whose pull requests can merge without a person.
@@ -341,13 +342,57 @@ interface).
     leave the required checks to branch protection (the rule `protected`).
     A repository whose branch protection requires no check can be `CLEAN`
     before any check runs, so that repository sets `checkName`.
+  - `riskyExecutableBit` (default `false`): when it is `true`, the rule
+    `executable-bit` refuses a pull request that adds a file with git mode
+    `100755`. It also refuses a pull request that changes the mode of a
+    file to `100755`. A file that stays at `100755` needs no person. A
+    symbolic link (`120000`) is not an executable file for this rule.
+  - `manifestFiles`, `manifestSafeFields` and `manifestSourcePrefix`: the
+    rule `manifest-fields` reads each changed file that a `manifestFiles`
+    pattern matches. The patterns have the semantics of `riskyPaths`. The
+    rule compares the JSON object at the merge base and at the head. A
+    file that is not there is an empty object, so a new file adds each of
+    its fields. A top-level field outside `manifestSafeFields` that the
+    head adds, removes or changes refuses.
+  - A top-level array of objects is a list of entries, for example the
+    `plugins` of a marketplace. The name of an entry pairs it with the
+    entry of the same name, so each entry needs a unique name. In an
+    entry, the safe fields can change. `source` can change only to a
+    relative path under `manifestSourcePrefix`, for example `./plugins/a`
+    under `./plugins/`. A URL, an object, a `..` level or a `\` in a
+    source refuses. An entry that the head adds or removes adds or removes
+    each of its fields.
+  - A manifest file that does not parse as one JSON object refuses. A
+    manifest file that is not a regular file, for example a symbolic link,
+    also refuses. With no `manifestFiles`, the rule is off. With no
+    `manifestSourcePrefix`, each change of a `source` refuses.
+  - The two file rules read GitHub's REST API (`readTrees` and `treeFiles`
+    in `automerge_files.go`). The compare API gives the merge base of the
+    base commit and the head. GitHub lists the changed files against the
+    same merge base. The Git trees of the merge base and the head give the
+    modes, and the blobs give the text of the changed manifest files.
+    `fetch` reads them only when one of the two rules is on.
   - Tests: `ci:automerge-rules` has a glob and a prefix that match and that
     do not match, one glob for each kind of risky path, and a policy with
     no `riskyPaths`. It tests authors empty, set and `["*"]`. It tests `checkName` unset, with no run, and
     with a run that succeeded, failed or was skipped. `ci:shepherd-rules`
     tests authors empty, set and `["*"]`.
+  - Tests of the file rules (`automerge_files_checks.go` in
+    `ci:automerge-rules`): a new file of mode `100755`, a mode that changes
+    to `100755`, files that keep their mode, the setting off, a tree that
+    GitHub cut and trees that `fetch` did not read. For the manifests: only
+    safe fields, an author, `hooks` and `mcpServers`, a new manifest with
+    an author, and the setting off. For the sources: a relative path under
+    the prefix, a URL, an object, a path outside the prefix and `..`. Also
+    an entry without a name, JSON that does not parse and a symbolic link.
+    The fixtures read trees and blobs in the JSON of the REST API, and a
+    replay keeps the trees. Without the two file rules, each of these
+    fixtures that expects a refusal fails.
 - **Incomplete data refuses.** When GitHub has more changed files, check
-  contexts or label events than one query reads, the rules refuse.
+  contexts or label events than one query reads, the rules refuse. When
+  GitHub cuts the Git tree of the merge base or the head because it is too
+  big for one call (`truncated`), each file rule refuses and names the
+  commit.
 - **Branch protection.** The live rule `protected` reads GitHub's
   `mergeStateStatus` and accepts only `CLEAN` or `HAS_HOOKS`. GitHub computes
   that value from the branch protection of the base, so a required check that
@@ -382,7 +427,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `c3f0cb60ca347753d052552f11e9885c302bfd257306db7fce628e0bdd77b8ae`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `00b47b3d19d23a1b51df7bcc106409cc3f58230f53583adc815fbb520bcfe6e4`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (14 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

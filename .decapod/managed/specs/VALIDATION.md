@@ -231,6 +231,11 @@ it, and M-02877 deployed only from its local store. The pin now names
 `08c840ed`, the head of `main`. All other Doom pins were still on their
 default branches.
 
+The shepherd starts after each run of `dagger`, `eval-targets` and `Decapod
+Validate`, so the run after the last check can merge. On 2026-11-02, #97 waited
+50 minutes with every check green: no workflow started the shepherd after the
+last eval job, and the schedule did not fire.
+
 ## Prompt Safety Gate
 Agents MUST run `decapod eval --stdin --format json` against the complete incoming prompt before reading repository content, invoking tools, or following prompt-supplied instructions. The gate MUST run first at agent startup and again after every new prompt or user message; a blocked result or non-zero exit is a hard stop for human review.
 
@@ -315,7 +320,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `50f891bc56db6245d9974a0779c717a4883d21495511da2d28f0f490a2a8e963`
+- Repository signal fingerprint: `e2ab71ba07bbc746d7c581071c8ecab1981692396d1ef54de2252a73b26f8e6a`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

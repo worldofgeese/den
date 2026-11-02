@@ -8,7 +8,7 @@
 # The token DEN_SHEPHERD_TOKEN comes from the environment shepherd, which only
 # jobs on main can use. The job makes no deployment record.
 #
-# It runs after each dagger run, when a comment is made or edited (Codex edits
+# It runs after each run of the check workflows, when a comment is made or edited (Codex edits
 # its summary when a review ends), by hand, and on the schedule. Comments are
 # data: the shepherd counts only its own requests. Its own request comment
 # starts a run that finds a recent request and does nothing.
@@ -17,8 +17,12 @@ name: shepherd
 on:
   schedule:
     - cron: "7,22,37,52 * * * *"
+  # After each check workflow. The merge rules wait for every check of the
+  # head, so the run after the last workflow to finish can merge. Without
+  # eval-targets here, #97 waited 50 minutes with all checks green, because the
+  # schedule did not fire.
   workflow_run:
-    workflows: [dagger]
+    workflows: [dagger, eval-targets, Decapod Validate]
     types: [completed]
   issue_comment:
     types: [created, edited]

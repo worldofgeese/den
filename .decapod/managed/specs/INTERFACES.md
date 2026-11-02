@@ -343,11 +343,15 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 `completed_snapshot` requires a newer `lastBackupAt`, status `success`, no error, and no active backup task. It also requires a new snapshot identifier, the correct job tag, the expected source path, and a timestamp after the trigger. A `warning` result cannot pass.
 
+## Deploy Report Issues
+
+`scripts/deploy-report.py [--dry-run]` writes issues titled `deploy: <host>: <step>` with the label `deploy-report` in `worldofgeese/den`. The title is the deduplication key. The report opens an issue for a new failing step and closes an open one when a reachable host passes that step. `--dry-run` prints the planned changes and writes nothing. Each NixOS host must provide `/etc/den-revision`, the `BUILD_ID` line of `/etc/os-release`, and SSH access from M-02877 as configured in `~/.ssh/config`.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `a8a0862a365fa864afb86fa6c4ea434394ec6e6007433c59069f919f26eca482`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (6 files), `terraform/` (1 files)
+- Repository signal fingerprint: `20e29ee6a7565b003eb608f3a7740888561f54e09eaaa11b24520035dea8b16c`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

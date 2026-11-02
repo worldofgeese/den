@@ -1069,11 +1069,17 @@ Swamp authentication passed with the supplied API key through `SWAMP_API_KEY_FIL
 
 The checkpoint caller passes offline tests for stale receipts, changed bindings, old success results, partial backups, bounded copies, and restored artifacts. Its simulated full run requires restoration before cleanup. Two live runs passed on 2026-11-01. A direct run made snapshot `88b1a016`. A run through the Swamp service made `02562414`. Each run restored a byte-identical archive and passed all its archive checks. The Zerobyte API has no per-repository key scopes. The user approved a dedicated key without expiry and with organization-wide access. The user timer `mother-recovery-checkpoint.timer` runs the workflow at 00:30 UTC each day. `paphos-health-check` reports `mother-checkpoint-stale-Nh` or `mother-checkpoint-never` when the heartbeat from loving-kypris stops.
 
+## Deploy Report and loving-kypris Liveness
+
+`scripts/deploy-report.py` is plan step P8. The launchd agent `com.dktaohan.den-deploy-report` on M-02877 runs it at 08:15 each day. For paphos, oracle and M-02877 it reads the den commit in `/etc/den-revision` and the nixpkgs revision. `modules/deploy-revision.nix` writes that file from the flake revision. The report asks GitHub how many commits of main the deployed commit lacks. It keeps one open issue with the label `deploy-report` for each failing step: `unreachable`, `upgrade-failed`, `den-revision-unknown`, `den-behind-main` (older than 36 hours), `nixpkgs-stale` (14 days) or `reboot-pending` (2 days). A later report that sees the step pass closes its issue. An unreachable host closes nothing. The issue shepherd of plan P7 must not close these issues. mahakala and pixel-fold record no den commit, so the report does not judge them.
+
+`paphos-loving-kypris-liveness` samples loving-kypris every 2 minutes from paphos, as two targets: the host and Home Assistant. A target that fails for 10 minutes without a break sends one Telegram alert. The alert repeats every 2 hours while the target stays down. The first passing sample sends a recovery message. The check only reports and never power-cycles. The firmware job on paphos now fails on every `fwupdmgr` exit code except 0 and 2 (nothing to do), and `paphos-health-check` reports `firmware-update-failed`.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `a8a0862a365fa864afb86fa6c4ea434394ec6e6007433c59069f919f26eca482`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (6 files), `terraform/` (1 files)
+- Repository signal fingerprint: `20e29ee6a7565b003eb608f3a7740888561f54e09eaaa11b24520035dea8b16c`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

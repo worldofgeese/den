@@ -130,11 +130,14 @@ requires the checks `den/dagger-check` and `validate`, and the rules also
 refuse until GitHub reports that branch protection lets the head merge. Each
 refusal names its rule and its reason. A pull request from an author outside the list gets the checks
 only. The shepherd asks the Codex connector to review each new head, so a
-head does not wait for a person to ask (plan P3). Until plan P4 merges by
-itself, the rules only judge, with `automerge-dry-run`, `automerge-replay`
-and the verdict column of the shepherd, and a person or an agent merges. An
-agent merges only a head that the last report of the shepherd calls
-mergeable. The flake inputs change only through the nightly bump PR, so a
+head does not wait for a person to ask (plan P3). The shepherd merges by
+itself (plan P4, step 2): in each run it merges at most one pull request that
+the rules accept, and it pins the merge to the head commit that it judged. A
+merge changes the base of the other pull requests, so the next run judges them
+again. Step 2 started after 10 pull requests where the report of the shepherd
+agreed with the merge (bead home-manager-1l3.5). To stop live merges, remove
+`--merge` from `.github/workflows/shepherd.yml`, or label a pull request
+`hold`. The flake inputs change only through the nightly bump PR, so a
 deploy of M-02877 uses only inputs that CI checked (plan P6).
 
 ## First Implementation Slice
@@ -194,7 +197,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `cd8a45b7a5bdf08405653365c86ba1df985313e42e9d5c69ce74fc515b61d92e`
+- Repository signal fingerprint: `8c05eef2e51ab27597cb01a77a0743692c18b673903ca65d6eba9167a1f812a6`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (4 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

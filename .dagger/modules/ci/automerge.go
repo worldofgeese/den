@@ -638,14 +638,26 @@ func (m *Ci) AutomergeDryRun(
 	return fmt.Sprintf("#%d: %s\n", pr, m.verdict(repo)), nil
 }
 
+// decision judges an open pull request by the merge rules. It returns whether
+// the rules accept the pull request, the verdict text, the full head commit
+// that was judged, and the merge method.
+func (m *Ci) decision(repo *gqlRepo) (bool, string, string, string) {
+	s := snapshotFrom(repo.PullRequest, repo.DefaultBranchRef.Name, false)
+	if rule, why := judge(&s, m.policy(), false); rule != "" {
+		return false, fmt.Sprintf("would not merge (%s): %s", rule, why), s.Head, ""
+	}
+	method := mergeMethod(repo)
+	if method == "none" {
+		return false, "would not merge (method): the repository allows no merge method", s.Head, ""
+	}
+	return true, fmt.Sprintf("would merge head %s with the %s method", short(s.Head), method), s.Head, method
+}
+
 // verdict judges an open pull request by the merge rules, and says what a
 // merge would do.
 func (m *Ci) verdict(repo *gqlRepo) string {
-	s := snapshotFrom(repo.PullRequest, repo.DefaultBranchRef.Name, false)
-	if rule, why := judge(&s, m.policy(), false); rule != "" {
-		return fmt.Sprintf("would not merge (%s): %s", rule, why)
-	}
-	return fmt.Sprintf("would merge head %s with the %s method", short(s.Head), mergeMethod(repo))
+	_, text, _, _ := m.decision(repo)
+	return text
 }
 
 // Judge the newest merged pull requests as of their merge, and print a

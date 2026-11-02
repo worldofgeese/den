@@ -188,6 +188,9 @@ Each phase is one bead under home-manager-1l3. Each phase ends with its proof.
   - The default engine of the CLI does not start in Apple's container runtime (`/proc/sys/net/ipv4/ip_forward: read-only file system`). The podman VM's DNS does not answer AAAA queries for names without IPv6 records. `just dagger-check` makes a podman engine with a public resolver.
   - The cold run took 229 s. After the fixes, a run took 25 s, and `ci:nix-eval` took 23.5 s from the cache volume.
   - Item 1 named `ghcr.io/decapodlabs/decapod:v0.111.6-debian`. The checks read the image from `Dockerfile.decapod`, which is 0.121.1 today.
+- **P4 (done).** Step 1 (#82) reported the verdict of the merge rules in the shepherd table. On 2026-11-02, after 10 pull requests where the report agreed with the merge (the last of them #95; bead home-manager-1l3.5 lists them all), step 2 gave the shepherd `--merge`. In each run it merges at most one accepted pull request, with `PUT /pulls/{n}/merge` and the `sha` of the judged head, so a later push to the same pull request cannot merge without a new verdict.
+- **P6 (done).** The nightly bump of the flake inputs runs through a PR (#85, #88).
+- **P8 (done).** The deploy report (#93, #95): `scripts/deploy-report.py` and the launchd agent `com.dktaohan.den-deploy-report` on M-02877.
 
 ## Metrics
 

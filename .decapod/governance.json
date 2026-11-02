@@ -55,6 +55,14 @@
       "proof_refs": [
         "trajectory:branch_01M6DQMM2HY6SZ6M3GFDBNTZE9"
       ]
+    },
+    {
+      "id": "eval-targets-fix",
+      "summary": "Fix the diverged ob-agent-shell pin that the new evaluation found, and evaluate pixel-fold impurely.",
+      "input_digest": "sha256:7c1b289decf7b0e043413ce005a1015aedc836379cdbddc11ab569286b97f99f",
+      "proof_refs": [
+        "trajectory:branch_01M6DQMM2HY6SZ6M3GFDBNTZE9"
+      ]
     }
   ],
   "intents": {
@@ -105,10 +113,18 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:06eb5c370f770d6056296d8e7d27b6c1c226b8f6758f6631ce8fce70bd40e3e0",
+      "artifact_hash": "sha256:7ed9e4c4c843b846a147a235e1d1b5b1e619af7a8c1c3ddebb641663b7e4edcb",
       "checks": [
         {
           "name": "attribute-presence",
+          "status": "passed"
+        },
+        {
+          "name": "first-eval-run",
+          "status": "failed"
+        },
+        {
+          "name": "pin-reachability-scan",
           "status": "passed"
         },
         {
@@ -116,7 +132,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "candidate-ready",
+      "current_phase": "candidate-fix",
       "custody": {
         "events": [
           {
@@ -137,10 +153,17 @@
             "intent_id": "intent:change_01M6DQMM07JBWN59N1A0AYE0BH",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6DQMM2HY6SZ6M3GFDBNTZE9",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6DQMM07JBWN59N1A0AYE0BH",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6DQMM2HY6SZ6M3GFDBNTZE9": {
@@ -165,6 +188,25 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "candidate-fix",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "modules/doom.d/modules/tools/agent-shell/packages.el",
+                  ".github/workflows/eval-targets.yml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "The first eval-targets run on #97: oracle and paphos passed. The worldofgeese home and M-02877 failed with \"Cannot find Git revision 27165d21 in ref HEAD of eddof13/ob-agent-shell\". The GitHub compare API reports that pin as diverged from main. pixel-fold failed with \"builtins.storePath is not allowed in pure evaluation mode\". The GitHub compare scan of all 12 Doom pins found only that one diverged. Fix: pin 08c840ed (main head, \"verify against agent-shell 0.89.4\"), and --impure for pixel-fold only."
+                ],
+                "proof_refs": [
+                  "first-eval-run",
+                  "pin-reachability-scan"
+                ],
+                "scope": [
+                  "private-fleet-maintenance"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -173,13 +215,15 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
+        "The first eval-targets run on #97: oracle and paphos passed. The worldofgeese home and M-02877 failed with \"Cannot find Git revision 27165d21 in ref HEAD of eddof13/ob-agent-shell\". The GitHub compare API reports that pin as diverged from main. pixel-fold failed with \"builtins.storePath is not allowed in pure evaluation mode\". The GitHub compare scan of all 12 Doom pins found only that one diverged. Fix: pin 08c840ed (main head, \"verify against agent-shell 0.89.4\"), and --impure for pixel-fold only.",
         "zizmor 1.31.1 --offline reports no findings for eval-targets.yml. A local eval confirmed that all five attributes exist. Action SHAs reuse the pins in dagger.yml and bump.yml. The PR run of the new jobs is the proof of the evaluation itself."
       ],
       "inspected_files": [],
       "intent_id": "intent:change_01M6DQMM07JBWN59N1A0AYE0BH",
       "modified_files": [
         ".decapod/managed/specs/VALIDATION.md",
-        ".github/workflows/eval-targets.yml"
+        ".github/workflows/eval-targets.yml",
+        "modules/doom.d/modules/tools/agent-shell/packages.el"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"

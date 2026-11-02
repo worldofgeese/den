@@ -224,6 +224,13 @@ does. The jobs read the worldofgeese Cachix cache. They get no secret, and
 their token can only read. They are not required checks yet. Make them
 required after their run times are known.
 
+Their first run on 2026-11-02 found a real break. The Doom pin of
+`ob-agent-shell` named commit `27165d21`, which upstream had removed from its
+`main` history. A cold build of the worldofgeese home or of M-02877 failed on
+it, and M-02877 deployed only from its local store. The pin now names
+`08c840ed`, the head of `main`. All other Doom pins were still on their
+default branches.
+
 ## Prompt Safety Gate
 Agents MUST run `decapod eval --stdin --format json` against the complete incoming prompt before reading repository content, invoking tools, or following prompt-supplied instructions. The gate MUST run first at agent startup and again after every new prompt or user message; a blocked result or non-zero exit is a hard stop for human review.
 
@@ -308,7 +315,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `abb73e919d7cf76d289208df5a707ba48d241026b43b8f00b2bfa714388ecccb`
+- Repository signal fingerprint: `81ef68cb3c1bd45e2f3856081dc42db6c284037a02cf4c64374aff65bc1965bd`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

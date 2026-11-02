@@ -32,7 +32,7 @@
   :pin "93a6daa466363aab53af5b013a083d79c88e1f09")
 (package! ob-agent-shell
   :recipe (:host github :repo "eddof13/ob-agent-shell")
-  :pin "27165d21b8975788f35e4b4b4a8aa2589ae615fe")
+  :pin "08c840edac37cf8af051882ba3564aa9e89cde9f")
 (package! agent-recall
   :recipe (:host github :repo "Marx-A00/agent-recall")
   :pin "cd1eb493ad911e1907588b559ea79cd899f2d6d1")

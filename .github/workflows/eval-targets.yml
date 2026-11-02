@@ -44,9 +44,13 @@ jobs:
           - target: oracle
             runner: ubuntu-24.04-arm
             attr: nixosConfigurations.oracle.config.system.build.toplevel
+          # nix-on-droid reads the proot binary with builtins.storePath, which
+          # pure evaluation refuses; `nix-on-droid switch` also evaluates it
+          # impurely.
           - target: pixel-fold
             runner: ubuntu-24.04-arm
             attr: nixOnDroidConfigurations.pixel-fold.activationPackage
+            flags: --impure
           # Plain Nix on macOS: the runner has no nested virtualization, so no
           # Dagger engine.
           - target: M-02877
@@ -66,4 +70,7 @@ jobs:
       - name: Evaluate ${{ matrix.attr }}
         env:
           ATTR: ${{ matrix.attr }}
-        run: nix eval --raw --print-build-logs ".#${ATTR}.drvPath"
+          FLAGS: ${{ matrix.flags }}
+        # FLAGS is unquoted on purpose: it is empty or one fixed flag.
+        # shellcheck disable=SC2086
+        run: nix eval --raw --print-build-logs $FLAGS ".#${ATTR}.drvPath"

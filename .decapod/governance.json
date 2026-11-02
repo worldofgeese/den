@@ -62,6 +62,14 @@
       "proof_refs": [
         "trajectory:run_mother_checkpoint_swamp"
       ]
+    },
+    {
+      "id": "rebase-on-e3495b2",
+      "summary": "Rebase onto main e3495b2, approve the plan again, refresh the spec manifest.",
+      "input_digest": "sha256:58cb6dfb133531393da4feb35128aff9b6fe436ae49cc7bf55b1abf7def64877",
+      "proof_refs": [
+        "trajectory:run_mother_checkpoint_swamp"
+      ]
     }
   ],
   "intents": {
@@ -98,7 +106,7 @@
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
       "stop_conditions": [
         "An API warning, an old success, a stale receipt, a changed resource binding or a failed independent restore must not count as a verified checkpoint."
       ],
@@ -108,7 +116,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793600205Z"
+      "updated_at": "1793600437Z"
     },
     "trajectory": {
       "active_boundaries": [

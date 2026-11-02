@@ -85,9 +85,9 @@ func (r *Ci) AutomergeReplay(ctx context.Context, token *Secret, opts ...CiAutom
 	return response, q.Execute(ctx)
 }
 
-// The merge rules give the expected verdict for fixed pull requests, and a
-// replay reads a merged pull request as of its merge. No network and no
-// token.
+// The merge rules give the expected verdict for fixed pull requests and
+// settings, the risky-path patterns match the expected paths, and a replay
+// reads a merged pull request as of its merge. No network and no token.
 func (r *Ci) AutomergeRules(ctx context.Context) error {
 	if r.automergeRules != nil {
 		return nil
@@ -261,12 +261,19 @@ type CiOpts struct {
 	// The GitHub repository, owner/name, that the merge rules read.
 	Repository string
 	// Logins whose pull requests can merge without a person. A bot is
-	// app/<login>. With none, every pull request needs a person.
+	// app/<login>, and "*" is every author. With none, every pull request
+	// needs a person.
 	Authors []string
 	// The login whose review of the head counts. With none, nothing merges.
 	Reviewer string
-	// Path prefixes. A pull request that changes one is merged by a person.
+	// Path patterns. A pull request that changes a matching path is merged
+	// by a person. A pattern without "*" is a path prefix. A pattern with
+	// "*" must match the whole path: "*" matches in one level, and "**" as a
+	// level matches zero or more levels.
 	RiskyPaths []string
+	// A check whose newest run on the head must succeed. With none, branch
+	// protection names the checks that must pass.
+	CheckName string
 }
 
 func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
@@ -288,6 +295,10 @@ func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../..
 		// `riskyPaths` optional argument
 		if !querybuilder.IsZeroValue(opts[i].RiskyPaths) {
 			q = q.Arg("riskyPaths", opts[i].RiskyPaths)
+		}
+		// `checkName` optional argument
+		if !querybuilder.IsZeroValue(opts[i].CheckName) {
+			q = q.Arg("checkName", opts[i].CheckName)
 		}
 	}
 	q = q.Arg("ws", ws)

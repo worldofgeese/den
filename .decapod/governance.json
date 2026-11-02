@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "f0a956837d14bc63ed1e53f1d23860ee3be58cc6",
+    "accepted_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -31,7 +31,6 @@
       },
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
       "trajectory:10eccbd015927b8c": "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux.",
-      "trajectory:1df243fb5dea8cf5": "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back.",
       "trajectory:2e73ace6f8b455ed": "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
       "trajectory:2fc25673715437ce": "Headroom's model loading uses huggingface_hub and honors HF_HOME (the image sets no HF_* variables)",
       "trajectory:4b9d0230624a5890": "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to",
@@ -43,36 +42,124 @@
     }
   },
   "change": {
-    "id": "change_01M6DY6AJMMG7V3ZH56JXX29KA",
-    "base_commit": "f0a956837d14bc63ed1e53f1d23860ee3be58cc6",
+    "id": "change_01M6CATQGMTQVT6HZ72KY2SACA",
+    "base_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "claim:ci-authors-star": {
+      "statement": "authors = [\"*\"] accepts every author in the merge rules and in the shepherd, and an empty authors list still refuses each author.",
+      "falsifier": "A fixture with authors [\"*\"] refuses an author at the rule author or gets checks only from the shepherd, or a fixture with no authors accepts an author.",
+      "status": "supported",
+      "proof_refs": [
+        "ci:automerge-rules policyCases: no authors refuses, authors * accepts mallory",
+        "ci:shepherd-rules: no authors gives checks only, authors * gets a request",
+        "mutation test: the old author check fails both authors * cases"
+      ]
+    },
+    "claim:ci-check-name": {
+      "statement": "With checkName set, the rules refuse a head unless the newest run of that check on the head succeeded; with no checkName, no verdict changes.",
+      "falsifier": "A fixture with checkName set and no run, or only a skipped run, merges; a fixture with a failed run merges; or a fixture with no checkName refuses at required-check.",
+      "status": "supported",
+      "proof_refs": [
+        "ci:automerge-rules policyCases: checkName unset, succeeded, failed (checks), no run and skipped (required-check), commit status",
+        "ci:automerge-rules replayCases: checkName validate merges, deploy after the merge refuses at required-check",
+        "mutation test: with no required-check rule, 3 checkName cases fail"
+      ]
+    },
+    "claim:ci-den-defaults-unchanged": {
+      "statement": "With the settings of den (prefix riskyPaths, a list of authors, no checkName), the merge rules and the shepherd give the same verdicts as on main 687368d.",
+      "falsifier": "A ci:automerge-rules or ci:shepherd-rules case that passed on 687368d fails, or a den riskyPaths prefix stops matching a path that it matched with strings.HasPrefix.",
+      "status": "supported",
+      "proof_refs": [
+        "ci:automerge-rules riskyPathCases: secrets/ and secretspec. match as prefixes",
+        "just dagger-check: ci:automerge-rules and ci:shepherd-rules pass with every case of 687368d unchanged"
+      ]
+    },
+    "claim:ci-risky-path-globs": {
+      "statement": "A riskyPaths pattern with \"*\" matches the whole path, \"*\" stays in one level, \"**\" as a whole level matches zero or more levels, and a pattern without \"*\" matches as a prefix.",
+      "falsifier": "A matcher fixture of ci:automerge-rules fails, for example **/*.sh does not match a/b/run.sh, **/*.sh matches run.shx, or secrets/ matches modules/secrets/x.",
+      "status": "supported",
+      "proof_refs": [
+        "ci:automerge-rules riskyPathCases (25 cases) and policyCases glob cases pass",
+        "mutation test: the old strings.HasPrefix matcher fails 11 matcher cases and 1 policy case"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "shepherd-triggers",
-      "summary": "Start the shepherd after every check workflow.",
-      "input_digest": "sha256:17017e19168c279746c754425b5075da542ad0cdcf487c1119ec673170a4a22b",
+      "id": "ckpt-ci-settings-1",
+      "summary": "ci module: riskyPaths globs, authors \"*\" and checkName, with fixtures, regenerated bindings and the INTERFACES.md settings",
+      "input_digest": "sha256:37db241d23b3836749d7ab4d6cf85eec15ae7abc9eeb5ac1d5e3993f685537a6",
       "proof_refs": [
-        "trajectory:branch_01M6DY6AN3JVSPGEC8VD0KRGHF"
+        "just dagger-check: 8 checks pass after decapod rpc --op specs.refresh",
+        "mutation test: 17 new cases fail with the old rules"
+      ]
+    },
+    {
+      "id": "ckpt-ci-settings-merge-e3495b2",
+      "summary": "Merge origin/main e3495b2 (#91) into the branch. governance.json keeps the document of this pull request, and decapod rpc --op specs.refresh writes the manifest hashes of the merged specs.",
+      "input_digest": "sha256:67801db472e8e43acf31edcdbf2d797ab0c83d82e465e6629ace6e86c0c5974b",
+      "proof_refs": [
+        "decapod rpc --op specs.refresh (receipt 01M6DF3X5NZY90T2H87MR1S9ZJ)",
+        "git merge --no-ff --no-commit origin/main: conflicts only in governance.json and .manifest.json"
+      ]
+    },
+    {
+      "id": "ckpt-ci-settings-2",
+      "summary": "ci:automerge-rules tests a policy with no riskyPaths. INTERFACES.md says that den's dagger.toml has no '*' pattern, no author '*' and no checkName. The specs are refreshed.",
+      "input_digest": "sha256:c9e0edab8b1d71e5c7414c0445735d8b4c1774e6646a922b9011253222818aa4",
+      "proof_refs": [
+        "just dagger-check: 8 of 8 checks passed",
+        "mutation: a refusal on empty riskyPaths fails only the new case"
+      ]
+    },
+    {
+      "id": "ckpt-ci-settings-merge-8febc46",
+      "summary": "Merge origin/main 8febc46 (#92, #93) into the branch. governance.json keeps the document of this pull request and records the obligation trajectory:1df243fb5dea8cf5 of main as an unresolved assumption. decapod rpc --op specs.refresh writes the attestations and the manifest.",
+      "input_digest": "sha256:5598efc55fdb8facc48ddb54119ead1d587cf04a7e3e879e5e72fbad3ad67646",
+      "proof_refs": [
+        "git merge --no-ff --no-commit origin/main: conflicts only in governance.json, .manifest.json and the spec attestation blocks",
+        "just dagger-check on the merged tree: 8 of 8 checks passed"
+      ]
+    },
+    {
+      "id": "ckpt-ci-settings-validate-blocker",
+      "summary": "Record the plain decapod validate result: pass=185 fail=1, only the missing validation receipt of DecapodLabs/decapod#1474. The pull request waits for a human decision.",
+      "input_digest": "sha256:cd2b0ae73f94e01ebc45617f8d23eabdabf075c6785f6172a3a6d5793deec986",
+      "proof_refs": [
+        "decapod validate on 7d60297: publication_readiness READINESS_BLOCKED sections/validation (invalid)",
+        "https://github.com/DecapodLabs/decapod/issues/1474"
+      ]
+    },
+    {
+      "id": "ckpt-ci-settings-signed-squash",
+      "summary": "One SSH-signed commit on origin/main 040a18b replaces the 5 unsigned commits a2acf15, eae7f8d, 5a8c6ec, 7d60297 and 8d6baad, with the owner's approval. The change is identical: the three settings, their fixtures, the regenerated bindings and the INTERFACES.md settings. decapod rpc --op specs.refresh writes the attestations and the manifest.",
+      "input_digest": "sha256:cb41fff171181b9fddb23d36ca2d1a7fc03a46636033f6f7d3ebc30a84d037ab",
+      "proof_refs": [
+        "Chorus task f4bbad07 comment 6228873b: owner decisions of 2026-11-02 (signing, force-push, PR with the decapod#1474 blocker)",
+        "https://github.com/DecapodLabs/decapod/issues/1474",
+        "just dagger-check on the squashed tree: 8 of 8 checks passed",
+        "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA": {
+    "intent:change_01M6CATQGMTQVT6HZ72KY2SACA": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "private-fleet-maintenance"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+      "id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Assess and design the Swamp fleet maintenance implementation\n\nUser chose loving-kypris for the limited encrypted NAS recovery backup. Inspect and reuse existing backup tooling, establish a consistent source view, preserve a recoverable encryption key, and verify restoration. Keep bulk media and the Drive internal repository excluded. No firmware update or reboot is part of backup preparation.",
-      "refined_intent": "Assess and design the Swamp fleet maintenance implementation\n\nUser chose loving-kypris for the limited encrypted NAS recovery backup. Inspect and reuse existing backup tooling, establish a consistent source view, preserve a recoverable encryption key, and verify restoration. Keep bulk media and the Drive internal repository excluded. No firmware update or reboot is part of backup preparation.",
+      "raw_intent": "den PR for shared-module merge options (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a, den PR 1 of the agreed order. The governance plan of the work branch holds the scope.",
+      "refined_intent": "den PR for shared-module merge options (Chorus f4bbad07)\n\nChorus task f4bbad07-d4ba-4e9c-95ed-d7f208d87a7a, den PR 1 of the agreed order. The governance plan of the work branch holds the scope.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -81,113 +168,527 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": []
+        "forbidden_paths": [
+          "dagger.toml",
+          "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md"
+        ]
       },
-      "deferred_questions": [],
+      "deferred_questions": [
+        "Does checkName also pin the workflow or the app of the check? Left to PR 4 (statusPrefix), in the PR description."
+      ],
       "human_questions": [],
-      "intent": "Add eval-targets and Decapod Validate to the workflow_run triggers of the shepherd, so the run after the last check can merge without waiting for the unreliable schedule.",
+      "intent": "Add three optional settings to the Dagger module .dagger/modules/ci. The empty value of each one keeps the current behavior of den. (a) riskyPaths: a pattern with \"*\" is a glob that must match the whole path, and \"**\" as a whole level matches zero or more levels. A pattern without \"*\" stays a path prefix, so the settings of den keep their meaning. (b) authors: an empty list still refuses, and \"*\" accepts every author, in the merge rules and in the shepherd. (c) checkName: when it is set, the newest run of that check on the head must succeed (new rule required-check). With no checkName, the rules rely on branch protection, as before. The values in dagger.toml do not change. Fixtures go in ci:automerge-rules and ci:shepherd-rules. INTERFACES.md (Dagger ci Module) describes the settings. Chorus task f4bbad07, AEC bead aec-16x.2, PR 1 of the order that MintRaven agreed.",
       "phases": [],
       "proof_hooks": [
+        "just dagger-check",
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Start the shepherd after every check workflow",
+      "stop_conditions": [
+        "A change to the merge flow in shepherd.go or automerge.go beyond these three rules: stop, and write the question in the PR description.",
+        "Decapod emits a Decision Gate, or a step needs a person."
+      ],
+      "title": "ci module: riskyPaths globs, authors \"*\" and checkName (AEC task M, den PR 1)",
       "todo_ids": [
-        "feat_01m6b5dpmhpyqacw"
+        "code_01m6bp4rpxzwke3w"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793616801Z"
+      "updated_at": "1793563999Z"
     },
     "trajectory": {
       "active_boundaries": [
+        ".dagger/modules/ci (reserved for this PR on the mesh)",
+        ".decapod/managed/specs/INTERFACES.md (Dagger ci Module section)",
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:ff9887ae0bfd3ff260ef62694b9c6cb0dfebdda173c1b390daf893e9ff724f00",
+      "artifact_hash": "sha256:c2bea739adb578519da163e21c6db38f3c9ba528b440cb79b095443a3e97b2ed",
       "checks": [
         {
-          "name": "zizmor-no-new-findings",
+          "name": "baseline-automerge-and-shepherd-rules",
+          "status": "passed"
+        },
+        {
+          "name": "change-identical-to-8d6baad",
+          "status": "passed"
+        },
+        {
+          "name": "ci-automerge-rules",
+          "status": "passed"
+        },
+        {
+          "name": "ci-decapod-overrides",
+          "status": "passed"
+        },
+        {
+          "name": "ci-decapod-validate",
+          "status": "passed"
+        },
+        {
+          "name": "ci-fmt",
+          "status": "passed"
+        },
+        {
+          "name": "ci-nix-eval",
+          "status": "passed"
+        },
+        {
+          "name": "ci-shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "ci-shepherd-rules",
+          "status": "passed"
+        },
+        {
+          "name": "dagger-check-merged-8febc46",
+          "status": "passed"
+        },
+        {
+          "name": "dagger-check-squash-040a18b",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-5a8c6ec",
+          "status": "failed"
+        },
+        {
+          "name": "fixture-mutation-test",
+          "status": "passed"
+        },
+        {
+          "name": "fixture-mutation-test-squash",
+          "status": "passed"
+        },
+        {
+          "name": "go-sdk-generate-stale",
+          "status": "passed"
+        },
+        {
+          "name": "go-vet",
+          "status": "passed"
+        },
+        {
+          "name": "gofmt",
+          "status": "passed"
+        },
+        {
+          "name": "rules-before-merge",
           "status": "passed"
         }
       ],
-      "current_phase": "candidate-ready",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6DY6AN3JVSPGEC8VD0KRGHF",
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:10",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 10
+          },
+          {
+            "detail": "trajectory:branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "event_id": "event:11",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 11
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 11,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6DY6AN3JVSPGEC8VD0KRGHF": {
+          "branch_01M6CATQJNV4SVJJ4Y3CKEQT9H": {
             "evidence_only": true,
-            "id": "branch_01M6DY6AN3JVSPGEC8VD0KRGHF",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "id": "branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
+            "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
             "steps": [
               {
-                "action": "candidate-ready",
+                "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".github/workflows/shepherd.yml",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  ".decapod/config.toml",
+                  ".decapod/OVERRIDE.md",
+                  "dagger.toml",
+                  ".dagger/modules/ci/main.go",
+                  ".dagger/modules/ci/automerge.go",
+                  ".dagger/modules/ci/automerge_checks.go",
+                  ".dagger/modules/ci/shepherd.go",
+                  ".dagger/modules/ci/shepherd_checks.go",
+                  ".decapod/managed/specs/INTERFACES.md",
                   ".decapod/managed/specs/VALIDATION.md",
-                  "The first live merge: a workflow_dispatch shepherd run (41431922636) merged #97 as f0a9568 (\"merged head 4076125c077a\"). Before that, #97 waited from 09:59 to 10:48 UTC with all 7 checks green, because no shepherd run came after the last eval job: the cron did not fire, and only dagger started workflow_run. zizmor reports the same 2 findings (workflow_run, issue_comment) before and after this change; the job checks out main only."
+                  "Justfile",
+                  "Baseline on 687368d: dagger check --check ci/automerge-rules --check ci/shepherd-rules on den-dagger-engine exits 0.",
+                  "Prior blocker cleared: cicd_01m6bnwergmd1444 is yielded with no owner, and the exclusive claim of code_01m6bp4rpxzwke3w succeeded (claim 01M6CARP65GJSYG61N3THJ7H4V)."
                 ],
                 "proof_refs": [
-                  "zizmor-no-new-findings"
+                  "baseline-automerge-and-shepherd-rules"
                 ],
                 "scope": [
-                  "private-fleet-maintenance"
+                  "root"
                 ],
                 "sequence": 4,
+                "validation_findings": [
+                  "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator."
+                ]
+              },
+              {
+                "action": "validation",
+                "command": "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".dagger/modules/ci/main.go",
+                  ".dagger/modules/ci/automerge.go",
+                  ".dagger/modules/ci/automerge_checks.go",
+                  ".dagger/modules/ci/shepherd.go",
+                  ".dagger/modules/ci/shepherd_checks.go",
+                  ".dagger/modules/ci/dagger.gen.go",
+                  ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "just dagger-check: 7 of 8 checks passed; ci:decapod-validate passed validation (171 pass, 0 fail) but showed spec drift until decapod rpc --op specs.refresh; after the refresh dagger check --check ci/decapod-validate exits 0.",
+                  "Mutation test: with the old strings.HasPrefix matcher, the old author loop and no required-check rule, ci:automerge-rules and ci:shepherd-rules fail 17 cases (13 matcher, 4 policy and replay) and pass again after the restore.",
+                  "ci:nix-eval skipped only aarch64-darwin.M-02877 (no remote builder), as VALIDATION.md describes."
+                ],
+                "proof_refs": [
+                  "ci-automerge-rules",
+                  "ci-shepherd-rules",
+                  "go-sdk-generate-stale",
+                  "ci-nix-eval",
+                  "ci-fmt",
+                  "ci-shellcheck",
+                  "ci-decapod-overrides",
+                  "ci-decapod-validate",
+                  "gofmt",
+                  "go-vet",
+                  "fixture-mutation-test"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 5,
+                "tool": "nix shell --inputs-from . nixpkgs#go -c gofmt -l .dagger/modules/ci (no file listed)",
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "Correction to the mutation-test count: the 17 cases that failed are 11 matcher cases, 4 policy cases, 1 replay case and 1 shepherd case."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "git merge --no-ff --no-commit origin/main",
+                "custody_event_id": "event:7",
+                "observations": [
+                  ".github/workflows/decapod-validate.yml",
+                  "scripts/decapod-validate-ci.sh",
+                  ".decapod/managed/specs/.manifest.json",
+                  "Third attempt: the exclusive claim 01M6DEZJJH2XFS1F6YM88DAWHR of code_01m6bp4rpxzwke3w succeeded after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone, because this worktree exists.",
+                  "Review of a2acf15 against the task: riskyPaths globs with a prefix for a pattern without '*', authors '*' in the merge rules and the shepherd, and checkName (rule required-check) match the spec. The empty value of each setting keeps the verdicts of main, and dagger.toml does not change.",
+                  "Before the merge: dagger check --check ci/automerge-rules --check ci/shepherd-rules passed on a2acf15 (2 passed).",
+                  "The uncommitted .manifest.json change moved only generated_at (1793564483Z to 1793564823Z). decapod-validate.yml and scripts/decapod-validate-ci.sh do not count that as drift and put the committed value back, so the committed value was put back before the merge.",
+                  "main moved to e3495b2 (#91: modules/omarchy.nix and OPERATIONS.md). origin/main was merged into the branch. governance.json keeps the document of this pull request, whose baseline is equal to the baseline of e3495b2. decapod rpc --op specs.refresh resolved the manifest conflict."
+                ],
+                "proof_refs": [
+                  "rules-before-merge"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "just dagger-check",
+                "custody_event_id": "event:8",
+                "observations": [
+                  ".dagger/modules/ci/automerge_checks.go",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "New policy case in ci:automerge-rules: with no riskyPaths, no path needs a person (secrets/a.age and .github/workflows/check.yml merge). A mutation that refuses an empty riskyPaths list fails only this case.",
+                  "Mutation test on the merged branch: the old prefix matcher, the old author check and no required-check together fail 16 cases of ci:automerge-rules (11 matcher, 4 policy, 1 replay).",
+                  "INTERFACES.md (Dagger ci Module, Settings): den's dagger.toml has no '*' in riskyPaths, no author '*' and no checkName, so the globs, the author '*' and checkName do not change its verdicts. The Tests bullet names the case with no riskyPaths.",
+                  "just dagger-check on the merged branch with these changes: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale)."
+                ],
+                "proof_refs": [
+                  "ci-automerge-rules",
+                  "ci-shepherd-rules",
+                  "ci-decapod-validate",
+                  "ci-decapod-overrides",
+                  "ci-fmt",
+                  "ci-nix-eval",
+                  "ci-shellcheck",
+                  "go-sdk-generate-stale",
+                  "gofmt",
+                  "go-vet",
+                  "fixture-mutation-test"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 8,
+                "tool": "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations (copy deleted after)",
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "git merge --no-ff --no-commit origin/main",
+                "custody_event_id": "event:9",
+                "observations": [
+                  "Custody gap: Decapod session cleanup (todo.session.cleanup at 1793600800Z) released claim 01M6DEZJJH2XFS1F6YM88DAWHR, because this worktree still had the expired session record of the earlier attempt. So eae7f8d and 5a8c6ec were committed with no live claim. No other agent claimed code_01m6bp4rpxzwke3w in that time.",
+                  "The claim came back as 01M6DJQJ7XAVPWMW3MAM1KD6Y1 at 1793604700Z, after the exclusive leases of copilot-mahakala and QuickWolf on the repository root ended.",
+                  "Another process used the agent ID ironunion-aec-m: it claimed code_01m6dg43ps33dyn7 of QuickWolf at 1793604939Z and tried a todo handoff at 1793605184Z. This worker did not touch that todo, and it put a comment on it.",
+                  "First plain decapod validate on 5a8c6ec: pass=185 fail=1. ENTRYPOINT_COMMIT_DISCIPLINE: the accepted base is not an ancestor of the candidate, because main moved to 8febc46 (#92, #93).",
+                  "origin/main 8febc46 was merged into the branch. The spec conflicts were only in the attestation blocks. governance.json keeps the document of this pull request, and decapod rpc --op specs.refresh wrote the attestations and the manifest of the merged tree.",
+                  "The baseline of 8febc46 has one obligation that this document does not have: trajectory:1df243fb5dea8cf5. It is recorded here with the same text as an unresolved assumption, so that the next PR boundary carries it with the same key.",
+                  "just dagger-check on the merged tree: 8 of 8 checks passed."
+                ],
+                "proof_refs": [
+                  "decapod-validate-5a8c6ec",
+                  "dagger-check-merged-8febc46"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 9,
+                "validation_findings": [
+                  "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
+                ]
+              },
+              {
+                "action": "publication-blocked",
+                "custody_event_id": "event:10",
+                "observations": [
+                  "Plain decapod validate on 7d60297 (origin/main 8febc46 is an ancestor): pass=185 fail=1 warn=5. The only failure is publication_readiness: READINESS_BLOCKED: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid).",
+                  "decapod govern artifacts inventory --repair, as the report says, exits 1 and changes no file. The validation section stays invalid (receipt_must_bind_current_trajectory), and its remediation is decapod validate again.",
+                  "This is DecapodLabs/decapod#1474 (open): in native mode no command writes the sections/validation receipt, so local validate cannot reach publication_ready. #92 merged after an explicit approval by the user. This run did not report the justfile error of #1470; the readiness stage stopped first at #1474.",
+                  "The task allows the PR only after decapod validate passes. So the branch is pushed, and the PR waits for a human decision."
+                ],
+                "proof_refs": [
+                  "decapod-validate"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 10,
+                "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "command": "git reset --hard origin/main",
+                "custody_event_id": "event:11",
+                "observations": [
+                  "Fourth attempt, 2026-11-02. The owner decided two things in Chorus comment 6228873b. First, open PR 1 although plain decapod validate fails only on DecapodLabs/decapod#1474, as for #92. Every other gate must pass. Second, every commit must be signed. The owner allowed a force-push of this branch, because it is ours and no PR uses it.",
+                  "The claim 01M6E3P3CRN5KZ4F17V2C2R9FZ of code_01m6bp4rpxzwke3w succeeded at 1793622477Z, after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone.",
+                  "The branch had 5 unsigned commits: a2acf15, eae7f8d, 5a8c6ec, 7d60297 and 8d6baad. den merges with merge commits, so they would land on main. git reset --hard origin/main (040a18b) and git merge --squash 8d6baad made one candidate. governance.json keeps the document of this change. The spec conflicts were only in the attestation blocks, and decapod rpc --op specs.refresh wrote them again.",
+                  "The squash keeps the change identical. For automerge.go, automerge_checks.go, main.go, shepherd.go, shepherd_checks.go and the INTERFACES.md prose, the added and removed lines against origin/main equal those of 8febc46..8d6baad. dagger generate -y wrote dagger.gen.go; its change differs only in SourceMap line numbers.",
+                  "just dagger-check on the squashed tree: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale). gofmt -l lists no file, and go vet passes.",
+                  "Mutation test on the squashed tree: the old prefix matcher fails 12 ci:automerge-rules cases. The old author check fails 1 of them and 1 ci:shepherd-rules case. No required-check rule fails 3, and a refusal of empty riskyPaths fails 1. The three old rules together fail 16 ci:automerge-rules cases and 1 ci:shepherd-rules case."
+                ],
+                "proof_refs": [
+                  "change-identical-to-8d6baad",
+                  "dagger-check-squash-040a18b",
+                  "fixture-mutation-test-squash"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "root"
+                ],
+                "sequence": 11,
+                "tool": "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations, on the squashed tree (copy deleted after)",
+                "validation_findings": [
+                  "The owner approved opening the PR without a local publication_ready=true. The blocker is DecapodLabs/decapod#1474."
+                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "DAGGER_ENGINE=container+podman://den-dagger-engine dagger generate -y",
+        "decapod rpc --op specs.refresh",
+        "decapod validate",
+        "git merge --no-ff --no-commit origin/main",
+        "git merge --squash 8d6baad",
+        "git push --force-with-lease",
+        "git reset --hard origin/main",
+        "just dagger-check",
+        "nix shell --inputs-from . nixpkgs#go -c gofmt -l .dagger/modules/ci"
+      ],
       "destination": "pull request",
       "evidence": [
-        "The first live merge: a workflow_dispatch shepherd run (41431922636) merged #97 as f0a9568 (\"merged head 4076125c077a\"). Before that, #97 waited from 09:59 to 10:48 UTC with all 7 checks green, because no shepherd run came after the last eval job: the cron did not fire, and only dagger started workflow_run. zizmor reports the same 2 findings (workflow_run, issue_comment) before and after this change; the job checks out main only."
+        "Another process used the agent ID ironunion-aec-m: it claimed code_01m6dg43ps33dyn7 of QuickWolf at 1793604939Z and tried a todo handoff at 1793605184Z. This worker did not touch that todo, and it put a comment on it.",
+        "Baseline on 687368d: dagger check --check ci/automerge-rules --check ci/shepherd-rules on den-dagger-engine exits 0.",
+        "Before the merge: dagger check --check ci/automerge-rules --check ci/shepherd-rules passed on a2acf15 (2 passed).",
+        "Correction to the mutation-test count: the 17 cases that failed are 11 matcher cases, 4 policy cases, 1 replay case and 1 shepherd case.",
+        "Custody gap: Decapod session cleanup (todo.session.cleanup at 1793600800Z) released claim 01M6DEZJJH2XFS1F6YM88DAWHR, because this worktree still had the expired session record of the earlier attempt. So eae7f8d and 5a8c6ec were committed with no live claim. No other agent claimed code_01m6bp4rpxzwke3w in that time.",
+        "First plain decapod validate on 5a8c6ec: pass=185 fail=1. ENTRYPOINT_COMMIT_DISCIPLINE: the accepted base is not an ancestor of the candidate, because main moved to 8febc46 (#92, #93).",
+        "Fourth attempt, 2026-11-02. The owner decided two things in Chorus comment 6228873b. First, open PR 1 although plain decapod validate fails only on DecapodLabs/decapod#1474, as for #92. Every other gate must pass. Second, every commit must be signed. The owner allowed a force-push of this branch, because it is ours and no PR uses it.",
+        "INTERFACES.md (Dagger ci Module, Settings): den's dagger.toml has no '*' in riskyPaths, no author '*' and no checkName, so the globs, the author '*' and checkName do not change its verdicts. The Tests bullet names the case with no riskyPaths.",
+        "Mutation test on the merged branch: the old prefix matcher, the old author check and no required-check together fail 16 cases of ci:automerge-rules (11 matcher, 4 policy, 1 replay).",
+        "Mutation test on the squashed tree: the old prefix matcher fails 12 ci:automerge-rules cases. The old author check fails 1 of them and 1 ci:shepherd-rules case. No required-check rule fails 3, and a refusal of empty riskyPaths fails 1. The three old rules together fail 16 ci:automerge-rules cases and 1 ci:shepherd-rules case.",
+        "Mutation test: with the old strings.HasPrefix matcher, the old author loop and no required-check rule, ci:automerge-rules and ci:shepherd-rules fail 17 cases (13 matcher, 4 policy and replay) and pass again after the restore.",
+        "New policy case in ci:automerge-rules: with no riskyPaths, no path needs a person (secrets/a.age and .github/workflows/check.yml merge). A mutation that refuses an empty riskyPaths list fails only this case.",
+        "Plain decapod validate on 7d60297 (origin/main 8febc46 is an ancestor): pass=185 fail=1 warn=5. The only failure is publication_readiness: READINESS_BLOCKED: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid).",
+        "Prior blocker cleared: cicd_01m6bnwergmd1444 is yielded with no owner, and the exclusive claim of code_01m6bp4rpxzwke3w succeeded (claim 01M6CARP65GJSYG61N3THJ7H4V).",
+        "Review of a2acf15 against the task: riskyPaths globs with a prefix for a pattern without '*', authors '*' in the merge rules and the shepherd, and checkName (rule required-check) match the spec. The empty value of each setting keeps the verdicts of main, and dagger.toml does not change.",
+        "The baseline of 8febc46 has one obligation that this document does not have: trajectory:1df243fb5dea8cf5. It is recorded here with the same text as an unresolved assumption, so that the next PR boundary carries it with the same key.",
+        "The branch had 5 unsigned commits: a2acf15, eae7f8d, 5a8c6ec, 7d60297 and 8d6baad. den merges with merge commits, so they would land on main. git reset --hard origin/main (040a18b) and git merge --squash 8d6baad made one candidate. governance.json keeps the document of this change. The spec conflicts were only in the attestation blocks, and decapod rpc --op specs.refresh wrote them again.",
+        "The claim 01M6E3P3CRN5KZ4F17V2C2R9FZ of code_01m6bp4rpxzwke3w succeeded at 1793622477Z, after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone.",
+        "The claim came back as 01M6DJQJ7XAVPWMW3MAM1KD6Y1 at 1793604700Z, after the exclusive leases of copilot-mahakala and QuickWolf on the repository root ended.",
+        "The squash keeps the change identical. For automerge.go, automerge_checks.go, main.go, shepherd.go, shepherd_checks.go and the INTERFACES.md prose, the added and removed lines against origin/main equal those of 8febc46..8d6baad. dagger generate -y wrote dagger.gen.go; its change differs only in SourceMap line numbers.",
+        "The task allows the PR only after decapod validate passes. So the branch is pushed, and the PR waits for a human decision.",
+        "The uncommitted .manifest.json change moved only generated_at (1793564483Z to 1793564823Z). decapod-validate.yml and scripts/decapod-validate-ci.sh do not count that as drift and put the committed value back, so the committed value was put back before the merge.",
+        "Third attempt: the exclusive claim 01M6DEZJJH2XFS1F6YM88DAWHR of code_01m6bp4rpxzwke3w succeeded after the lease of truephoenix on the repository root ended. DECAPOD_CLAIM_AUTORUN=0 kept the claim from making one more clone, because this worktree exists.",
+        "This is DecapodLabs/decapod#1474 (open): in native mode no command writes the sections/validation receipt, so local validate cannot reach publication_ready. #92 merged after an explicit approval by the user. This run did not report the justfile error of #1470; the readiness stage stopped first at #1474.",
+        "ci:nix-eval skipped only aarch64-darwin.M-02877 (no remote builder), as VALIDATION.md describes.",
+        "decapod govern artifacts inventory --repair, as the report says, exits 1 and changes no file. The validation section stays invalid (receipt_must_bind_current_trajectory), and its remediation is decapod validate again.",
+        "just dagger-check on the merged branch with these changes: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale).",
+        "just dagger-check on the merged tree: 8 of 8 checks passed.",
+        "just dagger-check on the squashed tree: 8 of 8 checks passed (ci:automerge-rules, ci:decapod-overrides, ci:decapod-validate, ci:fmt, ci:nix-eval, ci:shellcheck, ci:shepherd-rules, go-sdk:generate/stale). gofmt -l lists no file, and go vet passes.",
+        "just dagger-check: 7 of 8 checks passed; ci:decapod-validate passed validation (171 pass, 0 fail) but showed spec drift until decapod rpc --op specs.refresh; after the refresh dagger check --check ci/decapod-validate exits 0.",
+        "main moved to e3495b2 (#91: modules/omarchy.nix and OPERATIONS.md). origin/main was merged into the branch. governance.json keeps the document of this pull request, whose baseline is equal to the baseline of e3495b2. decapod rpc --op specs.refresh resolved the manifest conflict.",
+        "origin/main 8febc46 was merged into the branch. The spec conflicts were only in the attestation blocks. governance.json keeps the document of this pull request, and decapod rpc --op specs.refresh wrote the attestations and the manifest of the merged tree."
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
-      "modified_files": [
+      "inspected_files": [
+        ".dagger/modules/ci/automerge.go",
+        ".dagger/modules/ci/automerge_checks.go",
+        ".dagger/modules/ci/main.go",
+        ".dagger/modules/ci/shepherd.go",
+        ".dagger/modules/ci/shepherd_checks.go",
+        ".decapod/OVERRIDE.md",
+        ".decapod/config.toml",
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/VALIDATION.md",
-        ".github/workflows/shepherd.yml"
+        ".github/workflows/decapod-validate.yml",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "Justfile",
+        "dagger.toml",
+        "scripts/decapod-validate-ci.sh"
+      ],
+      "intent_id": "intent:change_01M6CATQGMTQVT6HZ72KY2SACA",
+      "modified_files": [
+        ".dagger/modules/ci/automerge.go",
+        ".dagger/modules/ci/automerge_checks.go",
+        ".dagger/modules/ci/dagger.gen.go",
+        ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
+        ".dagger/modules/ci/main.go",
+        ".dagger/modules/ci/shepherd.go",
+        ".dagger/modules/ci/shepherd_checks.go",
+        ".decapod/managed/specs/.manifest.json",
+        ".decapod/managed/specs/INTERFACES.md"
       ],
       "next_transitions": [
+        "A person decides about DecapodLabs/decapod#1474: approve the PR with the receipt blocker (as for #92), or wait for a Decapod release that writes the receipt. Then open the PR from this branch.",
+        "Commit the riskyPaths case and the INTERFACES.md correction, then run plain decapod validate against the exact candidate",
+        "Commit the squashed candidate with an SSH signature, run plain decapod validate on it, push it with --force-with-lease, open the PR to worldofgeese/den, and check that GitHub shows each commit as Verified",
+        "Implement the three settings with fixtures, regenerate the bindings, update INTERFACES.md, run just dagger-check, commit, then plain decapod validate",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "private-fleet-maintenance"
+        ".dagger/modules/ci",
+        ".decapod/managed/specs/INTERFACES.md",
+        "root"
       ],
-      "run_id": "branch_01M6DY6AN3JVSPGEC8VD0KRGHF",
+      "run_id": "branch_01M6CATQJNV4SVJJ4Y3CKEQT9H",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
-      "task_id": "feat_01m6b5dpmhpyqacw",
-      "tool_calls": [],
-      "unresolved_assumptions": []
+      "shortcut_risk_signals": [
+        "The owner approved opening the PR without a local publication_ready=true. The blocker is DecapodLabs/decapod#1474."
+      ],
+      "task_id": "code_01m6bp4rpxzwke3w",
+      "tool_calls": [
+        "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations (copy deleted after)",
+        "go test of AutomergeRules and ShepherdRules in a copy of the module under /tmp, with and without mutations, on the squashed tree (copy deleted after)",
+        "nix shell --inputs-from . nixpkgs#go -c go vet . in .dagger/modules/ci (exit 0)",
+        "nix shell --inputs-from . nixpkgs#go -c gofmt -l .dagger/modules/ci (no file listed)"
+      ],
+      "unresolved_assumptions": [
+        "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
+        "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
+      ]
     }
   },
   "legacy_digests": {

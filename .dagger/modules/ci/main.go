@@ -51,6 +51,8 @@ type Ci struct {
 	Reviewer string
 	// +private
 	RiskyPaths []string
+	// +private
+	CheckName string
 }
 
 func New(
@@ -60,21 +62,30 @@ func New(
 	// +optional
 	repository string,
 	// Logins whose pull requests can merge without a person. A bot is
-	// app/<login>. With none, every pull request needs a person.
+	// app/<login>, and "*" is every author. With none, every pull request
+	// needs a person.
 	// +optional
 	authors []string,
 	// The login whose review of the head counts. With none, nothing merges.
 	// +optional
 	reviewer string,
-	// Path prefixes. A pull request that changes one is merged by a person.
+	// Path patterns. A pull request that changes a matching path is merged
+	// by a person. A pattern without "*" is a path prefix. A pattern with
+	// "*" must match the whole path: "*" matches in one level, and "**" as a
+	// level matches zero or more levels.
 	// +optional
 	riskyPaths []string,
+	// A check whose newest run on the head must succeed. With none, branch
+	// protection names the checks that must pass.
+	// +optional
+	checkName string,
 ) *Ci {
 	return &Ci{
 		Repository: repository,
 		Authors:    authors,
 		Reviewer:   reviewer,
 		RiskyPaths: riskyPaths,
+		CheckName:  checkName,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

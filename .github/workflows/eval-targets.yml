@@ -1,0 +1,69 @@
+# Evaluates what each deploy evaluates, on a runner of the target's own
+# system (bead home-manager-1l3.10).
+#
+# modules/checks.nix forces package names, not activation packages: Doom's
+# import-from-derivation steps need a builder of the host's system, so
+# `dagger check` on one Linux engine cannot evaluate them (found in PR #80,
+# run 41290971141). Here each job forces the drvPath of the activation package
+# or the system toplevel on its own system. Nix then builds the
+# import-from-derivation inputs, as a deploy does, and a broken Doom
+# configuration fails here before any deploy.
+#
+# Standard runners are free for a public repository. The jobs get no secret,
+# and the token can only read. They read the worldofgeese Cachix cache, which
+# `just cachix-push` fills from M-02877. They build only what evaluation needs.
+name: eval-targets
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval-targets-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  eval:
+    name: den/eval-${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: worldofgeese-home
+            runner: ubuntu-24.04
+            attr: homeConfigurations.worldofgeese.activationPackage
+          - target: paphos
+            runner: ubuntu-24.04
+            attr: nixosConfigurations.paphos.config.system.build.toplevel
+          - target: oracle
+            runner: ubuntu-24.04-arm
+            attr: nixosConfigurations.oracle.config.system.build.toplevel
+          - target: pixel-fold
+            runner: ubuntu-24.04-arm
+            attr: nixOnDroidConfigurations.pixel-fold.activationPackage
+          # Plain Nix on macOS: the runner has no nested virtualization, so no
+          # Dagger engine.
+          - target: M-02877
+            runner: macos-15
+            attr: darwinConfigurations.M-02877.system
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+        with:
+          extra_nix_config: |
+            extra-substituters = https://worldofgeese.cachix.org
+            extra-trusted-public-keys = worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=
+      - name: Evaluate ${{ matrix.attr }}
+        env:
+          ATTR: ${{ matrix.attr }}
+        run: nix eval --raw --print-build-logs ".#${ATTR}.drvPath"

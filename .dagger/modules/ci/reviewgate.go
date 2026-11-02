@@ -11,6 +11,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"dagger/ci/internal/dagger"
 )
@@ -70,7 +72,7 @@ func reviewGate(s *prSnapshot, p mergePolicy, facts map[string]approverFacts, no
 					r.State, r.Reason = "success", login+" approved head "+short(s.Head)+" as a second person"
 					return r
 				}
-				r.Refused = append(r.Refused, "the approval of "+login+" does not count: "+why)
+				r.Refused = append(r.Refused, "the approval of "+cmp.Or(login, "a deleted account")+" does not count: "+why)
 			}
 		}
 		switch {
@@ -157,12 +159,19 @@ func markerReading(s *prSnapshot, p mergePolicy) (string, string) {
 	return "success", fmt.Sprintf("%s reviewed head %s: no open blocking finding (notes: %d)", p.Reviewer, short(s.Head), notes)
 }
 
-// markerBlocks gives the JSON of each block <!-- <marker> {...} --> in body.
+// markerBlocks gives the text after the marker in each HTML comment of body
+// that starts with the marker: <!-- <marker> {...} -->. A block whose JSON
+// does not parse is still a block, so that the gate refuses it and does not
+// read an older review instead. A comment that starts with a longer name,
+// for example aec-review:v10 for aec-review:v1, is not a block.
 func markerBlocks(body, marker string) []string {
-	re := regexp.MustCompile(`(?s)<!--\s*` + regexp.QuoteMeta(marker) + `\s+(\{.*?\})\s*-->`)
+	re := regexp.MustCompile(`(?s)<!--\s*` + regexp.QuoteMeta(marker) + `(.*?)-->`)
 	var out []string
 	for _, m := range re.FindAllStringSubmatch(body, -1) {
-		out = append(out, m[1])
+		if r, _ := utf8.DecodeRuneInString(m[1]); m[1] != "" && (unicode.IsLetter(r) || unicode.IsDigit(r) || strings.ContainsRune("-_:.", r)) {
+			continue
+		}
+		out = append(out, strings.TrimSpace(m[1]))
 	}
 	return out
 }
@@ -239,6 +248,9 @@ func approvalRefusal(s *prSnapshot, login string) string {
 		return "the pull request comes from a fork, and the activity API of this repository does not show who pushed to it"
 	case s.HeadRef == "":
 		return "the gate does not know the head branch"
+	case login == "":
+		// GitHub gives no login for a deleted account.
+		return "the approver has no login"
 	case strings.HasPrefix(login, "app/"):
 		return login + " is a bot, not a person"
 	case strings.EqualFold(login, s.Author):

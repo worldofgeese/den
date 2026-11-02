@@ -341,7 +341,11 @@ interface).
     `<!-- <reviewMarker> {"open":[{"id":"F1","severity":"blocking"}]} -->`.
     `open` lists the open findings. Each severity other than `note` blocks.
     A block that does not parse, a block without `open`, or two blocks in one
-    review fail. Other reviews of that login do not count.
+    review fail. Each HTML comment that starts with the marker name is a
+    block, also when its JSON does not parse, so a broken block never lets
+    an older review count. A comment that starts with a longer name, for
+    example `aec-review:v10`, is not a block. Other reviews of that login do
+    not count.
 - **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
   GitHub. The shepherd writes only the request comment `@codex review`, the
   label `needs-human` and its comment. With `--merge`, it also merges at
@@ -502,8 +506,10 @@ interface).
     approval is the way past a finding that a person judges wrong.
   - An approval counts only on a pull request from a branch of this
     repository. The activity API of this repository does not show the
-    pushes to a fork. The approver must be a person, not an `app/` login,
-    and must not be the author.
+    pushes to a fork. The approver must be a person with a login, not an
+    `app/` login, and must not be the author. GitHub gives no login for a
+    deleted account, so its approval does not count, and the gate reads the
+    next approver.
   - The approver must have write access:
     `GET /repos/{owner}/{repo}/collaborators/{login}/permission` gives
     `admin` or `write`. GitHub gives `write` for the role `maintain`.
@@ -604,7 +610,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `28bb5fdb063c119f1c4c7126d14240a5d1171f3499375537935c61fad9ea86f8`
+- Repository signal fingerprint: `51b5339c3ca691cbdf5e123e18c4d7e1d3788cd0df96894348e53ad41e816f2f`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (20 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

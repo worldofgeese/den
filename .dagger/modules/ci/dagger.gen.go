@@ -657,10 +657,10 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("For each open pull request, or for one, post the commit status\n<statusPrefix>/review on the head, and print a Markdown table of the\nresults. success: the newest review of the exact head by the reviewer has\nno open blocking finding, or a second person approved the head (with\nsecondPersonApproval). failure: the review has an open blocking finding. A\nresult that the head already has is not posted again. With\nreviewTimeoutHours, a row says when a head waits for a person. The function\nposts no label. The setting statusPrefix must not be empty.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("reviewgate.go", 303, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository. Without dryRun, it also\nneeds statuses: write.", SourceMap: dag.SourceMap("reviewgate.go", 307, 2)}).
-							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The pull request. With none, each open pull request.", SourceMap: dag.SourceMap("reviewgate.go", 310, 2)}).
-							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the results and post nothing.", SourceMap: dag.SourceMap("reviewgate.go", 313, 2)})).
+							WithSourceMap(dag.SourceMap("reviewgate.go", 315, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository. Without dryRun, it also\nneeds statuses: write.", SourceMap: dag.SourceMap("reviewgate.go", 319, 2)}).
+							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The pull request. With none, each open pull request.", SourceMap: dag.SourceMap("reviewgate.go", 322, 2)}).
+							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the results and post nothing.", SourceMap: dag.SourceMap("reviewgate.go", 325, 2)})).
 					WithFunction(
 						dag.Function("ReviewGateRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).

@@ -73,9 +73,9 @@
       "falsifier": "A fake-API fixture fails: an approval by a second person does not give success; an approval by the author, by a pusher, by a person without write access, by a bot, on a fork pull request, of an older head, or followed by a request for changes gives success; a fork pull request gets a permission or activity request.",
       "status": "supported",
       "proof_refs": [
-        "ci:review-gate-rules: approval cases: a second person over a Codex finding (success naming bob); the author, a push, a force push, a branch creation, read access, a bot, a fork, an older head, a later request for changes, a dismissal, no head branch (refused); a deletion of the branch and a push to another branch (success); the ref and actor of each item, a full page of 100 (refused); the setting off; the first approval that passes, with no read of a later approver; an error of the permission API",
+        "ci:review-gate-rules: 21 approval cases: a second person over a Codex finding (success naming bob); the author, a push, a force push, a branch creation, read access, a bot, a deleted account (then the next approver), a fork, an older head, a later request for changes, a dismissal, no head branch (refused); a deletion of the branch and a push to another branch (success); the ref and actor of each item, a full page of 100 (refused); the setting off; the first approval that passes, with no read of a later approver; an error of the permission API",
         "live read (GET): the permission API gives admin for the owner, read for an outsider and none for github-actions[bot]; the activity API filters by ref and actor without case",
-        "mutation tests: each approval check removed fails 1 or more fixtures"
+        "mutation tests: each approval check removed fails 1 or more fixtures, also the login check of a deleted account"
       ]
     },
     "claim:ci-review-gate-merge-rule": {
@@ -92,10 +92,11 @@
       "falsifier": "A fake-API fixture fails: a clean Codex summary, a Codex finding (flag or unresolved thread), a marker review with only notes, or a marker review with a blocking finding gives another state; a review of an older head gives a status; an unchanged result is posted again; a dry run posts.",
       "status": "supported",
       "proof_refs": [
+        "Codex review of 7671297 (den#104): 2 P2 findings, both fixed in this round with fixtures: a malformed marker block let an older clean review count, and an approval by a deleted account stopped the decision",
         "ci:review-gate-rules: 12 posting cases (unchanged result, other case of the context, changed description and state, dry run, take-back of a success, a failure that stays, a merged pull request, too many reviews, each open pull request in order, too many open pull requests, cut to 140 characters)",
-        "ci:review-gate-rules: 73 fake-API gate cases; 16 for the den reading (clean summary, null flag, unresolved flag, unresolved threads, resolved threads, older heads, running reviews, other logins, requests for changes, no reviewer) and 13 for the marker (notes only, blocking, unknown severity, empty, newest review, review without block, older head, invalid JSON, no open list, two blocks, other login, Codex summary, a regular-expression character)",
+        "ci:review-gate-rules: 79 fake-API gate cases; 16 for the den reading (clean summary, null flag, unresolved flag, unresolved threads, resolved threads, older heads, running reviews, other logins, requests for changes, no reviewer) and 18 for the marker (notes only, blocking, unknown severity, empty, newest review, review without block, older head, invalid JSON, no open list, a malformed block after a clean review, a clean and a malformed block, no JSON, no space after the marker, a longer marker name, two blocks, other login, Codex summary, a regular-expression character)",
         "live read on den with statusPrefix den (dry run, GET only): #94 and #99 would get success from their clean Codex summaries; merged #103, #73 and #85 get no status",
-        "mutation tests: 88 of 88 mutations fail fixtures"
+        "mutation tests: 91 of 91 mutations fail fixtures; the old marker expression fails 4 fixtures"
       ]
     },
     "claim:ci-review-gate-timeout": {
@@ -118,6 +119,11 @@
       "id": "ckpt-review-gate-validate",
       "summary": "The validation record of den PR 4: plain decapod validate on 1be5a00 fails only on DecapodLabs/decapod#1474 (publication_readiness, sections/validation), which the owner approved; inventory --repair changes nothing",
       "input_digest": "sha256:6ebe28b366bc35f392a31a0ed31ae38bbd8548fa750c00df9b71bf7fd5db543c"
+    },
+    {
+      "id": "ckpt-review-gate-2",
+      "summary": "The fixes of the two Codex findings on den#104: a marker block that does not parse counts as a block, and an approval by a deleted account does not stop the decision; 6 new fixtures and 3 new mutations",
+      "input_digest": "sha256:0f415477d23f9869cd7c0a2776b0233861e882e4bb0927fe230f8325c2b4b34c"
     }
   ],
   "intents": {
@@ -185,11 +191,15 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:e977c02c5b4eafc57d5948bc00398ef20dcf4aeadb335c168878c68cee9ec102",
+      "artifact_hash": "sha256:dc1438df8844400ca1712ce44f4434087e471c7ebd8d780eefa2fff70eadc509",
       "checks": [
         {
           "name": "baseline-dagger-check-facb1e5",
           "status": "passed"
+        },
+        {
+          "name": "codex-review-7671297",
+          "status": "failed"
         },
         {
           "name": "commit-signature-1be5a00",
@@ -240,11 +250,15 @@
           "status": "passed"
         },
         {
+          "name": "pr-checks-7671297",
+          "status": "passed"
+        },
+        {
           "name": "specs-refresh",
           "status": "passed"
         }
       ],
-      "current_phase": "publish-with-human-override",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
@@ -272,10 +286,17 @@
             "intent_id": "intent:change_01M6EQQ04D2CSPJ2PB1HES11B2",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6EQQ06HN7TD3P64ZXSKGNV6",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6EQQ04D2CSPJ2PB1HES11B2",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6EQQ06HN7TD3P64ZXSKGNV6": {
@@ -366,6 +387,32 @@
                   "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad approval to open den PRs with only that failure (AEC task M, den PR 4 dispatch). Every other gate passed.",
                   "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
                 ]
+              },
+              {
+                "action": "implementation",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".dagger/modules/ci/reviewgate.go",
+                  ".dagger/modules/ci/reviewgate_checks.go",
+                  ".dagger/modules/ci/dagger.gen.go",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/.manifest.json",
+                  "den#104 opened at 20:11Z with 1be5a00 and 7671297. All 7 PR checks passed (den/dagger-check 3m35s). Codex reviewed 7671297 (20:17Z) with 2 P2 findings in reviewgate.go: (1) markerBlocks matched only a block that ends with }, so a malformed block after a clean review of the same head, or a malformed second block, let the clean review count; (2) an approval by a deleted account (empty login) sent GET /collaborators//permission, and the error stopped the decision for the pull request.",
+                  "Fix: markerBlocks now takes each HTML comment that starts with the marker name (a longer name such as aec-review:v10 is not a block), and the JSON decides after it; approvalRefusal refuses an empty login before any REST call. 6 new fixtures (79 gate cases), 3 new mutations (91 of 91 killed; the old expression fails 4 fixtures). just dagger-check 12 of 12 after dagger generate -y (source map lines) and specs.refresh."
+                ],
+                "proof_refs": [
+                  "pr-checks-7671297",
+                  "codex-review-7671297",
+                  "harness-rule-checks",
+                  "mutation-tests",
+                  "dagger-check-worktree"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -383,6 +430,7 @@
       "evidence": [
         "Baseline on origin/main facb1e5 in the work branch: just dagger-check passed 11 of 11 checks in 37 s.",
         "Commit 1be5a00: the pre-commit hook just check passed in 232 s. git log --show-signature: Good git signature for tao.hansen@lego.com with ED25519 key SHA256:qh5Cp180f3UtF2yEL0Y5hYfmq9ZuWAKPV9+1EXhld+U.",
+        "Fix: markerBlocks now takes each HTML comment that starts with the marker name (a longer name such as aec-review:v10 is not a block), and the JSON decides after it; approvalRefusal refuses an empty login before any REST call. 6 new fixtures (79 gate cases), 3 new mutations (91 of 91 killed; the old expression fails 4 fixtures). just dagger-check 12 of 12 after dagger generate -y (source map lines) and specs.refresh.",
         "Live reads (dry run, GET only): with statusPrefix den, #94 and #99 of den would get success. With the planned AEC settings on LEGO/agentic-engineering-community, #139 has no aec-review:v1 review and its check finished 8 h before, so its row gives needs-human: review by a person: approve head bde122e074af?. The permission API gives admin, read and none; the activity API filters by ref and actor.",
         "Mutation tests (pr4-mutations.sh, copies under /tmp, deleted): 88 of 88 mutations fail fixtures. The first run found 6 gaps (a Codex summary of an older head, of a running review and of another login with unresolved findings; a check run with the name of the gate; the gate status time in the timeout case; fetch without its trees), and fixtures now cover each.",
         "Plain decapod validate on 1be5a00: summary pass=186 fail=1 warn=5 skip=13 note=62. The only failure: publication_readiness: READINESS_BLOCKED: Validation error: Cannot publish: required governance artifacts are missing or invalid: .decapod/governance.json#/sections/validation (invalid). This is DecapodLabs/decapod#1474 (open). Validate moved only generated_at in .manifest.json, and the committed value is back.",
@@ -390,6 +438,7 @@
         "The design is in the PR description before the code (~/.cache/aec-m/den-pr4-pr-body.md), as MintRaven asked: five settings, each empty by default, the function review-gate, the rule review-gate, and no change to shepherd.go.",
         "Work unit: the earlier attempt of the same PR 4 dispatch created todo bugs_01m6eqntbfzzs8g4 (18:17Z), claimed it (exclusive, ironunion-aec-m) and made this workspace, then stopped with an API error. This attempt ran the eval gate again (allow, sha256 6693a8de), ran session status in the worktree before it used the claim, and continued with that work unit instead of a duplicate todo.",
         "decapod govern artifacts inventory --repair exits 1 with receipt_must_bind_current_trajectory and changes no file.",
+        "den#104 opened at 20:11Z with 1be5a00 and 7671297. All 7 PR checks passed (den/dagger-check 3m35s). Codex reviewed 7671297 (20:17Z) with 2 P2 findings in reviewgate.go: (1) markerBlocks matched only a block that ends with }, so a malformed block after a clean review of the same head, or a malformed second block, let the clean review count; (2) an approval by a deleted account (empty login) sent GET /collaborators//permission, and the error stopped the decision for the pull request.",
         "just dagger-check on the work tree: 12 of 12 checks pass, with the new ci:review-gate-rules. just check passed in 214 s (24 overrides applied). gofmt -l lists no file, go vet passes."
       ],
       "inspected_files": [
@@ -427,6 +476,7 @@
       ],
       "next_transitions": [
         "Checkpoint and commit the change, run plain decapod validate on the exact candidate, record the validation, push, open the PR",
+        "Checkpoint and commit the fixes, validate the exact candidate, record the validation, push, reply to and resolve the two Codex threads",
         "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],

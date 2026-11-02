@@ -826,6 +826,41 @@ rekey the agenix secrets for paphos. The same file pins mother's host key for
 `paphos-forgejo-backup`. If mother's SSH host key changes, the backup fails
 with "Host key verification failed" until its pin changes.
 
+### mahakala desktop: Hyprland and the GPU driver (M-02877)
+
+On mahakala (Guix System), Hyprland and Mesa both come from the Nix Home
+Manager profile. At boot, the root shepherd one-shot `nix-opengl-driver` in
+`guix/system.scm` points `/run/opengl-driver` at the `non-nixos-gpu` env of
+the current HM generation (`targets.genericLinux.gpu` in
+`modules/worldofgeese.nix`). Hyprland loads Mesa's `libgallium` into its own
+process, using its own glibc. Mesa must therefore need a glibc no newer than
+the one Hyprland was built against.
+
+If those glibcs differ, Hyprland exits with
+`MESA-LOADER: ... version GLIBC_2.4x not found` and `CBackend::create() failed`
+in `~/.local/state/omarchy-session.log`, and GDM reports that as
+"authentication error". This happened on 2026-11-01. HM generation 362 paired
+a Hyprland built against glibc 2.42 with Mesa 26.2.5 built against glibc 2.44.
+The failure only appeared after the next reboot, because only the boot service
+re-points the driver link.
+
+- **Check**: `$G/ld-linux-x86-64.so.2 --preload "$G/libc.so.6 $G/libm.so.6"
+  --list <gpu-env>/lib/libgallium-*.so`, where `$G` is Hyprland's glibc
+  `lib`. The output must contain no `not found` lines.
+- **Hotfix** (lost on reboot): `sudo ln -sfT <older non-nixos-gpu>
+  /run/opengl-driver`. Add a GC root for that env.
+- **Fix**: deploy an HM generation whose Hyprland and Mesa share a glibc
+  version, then reboot or re-point `/run/opengl-driver`.
+
+`modules/omarchy.nix` replaces Omarchy's systemd-only calls in
+`omarchy-system` (`uwsm stop`, `systemctl reboot`/`poweroff`,
+`systemd-inhibit`, `systemd-run --user`) with `hyprctl dispatch exit`, elogind
+`loginctl`/`elogind-inhibit`, and `setsid --fork`. The build fails if any
+uncommented systemd call remains. Omarchy 4.5.0-rc2 merged the old
+`omarchy-system-{logout,reboot,shutdown}` scripts into `omarchy-system`.
+nixarchy replaces `enable-user-units.sh` with a no-op. The guard patches that
+script only while it still calls `systemctl`.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

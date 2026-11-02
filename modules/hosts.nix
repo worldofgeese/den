@@ -12,7 +12,7 @@
 # fell from 87 to 7 with no error, because its own aspect stopped being applied.
 #
 # Refs: home-manager-0pr.8
-{den, ...}: {
+{den,   ...}:   {
   den.homes.x86_64-linux.worldofgeese = {};
   den.aspects.worldofgeese.includes = [
     den._.primary-user

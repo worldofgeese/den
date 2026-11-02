@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "f0a956837d14bc63ed1e53f1d23860ee3be58cc6",
+    "accepted_commit": "040a18b220d7cb3782b59edb1d44b8da0bb774ce",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -43,22 +43,22 @@
     }
   },
   "change": {
-    "id": "change_01M6DY6AJMMG7V3ZH56JXX29KA",
-    "base_commit": "f0a956837d14bc63ed1e53f1d23860ee3be58cc6",
+    "id": "change_01M6E1YQGSX0YB34HE4YMWB8GA",
+    "base_commit": "040a18b220d7cb3782b59edb1d44b8da0bb774ce",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "shepherd-triggers",
-      "summary": "Start the shepherd after every check workflow.",
-      "input_digest": "sha256:17017e19168c279746c754425b5075da542ad0cdcf487c1119ec673170a4a22b",
+      "id": "p5-codex-fixer",
+      "summary": "Choose the Codex connector for P5 and P7, with a test format error.",
+      "input_digest": "sha256:0a0b99f2cbf1702061a19d9aacf3b7812cc9eb67e2afe4d666e60647c9c16619",
       "proof_refs": [
-        "trajectory:branch_01M6DY6AN3JVSPGEC8VD0KRGHF"
+        "trajectory:branch_01M6E1YQJVJQBGJS2KC7CMABGB"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA": {
+    "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -68,7 +68,7 @@
         "private-fleet-maintenance"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+      "id": "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA",
       "out_of_scope": [],
       "proof_requirements": [],
       "raw_intent": "Assess and design the Swamp fleet maintenance implementation\n\nUser chose loving-kypris for the limited encrypted NAS recovery backup. Inspect and reuse existing backup tooling, establish a consistent source view, preserve a recoverable encryption key, and verify restoration. Keep bulk media and the Drive internal repository excluded. No firmware update or reboot is part of backup preparation.",
@@ -85,7 +85,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Add eval-targets and Decapod Validate to the workflow_run triggers of the shepherd, so the run after the last check can merge without waiting for the unreliable schedule.",
+      "intent": "Record the choice of the Codex connector as the model of the fixer and of the issue shepherd, and prove on this PR whether \"@codex fix\" pushes to the same PR branch. The PR carries one deliberate alejandra format error for the P5 test.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -93,44 +93,44 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Start the shepherd after every check workflow",
+      "title": "P5: the Codex connector fixes findings and failing checks",
       "todo_ids": [
         "feat_01m6b5dpmhpyqacw"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793616801Z"
+      "updated_at": "1793620705Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:ff9887ae0bfd3ff260ef62694b9c6cb0dfebdda173c1b390daf893e9ff724f00",
+      "artifact_hash": "sha256:23b9944285357cf6be717cedfaac96b5582c77c930e402969ce719cdd7c0a45f",
       "checks": [
         {
-          "name": "zizmor-no-new-findings",
-          "status": "passed"
+          "name": "alejandra-check",
+          "status": "failed"
         }
       ],
-      "current_phase": "candidate-ready",
+      "current_phase": "p5-test",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "intent_id": "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "intent_id": "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6DY6AN3JVSPGEC8VD0KRGHF",
+            "detail": "trajectory:branch_01M6E1YQJVJQBGJS2KC7CMABGB",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "intent_id": "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -139,21 +139,21 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6DY6AN3JVSPGEC8VD0KRGHF": {
+          "branch_01M6E1YQJVJQBGJS2KC7CMABGB": {
             "evidence_only": true,
-            "id": "branch_01M6DY6AN3JVSPGEC8VD0KRGHF",
-            "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+            "id": "branch_01M6E1YQJVJQBGJS2KC7CMABGB",
+            "intent_id": "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA",
             "steps": [
               {
-                "action": "candidate-ready",
+                "action": "p5-test",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".github/workflows/shepherd.yml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "The first live merge: a workflow_dispatch shepherd run (41431922636) merged #97 as f0a9568 (\"merged head 4076125c077a\"). Before that, #97 waited from 09:59 to 10:48 UTC with all 7 checks green, because no shepherd run came after the last eval job: the cron did not fire, and only dagger started workflow_run. zizmor reports the same 2 findings (workflow_run, issue_comment) before and after this change; the job checks out main only."
+                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+                  "modules/hosts.nix",
+                  "modules/hosts.nix carries a deliberate format error (extra spaces in the argument pattern), so den/dagger-check fails. It is the P5 test input: \"@codex fix\" must make the check pass on this PR. The commit skips the pre-commit hook, because the hook runs just check and refuses the error."
                 ],
                 "proof_refs": [
-                  "zizmor-no-new-findings"
+                  "alejandra-check"
                 ],
                 "scope": [
                   "private-fleet-maintenance"
@@ -168,13 +168,13 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "The first live merge: a workflow_dispatch shepherd run (41431922636) merged #97 as f0a9568 (\"merged head 4076125c077a\"). Before that, #97 waited from 09:59 to 10:48 UTC with all 7 checks green, because no shepherd run came after the last eval job: the cron did not fire, and only dagger started workflow_run. zizmor reports the same 2 findings (workflow_run, issue_comment) before and after this change; the job checks out main only."
+        "modules/hosts.nix carries a deliberate format error (extra spaces in the argument pattern), so den/dagger-check fails. It is the P5 test input: \"@codex fix\" must make the check pass on this PR. The commit skips the pre-commit hook, because the hook runs just check and refuses the error."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6DY6AJMMG7V3ZH56JXX29KA",
+      "intent_id": "intent:change_01M6E1YQGSX0YB34HE4YMWB8GA",
       "modified_files": [
-        ".decapod/managed/specs/VALIDATION.md",
-        ".github/workflows/shepherd.yml"
+        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
+        "modules/hosts.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -182,7 +182,7 @@
       "repo_scope": [
         "private-fleet-maintenance"
       ],
-      "run_id": "branch_01M6DY6AN3JVSPGEC8VD0KRGHF",
+      "run_id": "branch_01M6E1YQJVJQBGJS2KC7CMABGB",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "feat_01m6b5dpmhpyqacw",

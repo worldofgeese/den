@@ -152,6 +152,14 @@ The user replaced the engine part of D1 and created the D3 token. The user also 
 | P3 reviewer | The Codex connector stays den's reviewer. The shepherd (`dagger call ci shepherd`, `.github/workflows/shepherd.yml`) asks it to review each new head, and no model key is in den's CI. This replaces D2 for P3. P5 decides the model of the fixer. The review rules of den are in `modules/AGENTS.md` | The gateway key is a company credential, and den is a public personal repository. Codex already reviews each den PR with no key in CI. The root `AGENTS.md` is a Decapod template, and a hand edit fails validation |
 | P4 start | The shepherd first only reports the merge verdict of each open PR. Live merges start after 10 PRs where the report agrees with the merge | The user agreed on 2026-11-01. The reports prove that the shepherd judges with its own token and runner as an agent does on M-02877 |
 
+### Decisions on 2026-11-02
+
+The user let the agent choose the model of the fixer and of the issue shepherd.
+
+| Gate | Decision | Reason |
+|---|---|---|
+| P5 and P7 model | The Codex connector, which already reviews den. The shepherd asks it to fix a finding or a failing check with an `@codex` comment on the PR, as it asks for reviews. No model key is in den's CI | The gateway key is a company credential, and den is a public personal repository (P3 reviewer, Decisions on 2026-11-01). The Codex connector runs on the user's ChatGPT plan, with no key in CI. OpenAI's use case says that `@codex fix it` updates the pull request (https://developers.openai.com/codex/use-cases/github-code-reviews, read 2026-11-02). openai/codex#3188 reported a new branch instead, so a test PR proves which one happens before P5 builds on it |
+
 ## Phases
 
 Each phase is one bead under home-manager-1l3. Each phase ends with its proof.

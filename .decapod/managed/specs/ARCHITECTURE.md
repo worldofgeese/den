@@ -28,7 +28,10 @@ This project's architecture consists of the following key layers/directories:
   pinned container (VALIDATION.md, Dagger Checks). `automerge.go` holds the
   merge rules as a pure function over a snapshot of a pull request, and the
   read-only `automerge-dry-run` and `automerge-replay` read GitHub's GraphQL
-  API with a token secret. `.github/workflows/dagger.yml` runs the checks on
+  API with a token secret. When a repository sets `riskyExecutableBit` or
+  `manifestFiles`, the snapshot also holds the changed files from the Git
+  trees of the REST API (`automerge_files.go`).
+  `.github/workflows/dagger.yml` runs the checks on
   GitHub-hosted runners for each pull request and each push to `main`
   (VALIDATION.md, Dagger Checks in CI). `shepherd.go` asks the Codex
   connector to review each new head and reports the verdict of the merge
@@ -471,7 +474,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `c3f0cb60ca347753d052552f11e9885c302bfd257306db7fce628e0bdd77b8ae`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `00b47b3d19d23a1b51df7bcc106409cc3f58230f53583adc815fbb520bcfe6e4`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (14 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

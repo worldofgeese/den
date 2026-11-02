@@ -53,6 +53,14 @@ type Ci struct {
 	RiskyPaths []string
 	// +private
 	CheckName string
+	// +private
+	RiskyExecutableBit bool
+	// +private
+	ManifestFiles []string
+	// +private
+	ManifestSafeFields []string
+	// +private
+	ManifestSourcePrefix string
 }
 
 func New(
@@ -79,13 +87,38 @@ func New(
 	// protection names the checks that must pass.
 	// +optional
 	checkName string,
+	// A pull request that adds a file with git mode 100755, or that changes
+	// the mode of a file to 100755, is merged by a person. The rules read
+	// the modes from the Git trees of the merge base and the head.
+	// +optional
+	riskyExecutableBit bool,
+	// Path patterns of JSON manifest files, as for riskyPaths. A pull
+	// request that adds, removes or changes a top-level field of a matching
+	// file outside manifestSafeFields, or a file that does not parse, is
+	// merged by a person. With none, the rules read no manifest.
+	// +optional
+	manifestFiles []string,
+	// The top-level fields of a manifest, and the fields of its entries,
+	// that can change without a person.
+	// +optional
+	manifestSafeFields []string,
+	// In a list of entries of a manifest, for example the plugins of a
+	// marketplace, source can change only to a relative path under this
+	// prefix, for example ./plugins/. With none, a change of source needs a
+	// person.
+	// +optional
+	manifestSourcePrefix string,
 ) *Ci {
 	return &Ci{
-		Repository: repository,
-		Authors:    authors,
-		Reviewer:   reviewer,
-		RiskyPaths: riskyPaths,
-		CheckName:  checkName,
+		Repository:           repository,
+		Authors:              authors,
+		Reviewer:             reviewer,
+		RiskyPaths:           riskyPaths,
+		CheckName:            checkName,
+		RiskyExecutableBit:   riskyExecutableBit,
+		ManifestFiles:        manifestFiles,
+		ManifestSafeFields:   manifestSafeFields,
+		ManifestSourcePrefix: manifestSourcePrefix,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

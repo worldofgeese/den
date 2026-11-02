@@ -96,6 +96,11 @@
         ".dagger/modules/ci/fork_checks.go",
         ".dagger/modules/ci/release_checks.go"
       ]
+    },
+    {
+      "id": "ckpt-release-age-fork-policy-validate",
+      "summary": "the validation of den PR 5: only DecapodLabs/decapod#1474 fails; the owner's authority to publish",
+      "input_digest": "sha256:5eec903cbb0cca8cd0b538a79845f44b870ce7c61f343e42ff7c68e962dac077"
     }
   ],
   "intents": {
@@ -162,15 +167,23 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7775af949badd683bf5c00de840414af26dcac7412980200ffc05bca345edf29",
+      "artifact_hash": "sha256:3de64c6a135277270655b787a140e053a1f13428daca70ac5c07eebcaa667dff",
       "checks": [
         {
           "name": "baseline-dagger-check-0c22111",
           "status": "passed"
         },
         {
+          "name": "commit-signature-960b5b0",
+          "status": "passed"
+        },
+        {
           "name": "dagger-check-worktree",
           "status": "passed"
+        },
+        {
+          "name": "decapod-validate-960b5b0",
+          "status": "failed"
         },
         {
           "name": "go-vet",
@@ -182,6 +195,14 @@
         },
         {
           "name": "harness-rule-checks",
+          "status": "passed"
+        },
+        {
+          "name": "inventory-repair",
+          "status": "failed"
+        },
+        {
+          "name": "just-check-960b5b0",
           "status": "passed"
         },
         {
@@ -209,7 +230,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "implement",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -230,10 +251,17 @@
             "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6F35WT81PC86SWZRDVTZRE8",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6F35WT81PC86SWZRDVTZRE8": {
@@ -291,6 +319,28 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on 960b5b0: pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED .decapod/governance.json#/sections/validation (DecapodLabs/decapod#1474); inventory --repair exits 1 (receipt_must_bind_current_trajectory) and changes no file"
+                ],
+                "proof_refs": [
+                  "decapod-validate-960b5b0",
+                  "inventory-repair",
+                  "just-check-960b5b0",
+                  "commit-signature-960b5b0"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad authority to open den PRs with only that failure (AEC task M, den PR 5 dispatch). Every other gate passed.",
+                  "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+                ]
               }
             ]
           }
@@ -308,7 +358,8 @@
         "automerge-replay --count 30 (sha256 5ce728cb...) and --count 100 (sha256 2538a2cb...) and shepherd --dry-run (sha256 23f24ba4...) byte-identical on main 0c22111 and the branch with den's dagger.toml",
         "just dagger-check on 0c22111: 12 of 12; on the work tree: 13 of 13 (new ci:release-age-rules)",
         "live trial: shepherd --dry-run on dagger/container-use with review-and-suggest adds only 'would add needs-human' on fork #370 (CONFLICTING); release-age on dagger/dagger releases and DecapodLabs/decapod commits",
-        "mutation tests ~/.cache/aec-m/pr5-mutations.sh: 36 of 36 killed (log pr5-mutations-2.log)"
+        "mutation tests ~/.cache/aec-m/pr5-mutations.sh: 36 of 36 killed (log pr5-mutations-2.log)",
+        "plain decapod validate on 960b5b0: pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED .decapod/governance.json#/sections/validation (DecapodLabs/decapod#1474); inventory --repair exits 1 (receipt_must_bind_current_trajectory) and changes no file"
       ],
       "inspected_files": [
         ".dagger/modules/ci/automerge.go",
@@ -338,6 +389,7 @@
       ],
       "next_transitions": [
         "Checkpoint and commit the change, run plain decapod validate on the exact candidate, record the validation, push, open the PR",
+        "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
@@ -346,10 +398,14 @@
       ],
       "run_id": "branch_01M6F35WT81PC86SWZRDVTZRE8",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad authority to open den PRs with only that failure (AEC task M, den PR 5 dispatch). Every other gate passed."
+      ],
       "task_id": "code_01m6f34zjzmnwcp5",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
+      ]
     }
   },
   "legacy_digests": {

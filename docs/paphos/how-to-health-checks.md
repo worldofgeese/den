@@ -13,6 +13,7 @@
 | Root disk &lt; 90% | `disk-root-Npct` |
 | Last backup &lt; 36h | `forgejo-backup-stale-Nh` or `forgejo-backup-never` |
 | Mother recovery checkpoint heartbeat from loving-kypris &lt; 36h | `mother-checkpoint-stale-Nh` or `mother-checkpoint-never` |
+| `paphos-firmware-update.service` not failed | `firmware-update-failed` |
 
 On failure, a Telegram message is sent using agenix secret `telegram-lbob-bot-token` and chat id `488228716` (in `modules/paphos/ops.nix`).
 
@@ -24,6 +25,24 @@ sudo journalctl -u paphos-health-check-test.service -n 20
 ```
 
 Exit code 0 = all checks passed. Failures notify Telegram but do not page on success.
+
+## loving-kypris liveness (every 2 minutes)
+
+`paphos-loving-kypris-liveness.timer` runs `paphos-loving-kypris-liveness.service`. It checks two targets:
+
+| Target | Probe |
+|--------|-------|
+| Host | LAN ping or TCP 22 on `192.168.99.134`, else `tailscale ping 100.80.28.13` |
+| Home Assistant | HTTPS `GET /manifest.json` returns 200 on `home-assistant.hound-celsius.ts.net` (HA has no LAN port) |
+
+A target that fails for 10 minutes without a break sends `loving-kypris DOWN: ...` to Telegram. A normal reboot takes about 6.5 minutes, so it does not alert. While the target stays down, the message repeats every 2 hours. The first passing sample after an alert sends `loving-kypris RECOVERED: ...` with the outage time. There is no blackout window, because the nightly update reboot is the event that hung on 2026-11-02. The state is in `/var/lib/paphos-lk-liveness`. This check only reports. It does not power-cycle anything.
+
+Manual run:
+
+```bash
+sudo systemctl start paphos-loving-kypris-liveness.service
+sudo journalctl -u paphos-loving-kypris-liveness.service -n 20
+```
 
 ## Oracle relay checks (hourly)
 

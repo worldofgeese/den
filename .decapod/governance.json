@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
+    "accepted_commit": "5bdd109fb9bc38b009394c1c152dbb488b8b93b6",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -31,6 +31,7 @@
       },
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
       "trajectory:10eccbd015927b8c": "Merge gate as for den#70: pre-commit just check, CI validate and the deploy proof; the PROOF_HOOK blocker for feat_01m66jjt2vm7nkwx stays open until #1470 is fixed or verification runs on Linux.",
+      "trajectory:1df243fb5dea8cf5": "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back.",
       "trajectory:2e73ace6f8b455ed": "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
       "trajectory:2fc25673715437ce": "Headroom's model loading uses huggingface_hub and honors HF_HOME (the image sets no HF_* variables)",
       "trajectory:4b9d0230624a5890": "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to",
@@ -42,60 +43,44 @@
     }
   },
   "change": {
-    "id": "change_mother_checkpoint_swamp",
-    "base_commit": "687368d0975c89cb69e8e3f2ae4a3fee0dfd2bd0",
-    "target_base": "main"
+    "id": "change_01M6DJ66R7D434JMRE8RV26X1C",
+    "base_commit": "5bdd109fb9bc38b009394c1c152dbb488b8b93b6",
+    "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "mother-checkpoint-candidate",
-      "summary": "Daily verified Mother checkpoint through Swamp, with a paphos heartbeat check. Two live runs verified.",
-      "input_digest": "sha256:21f6a96640eb3f2a0e20b7cb1a923fb4e2504d3a8e8dc2c668a6636cfd9edc61",
+      "id": "p8-deploy-report-liveness",
+      "summary": "P8 deploy report, the l-k liveness alert, and fwupd failure reporting.",
+      "input_digest": "sha256:89f69152ce98bacce49674174107fa32522652b7b471c7bd8d0f10472ff228bf",
       "proof_refs": [
-        "trajectory:run_mother_checkpoint_swamp"
+        "trajectory:run_deploy_report_p8"
       ]
     },
     {
-      "id": "plan-scope-boundary",
-      "summary": "Move the out-of-scope installer note from plan unknowns to the trajectory boundary.",
-      "input_digest": "sha256:991a3161a21300d18dbdc5a48a11e335ddf026cf6c8120f7f4716b84e7672d3f",
+      "id": "p8-trajectory-evidence",
+      "summary": "Trajectory evidence for P8, liveness and the fwupd change.",
+      "input_digest": "sha256:e0b7cc3161c628cd904cdd16f9b4eb3eb08f4acab61bffb863a15f974f6fd76f",
       "proof_refs": [
-        "trajectory:run_mother_checkpoint_swamp"
-      ]
-    },
-    {
-      "id": "rebase-on-e3495b2",
-      "summary": "Rebase onto main e3495b2, approve the plan again, refresh the spec manifest.",
-      "input_digest": "sha256:58cb6dfb133531393da4feb35128aff9b6fe436ae49cc7bf55b1abf7def64877",
-      "proof_refs": [
-        "trajectory:run_mother_checkpoint_swamp"
-      ]
-    },
-    {
-      "id": "human-approved-publication",
-      "summary": "Record the explicit user approval to publish while the native-mode receipt blocker (decapod#1474) persists.",
-      "input_digest": "sha256:f9152fc1e9c9f6195f28dc8531b2a3b8140df13e086e75d64600f01c7f3d7cf1",
-      "proof_refs": [
-        "https://github.com/DecapodLabs/decapod/issues/1474"
+        "trajectory:branch_01M6DJ66TG1TSR27H51QFPP406"
       ]
     }
   ],
   "intents": {
-    "intent:run_mother_checkpoint_swamp": {
+    "intent:change_01M6DJ66R7D434JMRE8RV26X1C": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "No firmware or DSM/SRM installer actions. Existing backup jobs, SSH restrictions and credentials stay unchanged."
+        "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
+        "private-fleet-maintenance"
       ],
       "created_sequence": 1,
-      "id": "intent:run_mother_checkpoint_swamp",
+      "id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Back up the limited Mother recovery set to loving-kypris and run it through Swamp, autonomously, with verified restores.",
-      "refined_intent": "Run the limited Mother recovery checkpoint each day through a Swamp workflow on loving-kypris. Each run prepares fresh source data, makes a new Zerobyte snapshot, restores it independently with Restic, and deletes temporary copies only after that proof. paphos alerts through its existing Telegram health check when no verified checkpoint arrives within 36 hours.",
+      "raw_intent": "Assess and design the Swamp fleet maintenance implementation\n\nUser chose loving-kypris for the limited encrypted NAS recovery backup. Inspect and reuse existing backup tooling, establish a consistent source view, preserve a recoverable encryption key, and verify restoration. Keep bulk media and the Drive internal repository excluded. No firmware update or reboot is part of backup preparation.",
+      "refined_intent": "Assess and design the Swamp fleet maintenance implementation\n\nUser chose loving-kypris for the limited encrypted NAS recovery backup. Inspect and reuse existing backup tooling, establish a consistent source view, preserve a recoverable encryption key, and verify restoration. Keep bulk media and the Drive internal repository excluded. No firmware update or reboot is part of backup preparation.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -108,232 +93,170 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Run the limited Mother recovery checkpoint each day through a Swamp workflow on loving-kypris. Each run prepares fresh source data, makes a new Zerobyte snapshot, restores it independently with Restic, and deletes temporary copies only after that proof. paphos alerts through its existing Telegram health check when no verified checkpoint arrives within 36 hours.",
+      "intent": "Plan step P8: record the deployed den commit on paphos, oracle and M-02877, report each host daily from M-02877, and keep one GitHub issue per failing deploy step. Add a 10-minute loving-kypris and Home Assistant liveness alert from paphos, and make the paphos firmware job fail on real fwupdmgr errors.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [
-        "An API warning, an old success, a stale receipt, a changed resource binding or a failed independent restore must not count as a verified checkpoint."
-      ],
-      "title": "Verified daily Mother recovery checkpoint through Swamp, with an independent observer",
+      "stop_conditions": [],
+      "title": "P8 deploy report, loving-kypris liveness alert, and fwupd failure reporting",
       "todo_ids": [
         "feat_01m6b5dpmhpyqacw"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793600437Z"
+      "updated_at": "1793604390Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "No firmware or DSM/SRM installer actions. Existing backup jobs, SSH restrictions and credentials stay unchanged."
+        "Current claimed task and isolated work branch",
+        "No power cycling, no l-k host changes, no shepherd or automerge code."
       ],
-      "artifact_hash": "sha256:560d8f9492b6f2e8910c6a1dd50ac741629d5a55318f589b1e488bb7851a91d8",
+      "artifact_hash": "sha256:bdf3fad3973a4a9625dd63a0b2f8e56c77a1285a937ff6ac11308bd80bfe46b1",
       "checks": [
         {
           "name": "alejandra",
           "status": "passed"
         },
         {
-          "name": "decapod-validate",
-          "status": "failed"
-        },
-        {
-          "name": "fleet-maintenance-tests",
+          "name": "darwin-eval",
           "status": "passed"
         },
         {
-          "name": "live-checkpoint-direct",
+          "name": "deploy-report-dry-run",
           "status": "passed"
         },
         {
-          "name": "live-checkpoint-swamp-service",
+          "name": "deploy-report-tests",
+          "status": "passed"
+        },
+        {
+          "name": "firmware-shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "liveness-shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "liveness-simulation",
+          "status": "passed"
+        },
+        {
+          "name": "oracle-eval",
           "status": "passed"
         },
         {
           "name": "paphos-eval",
           "status": "passed"
-        },
-        {
-          "name": "shellcheck",
-          "status": "passed"
-        },
-        {
-          "name": "srm-full-mesh-readonly",
-          "status": "passed"
-        },
-        {
-          "name": "ty",
-          "status": "passed"
         }
       ],
-      "current_phase": "publish-with-human-override",
+      "current_phase": "candidate-ready",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:run_mother_checkpoint_swamp",
+            "detail": "trajectory:branch_01M6DJ66TG1TSR27H51QFPP406",
             "event_id": "event:4",
-            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:run_mother_checkpoint_swamp",
-            "event_id": "event:5",
-            "intent_id": "intent:run_mother_checkpoint_swamp",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:run_mother_checkpoint_swamp",
-            "event_id": "event:6",
-            "intent_id": "intent:run_mother_checkpoint_swamp",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "run_mother_checkpoint_swamp": {
+          "branch_01M6DJ66TG1TSR27H51QFPP406": {
             "evidence_only": true,
-            "id": "run_mother_checkpoint_swamp",
-            "intent_id": "intent:run_mother_checkpoint_swamp",
+            "id": "branch_01M6DJ66TG1TSR27H51QFPP406",
+            "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
             "steps": [
               {
                 "action": "candidate-ready",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "scripts/fleet-maintenance/mother_recovery.py",
-                  "scripts/fleet-maintenance/mother_checkpoint.py",
-                  "scripts/fleet-maintenance/test_mother_recovery.py",
-                  "scripts/fleet-maintenance/test_mother_checkpoint.py",
-                  "scripts/fleet-maintenance/README.md",
-                  "scripts/fleet-maintenance/checkpoint-heartbeat.sh",
-                  "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.service",
-                  "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.timer",
-                  "scripts/fleet-maintenance/swamp/models/command/shell/mother-checkpoint.yaml",
-                  "scripts/fleet-maintenance/swamp/workflows/workflow-mother-recovery-checkpoint.yaml",
+                  "scripts/deploy-report.py",
+                  "scripts/test_deploy_report.py",
+                  "modules/deploy-revision.nix",
+                  "modules/M-02877/deploy-report.nix",
                   "modules/paphos/ops.nix",
                   "docs/paphos/how-to-health-checks.md",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "On 2026-11-01, two live runs verified. The direct run made snapshot 88b1a016. The Swamp service run 99fa57f6 succeeded and made snapshot 02562414. Each passed restic check --read-data and restored a byte-identical archive with 353,662 entries, 14 PostgreSQL exports and 3 intact SQLite databases.",
-                  "The read-only SRM API, behind the pinned certificate, reported three nodes on SRM 1.3.2-9366 Update 3. Mesh status was good, no upgrade was pending, and no patch was available.",
-                  "nix eval for nixosConfigurations.paphos passes. 23 tests, ty, shellcheck, alejandra and the decapod override check pass.",
-                  "Three historical done-but-unverified records were reset with decapod qa verify prune, on the user decision. The deadlock is filed upstream as DecapodLabs/decapod#1473."
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "8 unit tests pass for the judging and issue-planning rules. A live --dry-run read paphos, oracle and M-02877 and planned den-revision-unknown on each, which is correct before deployment. nix eval passes for the paphos and M-02877 toplevels and for oracle /etc/den-revision.",
+                  "The rendered liveness script passes bash -n and shellcheck. The stubbed simulation showed an alert after 10 minutes, separate host and HA tracking, a repeat after 2 h, and one recovery message each. HA /manifest.json returned 200 from paphos.",
+                  "fwupd src/fu-cli-common.h defines EXIT_NOTHING_TO_DO 2. The job accepts 0 and 2 and fails on any other code.",
+                  "QuickWolf, owner of the l-k reboot investigation, asked for this alert without an actuator and without a blackout window, and yielded the root lease 07:21-07:51 UTC.",
+                  "Publication follows the user decision of 2026-11-02 to finish autonomously. Local publication readiness cannot pass, because no command writes the receipt (DecapodLabs/decapod#1474). The required GitHub checks gate the merge."
                 ],
                 "proof_refs": [
-                  "live-checkpoint-direct",
-                  "live-checkpoint-swamp-service",
-                  "srm-full-mesh-readonly",
+                  "deploy-report-tests",
+                  "deploy-report-dry-run",
                   "paphos-eval",
+                  "oracle-eval",
+                  "darwin-eval",
                   "alejandra",
-                  "shellcheck",
-                  "fleet-maintenance-tests",
-                  "ty"
+                  "liveness-shellcheck",
+                  "liveness-simulation",
+                  "firmware-shellcheck"
                 ],
                 "scope": [
-                  "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
+                  "private-fleet-maintenance"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
-                ]
-              },
-              {
-                "action": "publication-blocked",
-                "custody_event_id": "event:5",
-                "observations": [],
-                "proof_refs": [
-                  "decapod-validate"
-                ],
-                "scope": [
-                  "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
-                ],
-                "sequence": 5,
                 "validation_findings": []
-              },
-              {
-                "action": "publish-with-human-override",
-                "custody_event_id": "event:6",
-                "observations": [
-                  "On 2026-11-02 at 06:32 UTC, the user explicitly approved opening the PR. Local decapod validate cannot reach publication_ready in native mode because no command writes the required sections/validation receipt (DecapodLabs/decapod#1474). Every other local gate passes. Merge gating relies on the required GitHub checks den/dagger-check and validate."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
-                ],
-                "sequence": 6,
-                "validation_findings": [
-                  "PR opened without a local publication_ready=true, under explicit human approval. The blocker is DecapodLabs/decapod#1474."
-                ]
               }
             ]
           }
         }
       },
       "declared_commands": [],
+      "destination": "pull request",
       "evidence": [
-        "On 2026-11-01, two live runs verified. The direct run made snapshot 88b1a016. The Swamp service run 99fa57f6 succeeded and made snapshot 02562414. Each passed restic check --read-data and restored a byte-identical archive with 353,662 entries, 14 PostgreSQL exports and 3 intact SQLite databases.",
-        "On 2026-11-02 at 06:32 UTC, the user explicitly approved opening the PR. Local decapod validate cannot reach publication_ready in native mode because no command writes the required sections/validation receipt (DecapodLabs/decapod#1474). Every other local gate passes. Merge gating relies on the required GitHub checks den/dagger-check and validate.",
-        "The read-only SRM API, behind the pinned certificate, reported three nodes on SRM 1.3.2-9366 Update 3. Mesh status was good, no upgrade was pending, and no patch was available.",
-        "Three historical done-but-unverified records were reset with decapod qa verify prune, on the user decision. The deadlock is filed upstream as DecapodLabs/decapod#1473.",
-        "nix eval for nixosConfigurations.paphos passes. 23 tests, ty, shellcheck, alejandra and the decapod override check pass."
+        "8 unit tests pass for the judging and issue-planning rules. A live --dry-run read paphos, oracle and M-02877 and planned den-revision-unknown on each, which is correct before deployment. nix eval passes for the paphos and M-02877 toplevels and for oracle /etc/den-revision.",
+        "Publication follows the user decision of 2026-11-02 to finish autonomously. Local publication readiness cannot pass, because no command writes the receipt (DecapodLabs/decapod#1474). The required GitHub checks gate the merge.",
+        "QuickWolf, owner of the l-k reboot investigation, asked for this alert without an actuator and without a blackout window, and yielded the root lease 07:21-07:51 UTC.",
+        "The rendered liveness script passes bash -n and shellcheck. The stubbed simulation showed an alert after 10 minutes, separate host and HA tracking, a repeat after 2 h, and one recovery message each. HA /manifest.json returned 200 from paphos.",
+        "fwupd src/fu-cli-common.h defines EXIT_NOTHING_TO_DO 2. The job accepts 0 and 2 and fails on any other code."
       ],
       "inspected_files": [],
-      "intent_id": "intent:run_mother_checkpoint_swamp",
+      "intent_id": "intent:change_01M6DJ66R7D434JMRE8RV26X1C",
       "modified_files": [
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
         ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
         "docs/paphos/how-to-health-checks.md",
+        "modules/M-02877/deploy-report.nix",
+        "modules/deploy-revision.nix",
         "modules/paphos/ops.nix",
-        "scripts/fleet-maintenance/README.md",
-        "scripts/fleet-maintenance/checkpoint-heartbeat.sh",
-        "scripts/fleet-maintenance/mother_checkpoint.py",
-        "scripts/fleet-maintenance/mother_recovery.py",
-        "scripts/fleet-maintenance/swamp/models/command/shell/mother-checkpoint.yaml",
-        "scripts/fleet-maintenance/swamp/workflows/workflow-mother-recovery-checkpoint.yaml",
-        "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.service",
-        "scripts/fleet-maintenance/systemd/mother-recovery-checkpoint.timer",
-        "scripts/fleet-maintenance/test_mother_checkpoint.py",
-        "scripts/fleet-maintenance/test_mother_recovery.py"
+        "scripts/deploy-report.py",
+        "scripts/test_deploy_report.py"
       ],
       "next_transitions": [
-        "After merge: deploy paphos, re-enable the ExecStartPost heartbeat on loving-kypris, and confirm the first heartbeat."
+        "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "scripts/fleet-maintenance, modules/paphos/ops.nix, docs/paphos/how-to-health-checks.md, .decapod/managed/specs"
+        "private-fleet-maintenance"
       ],
-      "run_id": "run_mother_checkpoint_swamp",
+      "run_id": "branch_01M6DJ66TG1TSR27H51QFPP406",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [
-        "PR opened without a local publication_ready=true, under explicit human approval. The blocker is DecapodLabs/decapod#1474."
-      ],
+      "shortcut_risk_signals": [],
       "task_id": "feat_01m6b5dpmhpyqacw",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back."
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

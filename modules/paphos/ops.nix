@@ -7,6 +7,9 @@
   telegramChatId = "488228716";
   oracleTailscaleIp = "100.87.121.45";
   oracleHost = "oracle.hound-celsius.ts.net";
+  lkLanAddress = "192.168.99.134";
+  lkTailscaleIp = "100.80.28.13";
+  haTailnetName = "home-assistant.hound-celsius.ts.net";
   hostKeys = import ../_host-keys.nix;
   # loving-kypris refreshes this file after each verified Mother recovery
   # checkpoint (scripts/fleet-maintenance/checkpoint-heartbeat.sh). The key
@@ -20,7 +23,7 @@ in {
     pkgs,
     ...
   }: let
-    inherit (pkgs) coreutils curl gawk gzip gnutar jq openssh postgresql rsync systemd util-linux;
+    inherit (pkgs) coreutils curl gawk gzip gnutar iputils jq openssh postgresql rsync systemd util-linux;
     tailscaleBin = lib.getExe config.services.tailscale.package;
     healthScript = pkgs.writeShellScript "paphos-health-check" ''
       set -euo pipefail
@@ -54,6 +57,10 @@ in {
 
       if ${systemd}/bin/systemctl is-failed --quiet nixos-upgrade.service; then
         record_failure nixos-upgrade-failed
+      fi
+
+      if ${systemd}/bin/systemctl is-failed --quiet paphos-firmware-update.service; then
+        record_failure firmware-update-failed
       fi
 
       if ${systemd}/bin/systemctl list-unit-files forgesync-job-github.timer >/dev/null 2>&1; then
@@ -123,6 +130,82 @@ in {
       fi
 
       exit 0
+    '';
+
+    # loving-kypris liveness, seen from paphos. Two targets: the host itself
+    # (LAN ping or SSH on TCP 22, Tailscale ping as a fallback) and Home
+    # Assistant (HTTPS on the tailnet name; HA has no LAN port). A target alerts
+    # once it has failed for 10 minutes without a break. A normal reboot of
+    # loving-kypris takes about 6.5 minutes, so it does not alert. While it stays
+    # down, the alert repeats every 2 hours. The first passing sample sends one
+    # recovery message with the outage time. No blackout window: the nightly
+    # update reboot is exactly the event that hung on 2026-11-02.
+    lkLivenessScript = pkgs.writeShellScript "paphos-loving-kypris-liveness" ''
+      set -euo pipefail
+
+      token_file="/run/agenix/telegram-lbob-bot-token"
+      chat_id="${telegramChatId}"
+      state_dir="/var/lib/paphos-lk-liveness"
+      now=$(${coreutils}/bin/date +%s)
+      alert_after=600
+      repeat_after=7200
+
+      notify() {
+        local text="$1"
+        if [[ -f "$token_file" ]]; then
+          ${curl}/bin/curl -fsS -X POST \
+            "https://api.telegram.org/bot$(cat "$token_file")/sendMessage" \
+            -d "chat_id=$chat_id" \
+            --data-urlencode "text=$text" >/dev/null || true
+        fi
+      }
+
+      host_up() {
+        ${iputils}/bin/ping -c 2 -W 2 ${lkLanAddress} >/dev/null 2>&1 && return 0
+        ${coreutils}/bin/timeout 5 bash -c "exec 3<>/dev/tcp/${lkLanAddress}/22" 2>/dev/null && return 0
+        ${tailscaleBin} ping --c 1 --timeout 8s --until-direct=false ${lkTailscaleIp} >/dev/null 2>&1
+      }
+
+      ha_up() {
+        local code
+        code=$(${curl}/bin/curl -s -o /dev/null -w '%{http_code}' --max-time 15 \
+          https://${haTailnetName}/manifest.json || true)
+        [[ "$code" == 200 ]]
+      }
+
+      # One state file per target: "<first failure epoch> <last alert epoch>".
+      track() {
+        local label="$2" up="$3" file="$state_dir/$1"
+        if [[ "$up" == true ]]; then
+          if [[ -f "$file" ]]; then
+            read -r first alerted <"$file" || true
+            if [[ "''${alerted:-0}" -gt 0 ]]; then
+              notify "loving-kypris RECOVERED: $label back after $(( (now - first) / 60 )) min"
+            fi
+            rm -f "$file"
+          fi
+          return 0
+        fi
+        local first alerted=0
+        if [[ -f "$file" ]]; then
+          read -r first alerted <"$file" || true
+        else
+          first=$now
+        fi
+        if (( now - first >= alert_after )) && (( alerted == 0 || now - alerted >= repeat_after )); then
+          notify "loving-kypris DOWN: $label failing for $(( (now - first) / 60 )) min"
+          alerted=$now
+        fi
+        printf '%s %s\n' "$first" "$alerted" >"$file"
+        return 1
+      }
+
+      status=0
+      host=false; host_up && host=true
+      track host "host (LAN ping, SSH or Tailscale)" "$host" || status=1
+      ha=false; ha_up && ha=true
+      track ha "Home Assistant (https://${haTailnetName})" "$ha" || status=1
+      exit "$status"
     '';
 
     oracleRelayScript = pkgs.writeShellScript "paphos-oracle-relay-check" ''
@@ -332,8 +415,21 @@ in {
       path = [config.services.fwupd.package pkgs.python3];
       serviceConfig.Type = "oneshot";
       script = ''
-        fwupdmgr refresh --force >/dev/null 2>&1 || true
-        fwupdmgr update --assume-yes --no-reboot-check || true
+        # fwupdmgr exits 2 when it has nothing to do. Any other non-zero code
+        # (no metadata, no network, a failed install) fails the unit, and
+        # paphos-health-check reports firmware-update-failed. Before 2026-11-02
+        # both calls ended in `|| true`, so this unit reported success after
+        # every failure.
+        run_fwupdmgr() {
+          local code=0
+          fwupdmgr "$@" || code=$?
+          if [[ "$code" -ne 0 && "$code" -ne 2 ]]; then
+            echo "fwupdmgr $1 failed with exit code $code" >&2
+            exit "$code"
+          fi
+        }
+        run_fwupdmgr refresh --force
+        run_fwupdmgr update --assume-yes --no-reboot-check
         if fwupdmgr get-devices --json | python3 -c 'import json, sys; sys.exit(0 if any(d.get("UpdateState") in (1, 4) for d in json.load(sys.stdin).get("Devices", [])) else 1)'; then
           touch /run/paphos-firmware-reboot
         else
@@ -401,6 +497,27 @@ in {
       };
       path = [config.services.tailscale.package pkgs.bash];
       script = "${oracleRelayScript}";
+    };
+
+    systemd.services.paphos-loving-kypris-liveness = {
+      description = "loving-kypris host and Home Assistant liveness, with Telegram after 10 minutes down";
+      after = ["network-online.target" "tailscaled.service"];
+      wants = ["network-online.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = lkLivenessScript;
+        StateDirectory = "paphos-lk-liveness";
+      };
+    };
+
+    systemd.timers.paphos-loving-kypris-liveness = {
+      description = "Sample loving-kypris liveness every 2 minutes";
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnBootSec = "2min";
+        OnUnitActiveSec = "2min";
+        AccuracySec = "10s";
+      };
     };
 
     systemd.timers.paphos-oracle-relay-check = {

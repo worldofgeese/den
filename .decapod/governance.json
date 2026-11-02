@@ -71,6 +71,14 @@
       "proof_refs": [
         "https://nix-on-droid.cachix.org"
       ]
+    },
+    {
+      "id": "eval-targets-spec-refresh",
+      "summary": "Refresh the spec fingerprint after the workflow change.",
+      "input_digest": "sha256:7913430636c413acfdc378daacda9c7d1f4299898379489f23a1105f492b166f",
+      "proof_refs": [
+        "decapod rpc specs.refresh"
+      ]
     }
   ],
   "intents": {

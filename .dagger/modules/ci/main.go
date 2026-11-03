@@ -61,12 +61,6 @@ type Ci struct {
 	ManifestSafeFields []string
 	// +private
 	ManifestSourcePrefix string
-	// approve-bot-runs (approve.go).
-	// +private
-	ApprovesBotRuns bool
-	// The job-kinds table of ci:workflow-isolation (workflows.go).
-	// +private
-	JobKinds string
 }
 
 func New(
@@ -114,17 +108,6 @@ func New(
 	// person.
 	// +optional
 	manifestSourcePrefix string,
-	// With true, approve-bot-runs approves the pull_request runs that GitHub
-	// holds (action_required) on a head that a job pushed with its
-	// GITHUB_TOKEN. With false, the module approves no run.
-	// +optional
-	approveBotRuns bool,
-	// The job-kinds table of ci:workflow-isolation, in YAML: the kind of each
-	// job in .github/workflows (CHECK, AGENT, GITHUB, SCAN or LEGACY), and
-	// what the kinds can hold in this repository. With none, the check is
-	// off.
-	// +optional
-	jobKinds string,
 ) *Ci {
 	return &Ci{
 		Repository:           repository,
@@ -136,8 +119,6 @@ func New(
 		ManifestFiles:        manifestFiles,
 		ManifestSafeFields:   manifestSafeFields,
 		ManifestSourcePrefix: manifestSourcePrefix,
-		ApprovesBotRuns:      approveBotRuns,
-		JobKinds:             jobKinds,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

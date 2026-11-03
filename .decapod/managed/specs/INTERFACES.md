@@ -272,9 +272,8 @@ company: each repository gives those as settings in its own `dagger.toml`
 interface).
 
 - **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
-  `ci:decapod-overrides`, `ci:decapod-validate`, `ci:automerge-rules`,
-  `ci:shepherd-rules`, `ci:approve-bot-runs-rules`, `ci:workflow-isolation`
-  and `ci:workflow-isolation-rules`. VALIDATION.md (Dagger Checks) maps them to the
+  `ci:decapod-overrides`, `ci:decapod-validate`, `ci:automerge-rules` and
+  `ci:shepherd-rules`. VALIDATION.md (Dagger Checks) maps them to the
   `just check` steps. To run
   one check, give its name to `--check`, for example
   `dagger check --check ci/nix-eval`.
@@ -303,32 +302,10 @@ interface).
   workflow `.github/workflows/shepherd.yml` runs it after each `dagger` run,
   after each new or edited comment, by hand and every 15 minutes, with the
   token `DEN_SHEPHERD_TOKEN`.
-- **`approve-bot-runs --token <secret> --sha <sha>`** (`approve.go`)
-  approves the `pull_request` runs that GitHub holds on a head that a job
-  pushed with its `GITHUB_TOKEN`. A repository calls it after such a push,
-  with the token of that job. GitHub gives a held run the status
-  `completed` and the conclusion `action_required`. The function lists the
-  held runs of the head (`GET /repos/{owner}/{repo}/actions/runs` with
-  `head_sha` and `status=action_required`). It approves each run of the
-  repository with `POST /repos/{owner}/{repo}/actions/runs/{id}/approve`,
-  which needs `actions: write`. It lists again every 10 seconds. It stops
-  when no run of the repository waits 30 seconds after the last approval,
-  or after 3 minutes. Before the first approval, it looks for the full 3
-  minutes, because the runs can appear late. A run of a fork or of another
-  head stays held for a person. The function fails only when runs waited
-  and GitHub approved none of them: then the token needs `actions: write`.
-  A list that fails does not fail the function, and the report gives the
-  count and the last error. Without `approveBotRuns = true` or a full
-  commit SHA, it refuses before it reads the token. No workflow of this
-  repository calls it. People push the branches of its pull requests, and
-  `bump.yml` pushes with `DEN_SHEPHERD_TOKEN`, so GitHub holds no run.
 - **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
   GitHub. The shepherd writes only the request comment `@codex review`, the
-  label `needs-human` and its comment. With `--merge`, it also merges at
-  most one pull request in each run that the merge rules accept (plan P4,
-  step 2). `approve-bot-runs` writes only approvals of held runs of the
-  repository on the head that it gets. No function sends a review event or
-  writes a status.
+  label `needs-human` and its comment. No function sends a review event,
+  writes a status or merges. Live merges come in plan P4.
 - **Nightly bump** (plan P6). `.github/workflows/bump.yml` runs
   `scripts/bump-flake-inputs.sh` at 01:17 UTC with `DEN_SHEPHERD_TOKEN`. It
   writes only the branch `bump/flake-inputs` and its pull request: the
@@ -346,9 +323,7 @@ interface).
   have no `*`, and its `authors` do not include `"*"`. It does not set
   `checkName`, `riskyExecutableBit` or the manifest settings. So the globs,
   the author `"*"`, `checkName` and the two file rules do not change its
-  verdicts, and its merge rules read no Git tree. It does not set
-  `approveBotRuns` or `jobKinds` either, so the module approves no run, and
-  `ci:workflow-isolation` reads no workflow and passes.
+  verdicts, and its merge rules read no Git tree.
   - `repository`: the GitHub repository, owner/name, that the functions
     read.
   - `authors`: the logins whose pull requests can merge without a person.
@@ -420,52 +395,6 @@ interface).
     The fixtures read trees and blobs in the JSON of the REST API, and a
     replay keeps the trees. Without the two file rules, each of these
     fixtures that expects a refusal fails.
-  - `approveBotRuns` (default `false`): with `true`, `approve-bot-runs`
-    can approve held runs. With `false`, the function refuses, and no flow
-    of the module approves a run.
-  - `jobKinds`: the job-kinds table of `ci:workflow-isolation`, as YAML in
-    a TOML string (`workflows.go`). In `dagger.toml`, put the YAML in a
-    multi-line literal string (`'''`). `jobs` gives each job a kind, as
-    `<workflow file>/<job id>: <kind>`. The kinds are `CHECK` (runs the code
-    of a pull request: at most `contents: read`, no secret, no cache),
-    `AGENT` (at most `contents: read` and the one secret of
-    `secrets.AGENT`, in `agentEnvironment`), `GITHUB` (the job's
-    `GITHUB_TOKEN` and the scopes `actions`, `checks`, `contents`, `issues`,
-    `pull-requests` and `statuses`), `SCAN` (at most `contents: read` and
-    the one secret of `secrets.SCAN`) and `LEGACY`. A `LEGACY` job keeps
-    exactly what `legacy` records for it: `permissions`, `secrets`,
-    `actions`, `environment`, `keepsToken` and `anyBranch`. `actions` is the
-    allowlist, each action pinned to a commit SHA. `localActions` need no
-    pin, for example `$/.github/actions/dagger`. Only the `pagesBuild` jobs
-    can use `actions/upload-pages-artifact`. Only the `pagesDeploy` jobs
-    can use `actions/deploy-pages`, hold `pages` and `id-token` and run in
-    `github-pages`.
-  - The check also requires `permissions: {}` at the top of each workflow,
-    scopes on each job, no `pull_request_target`, and only the events of
-    `main` for a workflow with a job of another kind than `CHECK`. If such a
-    workflow starts on `workflow_dispatch`, the condition of each such job
-    must start with `github.ref == 'refs/heads/main'`, joined to the rest
-    with `&&` only. AGENT, GITHUB, SCAN and LEGACY jobs never check out or
-    fetch the code of a pull request, also through a pull ref that an
-    expression builds. Each checkout sets `persist-credentials: false`,
-    except for a `LEGACY` job with `keepsToken`. A job that `jobs` does not
-    name fails. A table with a field that it does not know, a kind that does
-    not exist, an AGENT job without `agentEnvironment`, or no job, is
-    refused. With an empty `jobKinds`, the check is off. A table for this
-    repository is a later change: its workflows use other actions, a token
-    from the environment `shepherd`, and top-level permissions that are not
-    `{}`.
-  - Tests: `ci:approve-bot-runs-rules` runs the live approval loop against
-    a fake GitHub API (an `http.RoundTripper`) and a fake clock: no runs, runs
-    that appear late, some approved and some failing, none approvable (an
-    error), the give-up time, a refusal that ends, runs of a fork and of
-    another head, a run that GitHub lists again after its approval, a list
-    that fails after an approval, and lists that fail. It also tests the
-    setting off and SHAs that are not full. `ci:workflow-isolation-rules`
-    has a passing fixture with a job of each kind, the 55 rule cases of the
-    earlier copy of the check (`docs:workflow-isolation-rule` in
-    LEGO/agentic-engineering-community), a case for a guard that a later
-    `||` can skip, 10 cases that change the table, and the table checks.
 - **Incomplete data refuses.** When GitHub has more changed files, check
   contexts or label events than one query reads, the rules refuse. When
   GitHub cuts the Git tree of the merge base or the head because it is too
@@ -505,7 +434,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e0338c8eb82a5166854117ea33d00000a599c0174db2d9f8a42ffdf9df1b3f16`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (18 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `00b47b3d19d23a1b51df7bcc106409cc3f58230f53583adc815fbb520bcfe6e4`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (14 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

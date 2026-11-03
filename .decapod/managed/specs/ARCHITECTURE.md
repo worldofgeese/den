@@ -31,13 +31,17 @@ This project's architecture consists of the following key layers/directories:
   API with a token secret. `.github/workflows/dagger.yml` runs the checks on
   GitHub-hosted runners for each pull request and each push to `main`
   (VALIDATION.md, Dagger Checks in CI). `shepherd.go` asks the Codex
-  connector to review each new head and reports the verdict of the merge
-  rules for each pull request, and `.github/workflows/shepherd.yml`
-  runs it with the token of the environment `shepherd`.
+  connector to review each new head, reports the verdict of the merge
+  rules for each pull request and, with `--merge`, merges at most one
+  accepted pull request in each run. `.github/workflows/shepherd.yml`
+  runs it with `--merge` and the token of the environment `shepherd`.
   `.github/workflows/bump.yml` runs `scripts/bump-flake-inputs.sh` each night,
   and the PR that it opens is the only path for new flake inputs (plan P6).
-  The fixer and the live automerge of the Dagger plan come in its later
-  phases.
+  The fixer of the Dagger plan comes in a later phase. The module has only
+  the settings that this repository uses: the settings for other
+  repositories (den PRs #100, #102, #103, #104 and #106) were reverted on
+  2026-11-03, because AEC does not use the module (INTERFACES.md, Dagger ci
+  Module).
 - `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
   servers and pi packages (latest or pinned); activation merges them into pi's own
   writable files (`mcp.json`, `settings.json`) instead of linking store files,

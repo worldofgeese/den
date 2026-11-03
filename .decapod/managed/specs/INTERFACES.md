@@ -268,8 +268,14 @@ These commands do not force an immediate reboot. The next planned boot verifies 
 
 `.dagger/modules/ci` is a public Go module. It names no host, account or
 company: each repository gives those as settings in its own `dagger.toml`
-(plan D6). AEC installs it at a pinned commit (plan, Shared module
-interface).
+(plan D6). The plan had AEC (LEGO/agentic-engineering-community) install
+it at a pinned commit (plan, Shared module interface). AEC rolled back its
+Dagger CI on 2026-11-03 and does not use the module. So the settings that
+AEC task M added in den PRs #100, #102, #103, #104 and #106 (glob
+`riskyPaths`, the author `"*"`, `checkName`, `riskyExecutableBit`, the
+manifest field allowlist, `approve-bot-runs`, `ci:workflow-isolation`,
+`statusPrefix` and the review gate, `forkPolicy` and `minReleaseAgeDays`)
+were reverted, and the module is again the one of 040a18b.
 
 - **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
   `ci:decapod-overrides`, `ci:decapod-validate`, `ci:automerge-rules` and
@@ -286,7 +292,7 @@ interface).
 - **`automerge-replay --token <secret> [--count 30]`** judges the newest
   merged pull requests (1 to 100) as of their merge, and prints a Markdown
   table.
-- **`shepherd --token <secret> [--dry-run]`** (plan P3) asks the Codex
+- **`shepherd --token <secret> [--dry-run] [--merge]`** (plan P3) asks the Codex
   connector to review the head of each open pull request that has no review
   of its head, and prints a Markdown table of its steps. A new pull request
   waits 10 minutes for the automatic review of Codex. After the first summary
@@ -301,11 +307,15 @@ interface).
   request, in the words of `automerge-dry-run` (plan P4, first step). The
   workflow `.github/workflows/shepherd.yml` runs it after each `dagger` run,
   after each new or edited comment, by hand and every 15 minutes, with the
-  token `DEN_SHEPHERD_TOKEN`.
+  token `DEN_SHEPHERD_TOKEN`. With `--merge` (plan P4, step 2), which
+  `shepherd.yml` passes, it merges at most one pull request in each run
+  that the merge rules accept, pinned to the head commit that the rules
+  judged. The token then needs write access to contents.
 - **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
   GitHub. The shepherd writes only the request comment `@codex review`, the
-  label `needs-human` and its comment. No function sends a review event,
-  writes a status or merges. Live merges come in plan P4.
+  label `needs-human` and its comment, and with `--merge` the merge of at
+  most one pull request in each run. No function sends a review event or
+  writes a status.
 - **Nightly bump** (plan P6). `.github/workflows/bump.yml` runs
   `scripts/bump-flake-inputs.sh` at 01:17 UTC with `DEN_SHEPHERD_TOKEN`. It
   writes only the branch `bump/flake-inputs` and its pull request: the

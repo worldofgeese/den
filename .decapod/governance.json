@@ -154,6 +154,11 @@
       "proof_refs": [
         "~/.cache/aec-m/revert-validate-8a67c13.log"
       ]
+    },
+    {
+      "id": "ckpt-takeover",
+      "summary": "pi-dktaohan takes over the revert from ironunion-aec-m with the owner's approval; the revert commits do not change",
+      "input_digest": "sha256:6c1f64ddba30792652bbaac0297b6f501669aaaaaa9949ed31f79f074f789aee"
     }
   ],
   "intents": {
@@ -223,7 +228,7 @@
         "only .dagger/modules/ci and .decapod/ change",
         "root checkout ~/.config/home-manager stays on main, untouched"
       ],
-      "artifact_hash": "sha256:8e2dc65fd0685819af5319d6ffb74a8602ab297ba4d83ccc022a309d88b7de3f",
+      "artifact_hash": "sha256:9992809d2b302f5749663b6924ac6954085ba5159334a95fa3535474f8db05c1",
       "checks": [
         {
           "name": "decapod validate",
@@ -281,10 +286,17 @@
             "intent_id": "intent:change_01M6G10XSSEC9FMM4TR92RXRPG",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M6G10XVNPBD0TJMQZ1DF6TKC",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M6G10XSSEC9FMM4TR92RXRPG",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6G10XVNPBD0TJMQZ1DF6TKC": {
@@ -359,6 +371,22 @@
                 "validation_findings": [
                   "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent"
                 ]
+              },
+              {
+                "action": "trajectory.record",
+                "command": "decapod todo claim --id cicd_01m6g0z6xdp0kee8",
+                "custody_event_id": "event:7",
+                "observations": [
+                  "pi-dktaohan took over cicd_01m6g0z6xdp0kee8 on 2026-11-03. The owner (dktaohan) stated that ironunion-aec-m is not active and that its claim is void. decapod todo handoff refused it (ironunion-aec-m trust basic < verified). pi-dktaohan released the stale ironunion-aec-m session, and the claim was released with it. pi-dktaohan then claimed the task. The revert commits did not change."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs",
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": []
               }
             ]
           }
@@ -367,6 +395,7 @@
       "declared_commands": [
         "dagger generate -y (after each revert: no changes to apply)",
         "decapod rpc --op specs.refresh",
+        "decapod todo claim --id cicd_01m6g0z6xdp0kee8",
         "git revert -m 1 --no-commit 3ccdb5e; 0c22111; facb1e5; 3aec329; 376ddae (newest first, one commit each)"
       ],
       "destination": "pull request",
@@ -377,6 +406,7 @@
         "git diff origin/main HEAD --stat: 32 files, all under .dagger/modules/ci and .decapod/; dagger.toml, Justfile, .github unchanged (none of the five PRs touched them)",
         "just check exit 0 on fb24778's tree; pre-commit just check passed on all six commits",
         "just dagger-check: 8 of 8 passed (ci/automerge-rules, decapod-overrides, decapod-validate, fmt, nix-eval, shellcheck, shepherd-rules, go-sdk/generate/stale)",
+        "pi-dktaohan took over cicd_01m6g0z6xdp0kee8 on 2026-11-03. The owner (dktaohan) stated that ironunion-aec-m is not active and that its claim is void. decapod todo handoff refused it (ironunion-aec-m trust basic < verified). pi-dktaohan released the stale ironunion-aec-m session, and the claim was released with it. pi-dktaohan then claimed the task. The revert commits did not change.",
         "plain decapod validate on 8a67c13: pass=186 fail=1 warn=5; the one failure is publication_readiness READINESS_BLOCKED (.decapod/governance.json#/sections/validation invalid), which is DecapodLabs/decapod#1474 (native validation never writes the receipt). The owner worldofgeese approved opening den PRs whose only decapod validate failure is #1474. Its repair only refreshed generated_at in the specs manifest.",
         "spec prose vs 040a18b equals exactly the prose changes of #101 (50664e4) and #105 (d6fe124): 213 of 213 changed lines match",
         "todo cicd_01m6g0w14z81t5hf was created first without --dir (dir_path = repository root); archive denied (trust basic < verified); left open, unclaimed, unworked, with comments; superseded by cicd_01m6g0z6xdp0kee8"

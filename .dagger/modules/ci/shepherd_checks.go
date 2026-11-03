@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-// The shepherd takes the expected step for fixed pull requests, and the
-// action of each fork policy against a fake GitHub API. No network and no
-// token.
+// The shepherd takes the expected step for fixed pull requests. No network
+// and no token.
 // +check
-func (m *Ci) ShepherdRules(ctx context.Context) error {
+func (m *Ci) ShepherdRules(_ context.Context) error {
 	now := fixtureTime
 	old := now.Add(-time.Hour)
 	summary := func(sha, status string) shepherdComment {
@@ -90,11 +89,6 @@ func (m *Ci) ShepherdRules(ctx context.Context) error {
 			failed = append(failed, fmt.Sprintf("shepherd case %q: step %q (%s), want %q", c.name, got, why, c.want))
 		}
 	}
-	for _, c := range forkCases() {
-		failed = append(failed, c.check(ctx)...)
-	}
-	failed = append(failed, forkTableCases(ctx)...)
-	failed = append(failed, forkCallCases(ctx)...)
 	if len(failed) > 0 {
 		return errors.New(strings.Join(failed, "\n"))
 	}

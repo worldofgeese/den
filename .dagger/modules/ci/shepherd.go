@@ -204,9 +204,7 @@ func shepherdPRFrom(n gqlOpenPR) shepherdPR {
 // After 3 requests without a review, add the needs-human label. The table
 // also gives the verdict of the merge rules for each pull request (plan P4).
 // With merge, it merges the first accepted pull request, pinned to the head
-// commit that the rules judged. With forkPolicy review-and-suggest, a fork
-// pull request that conflicts gets the needs-human label with a comment
-// (fork.go). With dryRun, post and merge nothing.
+// commit that the rules judged. With dryRun, post and merge nothing.
 // +cache="never"
 func (m *Ci) Shepherd(
 	ctx context.Context,
@@ -225,11 +223,6 @@ func (m *Ci) Shepherd(
 	if err != nil {
 		return "", err
 	}
-	return m.shepherd(ctx, g, owner, name, dryRun, merge, time.Now())
-}
-
-// shepherd runs the shepherd at now, and gives the table.
-func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, dryRun, merge bool, now time.Time) (string, error) {
 	var out struct {
 		Viewer     struct{ Login string }
 		Repository struct {
@@ -246,6 +239,7 @@ func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, 
 	if prs.TotalCount > len(prs.Nodes) {
 		return "", fmt.Errorf("%d open pull requests; the shepherd reads only %d", prs.TotalCount, len(prs.Nodes))
 	}
+	now := time.Now()
 	var b strings.Builder
 	var failed []string
 	merged := false
@@ -282,12 +276,6 @@ func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, 
 				}
 				merged = true
 			}
-			if action, err := m.forkStep(ctx, g, owner, name, repo, dryRun); err != nil {
-				verdict += "; needs-human failed: " + err.Error()
-				failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
-			} else if action != "" {
-				verdict += "; " + action
-			}
 		}
 		fmt.Fprintf(&b, "| #%d | %s | %s | %s | %s |\n", pr.Number, short(pr.Head), step, why, verdict)
 	}
@@ -298,27 +286,6 @@ func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, 
 		return b.String(), fmt.Errorf("merge verdicts: %s", strings.Join(failed, "; "))
 	}
 	return b.String(), nil
-}
-
-// forkStep takes the action of the fork policy for a pull request, and says
-// what it did. With no action, it returns "".
-func (m *Ci) forkStep(ctx context.Context, g *githubClient, owner, name string, repo *gqlRepo, dryRun bool) (string, error) {
-	s := snapshotFrom(repo.PullRequest, repo.DefaultBranchRef.Name, false)
-	why := forkAction(&s, m.policy())
-	switch {
-	case why == "":
-		return "", nil
-	case dryRun:
-		return "would add needs-human: " + why, nil
-	}
-	issue := fmt.Sprintf("/repos/%s/%s/issues/%d", owner, name, s.Number)
-	if err := g.rest(ctx, "POST", issue+"/labels", map[string]any{"labels": []string{"needs-human"}}, nil); err != nil {
-		return "", err
-	}
-	if err := g.rest(ctx, "POST", issue+"/comments", map[string]any{"body": forkComment(&s)}, nil); err != nil {
-		return "", err
-	}
-	return "added needs-human: " + why, nil
 }
 
 // post writes the step of a pull request to GitHub.

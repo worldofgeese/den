@@ -39,12 +39,7 @@ This project's architecture consists of the following key layers/directories:
   review of the head or the approval of a second person (setting
   `statusPrefix`). The gate decides with the pure function `reviewGate`
   over the same snapshot as the merge rules, and the rule `review-gate`
-  reads the gate only with `requireReviewGate`. `fork.go` holds the fork
-  policy (setting `forkPolicy`): with `review-and-suggest`, the shepherd
-  gives a fork pull request that conflicts the label `needs-human`.
-  `release.go` holds the age rule of the bump targets (setting
-  `minReleaseAgeDays`) as the pure function `chooseRelease`, and
-  `release-age` gives it to a bump.
+  reads the gate only with `requireReviewGate`.
   `.github/workflows/dagger.yml` runs the checks on
   GitHub-hosted runners for each pull request and each push to `main`
   (VALIDATION.md, Dagger Checks in CI). `shepherd.go` asks the Codex
@@ -494,7 +489,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `bc077343dc762274aa7bb9de55d392d796a2fcefb5b0c25ba35d8d481248637c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (24 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `51b5339c3ca691cbdf5e123e18c4d7e1d3788cd0df96894348e53ad41e816f2f`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (20 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

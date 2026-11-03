@@ -26,8 +26,6 @@ type Ci struct { // ci (../../../../../../:0:0)
 	fmt                    *Void
 	id                     *ID
 	nixEval                *Void
-	releaseAge             *string
-	releaseAgeRules        *Void
 	reviewGate             *string
 	reviewGateRules        *Void
 	shellcheck             *Void
@@ -244,38 +242,6 @@ func (r *Ci) NixEval(ctx context.Context) error {
 	return q.Execute(ctx)
 }
 
-// Choose the bump target by the age rule. candidates is a JSON list, newest
-// first, of {"version": "...", "published": "<RFC 3339 time>"}. For a commit,
-// published is the committer date of the commit on the default branch of the
-// upstream repository. The function chooses the first candidate that is at
-// least minReleaseAgeDays old, and lists each newer candidate that it skipped
-// with the reason. With no candidate that is old enough, chosen is null. It
-// reads no network and changes nothing.
-func (r *Ci) ReleaseAge(ctx context.Context, candidates string) (string, error) {
-	if r.releaseAge != nil {
-		return *r.releaseAge, nil
-	}
-	q := r.query.Select("releaseAge")
-	q = q.Arg("candidates", candidates)
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx)
-}
-
-// release-age chooses the expected bump target for fixed candidates and a
-// fixed time: the rule as written (7 days), switched off (0) and inverted
-// (the newest candidate is old enough). No network.
-func (r *Ci) ReleaseAgeRules(ctx context.Context) error {
-	if r.releaseAgeRules != nil {
-		return nil
-	}
-	q := r.query.Select("releaseAgeRules")
-
-	return q.Execute(ctx)
-}
-
 // CiReviewGateOpts contains options for Ci.ReviewGate
 type CiReviewGateOpts struct {
 	// The pull request. With none, each open pull request.
@@ -354,9 +320,7 @@ type CiShepherdOpts struct {
 // After 3 requests without a review, add the needs-human label. The table
 // also gives the verdict of the merge rules for each pull request (plan P4).
 // With merge, it merges the first accepted pull request, pinned to the head
-// commit that the rules judged. With forkPolicy review-and-suggest, a fork
-// pull request that conflicts gets the needs-human label with a comment
-// (fork.go). With dryRun, post and merge nothing.
+// commit that the rules judged. With dryRun, post and merge nothing.
 func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts) (string, error) {
 	assertNotNil("token", token)
 	if r.shepherd != nil {
@@ -381,9 +345,8 @@ func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts
 	return response, q.Execute(ctx)
 }
 
-// The shepherd takes the expected step for fixed pull requests, and the
-// action of each fork policy against a fake GitHub API. No network and no
-// token.
+// The shepherd takes the expected step for fixed pull requests. No network
+// and no token.
 func (r *Ci) ShepherdRules(ctx context.Context) error {
 	if r.shepherdRules != nil {
 		return nil
@@ -499,14 +462,6 @@ type CiOpts struct {
 	// With true, the merge rules require the success of the review gate on the
 	// head (the rule review-gate).
 	RequireReviewGate bool
-	// What the module does with a pull request from a fork. checks-only (the
-	// default): the same as for each pull request. review-and-suggest: a fork
-	// pull request that conflicts with its base gets the needs-human action,
-	// because the token cannot update a fork.
-	ForkPolicy string
-	// release-age chooses the newest bump target that is at least this many
-	// days old. With 0, it chooses the newest target.
-	MinReleaseAgeDays int
 }
 
 func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
@@ -576,14 +531,6 @@ func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../..
 		// `requireReviewGate` optional argument
 		if !querybuilder.IsZeroValue(opts[i].RequireReviewGate) {
 			q = q.Arg("requireReviewGate", opts[i].RequireReviewGate)
-		}
-		// `forkPolicy` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ForkPolicy) {
-			q = q.Arg("forkPolicy", opts[i].ForkPolicy)
-		}
-		// `minReleaseAgeDays` optional argument
-		if !querybuilder.IsZeroValue(opts[i].MinReleaseAgeDays) {
-			q = q.Arg("minReleaseAgeDays", opts[i].MinReleaseAgeDays)
 		}
 	}
 	q = q.Arg("ws", ws)

@@ -1230,7 +1230,7 @@ The checkpoint caller passes offline tests for stale receipts, changed bindings,
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `00b47b3d19d23a1b51df7bcc106409cc3f58230f53583adc815fbb520bcfe6e4`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (14 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `c3f0cb60ca347753d052552f11e9885c302bfd257306db7fce628e0bdd77b8ae`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

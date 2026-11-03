@@ -37,18 +37,6 @@ type mergePolicy struct {
 	// A check whose newest run on the head must succeed. With none, the rule
 	// protected leaves the required checks to branch protection.
 	CheckName string
-	// A pull request that adds a file with git mode 100755, or that changes
-	// the mode of a file to 100755, is merged by a person.
-	RiskyExecutableBit bool
-	// Path patterns of JSON manifest files (matchRiskyPath). With none, the
-	// rules read no manifest.
-	ManifestFiles []string
-	// The fields of a manifest that can change without a person. A change of
-	// another field is merged by a person.
-	ManifestSafeFields []string
-	// In a list of entries of a manifest, source can change only to a
-	// relative path under this prefix, for example ./plugins/.
-	ManifestSourcePrefix string
 }
 
 // allowsAuthor reports whether the pull requests of login can merge without
@@ -146,10 +134,6 @@ type prSnapshot struct {
 	// LabelsIncomplete: a replay did not read the whole label history.
 	LabelsIncomplete bool
 	Unresolved       int
-	// Trees has each changed file in the Git trees of the merge base and the
-	// head (automerge_files.go). fetch reads them only for
-	// riskyExecutableBit and manifestFiles.
-	Trees *prTrees
 }
 
 type mergeRule struct {
@@ -211,21 +195,6 @@ var mergeRules = []mergeRule{
 			}
 		}
 		return ""
-	}},
-	// A new executable file, a file that becomes executable, and a change of
-	// a manifest file outside its safe fields are merged by a person.
-	// automerge_files.go reads the changed files.
-	{"executable-bit", false, func(s *prSnapshot, p mergePolicy) string {
-		if !p.RiskyExecutableBit {
-			return ""
-		}
-		return executableBit(s)
-	}},
-	{"manifest-fields", false, func(s *prSnapshot, p mergePolicy) string {
-		if len(p.ManifestFiles) == 0 {
-			return ""
-		}
-		return manifestFields(s, p)
 	}},
 	{"reviewed", false, func(s *prSnapshot, p mergePolicy) string {
 		if p.Reviewer == "" {
@@ -462,7 +431,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
     defaultBranchRef { name }
     mergeCommitAllowed squashMergeAllowed rebaseMergeAllowed
     pullRequest(number: $n) {
-      number state isDraft baseRefName baseRefOid headRefOid body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
+      number state isDraft baseRefName headRefOid body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
       author { __typename login }
       labels(first: 50) { nodes { name } }
       timelineItems(first: 100, itemTypes: [LABELED_EVENT, UNLABELED_EVENT]) {
@@ -509,7 +478,6 @@ type gqlPR struct {
 	State            string
 	IsDraft          bool
 	BaseRefName      string
-	BaseRefOid       string
 	HeadRefOid       string
 	Body             string
 	ReviewDecision   string
@@ -544,8 +512,6 @@ type gqlPR struct {
 	ReviewThreads struct{ Nodes []struct{ IsResolved bool } }
 	Files         struct{ Nodes []struct{ Path string } }
 	Commits       struct{ Nodes []gqlCommitNode }
-	// Not from GraphQL: fetch reads the Git trees (readTrees).
-	Trees *prTrees `json:"-"`
 }
 
 type gqlCommitNode struct {
@@ -586,7 +552,7 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 		Number: pr.Number, State: pr.State, Draft: pr.IsDraft, Base: pr.BaseRefName,
 		Trunk: trunk, Author: pr.Author.name(), Head: pr.HeadRefOid, Body: pr.Body,
 		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable, MergeState: pr.MergeStateStatus,
-		ChangedFiles: pr.ChangedFiles, Trees: pr.Trees,
+		ChangedFiles: pr.ChangedFiles,
 	}
 	var cutoff time.Time
 	if replay && pr.MergedAt != nil {
@@ -717,9 +683,7 @@ func (m *Ci) github(ctx context.Context, token *dagger.Secret) (*githubClient, s
 }
 
 func (m *Ci) policy() mergePolicy {
-	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths, CheckName: m.CheckName,
-		RiskyExecutableBit: m.RiskyExecutableBit, ManifestFiles: m.ManifestFiles,
-		ManifestSafeFields: m.ManifestSafeFields, ManifestSourcePrefix: m.ManifestSourcePrefix}
+	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths, CheckName: m.CheckName}
 }
 
 func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
@@ -727,16 +691,8 @@ func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n i
 	if err := g.graphql(ctx, prQuery, map[string]any{"o": owner, "r": name, "n": n}, &out); err != nil {
 		return nil, fmt.Errorf("pull request %d: %w", n, err)
 	}
-	pr := out.Repository.PullRequest
-	if pr == nil {
+	if out.Repository.PullRequest == nil {
 		return nil, fmt.Errorf("pull request %d does not exist", n)
-	}
-	if m.RiskyExecutableBit || len(m.ManifestFiles) > 0 {
-		trees, err := m.readTrees(ctx, g, owner, name, pr)
-		if err != nil {
-			return nil, fmt.Errorf("pull request %d: %w", n, err)
-		}
-		pr.Trees = trees
 	}
 	return &out.Repository, nil
 }

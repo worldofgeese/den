@@ -268,7 +268,7 @@ func (m *Ci) Shepherd(
 				verdict += "; waits for the next run (one merge per run)"
 			default:
 				path := fmt.Sprintf("/repos/%s/%s/pulls/%d/merge", owner, name, pr.Number)
-				if err := g.rest(ctx, "PUT", path, map[string]any{"sha": head, "merge_method": method}, nil); err != nil {
+				if err := g.rest(ctx, "PUT", path, map[string]any{"sha": head, "merge_method": method}); err != nil {
 					verdict = "merge failed: " + err.Error()
 					failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
 				} else {
@@ -295,29 +295,25 @@ func (m *Ci) post(ctx context.Context, g *githubClient, owner, name string, pr s
 	case stepRequest:
 		return g.rest(ctx, "POST", issue+"/comments", map[string]any{
 			"body": "@codex review\n\n" + requestMarker(pr.Head),
-		}, nil)
+		})
 	case stepNeedsHuman:
-		if err := g.rest(ctx, "POST", issue+"/labels", map[string]any{"labels": []string{"needs-human"}}, nil); err != nil {
+		if err := g.rest(ctx, "POST", issue+"/labels", map[string]any{"labels": []string{"needs-human"}}); err != nil {
 			return err
 		}
 		return g.rest(ctx, "POST", issue+"/comments", map[string]any{
 			"body": fmt.Sprintf("The shepherd asked %s %d times to review head %s, and no review came. "+
 				"A person must review this pull request. Remove the label needs-human to let the automation continue.",
 				strings.TrimPrefix(codexReviewer, "app/"), reviewCap, short(pr.Head)),
-		}, nil)
+		})
 	}
 	return nil
 }
 
-// rest calls the GitHub REST API. A body that is not nil goes as JSON, and
-// an out that is not nil gets the JSON of the reply.
-func (g *githubClient) rest(ctx context.Context, method, path string, body, out any) error {
-	var data []byte
-	if body != nil {
-		var err error
-		if data, err = json.Marshal(body); err != nil {
-			return err
-		}
+// rest calls the GitHub REST API with a JSON body.
+func (g *githubClient) rest(ctx context.Context, method, path string, body any) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
 	}
 	req, err := http.NewRequestWithContext(ctx, method, "https://api.github.com"+path, bytes.NewReader(data))
 	if err != nil {
@@ -335,8 +331,5 @@ func (g *githubClient) rest(ctx context.Context, method, path string, body, out 
 	if resp.StatusCode/100 != 2 {
 		return fmt.Errorf("GitHub REST %s %s: HTTP %d", method, path, resp.StatusCode)
 	}
-	if out == nil {
-		return nil
-	}
-	return json.NewDecoder(resp.Body).Decode(out)
+	return nil
 }

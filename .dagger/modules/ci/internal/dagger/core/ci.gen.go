@@ -87,9 +87,7 @@ func (r *Ci) AutomergeReplay(ctx context.Context, token *Secret, opts ...CiAutom
 
 // The merge rules give the expected verdict for fixed pull requests and
 // settings, the risky-path patterns match the expected paths, and a replay
-// reads a merged pull request as of its merge. The rules read file modes and
-// manifests from Git trees and blobs in the JSON of the GitHub REST API. No
-// network and no token.
+// reads a merged pull request as of its merge. No network and no token.
 func (r *Ci) AutomergeRules(ctx context.Context) error {
 	if r.automergeRules != nil {
 		return nil
@@ -276,23 +274,6 @@ type CiOpts struct {
 	// A check whose newest run on the head must succeed. With none, branch
 	// protection names the checks that must pass.
 	CheckName string
-	// A pull request that adds a file with git mode 100755, or that changes
-	// the mode of a file to 100755, is merged by a person. The rules read
-	// the modes from the Git trees of the merge base and the head.
-	RiskyExecutableBit bool
-	// Path patterns of JSON manifest files, as for riskyPaths. A pull
-	// request that adds, removes or changes a top-level field of a matching
-	// file outside manifestSafeFields, or a file that does not parse, is
-	// merged by a person. With none, the rules read no manifest.
-	ManifestFiles []string
-	// The top-level fields of a manifest, and the fields of its entries,
-	// that can change without a person.
-	ManifestSafeFields []string
-	// In a list of entries of a manifest, for example the plugins of a
-	// marketplace, source can change only to a relative path under this
-	// prefix, for example ./plugins/. With none, a change of source needs a
-	// person.
-	ManifestSourcePrefix string
 }
 
 func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
@@ -318,22 +299,6 @@ func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../..
 		// `checkName` optional argument
 		if !querybuilder.IsZeroValue(opts[i].CheckName) {
 			q = q.Arg("checkName", opts[i].CheckName)
-		}
-		// `riskyExecutableBit` optional argument
-		if !querybuilder.IsZeroValue(opts[i].RiskyExecutableBit) {
-			q = q.Arg("riskyExecutableBit", opts[i].RiskyExecutableBit)
-		}
-		// `manifestFiles` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ManifestFiles) {
-			q = q.Arg("manifestFiles", opts[i].ManifestFiles)
-		}
-		// `manifestSafeFields` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ManifestSafeFields) {
-			q = q.Arg("manifestSafeFields", opts[i].ManifestSafeFields)
-		}
-		// `manifestSourcePrefix` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ManifestSourcePrefix) {
-			q = q.Arg("manifestSourcePrefix", opts[i].ManifestSourcePrefix)
 		}
 	}
 	q = q.Arg("ws", ws)

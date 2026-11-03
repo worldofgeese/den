@@ -61,16 +61,12 @@ func convertSlice[I any, O any](in []I, f func(I) O) []O {
 
 func (r Ci) MarshalJSON() ([]byte, error) {
 	var concrete struct {
-		Source               *dagger.Directory
-		Repository           string
-		Authors              []string
-		Reviewer             string
-		RiskyPaths           []string
-		CheckName            string
-		RiskyExecutableBit   bool
-		ManifestFiles        []string
-		ManifestSafeFields   []string
-		ManifestSourcePrefix string
+		Source     *dagger.Directory
+		Repository string
+		Authors    []string
+		Reviewer   string
+		RiskyPaths []string
+		CheckName  string
 	}
 	concrete.Source = r.Source
 	concrete.Repository = r.Repository
@@ -78,25 +74,17 @@ func (r Ci) MarshalJSON() ([]byte, error) {
 	concrete.Reviewer = r.Reviewer
 	concrete.RiskyPaths = r.RiskyPaths
 	concrete.CheckName = r.CheckName
-	concrete.RiskyExecutableBit = r.RiskyExecutableBit
-	concrete.ManifestFiles = r.ManifestFiles
-	concrete.ManifestSafeFields = r.ManifestSafeFields
-	concrete.ManifestSourcePrefix = r.ManifestSourcePrefix
 	return json.Marshal(&concrete)
 }
 
 func (r *Ci) UnmarshalJSON(bs []byte) error {
 	var concrete struct {
-		Source               *dagger.Directory
-		Repository           string
-		Authors              []string
-		Reviewer             string
-		RiskyPaths           []string
-		CheckName            string
-		RiskyExecutableBit   bool
-		ManifestFiles        []string
-		ManifestSafeFields   []string
-		ManifestSourcePrefix string
+		Source     *dagger.Directory
+		Repository string
+		Authors    []string
+		Reviewer   string
+		RiskyPaths []string
+		CheckName  string
 	}
 	err := json.Unmarshal(bs, &concrete)
 	if err != nil {
@@ -108,10 +96,6 @@ func (r *Ci) UnmarshalJSON(bs []byte) error {
 	r.Reviewer = concrete.Reviewer
 	r.RiskyPaths = concrete.RiskyPaths
 	r.CheckName = concrete.CheckName
-	r.RiskyExecutableBit = concrete.RiskyExecutableBit
-	r.ManifestFiles = concrete.ManifestFiles
-	r.ManifestSafeFields = concrete.ManifestSafeFields
-	r.ManifestSourcePrefix = concrete.ManifestSourcePrefix
 	return nil
 }
 
@@ -401,35 +385,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg checkName", err))
 				}
 			}
-			var riskyExecutableBit bool
-			if inputArgs["riskyExecutableBit"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["riskyExecutableBit"]), &riskyExecutableBit)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg riskyExecutableBit", err))
-				}
-			}
-			var manifestFiles []string
-			if inputArgs["manifestFiles"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["manifestFiles"]), &manifestFiles)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg manifestFiles", err))
-				}
-			}
-			var manifestSafeFields []string
-			if inputArgs["manifestSafeFields"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["manifestSafeFields"]), &manifestSafeFields)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg manifestSafeFields", err))
-				}
-			}
-			var manifestSourcePrefix string
-			if inputArgs["manifestSourcePrefix"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["manifestSourcePrefix"]), &manifestSourcePrefix)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg manifestSourcePrefix", err))
-				}
-			}
-			return New(ws, repository, authors, reviewer, riskyPaths, checkName, riskyExecutableBit, manifestFiles, manifestSafeFields, manifestSourcePrefix), nil
+			return New(ws, repository, authors, reviewer, riskyPaths, checkName), nil
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
@@ -443,52 +399,52 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge an open pull request by the merge rules, and say what a merge would\ndo. It merges nothing.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 747, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 750, 2)}).
-							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 752, 2)})).
+							WithSourceMap(dag.SourceMap("automerge.go", 703, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 706, 2)}).
+							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 708, 2)})).
 					WithFunction(
 						dag.Function("AutomergeReplay",
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge the newest merged pull requests as of their merge, and print a\nMarkdown table of the verdicts.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 790, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 793, 2)}).
-							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 796, 2), DefaultValue: dagger.JSON("30")})).
+							WithSourceMap(dag.SourceMap("automerge.go", 746, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 749, 2)}).
+							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 752, 2), DefaultValue: dagger.JSON("30")})).
 					WithFunction(
 						dag.Function("AutomergeRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
-							WithDescription("The merge rules give the expected verdict for fixed pull requests and\nsettings, the risky-path patterns match the expected paths, and a replay\nreads a merged pull request as of its merge. The rules read file modes and\nmanifests from Git trees and blobs in the JSON of the GitHub REST API. No\nnetwork and no token.").
-							WithSourceMap(dag.SourceMap("automerge_checks.go", 17, 1)).
+							WithDescription("The merge rules give the expected verdict for fixed pull requests and\nsettings, the risky-path patterns match the expected paths, and a replay\nreads a merged pull request as of its merge. No network and no token.").
+							WithSourceMap(dag.SourceMap("automerge_checks.go", 15, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("DecapodOverrides",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("Decapod loads the overrides in .decapod/OVERRIDE.md\n(scripts/check-decapod-overrides.sh).").
-							WithSourceMap(dag.SourceMap("main.go", 203, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 170, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("DecapodValidate",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("A CI-local `decapod validate` passes, and it leaves no spec or entrypoint\ndrift (scripts/decapod-validate-ci.sh).").
-							WithSourceMap(dag.SourceMap("main.go", 215, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 182, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Fmt",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("The Nix files are formatted (`just check-fmt`).").
-							WithSourceMap(dag.SourceMap("main.go", 182, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 149, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("NixEval",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("The derivation of each check under .#checks evaluates\n(scripts/check-drvpaths.sh). A check that needs a builder that the engine\ndoes not have, for example a Darwin build, is skipped, as on a host.").
-							WithSourceMap(dag.SourceMap("main.go", 190, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 157, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Shellcheck",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("ShellCheck passes on scripts/*.sh (`just check-shellcheck`).").
-							WithSourceMap(dag.SourceMap("main.go", 196, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 163, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Shepherd",
@@ -508,17 +464,13 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					WithConstructor(
 						dag.Function("New",
 							dag.TypeDef().WithObject("Ci")).
-							WithSourceMap(dag.SourceMap("main.go", 66, 1)).
-							WithArg("ws", dag.TypeDef().WithObject("Workspace"), dagger.FunctionWithArgOpts{Description: "The current workspace. Dagger gives it.", SourceMap: dag.SourceMap("main.go", 68, 2)}).
-							WithArg("repository", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The GitHub repository, owner/name, that the merge rules read.", SourceMap: dag.SourceMap("main.go", 71, 2)}).
-							WithArg("authors", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Logins whose pull requests can merge without a person. A bot is\napp/<login>, and \"*\" is every author. With none, every pull request\nneeds a person.", SourceMap: dag.SourceMap("main.go", 76, 2)}).
-							WithArg("reviewer", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The login whose review of the head counts. With none, nothing merges.", SourceMap: dag.SourceMap("main.go", 79, 2)}).
-							WithArg("riskyPaths", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns. A pull request that changes a matching path is merged\nby a person. A pattern without \"*\" is a path prefix. A pattern with\n\"*\" must match the whole path: \"*\" matches in one level, and \"**\" as a\nlevel matches zero or more levels.", SourceMap: dag.SourceMap("main.go", 85, 2)}).
-							WithArg("checkName", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A check whose newest run on the head must succeed. With none, branch\nprotection names the checks that must pass.", SourceMap: dag.SourceMap("main.go", 89, 2)}).
-							WithArg("riskyExecutableBit", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A pull request that adds a file with git mode 100755, or that changes\nthe mode of a file to 100755, is merged by a person. The rules read\nthe modes from the Git trees of the merge base and the head.", SourceMap: dag.SourceMap("main.go", 94, 2)}).
-							WithArg("manifestFiles", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns of JSON manifest files, as for riskyPaths. A pull\nrequest that adds, removes or changes a top-level field of a matching\nfile outside manifestSafeFields, or a file that does not parse, is\nmerged by a person. With none, the rules read no manifest.", SourceMap: dag.SourceMap("main.go", 100, 2)}).
-							WithArg("manifestSafeFields", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The top-level fields of a manifest, and the fields of its entries,\nthat can change without a person.", SourceMap: dag.SourceMap("main.go", 104, 2)}).
-							WithArg("manifestSourcePrefix", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "In a list of entries of a manifest, for example the plugins of a\nmarketplace, source can change only to a relative path under this\nprefix, for example ./plugins/. With none, a change of source needs a\nperson.", SourceMap: dag.SourceMap("main.go", 110, 2)}))), nil
+							WithSourceMap(dag.SourceMap("main.go", 58, 1)).
+							WithArg("ws", dag.TypeDef().WithObject("Workspace"), dagger.FunctionWithArgOpts{Description: "The current workspace. Dagger gives it.", SourceMap: dag.SourceMap("main.go", 60, 2)}).
+							WithArg("repository", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The GitHub repository, owner/name, that the merge rules read.", SourceMap: dag.SourceMap("main.go", 63, 2)}).
+							WithArg("authors", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Logins whose pull requests can merge without a person. A bot is\napp/<login>, and \"*\" is every author. With none, every pull request\nneeds a person.", SourceMap: dag.SourceMap("main.go", 68, 2)}).
+							WithArg("reviewer", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The login whose review of the head counts. With none, nothing merges.", SourceMap: dag.SourceMap("main.go", 71, 2)}).
+							WithArg("riskyPaths", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns. A pull request that changes a matching path is merged\nby a person. A pattern without \"*\" is a path prefix. A pattern with\n\"*\" must match the whole path: \"*\" matches in one level, and \"**\" as a\nlevel matches zero or more levels.", SourceMap: dag.SourceMap("main.go", 77, 2)}).
+							WithArg("checkName", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A check whose newest run on the head must succeed. With none, branch\nprotection names the checks that must pass.", SourceMap: dag.SourceMap("main.go", 81, 2)}))), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}

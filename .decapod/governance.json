@@ -64,17 +64,29 @@
     "claim:ci-revert-checks-pass": {
       "statement": "just dagger-check and just check pass on the branch, as on 040a18b",
       "falsifier": "just dagger-check or just check exits non-zero",
-      "status": "open"
+      "status": "supported",
+      "proof_refs": [
+        "~/.cache/aec-m/revert-dagger-check.log (8 of 8 passed)",
+        "~/.cache/aec-m/revert-just-check.log (exit 0)"
+      ]
     },
     "claim:ci-revert-dagger-equals-040a18b": {
       "statement": ".dagger/ on this branch is byte-identical to 040a18b, the base of den PR #100: the settings and functions of #100, #102, #103, #104 and #106 are gone, generated bindings included",
       "falsifier": "git diff 040a18b HEAD -- .dagger/ prints any line, or dagger develop changes a tracked file",
-      "status": "open"
+      "status": "supported",
+      "proof_refs": [
+        "dagger generate -y: no changes to apply; go-sdk/generate/stale passed",
+        "~/.cache/aec-m/revert-diff-040a18b-dagger.txt (0 bytes)"
+      ]
     },
     "claim:ci-revert-keeps-other-main-work": {
       "statement": "the revert changes only .dagger/modules/ci and .decapod files; #101 (commit signing), #105 (Guix launcher), dagger.toml, Justfile and the rest of main are unchanged, and their spec prose stays",
       "falsifier": "git diff origin/main HEAD --stat lists a path outside .dagger/modules/ci and .decapod/, or the 'Commit and Tag Signing' section, SECURITY.md signing prose or #105's spec prose is missing",
-      "status": "open"
+      "status": "supported",
+      "proof_refs": [
+        "git diff origin/main HEAD --stat (only .dagger/modules/ci and .decapod/)",
+        "spec prose vs 040a18b = prose changes of 50664e4 and d6fe124, 213 of 213 lines"
+      ]
     }
   },
   "checkpoints": [
@@ -125,6 +137,14 @@
       "proof_refs": [
         ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTERFACES.md"
+      ]
+    },
+    {
+      "id": "ckpt-revert-checks",
+      "summary": "claims supported: .dagger/ equals 040a18b, only .dagger/modules/ci and .decapod change, just dagger-check (8/8) and just check pass",
+      "input_digest": "sha256:50664e543c44669d97f3528e3d66ae11650ff93d27b5c9c7b9e4a5f38257bfcd",
+      "proof_refs": [
+        "~/.cache/aec-m/revert-dagger-check.log"
       ]
     }
   ],
@@ -195,14 +215,26 @@
         "only .dagger/modules/ci and .decapod/ change",
         "root checkout ~/.config/home-manager stays on main, untouched"
       ],
-      "artifact_hash": "sha256:c0c9c5ca805c328f0eeafcd2de6b084e6b3f75c3f710f1e0294191cc7b9c2028",
+      "artifact_hash": "sha256:b0374ef843fcaf7a34d2f085fb8c1afebad44e4898880b2f62e7073a0460af62",
       "checks": [
+        {
+          "name": "git diff 040a18b HEAD -- .dagger/ empty",
+          "status": "passed"
+        },
+        {
+          "name": "just check",
+          "status": "passed"
+        },
+        {
+          "name": "just dagger-check",
+          "status": "passed"
+        },
         {
           "name": "pre-commit just check",
           "status": "passed"
         }
       ],
-      "current_phase": "implement",
+      "current_phase": "validate",
       "custody": {
         "events": [
           {
@@ -223,10 +255,17 @@
             "intent_id": "intent:change_01M6G10XSSEC9FMM4TR92RXRPG",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6G10XVNPBD0TJMQZ1DF6TKC",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6G10XSSEC9FMM4TR92RXRPG",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6G10XVNPBD0TJMQZ1DF6TKC": {
@@ -262,6 +301,26 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "validate",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "just dagger-check: 8 of 8 passed (ci/automerge-rules, decapod-overrides, decapod-validate, fmt, nix-eval, shellcheck, shepherd-rules, go-sdk/generate/stale)",
+                  "just check exit 0 on fb24778's tree; pre-commit just check passed on all six commits"
+                ],
+                "proof_refs": [
+                  "just dagger-check",
+                  "just check",
+                  "git diff 040a18b HEAD -- .dagger/ empty"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -278,6 +337,8 @@
         "conflicts only in .decapod/governance.json and .decapod/managed/specs/.manifest.json: resolved to the branch side, manifest regenerated by specs.refresh, governance.json kept as Decapod wrote it",
         "git diff 040a18b HEAD -- .dagger/ is empty after the five reverts",
         "git diff origin/main HEAD --stat: 32 files, all under .dagger/modules/ci and .decapod/; dagger.toml, Justfile, .github unchanged (none of the five PRs touched them)",
+        "just check exit 0 on fb24778's tree; pre-commit just check passed on all six commits",
+        "just dagger-check: 8 of 8 passed (ci/automerge-rules, decapod-overrides, decapod-validate, fmt, nix-eval, shellcheck, shepherd-rules, go-sdk/generate/stale)",
         "spec prose vs 040a18b equals exactly the prose changes of #101 (50664e4) and #105 (d6fe124): 213 of 213 changed lines match",
         "todo cicd_01m6g0w14z81t5hf was created first without --dir (dir_path = repository root); archive denied (trust basic < verified); left open, unclaimed, unworked, with comments; superseded by cicd_01m6g0z6xdp0kee8"
       ],

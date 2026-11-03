@@ -146,6 +146,14 @@
       "proof_refs": [
         "~/.cache/aec-m/revert-dagger-check.log"
       ]
+    },
+    {
+      "id": "ckpt-revert-validate",
+      "summary": "the validation of the revert: only DecapodLabs/decapod#1474 (publication_readiness) fails; the owner's approval to publish with it",
+      "input_digest": "sha256:f63e83f84765d95a26f531b93dd449507fa6c0249509277061adad0ae1347adc",
+      "proof_refs": [
+        "~/.cache/aec-m/revert-validate-8a67c13.log"
+      ]
     }
   ],
   "intents": {
@@ -215,8 +223,12 @@
         "only .dagger/modules/ci and .decapod/ change",
         "root checkout ~/.config/home-manager stays on main, untouched"
       ],
-      "artifact_hash": "sha256:b0374ef843fcaf7a34d2f085fb8c1afebad44e4898880b2f62e7073a0460af62",
+      "artifact_hash": "sha256:8e2dc65fd0685819af5319d6ffb74a8602ab297ba4d83ccc022a309d88b7de3f",
       "checks": [
+        {
+          "name": "decapod validate",
+          "status": "partial"
+        },
         {
           "name": "git diff 040a18b HEAD -- .dagger/ empty",
           "status": "passed"
@@ -234,7 +246,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "validate",
+      "current_phase": "publish",
       "custody": {
         "events": [
           {
@@ -262,10 +274,17 @@
             "intent_id": "intent:change_01M6G10XSSEC9FMM4TR92RXRPG",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6G10XVNPBD0TJMQZ1DF6TKC",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6G10XSSEC9FMM4TR92RXRPG",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6G10XVNPBD0TJMQZ1DF6TKC": {
@@ -321,6 +340,25 @@
                 ],
                 "sequence": 5,
                 "validation_findings": []
+              },
+              {
+                "action": "publish",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "plain decapod validate on 8a67c13: pass=186 fail=1 warn=5; the one failure is publication_readiness READINESS_BLOCKED (.decapod/governance.json#/sections/validation invalid), which is DecapodLabs/decapod#1474 (native validation never writes the receipt). The owner worldofgeese approved opening den PRs whose only decapod validate failure is #1474. Its repair only refreshed generated_at in the specs manifest."
+                ],
+                "proof_refs": [
+                  "decapod validate"
+                ],
+                "scope": [
+                  ".dagger/modules/ci",
+                  ".decapod/managed/specs",
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": [
+                  "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent"
+                ]
               }
             ]
           }
@@ -339,6 +377,7 @@
         "git diff origin/main HEAD --stat: 32 files, all under .dagger/modules/ci and .decapod/; dagger.toml, Justfile, .github unchanged (none of the five PRs touched them)",
         "just check exit 0 on fb24778's tree; pre-commit just check passed on all six commits",
         "just dagger-check: 8 of 8 passed (ci/automerge-rules, decapod-overrides, decapod-validate, fmt, nix-eval, shellcheck, shepherd-rules, go-sdk/generate/stale)",
+        "plain decapod validate on 8a67c13: pass=186 fail=1 warn=5; the one failure is publication_readiness READINESS_BLOCKED (.decapod/governance.json#/sections/validation invalid), which is DecapodLabs/decapod#1474 (native validation never writes the receipt). The owner worldofgeese approved opening den PRs whose only decapod validate failure is #1474. Its repair only refreshed generated_at in the specs manifest.",
         "spec prose vs 040a18b equals exactly the prose changes of #101 (50664e4) and #105 (d6fe124): 213 of 213 changed lines match",
         "todo cicd_01m6g0w14z81t5hf was created first without --dir (dir_path = repository root); archive denied (trust basic < verified); left open, unclaimed, unworked, with comments; superseded by cicd_01m6g0z6xdp0kee8"
       ],
@@ -368,7 +407,9 @@
       "shortcut_risk_signals": [],
       "task_id": "cicd_01m6g0z6xdp0kee8",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent"
+      ]
     }
   },
   "legacy_digests": {

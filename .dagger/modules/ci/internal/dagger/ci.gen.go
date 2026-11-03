@@ -11,9 +11,6 @@ type Ci = core.Ci
 // CiAutomergeReplayOpts contains options for Ci.AutomergeReplay
 type CiAutomergeReplayOpts = core.CiAutomergeReplayOpts
 
-// CiReviewGateOpts contains options for Ci.ReviewGate
-type CiReviewGateOpts = core.CiReviewGateOpts
-
 // CiShepherdOpts contains options for Ci.Shepherd
 type CiShepherdOpts = core.CiShepherdOpts
 

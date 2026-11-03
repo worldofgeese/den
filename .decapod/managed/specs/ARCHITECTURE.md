@@ -30,16 +30,11 @@ This project's architecture consists of the following key layers/directories:
   read-only `automerge-dry-run` and `automerge-replay` read GitHub's GraphQL
   API with a token secret. When a repository sets `riskyExecutableBit` or
   `manifestFiles`, the snapshot also holds the changed files from the Git
-  trees of the REST API (`automerge_files.go`). Three parts are for other
+  trees of the REST API (`automerge_files.go`). Two parts are for other
   repositories, and this repository leaves them off: `approve.go` approves
   the runs that GitHub holds after a push with a job token (setting
-  `approveBotRuns`), `workflows.go` checks the job kinds of
-  `.github/workflows` against the table of the setting `jobKinds`, and
-  `reviewgate.go` posts the review gate `<statusPrefix>/review` from the
-  review of the head or the approval of a second person (setting
-  `statusPrefix`). The gate decides with the pure function `reviewGate`
-  over the same snapshot as the merge rules, and the rule `review-gate`
-  reads the gate only with `requireReviewGate`.
+  `approveBotRuns`), and `workflows.go` checks the job kinds of
+  `.github/workflows` against the table of the setting `jobKinds`.
   `.github/workflows/dagger.yml` runs the checks on
   GitHub-hosted runners for each pull request and each push to `main`
   (VALIDATION.md, Dagger Checks in CI). `shepherd.go` asks the Codex
@@ -489,7 +484,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `51b5339c3ca691cbdf5e123e18c4d7e1d3788cd0df96894348e53ad41e816f2f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (20 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `e0338c8eb82a5166854117ea33d00000a599c0174db2d9f8a42ffdf9df1b3f16`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (18 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -73,11 +73,6 @@ func (r Ci) MarshalJSON() ([]byte, error) {
 		ManifestSourcePrefix string
 		ApprovesBotRuns      bool
 		JobKinds             string
-		StatusPrefix         string
-		ReviewMarker         string
-		SecondPersonApproval bool
-		ReviewTimeoutHours   int
-		RequireReviewGate    bool
 	}
 	concrete.Source = r.Source
 	concrete.Repository = r.Repository
@@ -91,11 +86,6 @@ func (r Ci) MarshalJSON() ([]byte, error) {
 	concrete.ManifestSourcePrefix = r.ManifestSourcePrefix
 	concrete.ApprovesBotRuns = r.ApprovesBotRuns
 	concrete.JobKinds = r.JobKinds
-	concrete.StatusPrefix = r.StatusPrefix
-	concrete.ReviewMarker = r.ReviewMarker
-	concrete.SecondPersonApproval = r.SecondPersonApproval
-	concrete.ReviewTimeoutHours = r.ReviewTimeoutHours
-	concrete.RequireReviewGate = r.RequireReviewGate
 	return json.Marshal(&concrete)
 }
 
@@ -113,11 +103,6 @@ func (r *Ci) UnmarshalJSON(bs []byte) error {
 		ManifestSourcePrefix string
 		ApprovesBotRuns      bool
 		JobKinds             string
-		StatusPrefix         string
-		ReviewMarker         string
-		SecondPersonApproval bool
-		ReviewTimeoutHours   int
-		RequireReviewGate    bool
 	}
 	err := json.Unmarshal(bs, &concrete)
 	if err != nil {
@@ -135,11 +120,6 @@ func (r *Ci) UnmarshalJSON(bs []byte) error {
 	r.ManifestSourcePrefix = concrete.ManifestSourcePrefix
 	r.ApprovesBotRuns = concrete.ApprovesBotRuns
 	r.JobKinds = concrete.JobKinds
-	r.StatusPrefix = concrete.StatusPrefix
-	r.ReviewMarker = concrete.ReviewMarker
-	r.SecondPersonApproval = concrete.SecondPersonApproval
-	r.ReviewTimeoutHours = concrete.ReviewTimeoutHours
-	r.RequireReviewGate = concrete.RequireReviewGate
 	return nil
 }
 
@@ -367,41 +347,6 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
 			}
 			return nil, (*Ci).NixEval(&parent, ctx)
-		case "ReviewGate":
-			var parent Ci
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
-			}
-			var token *dagger.Secret
-			if inputArgs["token"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["token"]), &token)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg token", err))
-				}
-			}
-			var pr int
-			if inputArgs["pr"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["pr"]), &pr)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg pr", err))
-				}
-			}
-			var dryRun bool
-			if inputArgs["dryRun"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["dryRun"]), &dryRun)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg dryRun", err))
-				}
-			}
-			return (*Ci).ReviewGate(&parent, ctx, token, pr, dryRun)
-		case "ReviewGateRules":
-			var parent Ci
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				panic(fmt.Errorf("%s: %w", "failed to unmarshal parent object", err))
-			}
-			return nil, (*Ci).ReviewGateRules(&parent, ctx)
 		case "Shellcheck":
 			var parent Ci
 			err = json.Unmarshal(parentJSON, &parent)
@@ -548,42 +493,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg jobKinds", err))
 				}
 			}
-			var statusPrefix string
-			if inputArgs["statusPrefix"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["statusPrefix"]), &statusPrefix)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg statusPrefix", err))
-				}
-			}
-			var reviewMarker string
-			if inputArgs["reviewMarker"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["reviewMarker"]), &reviewMarker)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg reviewMarker", err))
-				}
-			}
-			var secondPersonApproval bool
-			if inputArgs["secondPersonApproval"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["secondPersonApproval"]), &secondPersonApproval)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg secondPersonApproval", err))
-				}
-			}
-			var reviewTimeoutHours int
-			if inputArgs["reviewTimeoutHours"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["reviewTimeoutHours"]), &reviewTimeoutHours)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg reviewTimeoutHours", err))
-				}
-			}
-			var requireReviewGate bool
-			if inputArgs["requireReviewGate"] != nil {
-				err = json.Unmarshal([]byte(inputArgs["requireReviewGate"]), &requireReviewGate)
-				if err != nil {
-					panic(fmt.Errorf("%s: %w", "failed to unmarshal input arg requireReviewGate", err))
-				}
-			}
-			return New(ws, repository, authors, reviewer, riskyPaths, checkName, riskyExecutableBit, manifestFiles, manifestSafeFields, manifestSourcePrefix, approveBotRuns, jobKinds, statusPrefix, reviewMarker, secondPersonApproval, reviewTimeoutHours, requireReviewGate), nil
+			return New(ws, repository, authors, reviewer, riskyPaths, checkName, riskyExecutableBit, manifestFiles, manifestSafeFields, manifestSourcePrefix, approveBotRuns, jobKinds), nil
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
@@ -611,67 +521,52 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge an open pull request by the merge rules, and say what a merge would\ndo. It merges nothing.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 848, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 851, 2)}).
-							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 853, 2)})).
+							WithSourceMap(dag.SourceMap("automerge.go", 747, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 750, 2)}).
+							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "The pull request.", SourceMap: dag.SourceMap("automerge.go", 752, 2)})).
 					WithFunction(
 						dag.Function("AutomergeReplay",
 							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
 							WithDescription("Judge the newest merged pull requests as of their merge, and print a\nMarkdown table of the verdicts.").
 							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("automerge.go", 891, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 894, 2)}).
-							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 897, 2), DefaultValue: dagger.JSON("30")})).
+							WithSourceMap(dag.SourceMap("automerge.go", 790, 1)).
+							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository.", SourceMap: dag.SourceMap("automerge.go", 793, 2)}).
+							WithArg("count", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind), dagger.FunctionWithArgOpts{Description: "How many merged pull requests to judge, newest first.", SourceMap: dag.SourceMap("automerge.go", 796, 2), DefaultValue: dagger.JSON("30")})).
 					WithFunction(
 						dag.Function("AutomergeRules",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
-							WithDescription("The merge rules give the expected verdict for fixed pull requests and\nsettings, the risky-path patterns match the expected paths, and a replay\nreads a merged pull request as of its merge. The rules read file modes and\nmanifests from Git trees and blobs in the JSON of the GitHub REST API. The\nrule review-gate reads the status of the review gate, and that status is\nnever a review or a check that ran. No network and no token.").
-							WithSourceMap(dag.SourceMap("automerge_checks.go", 18, 1)).
+							WithDescription("The merge rules give the expected verdict for fixed pull requests and\nsettings, the risky-path patterns match the expected paths, and a replay\nreads a merged pull request as of its merge. The rules read file modes and\nmanifests from Git trees and blobs in the JSON of the GitHub REST API. No\nnetwork and no token.").
+							WithSourceMap(dag.SourceMap("automerge_checks.go", 17, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("DecapodOverrides",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("Decapod loads the overrides in .decapod/OVERRIDE.md\n(scripts/check-decapod-overrides.sh).").
-							WithSourceMap(dag.SourceMap("main.go", 265, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 222, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("DecapodValidate",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("A CI-local `decapod validate` passes, and it leaves no spec or entrypoint\ndrift (scripts/decapod-validate-ci.sh).").
-							WithSourceMap(dag.SourceMap("main.go", 277, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 234, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Fmt",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("The Nix files are formatted (`just check-fmt`).").
-							WithSourceMap(dag.SourceMap("main.go", 244, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 201, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("NixEval",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("The derivation of each check under .#checks evaluates\n(scripts/check-drvpaths.sh). A check that needs a builder that the engine\ndoes not have, for example a Darwin build, is skipped, as on a host.").
-							WithSourceMap(dag.SourceMap("main.go", 252, 1)).
-							WithCheck()).
-					WithFunction(
-						dag.Function("ReviewGate",
-							dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).
-							WithDescription("For each open pull request, or for one, post the commit status\n<statusPrefix>/review on the head, and print a Markdown table of the\nresults. success: the newest review of the exact head by the reviewer has\nno open blocking finding, or a second person approved the head (with\nsecondPersonApproval). failure: the review has an open blocking finding. A\nresult that the head already has is not posted again. With\nreviewTimeoutHours, a row says when a head waits for a person. The function\nposts no label. The setting statusPrefix must not be empty.").
-							WithCachePolicy(dagger.FunctionCachePolicyNever).
-							WithSourceMap(dag.SourceMap("reviewgate.go", 315, 1)).
-							WithArg("token", dag.TypeDef().WithObject("Secret"), dagger.FunctionWithArgOpts{Description: "A GitHub token that can read the repository. Without dryRun, it also\nneeds statuses: write.", SourceMap: dag.SourceMap("reviewgate.go", 319, 2)}).
-							WithArg("pr", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The pull request. With none, each open pull request.", SourceMap: dag.SourceMap("reviewgate.go", 322, 2)}).
-							WithArg("dryRun", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Print the results and post nothing.", SourceMap: dag.SourceMap("reviewgate.go", 325, 2)})).
-					WithFunction(
-						dag.Function("ReviewGateRules",
-							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
-							WithDescription("review-gate posts the expected commit status for fixed pull requests,\nagainst a fake GitHub API: both ways to read the reviewer, a review of an\nolder head, second-person approvals and their refusals, the review\ntimeout, and the posting rules. With statusPrefix empty, it refuses before\nany GitHub call. No network and no token.").
-							WithSourceMap(dag.SourceMap("reviewgate_checks.go", 20, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 209, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Shellcheck",
 							dag.TypeDef().WithKind(dagger.TypeDefKindVoidKind).WithOptional(true)).
 							WithDescription("ShellCheck passes on scripts/*.sh (`just check-shellcheck`).").
-							WithSourceMap(dag.SourceMap("main.go", 258, 1)).
+							WithSourceMap(dag.SourceMap("main.go", 215, 1)).
 							WithCheck()).
 					WithFunction(
 						dag.Function("Shepherd",
@@ -703,24 +598,19 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 					WithConstructor(
 						dag.Function("New",
 							dag.TypeDef().WithObject("Ci")).
-							WithSourceMap(dag.SourceMap("main.go", 83, 1)).
-							WithArg("ws", dag.TypeDef().WithObject("Workspace"), dagger.FunctionWithArgOpts{Description: "The current workspace. Dagger gives it.", SourceMap: dag.SourceMap("main.go", 85, 2)}).
-							WithArg("repository", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The GitHub repository, owner/name, that the merge rules read.", SourceMap: dag.SourceMap("main.go", 88, 2)}).
-							WithArg("authors", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Logins whose pull requests can merge without a person. A bot is\napp/<login>, and \"*\" is every author. With none, every pull request\nneeds a person.", SourceMap: dag.SourceMap("main.go", 93, 2)}).
-							WithArg("reviewer", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The login whose review of the head counts. With none, nothing merges.", SourceMap: dag.SourceMap("main.go", 96, 2)}).
-							WithArg("riskyPaths", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns. A pull request that changes a matching path is merged\nby a person. A pattern without \"*\" is a path prefix. A pattern with\n\"*\" must match the whole path: \"*\" matches in one level, and \"**\" as a\nlevel matches zero or more levels.", SourceMap: dag.SourceMap("main.go", 102, 2)}).
-							WithArg("checkName", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A check whose newest run on the head must succeed. With none, branch\nprotection names the checks that must pass.", SourceMap: dag.SourceMap("main.go", 106, 2)}).
-							WithArg("riskyExecutableBit", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A pull request that adds a file with git mode 100755, or that changes\nthe mode of a file to 100755, is merged by a person. The rules read\nthe modes from the Git trees of the merge base and the head.", SourceMap: dag.SourceMap("main.go", 111, 2)}).
-							WithArg("manifestFiles", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns of JSON manifest files, as for riskyPaths. A pull\nrequest that adds, removes or changes a top-level field of a matching\nfile outside manifestSafeFields, or a file that does not parse, is\nmerged by a person. With none, the rules read no manifest.", SourceMap: dag.SourceMap("main.go", 117, 2)}).
-							WithArg("manifestSafeFields", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The top-level fields of a manifest, and the fields of its entries,\nthat can change without a person.", SourceMap: dag.SourceMap("main.go", 121, 2)}).
-							WithArg("manifestSourcePrefix", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "In a list of entries of a manifest, for example the plugins of a\nmarketplace, source can change only to a relative path under this\nprefix, for example ./plugins/. With none, a change of source needs a\nperson.", SourceMap: dag.SourceMap("main.go", 127, 2)}).
-							WithArg("approveBotRuns", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "With true, approve-bot-runs approves the pull_request runs that GitHub\nholds (action_required) on a head that a job pushed with its\nGITHUB_TOKEN. With false, the module approves no run.", SourceMap: dag.SourceMap("main.go", 132, 2)}).
-							WithArg("jobKinds", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The job-kinds table of ci:workflow-isolation, in YAML: the kind of each\njob in .github/workflows (CHECK, AGENT, GITHUB, SCAN or LEGACY), and\nwhat the kinds can hold in this repository. With none, the check is\noff.", SourceMap: dag.SourceMap("main.go", 138, 2)}).
-							WithArg("statusPrefix", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "review-gate posts the commit status <statusPrefix>/review on the head of\neach open pull request: success when the newest review of the head by\nthe reviewer has no open blocking finding, and failure when it has one.\nWith none, the review gate is off.", SourceMap: dag.SourceMap("main.go", 144, 2)}).
-							WithArg("reviewMarker", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The name of the block in the review body of the reviewer that lists the\nopen findings, for example aec-review:v1 for the block\n<!-- aec-review:v1 {\"open\":[{\"id\":\"F1\",\"severity\":\"blocking\"}]} -->.\nWith none, the gate reads the reviewer as the merge rules do: the rules\nreviewed and threads, and the Codex summary.", SourceMap: dag.SourceMap("main.go", 151, 2)}).
-							WithArg("secondPersonApproval", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "With true, an APPROVE of the exact head opens the review gate when the\napprover is a person with write access, is not the author, and pushed\nnone of the commits (the activity API). Never on a fork pull request.", SourceMap: dag.SourceMap("main.go", 156, 2)}).
-							WithArg("reviewTimeoutHours", dag.TypeDef().WithKind(dagger.TypeDefKindIntegerKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A head with no review gate status this many hours after its check\nfinished gets the needs-human action \"review by a person: approve head\nX?\". With 0, there is no timeout.", SourceMap: dag.SourceMap("main.go", 161, 2)}).
-							WithArg("requireReviewGate", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "With true, the merge rules require the success of the review gate on the\nhead (the rule review-gate).", SourceMap: dag.SourceMap("main.go", 165, 2)}))), nil
+							WithSourceMap(dag.SourceMap("main.go", 72, 1)).
+							WithArg("ws", dag.TypeDef().WithObject("Workspace"), dagger.FunctionWithArgOpts{Description: "The current workspace. Dagger gives it.", SourceMap: dag.SourceMap("main.go", 74, 2)}).
+							WithArg("repository", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The GitHub repository, owner/name, that the merge rules read.", SourceMap: dag.SourceMap("main.go", 77, 2)}).
+							WithArg("authors", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Logins whose pull requests can merge without a person. A bot is\napp/<login>, and \"*\" is every author. With none, every pull request\nneeds a person.", SourceMap: dag.SourceMap("main.go", 82, 2)}).
+							WithArg("reviewer", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The login whose review of the head counts. With none, nothing merges.", SourceMap: dag.SourceMap("main.go", 85, 2)}).
+							WithArg("riskyPaths", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns. A pull request that changes a matching path is merged\nby a person. A pattern without \"*\" is a path prefix. A pattern with\n\"*\" must match the whole path: \"*\" matches in one level, and \"**\" as a\nlevel matches zero or more levels.", SourceMap: dag.SourceMap("main.go", 91, 2)}).
+							WithArg("checkName", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A check whose newest run on the head must succeed. With none, branch\nprotection names the checks that must pass.", SourceMap: dag.SourceMap("main.go", 95, 2)}).
+							WithArg("riskyExecutableBit", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "A pull request that adds a file with git mode 100755, or that changes\nthe mode of a file to 100755, is merged by a person. The rules read\nthe modes from the Git trees of the merge base and the head.", SourceMap: dag.SourceMap("main.go", 100, 2)}).
+							WithArg("manifestFiles", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "Path patterns of JSON manifest files, as for riskyPaths. A pull\nrequest that adds, removes or changes a top-level field of a matching\nfile outside manifestSafeFields, or a file that does not parse, is\nmerged by a person. With none, the rules read no manifest.", SourceMap: dag.SourceMap("main.go", 106, 2)}).
+							WithArg("manifestSafeFields", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(dagger.TypeDefKindStringKind)).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The top-level fields of a manifest, and the fields of its entries,\nthat can change without a person.", SourceMap: dag.SourceMap("main.go", 110, 2)}).
+							WithArg("manifestSourcePrefix", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "In a list of entries of a manifest, for example the plugins of a\nmarketplace, source can change only to a relative path under this\nprefix, for example ./plugins/. With none, a change of source needs a\nperson.", SourceMap: dag.SourceMap("main.go", 116, 2)}).
+							WithArg("approveBotRuns", dag.TypeDef().WithKind(dagger.TypeDefKindBooleanKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "With true, approve-bot-runs approves the pull_request runs that GitHub\nholds (action_required) on a head that a job pushed with its\nGITHUB_TOKEN. With false, the module approves no run.", SourceMap: dag.SourceMap("main.go", 121, 2)}).
+							WithArg("jobKinds", dag.TypeDef().WithKind(dagger.TypeDefKindStringKind).WithOptional(true), dagger.FunctionWithArgOpts{Description: "The job-kinds table of ci:workflow-isolation, in YAML: the kind of each\njob in .github/workflows (CHECK, AGENT, GITHUB, SCAN or LEGACY), and\nwhat the kinds can hold in this repository. With none, the check is\noff.", SourceMap: dag.SourceMap("main.go", 127, 2)}))), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}

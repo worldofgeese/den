@@ -26,8 +26,6 @@ type Ci struct { // ci (../../../../../../:0:0)
 	fmt                    *Void
 	id                     *ID
 	nixEval                *Void
-	reviewGate             *string
-	reviewGateRules        *Void
 	shellcheck             *Void
 	shepherd               *string
 	shepherdRules          *Void
@@ -131,9 +129,8 @@ func (r *Ci) AutomergeReplay(ctx context.Context, token *Secret, opts ...CiAutom
 // The merge rules give the expected verdict for fixed pull requests and
 // settings, the risky-path patterns match the expected paths, and a replay
 // reads a merged pull request as of its merge. The rules read file modes and
-// manifests from Git trees and blobs in the JSON of the GitHub REST API. The
-// rule review-gate reads the status of the review gate, and that status is
-// never a review or a check that ran. No network and no token.
+// manifests from Git trees and blobs in the JSON of the GitHub REST API. No
+// network and no token.
 func (r *Ci) AutomergeRules(ctx context.Context) error {
 	if r.automergeRules != nil {
 		return nil
@@ -238,60 +235,6 @@ func (r *Ci) NixEval(ctx context.Context) error {
 		return nil
 	}
 	q := r.query.Select("nixEval")
-
-	return q.Execute(ctx)
-}
-
-// CiReviewGateOpts contains options for Ci.ReviewGate
-type CiReviewGateOpts struct {
-	// The pull request. With none, each open pull request.
-	Pr int
-	// Print the results and post nothing.
-	DryRun bool
-}
-
-// For each open pull request, or for one, post the commit status
-// <statusPrefix>/review on the head, and print a Markdown table of the
-// results. success: the newest review of the exact head by the reviewer has
-// no open blocking finding, or a second person approved the head (with
-// secondPersonApproval). failure: the review has an open blocking finding. A
-// result that the head already has is not posted again. With
-// reviewTimeoutHours, a row says when a head waits for a person. The function
-// posts no label. The setting statusPrefix must not be empty.
-func (r *Ci) ReviewGate(ctx context.Context, token *Secret, opts ...CiReviewGateOpts) (string, error) {
-	assertNotNil("token", token)
-	if r.reviewGate != nil {
-		return *r.reviewGate, nil
-	}
-	q := r.query.Select("reviewGate")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `pr` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Pr) {
-			q = q.Arg("pr", opts[i].Pr)
-		}
-		// `dryRun` optional argument
-		if !querybuilder.IsZeroValue(opts[i].DryRun) {
-			q = q.Arg("dryRun", opts[i].DryRun)
-		}
-	}
-	q = q.Arg("token", token)
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx)
-}
-
-// review-gate posts the expected commit status for fixed pull requests,
-// against a fake GitHub API: both ways to read the reviewer, a review of an
-// older head, second-person approvals and their refusals, the review
-// timeout, and the posting rules. With statusPrefix empty, it refuses before
-// any GitHub call. No network and no token.
-func (r *Ci) ReviewGateRules(ctx context.Context) error {
-	if r.reviewGateRules != nil {
-		return nil
-	}
-	q := r.query.Select("reviewGateRules")
 
 	return q.Execute(ctx)
 }
@@ -440,28 +383,6 @@ type CiOpts struct {
 	// what the kinds can hold in this repository. With none, the check is
 	// off.
 	JobKinds string
-	// review-gate posts the commit status <statusPrefix>/review on the head of
-	// each open pull request: success when the newest review of the head by
-	// the reviewer has no open blocking finding, and failure when it has one.
-	// With none, the review gate is off.
-	StatusPrefix string
-	// The name of the block in the review body of the reviewer that lists the
-	// open findings, for example aec-review:v1 for the block
-	// <!-- aec-review:v1 {"open":[{"id":"F1","severity":"blocking"}]} -->.
-	// With none, the gate reads the reviewer as the merge rules do: the rules
-	// reviewed and threads, and the Codex summary.
-	ReviewMarker string
-	// With true, an APPROVE of the exact head opens the review gate when the
-	// approver is a person with write access, is not the author, and pushed
-	// none of the commits (the activity API). Never on a fork pull request.
-	SecondPersonApproval bool
-	// A head with no review gate status this many hours after its check
-	// finished gets the needs-human action "review by a person: approve head
-	// X?". With 0, there is no timeout.
-	ReviewTimeoutHours int
-	// With true, the merge rules require the success of the review gate on the
-	// head (the rule review-gate).
-	RequireReviewGate bool
 }
 
 func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
@@ -511,26 +432,6 @@ func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../..
 		// `jobKinds` optional argument
 		if !querybuilder.IsZeroValue(opts[i].JobKinds) {
 			q = q.Arg("jobKinds", opts[i].JobKinds)
-		}
-		// `statusPrefix` optional argument
-		if !querybuilder.IsZeroValue(opts[i].StatusPrefix) {
-			q = q.Arg("statusPrefix", opts[i].StatusPrefix)
-		}
-		// `reviewMarker` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ReviewMarker) {
-			q = q.Arg("reviewMarker", opts[i].ReviewMarker)
-		}
-		// `secondPersonApproval` optional argument
-		if !querybuilder.IsZeroValue(opts[i].SecondPersonApproval) {
-			q = q.Arg("secondPersonApproval", opts[i].SecondPersonApproval)
-		}
-		// `reviewTimeoutHours` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ReviewTimeoutHours) {
-			q = q.Arg("reviewTimeoutHours", opts[i].ReviewTimeoutHours)
-		}
-		// `requireReviewGate` optional argument
-		if !querybuilder.IsZeroValue(opts[i].RequireReviewGate) {
-			q = q.Arg("requireReviewGate", opts[i].RequireReviewGate)
 		}
 	}
 	q = q.Arg("ws", ws)

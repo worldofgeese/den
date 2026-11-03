@@ -49,48 +49,12 @@ type mergePolicy struct {
 	// In a list of entries of a manifest, source can change only to a
 	// relative path under this prefix, for example ./plugins/.
 	ManifestSourcePrefix string
-	// The review gate (reviewgate.go) posts the commit status
-	// <StatusPrefix>/review. With none, the gate is off, and no status is the
-	// status of the gate.
-	StatusPrefix string
-	// The name of the block in the review body of the reviewer that lists the
-	// open findings. With none, the gate reads the reviewer the den way.
-	ReviewMarker string
-	// An APPROVE of the exact head by a second person opens the gate.
-	SecondPersonApproval bool
-	// A head with no status of the gate this long after its check finished
-	// needs a person. With none, there is no timeout.
-	ReviewTimeout time.Duration
-	// The rule review-gate requires the success of the gate on the head.
-	RequireReviewGate bool
 }
 
 // allowsAuthor reports whether the pull requests of login can merge without
 // a person. "*" is every author, and an empty list refuses each author.
 func (p mergePolicy) allowsAuthor(login string) bool {
 	return slices.Contains(p.Authors, "*") || slices.Contains(p.Authors, login)
-}
-
-// gateContext is the context of the commit status of the review gate.
-func (p mergePolicy) gateContext() string {
-	return p.StatusPrefix + "/review"
-}
-
-// gateStatus reports whether c is the commit status of the review gate.
-// GitHub compares the contexts of statuses without case. With no
-// statusPrefix, no status is the status of the gate.
-func (p mergePolicy) gateStatus(c prCheck) bool {
-	return p.StatusPrefix != "" && c.Workflow == "status" && strings.EqualFold(c.Name, p.gateContext())
-}
-
-// gateStatusOf returns the newest status of the review gate on the head.
-func (p mergePolicy) gateStatusOf(s *prSnapshot) (prCheck, bool) {
-	for _, c := range newestChecks(s.Checks) {
-		if p.gateStatus(c) {
-			return c, true
-		}
-	}
-	return prCheck{}, false
 }
 
 // matchRiskyPath reports whether the path name matches a risky-path pattern.
@@ -149,33 +113,19 @@ type prCheck struct {
 	// state.
 	Name, Workflow, Status, Conclusion, State string
 	At                                        time.Time
-	// Done is when a check run completed, or when a commit status that is
-	// not pending was posted.
-	Done time.Time
-	// The description of a commit status.
-	Description string
 }
 
-type prReview struct {
-	Author, State, Commit string
-	// The text of the review, and when the reviewer submitted it.
-	Body string
-	At   time.Time
-}
+type prReview struct{ Author, State, Commit string }
 
 type prComment struct{ Author, Body string }
 
 type prSnapshot struct {
-	Number      int
-	State       string // OPEN, MERGED or CLOSED
-	Draft       bool
-	Base, Trunk string
-	Author      string
-	Head        string
-	// HeadRef is the name of the head branch. Fork: the head branch is in
-	// another repository.
-	HeadRef        string
-	Fork           bool
+	Number         int
+	State          string // OPEN, MERGED or CLOSED
+	Draft          bool
+	Base, Trunk    string
+	Author         string
+	Head           string
 	Labels         []string
 	Body           string
 	ReviewDecision string
@@ -195,9 +145,7 @@ type prSnapshot struct {
 	ChecksIncomplete bool
 	// LabelsIncomplete: a replay did not read the whole label history.
 	LabelsIncomplete bool
-	// ReviewsIncomplete: GitHub has more reviews than the query read.
-	ReviewsIncomplete bool
-	Unresolved        int
+	Unresolved       int
 	// Trees has each changed file in the Git trees of the merge base and the
 	// head (automerge_files.go). fetch reads them only for
 	// riskyExecutableBit and manifestFiles.
@@ -296,25 +244,6 @@ var mergeRules = []mergeRule{
 		}
 		return p.Reviewer + " has not reviewed head " + short(s.Head)
 	}},
-	// With requireReviewGate, the review gate (reviewgate.go) must have
-	// posted success on the head. The status of the gate is not a review: the
-	// rule reviewed still needs the review of the reviewer.
-	{"review-gate", false, func(s *prSnapshot, p mergePolicy) string {
-		if !p.RequireReviewGate {
-			return ""
-		}
-		if p.StatusPrefix == "" {
-			return "requireReviewGate is set, but statusPrefix is empty, so the review gate is off"
-		}
-		c, ok := p.gateStatusOf(s)
-		if !ok {
-			return "head " + short(s.Head) + " has no " + p.gateContext() + " status"
-		}
-		if c.State != "SUCCESS" {
-			return p.gateContext() + " is " + strings.ToLower(c.State) + " on head " + short(s.Head)
-		}
-		return ""
-	}},
 	{"changes-requested", false, func(s *prSnapshot, _ mergePolicy) string {
 		if s.ReviewDecision == "CHANGES_REQUESTED" {
 			return "changes requested"
@@ -327,14 +256,12 @@ var mergeRules = []mergeRule{
 		}
 		return ""
 	}},
-	{"checks", false, func(s *prSnapshot, p mergePolicy) string {
+	{"checks", false, func(s *prSnapshot, _ mergePolicy) string {
 		if s.ChecksIncomplete {
 			return "head " + short(s.Head) + " has more checks than the rules read; a person merges"
 		}
 		newest := newestChecks(s.Checks)
-		// The status of the review gate is not a check that ran on the head.
-		// Its failure refuses below, as the failure of each status does.
-		if !slices.ContainsFunc(newest, func(c prCheck) bool { return !p.gateStatus(c) }) {
+		if len(newest) == 0 {
 			return "no check ran on head " + short(s.Head)
 		}
 		for _, c := range newest {
@@ -354,8 +281,7 @@ var mergeRules = []mergeRule{
 		}
 		ran := false
 		for _, c := range newestChecks(s.Checks) {
-			// The status of the review gate is never the named check.
-			if c.Name != p.CheckName || p.gateStatus(c) {
+			if c.Name != p.CheckName {
 				continue
 			}
 			if !c.succeeded() {
@@ -536,7 +462,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
     defaultBranchRef { name }
     mergeCommitAllowed squashMergeAllowed rebaseMergeAllowed
     pullRequest(number: $n) {
-      number state isDraft baseRefName baseRefOid headRefOid headRefName isCrossRepository body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
+      number state isDraft baseRefName baseRefOid headRefOid body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
       author { __typename login }
       labels(first: 50) { nodes { name } }
       timelineItems(first: 100, itemTypes: [LABELED_EVENT, UNLABELED_EVENT]) {
@@ -547,7 +473,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
           ... on UnlabeledEvent { createdAt label { name } }
         }
       }
-      reviews(first: 100) { totalCount nodes { author { __typename login } state submittedAt commit { oid } body } }
+      reviews(first: 100) { nodes { author { __typename login } state submittedAt commit { oid } } }
       comments(last: 50) { nodes { author { __typename login } body } }
       reviewThreads(first: 100) { nodes { isResolved } }
       files(first: 100) { nodes { path } }
@@ -555,7 +481,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
         nodes { commit { statusCheckRollup { contexts(first: 100) { totalCount nodes {
           __typename
           ... on CheckRun { name status conclusion startedAt completedAt checkSuite { workflowRun { workflow { name } } } }
-          ... on StatusContext { context state description createdAt }
+          ... on StatusContext { context state createdAt }
         } } } } }
       }
     }
@@ -579,23 +505,21 @@ func (a *gqlActor) name() string {
 }
 
 type gqlPR struct {
-	Number            int
-	State             string
-	IsDraft           bool
-	BaseRefName       string
-	BaseRefOid        string
-	HeadRefOid        string
-	HeadRefName       string
-	IsCrossRepository bool
-	Body              string
-	ReviewDecision    string
-	Mergeable         string
-	MergeStateStatus  string
-	MergedAt          *time.Time
-	ChangedFiles      int
-	Author            *gqlActor
-	Labels            struct{ Nodes []struct{ Name string } }
-	TimelineItems     struct {
+	Number           int
+	State            string
+	IsDraft          bool
+	BaseRefName      string
+	BaseRefOid       string
+	HeadRefOid       string
+	Body             string
+	ReviewDecision   string
+	Mergeable        string
+	MergeStateStatus string
+	MergedAt         *time.Time
+	ChangedFiles     int
+	Author           *gqlActor
+	Labels           struct{ Nodes []struct{ Name string } }
+	TimelineItems    struct {
 		PageInfo struct{ HasNextPage bool }
 		Nodes    []struct {
 			Typename  string `json:"__typename"`
@@ -604,8 +528,12 @@ type gqlPR struct {
 		}
 	}
 	Reviews struct {
-		TotalCount int
-		Nodes      []gqlReview
+		Nodes []struct {
+			Author      *gqlActor
+			State       string
+			SubmittedAt *time.Time
+			Commit      *struct{ Oid string }
+		}
 	}
 	Comments struct {
 		Nodes []struct {
@@ -618,14 +546,6 @@ type gqlPR struct {
 	Commits       struct{ Nodes []gqlCommitNode }
 	// Not from GraphQL: fetch reads the Git trees (readTrees).
 	Trees *prTrees `json:"-"`
-}
-
-type gqlReview struct {
-	Author      *gqlActor
-	State       string
-	SubmittedAt *time.Time
-	Commit      *struct{ Oid string }
-	Body        string
 }
 
 type gqlCommitNode struct {
@@ -646,8 +566,8 @@ type gqlContext struct {
 	CheckSuite               *struct {
 		WorkflowRun *struct{ Workflow struct{ Name string } }
 	}
-	Context, State, Description string
-	CreatedAt                   *time.Time
+	Context, State string
+	CreatedAt      *time.Time
 }
 
 type gqlRepo struct {
@@ -667,8 +587,6 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 		Trunk: trunk, Author: pr.Author.name(), Head: pr.HeadRefOid, Body: pr.Body,
 		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable, MergeState: pr.MergeStateStatus,
 		ChangedFiles: pr.ChangedFiles, Trees: pr.Trees,
-		HeadRef: pr.HeadRefName, Fork: pr.IsCrossRepository,
-		ReviewsIncomplete: pr.Reviews.TotalCount > len(pr.Reviews.Nodes),
 	}
 	var cutoff time.Time
 	if replay && pr.MergedAt != nil {
@@ -709,8 +627,7 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 	}
 	for _, r := range pr.Reviews.Nodes {
 		if r.Commit != nil && r.SubmittedAt != nil && before(r.SubmittedAt) {
-			s.Reviews = append(s.Reviews, prReview{Author: r.Author.name(), State: r.State, Commit: r.Commit.Oid,
-				Body: r.Body, At: *r.SubmittedAt})
+			s.Reviews = append(s.Reviews, prReview{Author: r.Author.name(), State: r.State, Commit: r.Commit.Oid})
 		}
 	}
 	for _, c := range pr.Comments.Nodes {
@@ -757,20 +674,14 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 				} else if at := c.CompletedAt; at != nil {
 					check.At = *at
 				}
-				if check.Status == "COMPLETED" && c.CompletedAt != nil {
-					check.Done = *c.CompletedAt
-				}
 				s.Checks = append(s.Checks, check)
 			case "StatusContext":
 				if !before(c.CreatedAt) {
 					continue
 				}
-				check := prCheck{Name: c.Context, Workflow: "status", State: c.State, Description: c.Description}
+				check := prCheck{Name: c.Context, Workflow: "status", State: c.State}
 				if c.CreatedAt != nil {
 					check.At = *c.CreatedAt
-					if c.State != "PENDING" && c.State != "EXPECTED" {
-						check.Done = *c.CreatedAt
-					}
 				}
 				s.Checks = append(s.Checks, check)
 			}
@@ -808,38 +719,26 @@ func (m *Ci) github(ctx context.Context, token *dagger.Secret) (*githubClient, s
 func (m *Ci) policy() mergePolicy {
 	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths, CheckName: m.CheckName,
 		RiskyExecutableBit: m.RiskyExecutableBit, ManifestFiles: m.ManifestFiles,
-		ManifestSafeFields: m.ManifestSafeFields, ManifestSourcePrefix: m.ManifestSourcePrefix,
-		StatusPrefix: m.StatusPrefix, ReviewMarker: m.ReviewMarker, SecondPersonApproval: m.SecondPersonApproval,
-		ReviewTimeout: time.Duration(m.ReviewTimeoutHours) * time.Hour, RequireReviewGate: m.RequireReviewGate}
+		ManifestSafeFields: m.ManifestSafeFields, ManifestSourcePrefix: m.ManifestSourcePrefix}
 }
 
-// queryPR reads pull request n with prQuery.
-func queryPR(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
+func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
 	var out struct{ Repository gqlRepo }
 	if err := g.graphql(ctx, prQuery, map[string]any{"o": owner, "r": name, "n": n}, &out); err != nil {
 		return nil, fmt.Errorf("pull request %d: %w", n, err)
 	}
-	if out.Repository.PullRequest == nil {
+	pr := out.Repository.PullRequest
+	if pr == nil {
 		return nil, fmt.Errorf("pull request %d does not exist", n)
 	}
-	return &out.Repository, nil
-}
-
-// fetch reads pull request n for the merge rules: prQuery, and the Git trees
-// when a file rule is on.
-func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
-	repo, err := queryPR(ctx, g, owner, name, n)
-	if err != nil {
-		return nil, err
-	}
 	if m.RiskyExecutableBit || len(m.ManifestFiles) > 0 {
-		trees, err := m.readTrees(ctx, g, owner, name, repo.PullRequest)
+		trees, err := m.readTrees(ctx, g, owner, name, pr)
 		if err != nil {
 			return nil, fmt.Errorf("pull request %d: %w", n, err)
 		}
-		repo.PullRequest.Trees = trees
+		pr.Trees = trees
 	}
-	return repo, nil
+	return &out.Repository, nil
 }
 
 // Judge an open pull request by the merge rules, and say what a merge would

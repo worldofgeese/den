@@ -273,8 +273,8 @@ interface).
 
 - **Checks** (`dagger check`): `ci:nix-eval`, `ci:fmt`, `ci:shellcheck`,
   `ci:decapod-overrides`, `ci:decapod-validate`, `ci:automerge-rules`,
-  `ci:shepherd-rules`, `ci:approve-bot-runs-rules`, `ci:workflow-isolation`,
-  `ci:workflow-isolation-rules` and `ci:review-gate-rules`. VALIDATION.md (Dagger Checks) maps them to the
+  `ci:shepherd-rules`, `ci:approve-bot-runs-rules`, `ci:workflow-isolation`
+  and `ci:workflow-isolation-rules`. VALIDATION.md (Dagger Checks) maps them to the
   `just check` steps. To run
   one check, give its name to `--check`, for example
   `dagger check --check ci/nix-eval`.
@@ -322,45 +322,13 @@ interface).
   commit SHA, it refuses before it reads the token. No workflow of this
   repository calls it. People push the branches of its pull requests, and
   `bump.yml` pushes with `DEN_SHEPHERD_TOKEN`, so GitHub holds no run.
-- **`review-gate --token <secret> [--pr <n>] [--dry-run]`**
-  (`reviewgate.go`, plan P4 and part h of AEC task M) is the review gate. It
-  posts the commit status `<statusPrefix>/review` on the head of each open
-  pull request, or of the pull request `--pr`. The status is `success` when
-  the newest review of the exact head by `reviewer` has no open blocking
-  finding, and `failure` when it has one. A review of an older head does not
-  count, so a new head starts with no status. The function posts a result
-  only when the head does not already have that state and description,
-  because GitHub keeps at most 1000 statuses for each commit and context.
-  With `--dry-run`, it posts nothing. It prints a Markdown table with the
-  result, the reason and the action for each pull request. It posts no
-  label. Without `statusPrefix`, it refuses before it reads the token. The
-  token needs `statuses: write`. No workflow of this repository calls it,
-  and the shepherd does not call it.
-  - Without `reviewMarker`, the gate reads the reviewer as the merge rules
-    do. The head has a review when the rule `reviewed` accepts it, or when a
-    completed Codex summary of the head has `has_unresolved_findings: true`.
-    It fails when that summary has unresolved findings and the reviewer
-    submitted no review of the head. It also fails when a review thread is
-    unresolved (the rule `threads`), or when the newest decisive review of
-    the reviewer requests changes.
-  - With `reviewMarker`, the gate reads the newest review of the head by the
-    reviewer that has the block
-    `<!-- <reviewMarker> {"open":[{"id":"F1","severity":"blocking"}]} -->`.
-    `open` lists the open findings. Each severity other than `note` blocks.
-    A block that does not parse, a block without `open`, or two blocks in one
-    review fail. Each HTML comment that starts with the marker name is a
-    block, also when its JSON does not parse, so a broken block never lets
-    an older review count. A comment that starts with a longer name, for
-    example `aec-review:v10`, is not a block. Other reviews of that login do
-    not count.
 - **Write boundary.** `automerge-dry-run` and `automerge-replay` only read
   GitHub. The shepherd writes only the request comment `@codex review`, the
   label `needs-human` and its comment. With `--merge`, it also merges at
   most one pull request in each run that the merge rules accept (plan P4,
   step 2). `approve-bot-runs` writes only approvals of held runs of the
-  repository on the head that it gets. `review-gate` writes only the commit
-  status `<statusPrefix>/review` on the heads of open pull requests. No
-  function sends a review event.
+  repository on the head that it gets. No function sends a review event or
+  writes a status.
 - **Nightly bump** (plan P6). `.github/workflows/bump.yml` runs
   `scripts/bump-flake-inputs.sh` at 01:17 UTC with `DEN_SHEPHERD_TOKEN`. It
   writes only the branch `bump/flake-inputs` and its pull request: the
@@ -380,9 +348,7 @@ interface).
   the author `"*"`, `checkName` and the two file rules do not change its
   verdicts, and its merge rules read no Git tree. It does not set
   `approveBotRuns` or `jobKinds` either, so the module approves no run, and
-  `ci:workflow-isolation` reads no workflow and passes. It sets none of the
-  five settings of the review gate, so `review-gate` refuses, and the rules
-  read no status of the gate.
+  `ci:workflow-isolation` reads no workflow and passes.
   - `repository`: the GitHub repository, owner/name, that the functions
     read.
   - `authors`: the logins whose pull requests can merge without a person.
@@ -500,89 +466,11 @@ interface).
     earlier copy of the check (`docs:workflow-isolation-rule` in
     LEGO/agentic-engineering-community), a case for a guard that a later
     `||` can skip, 10 cases that change the table, and the table checks.
-  - `statusPrefix` (default empty): the review gate posts the context
-    `<statusPrefix>/review`, for example `aec/review`. GitHub compares
-    contexts without case. With no `statusPrefix`, the gate is off, and no
-    status is the status of the gate.
-  - `reviewMarker` (default empty): the name of the block in the review body
-    of the reviewer, for example `aec-review:v1`. With none, the gate reads
-    the reviewer as the merge rules do.
-  - `secondPersonApproval` (default `false`): with `true`, an `APPROVE` of
-    the exact head opens the gate. The `success` names the approver. The
-    gate reads the approvals before the review of the reviewer, because an
-    approval is the way past a finding that a person judges wrong.
-  - An approval counts only on a pull request from a branch of this
-    repository. The activity API of this repository does not show the
-    pushes to a fork. The approver must be a person with a login, not an
-    `app/` login, and must not be the author. GitHub gives no login for a
-    deleted account, so its approval does not count, and the gate reads the
-    next approver.
-  - The approver must have write access:
-    `GET /repos/{owner}/{repo}/collaborators/{login}/permission` gives
-    `admin` or `write`. GitHub gives `write` for the role `maintain`.
-  - The approver must have pushed none of the commits:
-    `GET /repos/{owner}/{repo}/activity?ref=refs/heads/<branch>&actor=<login>&per_page=100`
-    lists no activity of the approver on the head branch other than
-    `branch_deletion`. The gate reads who pushed from the activity API,
-    because a pusher can give a commit any author. The gate also checks the
-    ref and the actor of each item. A full page of 100 items refuses.
-  - The newest decisive review of the approver on the head must be the
-    approval. A later request for changes, or a dismissal, takes it back.
-    The gate reads the API only for an approval that the snapshot does not
-    refuse, so a fork pull request gets no call. After the first approval
-    that passes, it reads no other approver.
-  - `reviewTimeoutHours` (default `0`): when the gate has no result for a
-    head, the head has no status of the gate, and the head is not a draft,
-    the gate looks at the check of the head. That is the newest run of
-    `checkName`. With no `checkName`, it is the last of the newest checks,
-    when all of them are complete. If that check finished this many hours
-    ago or more, the row gets the action "needs-human: review by a person:
-    approve head X?". The function only reports this action. With `0`, there
-    is no timeout.
-  - When the head has the `success` of the gate, and no review or approval
-    stands now, the gate posts `failure` with "no review or approval of head
-    X stands". Without this rule, an approval that a person took back keeps
-    the old `success` on the head.
-  - `requireReviewGate` (default `false`): with `true`, the rule
-    `review-gate` (after `reviewed`) refuses unless the newest
-    `<statusPrefix>/review` commit status on the head is `success`. A check
-    run with that name does not count. With `requireReviewGate` and no
-    `statusPrefix`, the rule refuses. A replay judges the rule with the
-    statuses from before the merge.
-  - The status of the gate is never evidence for a merge. The rule
-    `reviewed` reads only reviews and the Codex summary, so the `success`
-    of the gate is not a review. With `statusPrefix`, the `failure` of the
-    gate refuses at `checks`, as each failed status does. But the status of
-    the gate is not a check that ran, and it is never the check of
-    `checkName`. With no `statusPrefix`, a status with the name
-    `aec/review` is a usual commit status, as before.
-  - For the gate, `prQuery` also reads `isCrossRepository`, `headRefName`,
-    the count and the body of the reviews, and the description of each
-    commit status. `prCheck.Done` is the time when a check run completed, or
-    when a commit status that is not pending was posted. `queryPR` reads a
-    pull request, and `fetch` adds the Git trees for the file rules. The
-    gate reads no tree.
-  - In this module, the login of a bot is `app/<login>`, as `gh` prints it.
-    So a repository whose pipeline posts reviews with its `GITHUB_TOKEN`
-    sets `reviewer = "app/github-actions"`.
-  - Tests: `ci:review-gate-rules` runs `review-gate` against a fake GitHub
-    API (an `http.RoundTripper` for GraphQL, the permission and activity
-    APIs, and the statuses). It has success and failure for both readings,
-    reviews and summaries of an older head, the marker blocks, approvals by
-    a second person, and each refusal: the author, a pusher, a fork, read
-    access, a bot, an older head, a later request for changes, a dismissal
-    and no head branch. It also has the timeout that fires and does not
-    fire, the rules of when the gate posts, a dry run, and the checks of the
-    arguments. `ci:automerge-rules` tests the rule `review-gate`, the status
-    of the gate in `checks` and `required-check`, the settings off, and the
-    new fields of the snapshot. `fetch` reads the trees only with a file
-    rule.
 - **Incomplete data refuses.** When GitHub has more changed files, check
   contexts or label events than one query reads, the rules refuse. When
   GitHub cuts the Git tree of the merge base or the head because it is too
   big for one call (`truncated`), each file rule refuses and names the
-  commit. When GitHub has more reviews than the query reads, the review gate
-  decides nothing for the head.
+  commit.
 - **Branch protection.** The live rule `protected` reads GitHub's
   `mergeStateStatus` and accepts only `CLEAN` or `HAS_HOOKS`. GitHub computes
   that value from the branch protection of the base, so a required check that
@@ -617,7 +505,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `51b5339c3ca691cbdf5e123e18c4d7e1d3788cd0df96894348e53ad41e816f2f`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (20 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `e0338c8eb82a5166854117ea33d00000a599c0174db2d9f8a42ffdf9df1b3f16`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (18 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

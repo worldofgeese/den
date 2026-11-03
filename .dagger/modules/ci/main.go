@@ -67,17 +67,6 @@ type Ci struct {
 	// The job-kinds table of ci:workflow-isolation (workflows.go).
 	// +private
 	JobKinds string
-	// The review gate (reviewgate.go).
-	// +private
-	StatusPrefix string
-	// +private
-	ReviewMarker string
-	// +private
-	SecondPersonApproval bool
-	// +private
-	ReviewTimeoutHours int
-	// +private
-	RequireReviewGate bool
 }
 
 func New(
@@ -136,33 +125,6 @@ func New(
 	// off.
 	// +optional
 	jobKinds string,
-	// review-gate posts the commit status <statusPrefix>/review on the head of
-	// each open pull request: success when the newest review of the head by
-	// the reviewer has no open blocking finding, and failure when it has one.
-	// With none, the review gate is off.
-	// +optional
-	statusPrefix string,
-	// The name of the block in the review body of the reviewer that lists the
-	// open findings, for example aec-review:v1 for the block
-	// <!-- aec-review:v1 {"open":[{"id":"F1","severity":"blocking"}]} -->.
-	// With none, the gate reads the reviewer as the merge rules do: the rules
-	// reviewed and threads, and the Codex summary.
-	// +optional
-	reviewMarker string,
-	// With true, an APPROVE of the exact head opens the review gate when the
-	// approver is a person with write access, is not the author, and pushed
-	// none of the commits (the activity API). Never on a fork pull request.
-	// +optional
-	secondPersonApproval bool,
-	// A head with no review gate status this many hours after its check
-	// finished gets the needs-human action "review by a person: approve head
-	// X?". With 0, there is no timeout.
-	// +optional
-	reviewTimeoutHours int,
-	// With true, the merge rules require the success of the review gate on the
-	// head (the rule review-gate).
-	// +optional
-	requireReviewGate bool,
 ) *Ci {
 	return &Ci{
 		Repository:           repository,
@@ -176,11 +138,6 @@ func New(
 		ManifestSourcePrefix: manifestSourcePrefix,
 		ApprovesBotRuns:      approveBotRuns,
 		JobKinds:             jobKinds,
-		StatusPrefix:         statusPrefix,
-		ReviewMarker:         reviewMarker,
-		SecondPersonApproval: secondPersonApproval,
-		ReviewTimeoutHours:   reviewTimeoutHours,
-		RequireReviewGate:    requireReviewGate,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

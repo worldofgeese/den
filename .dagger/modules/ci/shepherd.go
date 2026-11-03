@@ -77,7 +77,7 @@ func nextStep(pr shepherdPR, p mergePolicy, self string, now time.Time) (shepher
 			return stepNone, "label " + l
 		}
 	}
-	if !p.allowsAuthor(pr.Author) {
+	if !slices.Contains(p.Authors, pr.Author) {
 		return stepNone, "author " + pr.Author + " is not in authors, so the pull request gets checks only"
 	}
 	if p.Reviewer != codexReviewer {

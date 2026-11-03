@@ -8,15 +8,13 @@ import (
 	"time"
 )
 
-// The merge rules give the expected verdict for fixed pull requests and
-// settings, the risky-path patterns match the expected paths, and a replay
-// reads a merged pull request as of its merge. No network and no token.
+// The merge rules give the expected verdict for fixed pull requests, and a
+// replay reads a merged pull request as of its merge. No network and no
+// token.
 // +check
 func (m *Ci) AutomergeRules(_ context.Context) error {
 	var failed []string
 	failed = append(failed, ruleCases()...)
-	failed = append(failed, policyCases()...)
-	failed = append(failed, riskyPathCases()...)
 	failed = append(failed, replayCases()...)
 	if len(failed) > 0 {
 		return errors.New(strings.Join(failed, "\n"))
@@ -125,52 +123,7 @@ func ruleCases() []string {
 		{"a replay skips the open, mergeable and protected rules", func(s *prSnapshot) {
 			s.State, s.Mergeable, s.MergeState = "MERGED", "UNKNOWN", "UNKNOWN"
 		}, true, ""},
-	}
-	var failed []string
-	for _, c := range cases {
-		s := readyPR()
-		if c.edit != nil {
-			c.edit(&s)
-		}
-		if rule, why := judge(&s, fixturePolicy, c.replay); rule != c.want {
-			failed = append(failed, fmt.Sprintf("rule case %q: rule %q (%s), want %q", c.name, rule, why, c.want))
-		}
-	}
-	return failed
-}
-
-// policyCases judges a ready pull request with other settings than
-// fixturePolicy.
-func policyCases() []string {
-	globs := func(p *mergePolicy) { p.RiskyPaths = []string{"secrets/", "**/*.sh", ".github/**"} }
-	checkName := func(name string) func(*mergePolicy) {
-		return func(p *mergePolicy) { p.CheckName = name }
-	}
-	cases := []struct {
-		name   string
-		policy func(*mergePolicy)
-		edit   func(*prSnapshot)
-		want   string // the rule that refuses; "" merges
-	}{
-		{"no reviewer is set", func(p *mergePolicy) { p.Reviewer = "" }, nil, "reviewed"},
-		// ruleCases has an author in the list and an author outside it.
-		{"no authors refuses each author", func(p *mergePolicy) { p.Authors = nil }, nil, "author"},
-		{"authors * accepts each author", func(p *mergePolicy) { p.Authors = []string{"*"} },
-			func(s *prSnapshot) { s.Author = "mallory" }, ""},
-		{"a path that a glob matches", globs, func(s *prSnapshot) { s.Files = []string{"modules/pi.nix", "scripts/a/run.sh"} }, "risky-paths"},
-		{"paths that no glob matches", globs, func(s *prSnapshot) { s.Files = []string{"scripts/run.shx", "docs/.github/a.yml"} }, ""},
-		{"a path that a prefix matches, next to globs", globs, func(s *prSnapshot) { s.Files = []string{"secrets/a.age"} }, "risky-paths"},
-		{"a prefix matches only at the start of a path", globs, func(s *prSnapshot) { s.Files = []string{"modules/secrets/a.age"} }, ""},
-		{"with no riskyPaths, no path needs a person", func(p *mergePolicy) { p.RiskyPaths = nil },
-			func(s *prSnapshot) { s.Files = []string{"secrets/a.age", ".github/workflows/check.yml"} }, ""},
-		{"no checkName needs no named check", nil, func(s *prSnapshot) { s.Checks[0].Name = "lint" }, ""},
-		{"checkName with a run that succeeded", checkName("validate"), nil, ""},
-		{"checkName with a run that failed", checkName("validate"), func(s *prSnapshot) { s.Checks[0].Conclusion = "FAILURE" }, "checks"},
-		{"checkName with no run", checkName("build"), nil, "required-check"},
-		{"checkName with a skipped run", checkName("validate"), func(s *prSnapshot) { s.Checks[0].Conclusion = "SKIPPED" }, "required-check"},
-		{"checkName with a commit status that succeeded", checkName("build"), func(s *prSnapshot) {
-			s.Checks = append(s.Checks, prCheck{Name: "build", Workflow: "status", State: "SUCCESS", At: fixtureTime})
-		}, ""},
+		{"no reviewer is set", nil, false, "reviewed"},
 	}
 	var failed []string
 	for _, c := range cases {
@@ -179,61 +132,11 @@ func policyCases() []string {
 			c.edit(&s)
 		}
 		p := fixturePolicy
-		if c.policy != nil {
-			c.policy(&p)
+		if c.name == "no reviewer is set" {
+			p.Reviewer = ""
 		}
-		if rule, why := judge(&s, p, false); rule != c.want {
-			failed = append(failed, fmt.Sprintf("policy case %q: rule %q (%s), want %q", c.name, rule, why, c.want))
-		}
-	}
-	return failed
-}
-
-// riskyPathCases matches risky-path patterns to paths: prefixes, and a glob
-// for each kind of risky path. Each pattern has a path that it matches and a
-// path that it does not match.
-func riskyPathCases() []string {
-	cases := []struct {
-		pattern, path string
-		want          bool
-	}{
-		// A pattern without "*" is a prefix.
-		{"secrets/", "secrets/a.age", true},
-		{"secrets/", "modules/secrets/a.age", false},
-		{"secretspec.", "secretspec.age", true},
-		{"secretspec.", "docs/secretspec.md", false},
-		// Scripts and executables, in each level.
-		{"**/*.sh", "run.sh", true},
-		{"**/*.sh", "scripts/a/run.sh", true},
-		{"**/*.sh", "scripts/run.shx", false},
-		{"**/Dockerfile", "images/Dockerfile", true},
-		{"**/Dockerfile", "images/Dockerfile.md", false},
-		// Dependency manifests and lockfiles, in each level.
-		{"**/requirements*.txt", "scan/requirements-dev.txt", true},
-		{"**/requirements*.txt", "scan/requirements.txt.orig", false},
-		// The check and its configuration.
-		{".github/**", ".github/workflows/check.yml", true},
-		{".github/**", "docs/.github/check.yml", false},
-		{".prettierrc*", ".prettierrc.json", true},
-		{".prettierrc*", "docs/.prettierrc", false},
-		// Hooks and MCP configuration, in each level.
-		{"**/hooks/**", "plugins/a/hooks/pre-commit", true},
-		{"**/hooks/**", "plugins/a/git-hooks/pre-commit", false},
-		{"**/.mcp.json", "plugins/a/.mcp.json", true},
-		{"**/.mcp.json", "plugins/a/.mcp.json.example", false},
-		// "*" matches in one level only.
-		{"docs/*.md", "docs/a.md", true},
-		{"docs/*.md", "docs/guides/a.md", false},
-		// Only "*" is special: "?", "[" and "\" match themselves.
-		{"**/[id]*.ts", "app/[id]page.ts", true},
-		{"**/[id]*.ts", "app/ipage.ts", false},
-		{"**/?.sh", "a.sh", false},
-		{`**/a\*.sh`, `b/a\x.sh`, true},
-	}
-	var failed []string
-	for _, c := range cases {
-		if got := matchRiskyPath(c.pattern, c.path); got != c.want {
-			failed = append(failed, fmt.Sprintf("risky path %q on %q: %t, want %t", c.pattern, c.path, got, c.want))
+		if rule, why := judge(&s, p, c.replay); rule != c.want {
+			failed = append(failed, fmt.Sprintf("rule case %q: rule %q (%s), want %q", c.name, rule, why, c.want))
 		}
 	}
 	return failed
@@ -288,17 +191,6 @@ func replayCases() []string {
 	rs.Reviews = []prReview{{Author: fixturePolicy.Reviewer, State: "COMMENTED", Commit: fixtureHead}}
 	if rule, _ := judge(&rs, fixturePolicy, true); rule != "checks" {
 		failed = append(failed, fmt.Sprintf("replay: a run that was running at the merge gives rule %q, want checks", rule))
-	}
-	// checkName counts only the runs from before the merge: validate
-	// succeeded before it, and deploy started after it.
-	for _, c := range []struct{ check, want string }{{"validate", ""}, {"deploy", "required-check"}} {
-		cs := s
-		cs.Reviews = []prReview{{Author: fixturePolicy.Reviewer, State: "COMMENTED", Commit: fixtureHead}}
-		p := fixturePolicy
-		p.CheckName = c.check
-		if rule, why := judge(&cs, p, true); rule != c.want {
-			failed = append(failed, fmt.Sprintf("replay: checkName %s gives rule %q (%s), want %q", c.check, rule, why, c.want))
-		}
 	}
 	if len(s.Labels) != 0 {
 		failed = append(failed, fmt.Sprintf("replay: labels %v, want none at the merge", s.Labels))

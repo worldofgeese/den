@@ -34,9 +34,6 @@ func (m *Ci) ShepherdRules(_ context.Context) error {
 		{"a draft waits", func(p *shepherdPR) { p.Draft = true }, nil, stepNone},
 		{"a stop label stops the shepherd", func(p *shepherdPR) { p.Labels = []string{"hold"} }, nil, stepNone},
 		{"an author outside the list gets checks only", func(p *shepherdPR) { p.Author = "mallory" }, nil, stepNone},
-		{"with no authors, each author gets checks only", nil, func(p *mergePolicy) { p.Authors = nil }, stepNone},
-		{"authors * gets a request for each author", func(p *shepherdPR) { p.Author = "mallory" },
-			func(p *mergePolicy) { p.Authors = []string{"*"} }, stepRequest},
 		{"only the Codex connector can be asked", nil, func(p *mergePolicy) { p.Reviewer = "bob" }, stepNone},
 		{"incomplete comments stop the shepherd", func(p *shepherdPR) { p.CommentsIncomplete = true }, nil, stepNone},
 		{"a completed review of the head needs nothing", func(p *shepherdPR) {

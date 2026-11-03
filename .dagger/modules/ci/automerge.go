@@ -11,9 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path"
 	"regexp"
-	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -22,69 +20,18 @@ import (
 )
 
 // mergePolicy is the part of the rules that a repository sets in its
-// dagger.toml. With no authors or no reviewer, no pull request merges
-// without a person.
+// dagger.toml. An empty value refuses: with no authors, no pull request
+// merges without a person.
 type mergePolicy struct {
 	// Logins whose pull requests can merge without a person. A bot is
-	// "app/<login>", as gh prints it. "*" is every author.
+	// "app/<login>", as gh prints it.
 	Authors []string
 	// The login whose review of the head counts. For the Codex connector, a
 	// summary comment of a clean, completed review of the head counts too.
 	Reviewer string
-	// Path patterns (matchRiskyPath). A pull request that changes a matching
-	// path is merged by a person.
+	// Path prefixes. A pull request that changes one is merged by a person.
 	RiskyPaths []string
-	// A check whose newest run on the head must succeed. With none, the rule
-	// protected leaves the required checks to branch protection.
-	CheckName string
 }
-
-// allowsAuthor reports whether the pull requests of login can merge without
-// a person. "*" is every author, and an empty list refuses each author.
-func (p mergePolicy) allowsAuthor(login string) bool {
-	return slices.Contains(p.Authors, "*") || slices.Contains(p.Authors, login)
-}
-
-// matchRiskyPath reports whether the path name matches a risky-path pattern.
-// A pattern without "*" is a prefix of the path. A pattern with "*" is a glob
-// that must match the whole path. "*" matches in one level, and "**" as a
-// whole level matches zero or more levels. "?", "[" and "\" match only
-// themselves.
-func matchRiskyPath(pattern, name string) bool {
-	if !strings.Contains(pattern, "*") {
-		return strings.HasPrefix(name, pattern)
-	}
-	return matchLevels(strings.Split(pattern, "/"), strings.Split(name, "/"))
-}
-
-// matchLevels matches the levels of a path to the levels of a glob.
-func matchLevels(pattern, name []string) bool {
-	for len(pattern) > 0 && pattern[0] != "**" {
-		if len(name) == 0 {
-			return false
-		}
-		// literalGlob leaves only "*" special, so path.Match cannot return
-		// an error.
-		if ok, _ := path.Match(literalGlob.Replace(pattern[0]), name[0]); !ok {
-			return false
-		}
-		pattern, name = pattern[1:], name[1:]
-	}
-	if len(pattern) == 0 {
-		return len(name) == 0
-	}
-	// "**" matches zero or more levels.
-	for i := 0; i <= len(name); i++ {
-		if matchLevels(pattern[1:], name[i:]) {
-			return true
-		}
-	}
-	return false
-}
-
-// literalGlob escapes each character other than "*" that path.Match reads
-// as special.
-var literalGlob = strings.NewReplacer(`\`, `\\`, `?`, `\?`, `[`, `\[`)
 
 // stopLabels stop all automation (plan D4).
 var stopLabels = []string{"hold", "do-not-merge", "needs-human"}
@@ -177,8 +124,10 @@ var mergeRules = []mergeRule{
 		return ""
 	}},
 	{"author", false, func(s *prSnapshot, p mergePolicy) string {
-		if p.allowsAuthor(s.Author) {
-			return ""
+		for _, a := range p.Authors {
+			if a == s.Author {
+				return ""
+			}
 		}
 		return "author " + s.Author + " is merged by a person"
 	}},
@@ -189,7 +138,7 @@ var mergeRules = []mergeRule{
 		}
 		for _, f := range s.Files {
 			for _, r := range p.RiskyPaths {
-				if matchRiskyPath(r, f) {
+				if strings.HasPrefix(f, r) {
 					return "it changes " + f + ", which a person merges"
 				}
 			}
@@ -240,29 +189,6 @@ var mergeRules = []mergeRule{
 		}
 		return ""
 	}},
-	// A repository with no required check in branch protection can be CLEAN
-	// before a check runs. With checkName, the newest run of that check on
-	// the head must succeed. A skipped or a neutral run is green for the
-	// checks rule, but it did not succeed.
-	{"required-check", false, func(s *prSnapshot, p mergePolicy) string {
-		if p.CheckName == "" {
-			return ""
-		}
-		ran := false
-		for _, c := range newestChecks(s.Checks) {
-			if c.Name != p.CheckName {
-				continue
-			}
-			if !c.succeeded() {
-				return "check " + p.CheckName + " did not succeed on head " + short(s.Head)
-			}
-			ran = true
-		}
-		if !ran {
-			return "check " + p.CheckName + " has no run on head " + short(s.Head)
-		}
-		return ""
-	}},
 	{"mergeable", true, func(s *prSnapshot, _ mergePolicy) string {
 		if s.Mergeable != "MERGEABLE" {
 			return "mergeable is " + s.Mergeable
@@ -302,17 +228,11 @@ func judge(s *prSnapshot, p mergePolicy, replay bool) (string, string) {
 }
 
 func (c prCheck) green() bool {
-	return c.succeeded() ||
-		(c.Status == "COMPLETED" && (c.Conclusion == "SKIPPED" || c.Conclusion == "NEUTRAL"))
-}
-
-// succeeded reports whether the check passed. A skipped or a neutral check
-// run is green, but it did not pass.
-func (c prCheck) succeeded() bool {
 	if c.Status == "" {
 		return c.State == "SUCCESS"
 	}
-	return c.Status == "COMPLETED" && c.Conclusion == "SUCCESS"
+	return c.Status == "COMPLETED" &&
+		(c.Conclusion == "SUCCESS" || c.Conclusion == "SKIPPED" || c.Conclusion == "NEUTRAL")
 }
 
 // newestChecks keeps the newest entry of each check (its name and workflow).
@@ -683,7 +603,7 @@ func (m *Ci) github(ctx context.Context, token *dagger.Secret) (*githubClient, s
 }
 
 func (m *Ci) policy() mergePolicy {
-	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths, CheckName: m.CheckName}
+	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths}
 }
 
 func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {

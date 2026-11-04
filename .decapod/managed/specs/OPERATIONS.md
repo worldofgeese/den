@@ -74,12 +74,13 @@ The two fixes from that update, both no-ops once upstream changes:
 
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
-agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of upstream
-`NicholaiVogel/pr-reviewer` carrying two local patches. The first sends git
-HTTPS auth as Basic, not Bearer, which GitHub's git endpoint rejects. The
-second is upstream PR NicholaiVogel/pr-reviewer#32, review rounds and stacked
-PRs, described below. Drop each patch when the pin moves past its upstream
-merge.
+agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of
+`worldofgeese/pr-reviewer` v0.2.0 (commit e63f794, the maintained home of the
+project since the 2026-11 move from `NicholaiVogel/pr-reviewer`). The build
+carries no local patches: HTTPS Basic auth for git, review rounds and stacked
+PRs are all in v0.2.0. To move the pin, change `rev`, `version`, `hash` and
+`cargoHash` together in that file; the review rounds and stacked-PR behavior
+below are v0.2.0's.
 
 - **Review rounds.** Each posted review is one round. Round 1 is a full
   review. Rounds 2 and 3 to `max_review_cycles` (default 2) check earlier
@@ -185,7 +186,7 @@ that only logs. To hold a PR, label it `hold`. To stop merging, run
 The private repo `worldofgeese/pr-reviewer-livetest` is a test target that
 notifies nobody else. It is deliberately *not* in the declared list.
 1. `pr-reviewer add worldofgeese/pr-reviewer-livetest`. This exercises the
-   patched HTTPS managed clone. Then restart while idle (above).
+   HTTPS managed clone. Then restart while idle (above).
 2. Open a PR containing a planted bug. Expect a review within the poll interval
    plus review time: 89 s on 2026-10-01, with all three planted bugs found.
 3. Push a fix. Expect a follow-up review that marks the findings addressed

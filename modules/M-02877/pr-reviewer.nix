@@ -36,48 +36,30 @@
       "LEGO/team-friendship-hour"
     ];
 
-    # Upstream ships no flake, no tags, and is absent from nixpkgs, so this is
-    # a buildRustPackage against a pinned revision; `version` tracks Cargo.toml.
+    # worldofgeese/pr-reviewer is the maintained home of pr-reviewer; this
+    # pins its v0.2.0 tag. It ships no flake and is absent from nixpkgs, so
+    # this is a buildRustPackage against a pinned revision; `version` tracks
+    # Cargo.toml. Moving the pin means a new rev, hash and cargoHash.
     #
     # Tests are skipped: the suite binds loopback sockets, which the Nix
     # sandbox refuses, and it shells out to git.
     pr-reviewer = pkgs.rustPlatform.buildRustPackage {
       pname = "pr-reviewer";
-      version = "0.1.0-unstable-2026-05-01";
+      version = "0.2.0";
 
       src = pkgs.fetchFromGitHub {
-        owner = "NicholaiVogel";
+        owner = "worldofgeese";
         repo = "pr-reviewer";
-        rev = "4d27724c09bc242444a6946bf9f39b85819689a3";
-        hash = "sha256-Z6z3UovEM0Eqs8Di9Am4+oTtWIEdbU3tSP8Yudf40Mk=";
+        rev = "e63f7947fe2aa8c16daa8ed66eb1e125b7ae6716";
+        hash = "sha256-xsrDiM1jp+ktpRBAkjtAX3vpnzIX9VIwx3pKa/5rfYM=";
       };
 
-      # Upstream sends the token to git as `Authorization: Bearer`, which
-      # GitHub's git smart-HTTP endpoint rejects for PATs and OAuth tokens
-      # ("remote: invalid credentials"). So `pr-reviewer add owner/repo` could
-      # never clone anything, and every managed clone so far was made by hand
-      # over SSH. The patch sends HTTP Basic with the token as the password,
-      # for both clone and the authenticated fetch/push helper.
-      #
-      # The second patch is upstream PR NicholaiVogel/pr-reviewer#32 (issues
-      # #30, #31): a limit on review rounds after which new findings are
-      # non-blocking notes, one matcher for "same finding", no re-posting of
-      # open threads, dismissal of the bot's own stale change requests, and
-      # stack awareness (rebase-only pushes are not reviewed again; the parent
-      # PR is named in the prompt). Drop it when the pin moves past the merge.
-      # The settings it adds (`max_review_cycles` = 2 and others, see its
-      # docs/configuration.md) default on, so config.toml needs no change.
-      patches = [
-        ./pr-reviewer-git-basic-auth.patch
-        ./pr-reviewer-review-cycles-and-stacks.patch
-      ];
-
-      cargoHash = "sha256-XpFZLDgppAkIPmj95ihi5hkd+k5pgnKDa3c74xUJBuQ=";
+      cargoHash = "sha256-funkL1hbbyV5kMguiDjKt5CzDIJMSTxbe0vJvRmLII0=";
       doCheck = false;
 
       meta = {
         description = "Self-hosted PR review daemon that drives local AI CLI tools";
-        homepage = "https://github.com/NicholaiVogel/pr-reviewer";
+        homepage = "https://github.com/worldofgeese/pr-reviewer";
         mainProgram = "pr-reviewer";
         platforms = lib.platforms.unix;
       };

@@ -56,22 +56,45 @@
     }
   },
   "change": {
-    "id": "change_01M6K3GH6N521QXCJ1TSCVG8TE",
+    "id": "change_01M6K42HDP5K14CPTT0E6WNQ3Y",
     "base_commit": "d6fe12430f74f3e585a0cf089d25827851a71d67",
     "target_base": "origin/main"
   },
+  "claims": {
+    "pr-reviewer-v020-builds": {
+      "statement": "den's pr-reviewer.nix builds pr-reviewer 0.2.0 from worldofgeese/pr-reviewer e63f794 with no patches.",
+      "falsifier": "nix build of the pinned package fails, or reports a version other than 0.2.0, or the darwin configuration no longer evaluates.",
+      "status": "supported",
+      "proof_refs": [
+        "nix build (den nixpkgs lock): /nix/store/w3avhk37idinmwb8aivgb38sw3xbdypv-pr-reviewer-0.2.0; pr-reviewer --version = 0.2.0; nix eval darwinConfigurations.M-02877 systemPackages has pr-reviewer-0.2.0"
+      ]
+    },
+    "pr-reviewer-v020-deployed": {
+      "statement": "After the owner runs just deploy-darwin, the daemon runs the v0.2.0 store path, pr-reviewer status is healthy and the launchd log has no 'not declared' warning.",
+      "falsifier": "After deploy, status is unhealthy, the binary is not the new store path, or the log still warns 'configured but not declared'.",
+      "status": "open"
+    }
+  },
   "checkpoints": [
     {
-      "id": "signet-personal-first-1",
-      "summary": "Personal-first Signet env, signet-auto-curator launchd agent, gateway shim on gateway.keyCommand; specs rewritten",
-      "input_digest": "sha256:7973e77bb904864cc6512b59fc414ec7d3848fabe916a15af74b0b07bb4ca552",
+      "id": "prr-0ji-7-pin",
+      "summary": "Pin worldofgeese/pr-reviewer v0.2.0 in pr-reviewer.nix, delete both patches, update OPERATIONS.md",
+      "input_digest": "sha256:0cac5d2246363e9addee9e49b1820d78e7d495fcbffe3f085b2f6c6ebe7fe781",
       "proof_refs": [
-        "darwin-rebuild build --flake .#M-02877"
+        "/nix/store/w3avhk37idinmwb8aivgb38sw3xbdypv-pr-reviewer-0.2.0"
+      ]
+    },
+    {
+      "id": "prr-0ji-7-validation",
+      "summary": "Record observed validation result",
+      "input_digest": "sha256:7f0293111a7316ce49b1eaae2880b0ffb2a2e5cdd3a07ae47df4271ccf23b702",
+      "proof_refs": [
+        "decapod validate 185 pass 1 fail (#1474)"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE": {
+    "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -81,11 +104,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
+      "id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
-      "refined_intent": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
+      "raw_intent": "pr-reviewer: pin worldofgeese v0.2.0, drop patches (prr-0ji.7)",
+      "refined_intent": "pr-reviewer: pin worldofgeese v0.2.0, drop patches (prr-0ji.7)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -93,12 +116,12 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": null,
+        "file_touch_budget": 8,
         "forbidden_paths": []
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
+      "intent": "Pin worldofgeese/pr-reviewer v0.2.0 (e63f794) in modules/M-02877/pr-reviewer.nix and delete both local patches, so the daemon runs the maintained release with no local patches.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -106,30 +129,30 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
+      "title": "Run pr-reviewer v0.2.0 on the review machine",
       "todo_ids": [
-        "test_01m6k3f3dnq9jj4f"
+        "code_01m6k3vdfexrhazy"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793790661Z"
+      "updated_at": "1793791741Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:1c14561d073cc0f9e19fb56d12f0b49232568a1245abddd2f76b2ba6df099f5b",
+      "artifact_hash": "sha256:8524cc40761e785dfdfab4dbfed20ddc9d6421395cbd4fa5f5925d0a625b0d77",
       "checks": [
         {
-          "name": "darwin_rebuild_build_M-02877",
+          "name": "nix build pinned package",
           "status": "passed"
         },
         {
-          "name": "just_check_fmt",
+          "name": "nix eval darwin systemPackages",
           "status": "passed"
         },
         {
-          "name": "plist_and_zsh_hook_read_from_build",
+          "name": "pr-reviewer --version 0.2.0",
           "status": "passed"
         }
       ],
@@ -138,55 +161,74 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
+            "intent_id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
+            "intent_id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6K3GHAFM0SC4RWP84F4CBEB",
+            "detail": "trajectory:branch_01M6K42HG10PAB8Y6BT8MCWQ0D",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
+            "intent_id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6K42HG10PAB8Y6BT8MCWQ0D",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6K3GHAFM0SC4RWP84F4CBEB": {
+          "branch_01M6K42HG10PAB8Y6BT8MCWQ0D": {
             "evidence_only": true,
-            "id": "branch_01M6K3GHAFM0SC4RWP84F4CBEB",
-            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
+            "id": "branch_01M6K42HG10PAB8Y6BT8MCWQ0D",
+            "intent_id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
             "steps": [
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/darwin.nix",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/darwin.nix",
-                  "modules/M-02877/token-toolchain.nix",
+                  "modules/M-02877/pr-reviewer.nix",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/INTERFACES.md"
+                  "modules/M-02877/pr-reviewer.nix",
+                  ".decapod/managed/specs/OPERATIONS.md"
                 ],
                 "proof_refs": [
-                  "just_check_fmt",
-                  "darwin_rebuild_build_M-02877",
-                  "plist_and_zsh_hook_read_from_build"
+                  "nix build pinned package",
+                  "pr-reviewer --version 0.2.0",
+                  "nix eval darwin systemPackages"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "nix build: /nix/store/w3avhk37idinmwb8aivgb38sw3xbdypv-pr-reviewer-0.2.0"
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "Deploy (just deploy-darwin) needs the owner's sudo and is not run by the agent; the deployed claim stays open until the owner has deployed."
+                ]
               }
             ]
           }
@@ -194,18 +236,17 @@
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix"
+      "evidence": [
+        "nix build: /nix/store/w3avhk37idinmwb8aivgb38sw3xbdypv-pr-reviewer-0.2.0"
       ],
-      "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
-      "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
+      "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix"
+        "modules/M-02877/pr-reviewer.nix"
+      ],
+      "intent_id": "intent:change_01M6K42HDP5K14CPTT0E6WNQ3Y",
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/pr-reviewer.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -213,12 +254,14 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6K3GHAFM0SC4RWP84F4CBEB",
+      "run_id": "branch_01M6K42HG10PAB8Y6BT8MCWQ0D",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "test_01m6k3f3dnq9jj4f",
+      "task_id": "code_01m6k3vdfexrhazy",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "Deploy (just deploy-darwin) needs the owner's sudo and is not run by the agent; the deployed claim stays open until the owner has deployed."
+      ]
     }
   },
   "legacy_digests": {

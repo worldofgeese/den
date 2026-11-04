@@ -1,7 +1,8 @@
 {
-  # Team integrations for the agents on this work Mac: Chorus, Beads, team
-  # Signet and the LEGO TechWriter docs toolbox. M-02877 only; the personal
-  # machines keep their own Signet and have no LEGO access.
+  # Team integrations for the agents on this work Mac: Chorus, Beads, Signet
+  # (personal daemon, team pool through the curator) and the LEGO TechWriter
+  # docs toolbox. M-02877 only; the personal machines keep their own Signet
+  # and have no LEGO access.
   den.aspects.dktaohan.homeManager = {
     pkgs,
     lib,
@@ -32,31 +33,27 @@
     };
     exportLines = env: lib.concatStringsSep "\n" (lib.mapAttrsToList (n: v: "export ${n}=${lib.escapeShellArg v}") env);
 
-    # Team Signet: LEGO/devrel-infra projects/aws-signet, reached through the
-    # signet-team-tunnel launchd agent (darwin.nix) on 3860. The key is the one
-    # projects/aws-signet scripts/enroll.sh issued, and its scope is the agent
-    # id derived from the enrolling email; every write must send that id, so
-    # an unset SIGNET_AGENT_ID ("default") is refused.
+    # Every harness here talks to the personal Signet (the podman container on
+    # 3850, local mode, no key), whatever the repository: every memory is
+    # captured there. The team pool is LEGO/devrel-infra projects/aws-signet,
+    # reached through the signet-team-tunnel launchd agent (darwin.nix) on
+    # 3860. The memory curator's auto pass (signet-auto-curator below) publishes
+    # team-level memories to it and mirrors it back into the personal Signet, so
+    # one daemon serves recall. The curator reads SIGNET_TEAM_URL first, then
+    # the team key from signetTokenFile. That key is the one projects/aws-signet
+    # scripts/enroll.sh issued, and its scope is the agent id derived from the
+    # enrolling email; every write must send that id, so an unset
+    # SIGNET_AGENT_ID ("default") is refused.
+    # SIGNET_STORE=team, exported in a shell, points that shell's harnesses at
+    # the team pool instead (the hook below), with the key.
+    personalSignetUrl = "http://127.0.0.1:3850";
+    teamSignetUrl = "http://127.0.0.1:3860";
     signetEnv = {
-      SIGNET_DAEMON_URL = "http://127.0.0.1:3860";
+      SIGNET_DAEMON_URL = personalSignetUrl;
+      SIGNET_TEAM_URL = teamSignetUrl;
       SIGNET_AGENT_ID = "tao.hansen";
     };
     signetTokenFile = "${home}/.config/signet/token";
-
-    # Personal repositories use the personal Signet (the container on 3850),
-    # not the team store. The zsh hook below picks the daemon from the
-    # repository's origin remote each time the shell changes directory, so a
-    # harness started from that shell inherits it. Entries are zsh glob
-    # patterns matched against `git remote get-url origin`; add personal
-    # repositories here. Anything that does not match uses the team Signet.
-    personalSignetUrl = "http://127.0.0.1:3850";
-    personalSignetRemotes = [
-      "*[/:]worldofgeese/den"
-      "*[/:]worldofgeese/den.git"
-      "*[/:]worldofgeese/henry-sugar"
-      "*[/:]worldofgeese/henry-sugar.git"
-      "*paphos.hound-celsius.ts.net*"
-    ];
 
     # LEGO/agentic-engineering-community, plugins/toolbox-docs. The repo is
     # internal and this flake is public, so it cannot be a flake input (the
@@ -130,8 +127,8 @@
 
     # The Chorus daemon wakes a headless `pi --mode rpc` when work is sent to
     # this agent from Chorus. launchd starts it without a login shell, so it
-    # gets the environment an interactive pi would have: PATH, Chorus and team
-    # Signet. pi's own gateway credential is a `!command` in models.json.
+    # gets the environment an interactive pi would have: PATH, Chorus and the
+    # personal Signet. pi's own gateway credential is a `!command` in models.json.
     chorusPiDaemon = pkgs.writeShellApplication {
       name = "chorus-pi-daemon";
       runtimeInputs = [pkgs.coreutils];
@@ -139,8 +136,6 @@
         export PATH="/etc/profiles/per-user/${config.home.username}/bin:${home}/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         ${exportLines chorusEnv}
         ${exportLines signetEnv}
-        SIGNET_API_KEY="$(cat ${lib.escapeShellArg signetTokenFile} 2>/dev/null || true)"
-        export SIGNET_API_KEY
         # This daemon exists to be woken while nobody is at the Mac, which is
         # when secretspec refuses most often; chorus-api-key then serves the
         # cache.
@@ -176,36 +171,24 @@
       fi
       unset chorus_key
 
-      # Signet store for the current directory: personal repositories use the
-      # personal Signet, everything else the team Signet. SIGNET_STORE=personal
-      # or SIGNET_STORE=team overrides the choice.
+      # Signet store of this shell: the personal one, unless SIGNET_STORE=team.
+      # It runs before each prompt, so exporting or unsetting SIGNET_STORE
+      # takes effect at once. The team key is exported only for the team store.
       _signet_store() {
-        local store="''${SIGNET_STORE:-}" remote
-        if [[ -z $store ]]; then
-          remote=$(command git remote get-url origin 2>/dev/null)
-          case $remote in
-            (${lib.concatStringsSep "|" personalSignetRemotes}) store=personal ;;
-            (*) store=team ;;
-          esac
-        fi
-        if [[ $store == personal ]]; then
-          export SIGNET_DAEMON_URL=${personalSignetUrl}
+        if [[ ''${SIGNET_STORE:-} == team ]]; then
+          export SIGNET_DAEMON_URL=${teamSignetUrl}
+          export SIGNET_API_KEY="$(cat ${lib.escapeShellArg signetTokenFile} 2>/dev/null)"
         else
-          export SIGNET_DAEMON_URL=${signetEnv.SIGNET_DAEMON_URL}
+          export SIGNET_DAEMON_URL=${personalSignetUrl}
+          unset SIGNET_API_KEY
         fi
       }
       autoload -Uz add-zsh-hook
-      add-zsh-hook chpwd _signet_store
+      add-zsh-hook precmd _signet_store
       _signet_store
     '';
 
-    home.sessionVariables =
-      signetEnv
-      // {
-        # Evaluated when hm-session-vars.sh is sourced, so the key is read
-        # from the file setup.sh wrote and never lands in the Nix store.
-        SIGNET_API_KEY = "$(cat ${signetTokenFile} 2>/dev/null)";
-      };
+    home.sessionVariables = signetEnv;
 
     piAgent = {
       mcpServers = {
@@ -327,6 +310,39 @@
           fi
         fi
       '';
+    };
+
+    # Memory curator, one unattended pass every ten minutes (auto.py, `./run
+    # auto`): publishes team-level personal memories to the team pool and mirrors
+    # the pool back. devrel-infra is internal and this flake is public, so it
+    # cannot be a flake input (see toolboxDocsRev); the job runs the script from
+    # the main clone, which has no auto.py until devrel-infra merges it. Runs
+    # fail harmlessly until then. There is no RunAtLoad: a login or a switch
+    # starts no pass, and the first one comes ten minutes later.
+    launchd.agents.signet-auto-curator = {
+      enable = true;
+      config = {
+        Label = "com.dktaohan.signet-auto-curator";
+        ProgramArguments = [
+          (lib.getExe pkgs.python3)
+          "-u"
+          "${home}/projects/devrel-infra/projects/aws-signet/tools/memory-curator/auto.py"
+        ];
+        EnvironmentVariables = {
+          HOME = home;
+          PATH = "${lib.makeBinPath [pkgs.python3 pkgs.gh]}:/usr/bin:/bin";
+          SIGNET_TEAM_URL = teamSignetUrl;
+          SIGNET_AGENT_ID = signetEnv.SIGNET_AGENT_ID;
+          SIGNET_PATH = "${home}/.agents";
+          # Repositories and machines whose notes never become team facts.
+          CURATOR_PERSONAL = "den,henry-sugar,paphos,loving-kypris,M-02877,mahakala";
+          CURATOR_IDENTITY = "worldofgeese";
+        };
+        StartInterval = 600;
+        ProcessType = "Background";
+        StandardOutPath = "${home}/.local/state/signet-auto-curator.log";
+        StandardErrorPath = "${home}/.local/state/signet-auto-curator.log";
+      };
     };
 
     launchd.agents.chorus-pi-daemon = {

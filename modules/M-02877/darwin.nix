@@ -33,7 +33,6 @@
           echo "WARN: pull of ${image} failed or timed out; starting the cached copy" >&2
         fi
       '';
-      pythonWithNacl = pkgs.python3.withPackages (pythonPackages: [pythonPackages.pynacl]);
 
       # The ambient team-Signet tunnel.
       #
@@ -206,37 +205,6 @@
         port = 3880;
         probePath = "/healthz";
         probeAnyStatus = true;
-      };
-      signetReadLegoSecret = pkgs.writeTextFile {
-        name = "signet-read-lego-secret";
-        destination = "/bin/signet-read-lego-secret";
-        executable = true;
-        text = ''
-          #!${pythonWithNacl}/bin/python3
-          import base64
-          import hashlib
-          import json
-          import os
-          import sys
-
-          from nacl.secret import SecretBox
-
-          secret_dir = os.path.expanduser("~/.agents/.secrets")
-          with open(os.path.join(secret_dir, ".machine-id"), encoding="utf-8") as file:
-              machine_id = file.read().strip()
-          with open(os.path.join(secret_dir, "secrets.enc"), encoding="utf-8") as file:
-              store = json.load(file)
-
-          if store.get("version") != 1 or store.get("provider") == "native-keyring":
-              raise RuntimeError("Signet secret store is not the portable fallback format")
-          entry = store.get("secrets", {}).get("LEGO_GENAI_TOKEN")
-          if not entry:
-              raise RuntimeError("LEGO_GENAI_TOKEN is absent from the Signet secret store")
-
-          key = hashlib.blake2b(f"signet:secrets:{machine_id}".encode(), digest_size=32).digest()
-          plaintext = SecretBox(key).decrypt(base64.b64decode(entry["ciphertext"], validate=True))
-          sys.stdout.buffer.write(plaintext)
-        '';
       };
       # NearDrop is not in nixpkgs and its Homebrew tap is unusable: the cask in
       # grishka/homebrew-grishka calls `depends_on macos: :catalina`, a DSL form
@@ -759,11 +727,9 @@
         # missing credential or a stopped service costs one wait rather than a hot
         # restart loop; ThrottleInterval is the floor under that.
         #
-        # Every Signet client on this machine uses the team daemon through this
-        # tunnel: M-02877/agent-integrations.nix sets SIGNET_DAEMON_URL,
-        # SIGNET_AGENT_ID and SIGNET_API_KEY for shells and the Chorus daemon.
-        # The personal Signet on 3850 keeps its own workspace; reach it with
-        # `env -u SIGNET_DAEMON_URL -u SIGNET_API_KEY signet ...`.
+        # Signet clients here use the personal daemon on 3850 by default. This
+        # tunnel serves the memory curator's auto pass (signet-auto-curator in
+        # M-02877/agent-integrations.nix), and a shell with SIGNET_STORE=team.
         signet-team-tunnel = {
           serviceConfig = {
             Label = "com.dktaohan.signet-team-tunnel";
@@ -854,11 +820,17 @@
               HOME = config.users.users.dktaohan.home;
               SHIM_PORT = "3851";
               SHIM_UPSTREAM = gateway.claudeUrl;
-              # `secret exec` redacts captured stdout, so it cannot feed a
-              # credential command. This fixed-purpose reader decrypts only
-              # LEGO_GENAI_TOKEN from the same portable workspace store.
+              # The same key as pi's: the gateway aspect's keyCommand reads
+              # LEGO_GATEWAY_API_KEY from secretspec and serves the 0600
+              # cache when the keybag is locked, so one rotation updates both.
+              # The shim reads it once at startup, so after a rotation run
+              # `launchctl kickstart -k gui/$(id -u)/com.dktaohan.signet-gateway-shim`.
+              # (This replaced a copy in Signet's secret store, which went
+              # stale and made the shim answer 401 until 2026-11-04.) The
+              # command needs secretspec on PATH, and launchd gives none.
               # The shim receives the value over a private child-process pipe.
-              SHIM_TOKEN_COMMAND = "${signetReadLegoSecret}/bin/signet-read-lego-secret";
+              SHIM_TOKEN_COMMAND = gateway.keyCommand config.users.users.dktaohan.home;
+              PATH = "/etc/profiles/per-user/dktaohan/bin:/usr/bin:/bin:/usr/sbin:/sbin";
             };
             RunAtLoad = true;
             KeepAlive = true;

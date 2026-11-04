@@ -304,11 +304,30 @@ Lessons from the first deploy (2026-10-06):
   `test_ping_task_cancelled_on_disconnect`). Rebuild that derivation once
   before suspecting the configuration.
 
-Team Signet: every Signet client on M-02877 now uses the team pool. The
-personal daemon on 3850 still runs; reach it with
-`env -u SIGNET_DAEMON_URL -u SIGNET_API_KEY signet ...`. Its remaining
-memories were exported on 2026-10-06 to `~/signet-handover/`, in full and as a
-filtered `personal-only` copy for the personal machines.
+Personal-first Signet (since 2026-11-04, the owner's decision to capture every
+memory in the personal Signet): every Signet client on M-02877 uses the
+personal daemon on 3850, whatever the repository. This reverses the
+2026-10-06 move of all clients to the team pool; the memories exported then to
+`~/signet-handover/` stay there. The team pool is reached by:
+
+- the `signet-auto-curator` launchd agent (`modules/M-02877/agent-integrations.nix`).
+  Every 600 s (`StartInterval`, no `RunAtLoad`) it runs
+  `~/projects/devrel-infra/projects/aws-signet/tools/memory-curator/auto.py`
+  (`./run auto`), which publishes team-level personal memories to the team pool
+  and mirrors the pool back into the personal Signet, so one daemon serves
+  recall. `CURATOR_PERSONAL` lists the repositories and machines whose notes
+  never become team facts. The log is `~/.local/state/signet-auto-curator.log`.
+  devrel-infra is internal and this flake is public, so the script cannot be a
+  flake input; it runs from the main clone. Until the devrel-infra pull requests
+  that add `auto.py` merge and that clone updates, each run fails harmlessly.
+- a shell with `SIGNET_STORE=team` exported (see `_signet_store`).
+
+Gateway shim key (since 2026-11-04): `com.dktaohan.signet-gateway-shim` takes
+its key from `gateway.keyCommand`, the command pi uses, not from a copy in
+Signet's secret store. That copy went stale and the shim answered 401 "Invalid
+authentication" until the current key was stored there by hand. The shim reads
+the key once, at start: after a rotation, run
+`launchctl kickstart -k gui/$(id -u)/com.dktaohan.signet-gateway-shim`.
 
 The team pool needs the `SIGNET_*` session variables in every shell. A herdr
 pane starts with the herdr server's environment, which is as old as the

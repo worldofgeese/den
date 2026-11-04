@@ -37,7 +37,7 @@
     ];
 
     # worldofgeese/pr-reviewer is the maintained home of pr-reviewer; this
-    # pins its v0.2.0 tag. It ships no flake and is absent from nixpkgs, so
+    # pins its v0.2.1 tag. It ships no flake and is absent from nixpkgs, so
     # this is a buildRustPackage against a pinned revision; `version` tracks
     # Cargo.toml. Moving the pin means a new rev, hash and cargoHash.
     #
@@ -45,16 +45,16 @@
     # sandbox refuses, and it shells out to git.
     pr-reviewer = pkgs.rustPlatform.buildRustPackage {
       pname = "pr-reviewer";
-      version = "0.2.0";
+      version = "0.2.1";
 
       src = pkgs.fetchFromGitHub {
         owner = "worldofgeese";
         repo = "pr-reviewer";
-        rev = "e63f7947fe2aa8c16daa8ed66eb1e125b7ae6716";
-        hash = "sha256-xsrDiM1jp+ktpRBAkjtAX3vpnzIX9VIwx3pKa/5rfYM=";
+        rev = "7837d90dd3c72cfd51df90ab7d7537b3226bcb69";
+        hash = "sha256-FWZVr2E1WgV7aPcGvvrp4/VPNq79WWg4kpLYXj3CjdI=";
       };
 
-      cargoHash = "sha256-funkL1hbbyV5kMguiDjKt5CzDIJMSTxbe0vJvRmLII0=";
+      cargoHash = "sha256-iq9GVGR0xT6n/T9j2zMLr3b1dU0A+l/GVQNkn27dn/U=";
       doCheck = false;
 
       meta = {

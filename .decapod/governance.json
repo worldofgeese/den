@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "0c22111996de324b5c49b8bb846ab01af4bc0d37",
+    "accepted_commit": "d6fe12430f74f3e585a0cf089d25827851a71d67",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -30,8 +30,10 @@
         "status": "open"
       },
       "plan:0694ed711ec3ba11": "Must the approveBotRuns setting also gate an explicit call of approve-bot-runs, or only the flows of the module? Asked in the PR 3 description.",
+      "plan:1722415bbb32182d": "MintRaven: should checks-only refuse fork PRs in the merge rules, as den's plan says, although that changes the verdict of a fork PR by an author in authors?",
       "plan:1c4365587637c208": "Does den want .dagger/ in its riskyPaths, so that a person merges each change to the merge rules? Asked in PRs 1 to 3, and again in the PR 4 description.",
       "plan:43cf9cbacfcdecc5": "pixel-fold holds only ~/.ssh/id_ed25519, which is not a GitHub signing key. To sign there, the owner must register a signing key for it. Out of scope for this PR.",
+      "plan:4d040581ccab4b40": "MintRaven: should den's nightly bump call release-age with the commits of each flake input?",
       "plan:86b51fe90ca91c65": "Must the shepherd call the review gate before its merge verdicts, and must the review timeout post the needs-human label through the existing label flow of the shepherd? Asked in the PR 4 description.",
       "plan:b459f3e5d6f6ee6d": "Does checkName also pin the workflow or the app of the check? Left to PR 4 (statusPrefix), in the PR description.",
       "plan:b4ac73f117e4d983": "Caveman's native runtime answers with an empty reply after the 2.0.1 to 4.0.1 upgrade, so pi tool output is not shrunk. Tracked upstream in JuliusBrussee/caveman#1279; no den change waits on it.",
@@ -54,72 +56,36 @@
     }
   },
   "change": {
-    "id": "change_01M6F35WR4NR24008PQREBSZXE",
-    "base_commit": "0c22111996de324b5c49b8bb846ab01af4bc0d37",
+    "id": "change_01M6K3GH6N521QXCJ1TSCVG8TE",
+    "base_commit": "d6fe12430f74f3e585a0cf089d25827851a71d67",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "claim:ci-fork-policy-review-and-suggest": {
-      "statement": "with forkPolicy review-and-suggest, the shepherd gives a fork pull request that conflicts the label needs-human with a comment, merges a fork that each rule accepts (also behind main) with no update of the branch, and leaves branches of the repository, drafts, stop labels and UNKNOWN alone",
-      "falsifier": "a fork case of ci:shepherd-rules against the fake GitHub API fails, the shepherd sends an update-branch or a push, or a mutation of fork.go or the fork step survives",
-      "status": "supported",
-      "proof_refs": [
-        ".dagger/modules/ci/fork_checks.go",
-        "~/.cache/aec-m/pr5-live-container-use-suggest.md"
-      ]
-    },
-    "claim:ci-pr5-den-defaults-unchanged": {
-      "statement": "with den's dagger.toml (no forkPolicy, no minReleaseAgeDays), den's verdicts and the shepherd's flows do not change",
-      "falsifier": "automerge-replay --count 30 or --count 100, or shepherd --dry-run, differs between main 0c22111 and the branch with den's dagger.toml, or the fork table cases of no setting and checks-only differ",
-      "status": "supported",
-      "proof_refs": [
-        "~/.cache/aec-m/pr5-replay100-main.md",
-        "~/.cache/aec-m/pr5-shepherd-branch.md"
-      ]
-    },
-    "claim:ci-release-age-rule": {
-      "statement": "release-age (chooseRelease) chooses the first candidate, newest first, that is at least minReleaseAgeDays old, lists each newer candidate that it skipped with the reason, and with 0 chooses the newest candidate",
-      "falsifier": "a ci:release-age-rules case (7 days, exactly 7 days, one second less, no publish time, a publish time after now, 0 days, the newest old enough) fails, or a mutation of release.go survives",
-      "status": "supported",
-      "proof_refs": [
-        ".dagger/modules/ci/release_checks.go",
-        "~/.cache/aec-m/pr5-mutations-2.log"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "ckpt-release-age-fork-policy-1",
-      "summary": "den PR 5 of AEC task M: forkPolicy (fork.go, the shepherd fork step) and minReleaseAgeDays (release.go, release-age), with fake-API and pure fixtures, specs",
-      "input_digest": "sha256:08597cbd507ea393a9e0a84f4c655fe16e8fd91f1af51915b5a876ac99532204",
+      "id": "signet-personal-first-1",
+      "summary": "Personal-first Signet env, signet-auto-curator launchd agent, gateway shim on gateway.keyCommand; specs rewritten",
+      "input_digest": "sha256:7973e77bb904864cc6512b59fc414ec7d3848fabe916a15af74b0b07bb4ca552",
       "proof_refs": [
-        ".dagger/modules/ci/fork_checks.go",
-        ".dagger/modules/ci/release_checks.go"
+        "darwin-rebuild build --flake .#M-02877"
       ]
-    },
-    {
-      "id": "ckpt-release-age-fork-policy-validate",
-      "summary": "the validation of den PR 5: only DecapodLabs/decapod#1474 fails; the owner's authority to publish",
-      "input_digest": "sha256:5eec903cbb0cca8cd0b538a79845f44b870ce7c61f343e42ff7c68e962dac077"
     }
   ],
   "intents": {
-    "intent:change_01M6F35WR4NR24008PQREBSZXE": {
+    "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        ".dagger/modules/ci",
-        ".decapod/managed/specs"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+      "id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "den PR 5 for AEC task M: minReleaseAgeDays and forkPolicy (Chorus f4bbad07)\n\nItems (f) and (g) of AEC task M: the setting minReleaseAgeDays (0 = off) as a pure age rule for bump targets, and forkPolicy (checks-only = den's behavior, review-and-suggest = AEC's: fork PRs under the same merge rules, a conflicting fork gets needs-human, a fork behind main without a conflict merges as it is). Empty defaults keep den's flows. Bead aec-16x.2.",
-      "refined_intent": "den PR 5 for AEC task M: minReleaseAgeDays and forkPolicy (Chorus f4bbad07)\n\nItems (f) and (g) of AEC task M: the setting minReleaseAgeDays (0 = off) as a pure age rule for bump targets, and forkPolicy (checks-only = den's behavior, review-and-suggest = AEC's: fork PRs under the same merge rules, a conflicting fork gets needs-human, a fork behind main without a conflict merges as it is). Empty defaults keep den's flows. Bead aec-16x.2.",
+      "raw_intent": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
+      "refined_intent": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -128,284 +94,131 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": [
-          "dagger.toml",
-          "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-          ".github/workflows",
-          "scripts/bump-flake-inputs.sh"
-        ]
+        "forbidden_paths": []
       },
-      "deferred_questions": [
-        "MintRaven: should checks-only refuse fork PRs in the merge rules, as den's plan says, although that changes the verdict of a fork PR by an author in authors?",
-        "MintRaven: should den's nightly bump call release-age with the commits of each flake input?"
-      ],
+      "deferred_questions": [],
       "human_questions": [],
-      "intent": "den PR 5 for AEC task M (Chorus f4bbad07, bead aec-16x.2): items f and g. (f) minReleaseAgeDays (default 0 = off): den's module has no bump code (the nightly bump is scripts/bump-flake-inputs.sh with nix flake update), so the age rule is the pure function chooseRelease (candidates newest first with publish times or committer dates, now; output chosen and skipped with reasons) and the read-only Dagger function release-age that a bump calls. (g) forkPolicy (default checks-only = den's current behavior, unchanged): review-and-suggest keeps the same merge rules for fork PRs, adds the needs-human label and comment for a fork PR that conflicts (the token cannot update a fork), merges a fork behind main without a conflict as it is (no function updates a branch), and documents that fork fixes are suggestions when a fixer exists. Empty defaults leave den's verdicts and flows byte-identical.",
+      "intent": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
       "phases": [],
       "proof_hooks": [
-        "just dagger-check passes (ci:shepherd-rules with the fake-API fork cases, ci:release-age-rules)",
-        "mutation tests: each mutation of fork.go, release.go and the shepherd fork step fails a fixture",
-        "automerge-replay --count 30 and --count 100 and shepherd --dry-run are byte-identical on main 0c22111 and on the branch with den's dagger.toml",
-        "just check passes as the pre-commit hook"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [
-        "a Decision Gate from Decapod",
-        "a decapod validate failure other than publication_readiness (DecapodLabs/decapod#1474)",
-        "a change of den's verdicts with den's settings"
-      ],
-      "title": "den PR 5 for AEC task M: minReleaseAgeDays and forkPolicy (Chorus f4bbad07)",
+      "stop_conditions": [],
+      "title": "Personal-first Signet routing, signet-auto-curator launchd agent, gateway shim key via secretspec",
       "todo_ids": [
-        "code_01m6f34zjzmnwcp5"
+        "test_01m6k3f3dnq9jj4f"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793656716Z"
+      "updated_at": "1793790661Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:3de64c6a135277270655b787a140e053a1f13428daca70ac5c07eebcaa667dff",
+      "artifact_hash": "sha256:1c14561d073cc0f9e19fb56d12f0b49232568a1245abddd2f76b2ba6df099f5b",
       "checks": [
         {
-          "name": "baseline-dagger-check-0c22111",
+          "name": "darwin_rebuild_build_M-02877",
           "status": "passed"
         },
         {
-          "name": "commit-signature-960b5b0",
+          "name": "just_check_fmt",
           "status": "passed"
         },
         {
-          "name": "dagger-check-worktree",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-validate-960b5b0",
-          "status": "failed"
-        },
-        {
-          "name": "go-vet",
-          "status": "passed"
-        },
-        {
-          "name": "gofmt",
-          "status": "passed"
-        },
-        {
-          "name": "harness-rule-checks",
-          "status": "passed"
-        },
-        {
-          "name": "inventory-repair",
-          "status": "failed"
-        },
-        {
-          "name": "just-check-960b5b0",
-          "status": "passed"
-        },
-        {
-          "name": "live-fork-policy-trial",
-          "status": "passed"
-        },
-        {
-          "name": "live-release-age-trial",
-          "status": "passed"
-        },
-        {
-          "name": "live-replay-settings-off",
-          "status": "passed"
-        },
-        {
-          "name": "live-shepherd-dry-run-settings-off",
-          "status": "passed"
-        },
-        {
-          "name": "mutation-tests",
-          "status": "passed"
-        },
-        {
-          "name": "specs-refresh",
+          "name": "plist_and_zsh_hook_read_from_build",
           "status": "passed"
         }
       ],
-      "current_phase": "publish-with-human-override",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6F35WT81PC86SWZRDVTZRE8",
+            "detail": "trajectory:branch_01M6K3GHAFM0SC4RWP84F4CBEB",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6F35WT81PC86SWZRDVTZRE8",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6F35WT81PC86SWZRDVTZRE8": {
+          "branch_01M6K3GHAFM0SC4RWP84F4CBEB": {
             "evidence_only": true,
-            "id": "branch_01M6F35WT81PC86SWZRDVTZRE8",
-            "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+            "id": "branch_01M6K3GHAFM0SC4RWP84F4CBEB",
+            "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
             "steps": [
               {
-                "action": "implement",
-                "command": "just dagger-check",
+                "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/shepherd.go",
-                  ".dagger/modules/ci/main.go",
-                  ".dagger/modules/ci/reviewgate.go",
-                  "scripts/bump-flake-inputs.sh",
-                  ".github/workflows/bump.yml",
-                  "dagger.toml",
-                  "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-                  ".dagger/modules/ci/fork.go",
-                  ".dagger/modules/ci/fork_checks.go",
-                  ".dagger/modules/ci/release.go",
-                  ".dagger/modules/ci/release_checks.go",
-                  ".dagger/modules/ci/shepherd.go",
-                  ".dagger/modules/ci/shepherd_checks.go",
-                  ".dagger/modules/ci/automerge.go",
-                  ".dagger/modules/ci/main.go",
-                  ".dagger/modules/ci/dagger.gen.go",
-                  ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "just dagger-check on 0c22111: 12 of 12; on the work tree: 13 of 13 (new ci:release-age-rules)",
-                  "mutation tests ~/.cache/aec-m/pr5-mutations.sh: 36 of 36 killed (log pr5-mutations-2.log)",
-                  "automerge-replay --count 30 (sha256 5ce728cb...) and --count 100 (sha256 2538a2cb...) and shepherd --dry-run (sha256 23f24ba4...) byte-identical on main 0c22111 and the branch with den's dagger.toml",
-                  "live trial: shepherd --dry-run on dagger/container-use with review-and-suggest adds only 'would add needs-human' on fork #370 (CONFLICTING); release-age on dagger/dagger releases and DecapodLabs/decapod commits"
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/darwin.nix",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/darwin.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/INTERFACES.md"
                 ],
                 "proof_refs": [
-                  "baseline-dagger-check-0c22111",
-                  "dagger-check-worktree",
-                  "go-vet",
-                  "gofmt",
-                  "harness-rule-checks",
-                  "mutation-tests",
-                  "live-replay-settings-off",
-                  "live-shepherd-dry-run-settings-off",
-                  "live-fork-policy-trial",
-                  "live-release-age-trial",
-                  "specs-refresh"
+                  "just_check_fmt",
+                  "darwin_rebuild_build_M-02877",
+                  "plist_and_zsh_hook_read_from_build"
                 ],
                 "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs"
+                  "root"
                 ],
                 "sequence": 4,
                 "validation_findings": []
-              },
-              {
-                "action": "publish-with-human-override",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "plain decapod validate on 960b5b0: pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED .decapod/governance.json#/sections/validation (DecapodLabs/decapod#1474); inventory --repair exits 1 (receipt_must_bind_current_trajectory) and changes no file"
-                ],
-                "proof_refs": [
-                  "decapod-validate-960b5b0",
-                  "inventory-repair",
-                  "just-check-960b5b0",
-                  "commit-signature-960b5b0"
-                ],
-                "scope": [
-                  ".dagger/modules/ci",
-                  ".decapod/managed/specs"
-                ],
-                "sequence": 5,
-                "validation_findings": [
-                  "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad authority to open den PRs with only that failure (AEC task M, den PR 5 dispatch). Every other gate passed.",
-                  "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
-                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "dagger generate -y",
-        "decapod rpc --op specs.refresh",
-        "go vet .",
-        "gofmt -l .",
-        "just dagger-check"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "automerge-replay --count 30 (sha256 5ce728cb...) and --count 100 (sha256 2538a2cb...) and shepherd --dry-run (sha256 23f24ba4...) byte-identical on main 0c22111 and the branch with den's dagger.toml",
-        "just dagger-check on 0c22111: 12 of 12; on the work tree: 13 of 13 (new ci:release-age-rules)",
-        "live trial: shepherd --dry-run on dagger/container-use with review-and-suggest adds only 'would add needs-human' on fork #370 (CONFLICTING); release-age on dagger/dagger releases and DecapodLabs/decapod commits",
-        "mutation tests ~/.cache/aec-m/pr5-mutations.sh: 36 of 36 killed (log pr5-mutations-2.log)",
-        "plain decapod validate on 960b5b0: pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED .decapod/governance.json#/sections/validation (DecapodLabs/decapod#1474); inventory --repair exits 1 (receipt_must_bind_current_trajectory) and changes no file"
-      ],
+      "evidence": [],
       "inspected_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/main.go",
-        ".dagger/modules/ci/reviewgate.go",
-        ".dagger/modules/ci/shepherd.go",
-        ".github/workflows/bump.yml",
-        "dagger.toml",
-        "docs/plans/2026-10-30-001-dagger-ci-autonomous-merge-plan.md",
-        "scripts/bump-flake-inputs.sh"
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix"
       ],
-      "intent_id": "intent:change_01M6F35WR4NR24008PQREBSZXE",
+      "intent_id": "intent:change_01M6K3GH6N521QXCJ1TSCVG8TE",
       "modified_files": [
-        ".dagger/modules/ci/automerge.go",
-        ".dagger/modules/ci/dagger.gen.go",
-        ".dagger/modules/ci/fork.go",
-        ".dagger/modules/ci/fork_checks.go",
-        ".dagger/modules/ci/internal/dagger/core/ci.gen.go",
-        ".dagger/modules/ci/main.go",
-        ".dagger/modules/ci/release.go",
-        ".dagger/modules/ci/release_checks.go",
-        ".dagger/modules/ci/shepherd.go",
-        ".dagger/modules/ci/shepherd_checks.go",
-        ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/VALIDATION.md"
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/darwin.nix",
+        "modules/M-02877/token-toolchain.nix"
       ],
       "next_transitions": [
-        "Checkpoint and commit the change, run plain decapod validate on the exact candidate, record the validation, push, open the PR",
-        "Checkpoint and commit this record, validate the exact candidate, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".dagger/modules/ci",
-        ".decapod/managed/specs"
+        "root"
       ],
-      "run_id": "branch_01M6F35WT81PC86SWZRDVTZRE8",
+      "run_id": "branch_01M6K3GHAFM0SC4RWP84F4CBEB",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [
-        "The PR opens while local decapod validate is not publication_ready: the only failure is the missing sections/validation receipt of DecapodLabs/decapod#1474. The owner gave explicit broad authority to open den PRs with only that failure (AEC task M, den PR 5 dispatch). Every other gate passed."
-      ],
-      "task_id": "code_01m6f34zjzmnwcp5",
+      "shortcut_risk_signals": [],
+      "task_id": "test_01m6k3f3dnq9jj4f",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "decapod validate fails only on DecapodLabs/decapod#1474 (sections/validation is never written in native mode). The owner approved opening the PR with only that failure."
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

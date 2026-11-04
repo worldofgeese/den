@@ -60,9 +60,11 @@ This project's architecture consists of the following key layers/directories:
   writable files (`mcp.json`, `settings.json`) instead of linking store files,
   because pi writes to both.
 - `modules/M-02877/agent-integrations.nix`: work-Mac-only team integrations
-  (Chorus, Beads, team Signet, toolbox-docs), the Chorus pi daemon launchd
-  agent, and the session environment that points Signet clients at the team
-  pool.
+  (Chorus, Beads, Signet, toolbox-docs), the Chorus pi daemon launchd agent,
+  the `signet-auto-curator` launchd agent (the memory curator's auto pass every
+  600 s), and the session environment that points Signet clients at the
+  personal Signet. The team pool is reached only by the curator and by a shell
+  with `SIGNET_STORE=team`.
 - `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
   `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
   module together. The launcher clears Guix's Emacs load-path variables.

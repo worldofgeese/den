@@ -119,7 +119,7 @@
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "EXECUTING",
+      "state": "APPROVED",
       "stop_conditions": [],
       "title": "Run pr-reviewer v0.2.0 on the review machine",
       "todo_ids": [
@@ -127,7 +127,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793791490Z"
+      "updated_at": "1793791741Z"
     },
     "trajectory": {
       "active_boundaries": [

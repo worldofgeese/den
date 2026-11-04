@@ -108,7 +108,7 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 5,
+        "file_touch_budget": 8,
         "forbidden_paths": []
       },
       "deferred_questions": [],
@@ -119,7 +119,7 @@
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "EXECUTING",
       "stop_conditions": [],
       "title": "Run pr-reviewer v0.2.0 on the review machine",
       "todo_ids": [
@@ -127,7 +127,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793791179Z"
+      "updated_at": "1793791490Z"
     },
     "trajectory": {
       "active_boundaries": [

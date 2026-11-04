@@ -83,6 +83,14 @@
       "proof_refs": [
         "/nix/store/w3avhk37idinmwb8aivgb38sw3xbdypv-pr-reviewer-0.2.0"
       ]
+    },
+    {
+      "id": "prr-0ji-7-validation",
+      "summary": "Record observed validation result",
+      "input_digest": "sha256:7f0293111a7316ce49b1eaae2880b0ffb2a2e5cdd3a07ae47df4271ccf23b702",
+      "proof_refs": [
+        "decapod validate 185 pass 1 fail (#1474)"
+      ]
     }
   ],
   "intents": {

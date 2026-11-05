@@ -89,6 +89,14 @@
       "proof_refs": [
         "/nix/store/zlpnfhiqphl1r58p2hffmh7r7sd1xd15-pr-reviewer-0.2.1"
       ]
+    },
+    {
+      "id": "prr-0ji-16-validate",
+      "summary": "the validation of the v0.2.1 pin: only DecapodLabs/decapod#1474 fails; the owner's authority to publish",
+      "input_digest": "sha256:97434396f63e0b84e511bfc6d0afb68e4001c50612d1e80c7887a53ca20319a5",
+      "proof_refs": [
+        "decapod-validate-f430601"
+      ]
     }
   ],
   "intents": {
@@ -139,8 +147,16 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:22abda65aecdfc14d7fa53f66afeef810050075421b63af352c1068c4cff855c",
+      "artifact_hash": "sha256:50b80338291bc3c4e8dd0a7058d0ae4dad2e92e880eec86152e576aca623a771",
       "checks": [
+        {
+          "name": "decapod-validate-f430601",
+          "status": "failed"
+        },
+        {
+          "name": "just-check-f430601",
+          "status": "unavailable"
+        },
         {
           "name": "nix build pr-reviewer 0.2.1",
           "status": "passed"
@@ -150,7 +166,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -171,10 +187,17 @@
             "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6KGP4TEM1KCMHZD4Z11VTN8",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6KGP4TEM1KCMHZD4Z11VTN8": {
@@ -203,6 +226,23 @@
                 "validation_findings": [
                   "Deploy needs the cask-app-preflight chown that task prr-0ji.7 hit; if it still fails, the deploy is blocked on the owner."
                 ]
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on f430601: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)",
+                  "owner Decision Gate 2026-11-04 (bead prr-0ji.16 notes): den PRs may be opened and merged when only publication_readiness fails"
+                ],
+                "proof_refs": [
+                  "decapod-validate-f430601",
+                  "just-check-f430601"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -212,7 +252,10 @@
         "nix build pinned pr-reviewer (den nixpkgs lock)"
       ],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "owner Decision Gate 2026-11-04 (bead prr-0ji.16 notes): den PRs may be opened and merged when only publication_readiness fails",
+        "plain decapod validate on f430601: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
+      ],
       "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",
         "modules/M-02877/pr-reviewer.nix"

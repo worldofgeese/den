@@ -72,6 +72,11 @@
       "id": "ckpt-reviewed-sources-0126-3",
       "summary": "renew reviewed_sources_digest to the inventory digest of the committed 0.126.3 sources",
       "input_digest": "sha256:f23917dda1868d024bd1c6d779c435c6fed78ee9440f47ebab4717dd26e5ccda"
+    },
+    {
+      "id": "ckpt-manifest-config-hash",
+      "summary": "the specs manifest takes the config_input_hash of the renewed config.toml",
+      "input_digest": "sha256:590233388fd94d1df96d331b24029383609079c3010ddd3d0b289027fe68caba"
     }
   ],
   "intents": {

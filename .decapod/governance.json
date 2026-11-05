@@ -80,6 +80,14 @@
       "proof_refs": [
         "nix-instantiate-parse"
       ]
+    },
+    {
+      "id": "prr-0ji-18-validate",
+      "summary": "the validation of the prr-0ji.18 repos change: only DecapodLabs/decapod#1474 fails; the owner's authority to publish",
+      "input_digest": "sha256:43d2b34514b2b0e3b36d7d9227f92f48e191c1d528616f87ea02e68fd75700c7",
+      "proof_refs": [
+        "decapod-validate-3a384f2"
+      ]
     }
   ],
   "intents": {
@@ -130,14 +138,18 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:6abcd795fef9068b056831072a31d448cc27ceeb7c94c6320ba98b025bd2e7f3",
+      "artifact_hash": "sha256:edab187912eaa5712eb6a41c0028a41d1f2ee3ad5f162bec6e34a9ba79232c15",
       "checks": [
+        {
+          "name": "decapod-validate-3a384f2",
+          "status": "failed"
+        },
         {
           "name": "nix-instantiate-parse",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -158,10 +170,17 @@
             "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6N997DFRBPG7STZ4KT9NJHE",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6N997DFRBPG7STZ4KT9NJHE": {
@@ -187,6 +206,22 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on 3a384f2: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)",
+                  "owner Decision Gate 2026-11-04 (bead prr-0ji.18 notes): den PRs may be opened and merged when only publication_readiness fails"
+                ],
+                "proof_refs": [
+                  "decapod-validate-3a384f2"
+                ],
+                "scope": [
+                  "prr-0ji.18"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -195,7 +230,9 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "added worldofgeese/pr-reviewer to repos; automerge author allowlist already includes worldofgeese"
+        "added worldofgeese/pr-reviewer to repos; automerge author allowlist already includes worldofgeese",
+        "owner Decision Gate 2026-11-04 (bead prr-0ji.18 notes): den PRs may be opened and merged when only publication_readiness fails",
+        "plain decapod validate on 3a384f2: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
       ],
       "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",

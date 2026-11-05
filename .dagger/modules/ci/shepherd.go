@@ -77,7 +77,7 @@ func nextStep(pr shepherdPR, p mergePolicy, self string, now time.Time) (shepher
 			return stepNone, "label " + l
 		}
 	}
-	if !p.allowsAuthor(pr.Author) {
+	if !slices.Contains(p.Authors, pr.Author) {
 		return stepNone, "author " + pr.Author + " is not in authors, so the pull request gets checks only"
 	}
 	if p.Reviewer != codexReviewer {
@@ -204,9 +204,7 @@ func shepherdPRFrom(n gqlOpenPR) shepherdPR {
 // After 3 requests without a review, add the needs-human label. The table
 // also gives the verdict of the merge rules for each pull request (plan P4).
 // With merge, it merges the first accepted pull request, pinned to the head
-// commit that the rules judged. With forkPolicy review-and-suggest, a fork
-// pull request that conflicts gets the needs-human label with a comment
-// (fork.go). With dryRun, post and merge nothing.
+// commit that the rules judged. With dryRun, post and merge nothing.
 // +cache="never"
 func (m *Ci) Shepherd(
 	ctx context.Context,
@@ -225,11 +223,6 @@ func (m *Ci) Shepherd(
 	if err != nil {
 		return "", err
 	}
-	return m.shepherd(ctx, g, owner, name, dryRun, merge, time.Now())
-}
-
-// shepherd runs the shepherd at now, and gives the table.
-func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, dryRun, merge bool, now time.Time) (string, error) {
 	var out struct {
 		Viewer     struct{ Login string }
 		Repository struct {
@@ -246,6 +239,7 @@ func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, 
 	if prs.TotalCount > len(prs.Nodes) {
 		return "", fmt.Errorf("%d open pull requests; the shepherd reads only %d", prs.TotalCount, len(prs.Nodes))
 	}
+	now := time.Now()
 	var b strings.Builder
 	var failed []string
 	merged := false
@@ -274,19 +268,13 @@ func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, 
 				verdict += "; waits for the next run (one merge per run)"
 			default:
 				path := fmt.Sprintf("/repos/%s/%s/pulls/%d/merge", owner, name, pr.Number)
-				if err := g.rest(ctx, "PUT", path, map[string]any{"sha": head, "merge_method": method}, nil); err != nil {
+				if err := g.rest(ctx, "PUT", path, map[string]any{"sha": head, "merge_method": method}); err != nil {
 					verdict = "merge failed: " + err.Error()
 					failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
 				} else {
 					verdict = fmt.Sprintf("merged head %s with the %s method", short(head), method)
 				}
 				merged = true
-			}
-			if action, err := m.forkStep(ctx, g, owner, name, repo, dryRun); err != nil {
-				verdict += "; needs-human failed: " + err.Error()
-				failed = append(failed, fmt.Sprintf("#%d: %v", pr.Number, err))
-			} else if action != "" {
-				verdict += "; " + action
 			}
 		}
 		fmt.Fprintf(&b, "| #%d | %s | %s | %s | %s |\n", pr.Number, short(pr.Head), step, why, verdict)
@@ -300,27 +288,6 @@ func (m *Ci) shepherd(ctx context.Context, g *githubClient, owner, name string, 
 	return b.String(), nil
 }
 
-// forkStep takes the action of the fork policy for a pull request, and says
-// what it did. With no action, it returns "".
-func (m *Ci) forkStep(ctx context.Context, g *githubClient, owner, name string, repo *gqlRepo, dryRun bool) (string, error) {
-	s := snapshotFrom(repo.PullRequest, repo.DefaultBranchRef.Name, false)
-	why := forkAction(&s, m.policy())
-	switch {
-	case why == "":
-		return "", nil
-	case dryRun:
-		return "would add needs-human: " + why, nil
-	}
-	issue := fmt.Sprintf("/repos/%s/%s/issues/%d", owner, name, s.Number)
-	if err := g.rest(ctx, "POST", issue+"/labels", map[string]any{"labels": []string{"needs-human"}}, nil); err != nil {
-		return "", err
-	}
-	if err := g.rest(ctx, "POST", issue+"/comments", map[string]any{"body": forkComment(&s)}, nil); err != nil {
-		return "", err
-	}
-	return "added needs-human: " + why, nil
-}
-
 // post writes the step of a pull request to GitHub.
 func (m *Ci) post(ctx context.Context, g *githubClient, owner, name string, pr shepherdPR, step shepherdStep) error {
 	issue := fmt.Sprintf("/repos/%s/%s/issues/%d", owner, name, pr.Number)
@@ -328,29 +295,25 @@ func (m *Ci) post(ctx context.Context, g *githubClient, owner, name string, pr s
 	case stepRequest:
 		return g.rest(ctx, "POST", issue+"/comments", map[string]any{
 			"body": "@codex review\n\n" + requestMarker(pr.Head),
-		}, nil)
+		})
 	case stepNeedsHuman:
-		if err := g.rest(ctx, "POST", issue+"/labels", map[string]any{"labels": []string{"needs-human"}}, nil); err != nil {
+		if err := g.rest(ctx, "POST", issue+"/labels", map[string]any{"labels": []string{"needs-human"}}); err != nil {
 			return err
 		}
 		return g.rest(ctx, "POST", issue+"/comments", map[string]any{
 			"body": fmt.Sprintf("The shepherd asked %s %d times to review head %s, and no review came. "+
 				"A person must review this pull request. Remove the label needs-human to let the automation continue.",
 				strings.TrimPrefix(codexReviewer, "app/"), reviewCap, short(pr.Head)),
-		}, nil)
+		})
 	}
 	return nil
 }
 
-// rest calls the GitHub REST API. A body that is not nil goes as JSON, and
-// an out that is not nil gets the JSON of the reply.
-func (g *githubClient) rest(ctx context.Context, method, path string, body, out any) error {
-	var data []byte
-	if body != nil {
-		var err error
-		if data, err = json.Marshal(body); err != nil {
-			return err
-		}
+// rest calls the GitHub REST API with a JSON body.
+func (g *githubClient) rest(ctx context.Context, method, path string, body any) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
 	}
 	req, err := http.NewRequestWithContext(ctx, method, "https://api.github.com"+path, bytes.NewReader(data))
 	if err != nil {
@@ -368,8 +331,5 @@ func (g *githubClient) rest(ctx context.Context, method, path string, body, out 
 	if resp.StatusCode/100 != 2 {
 		return fmt.Errorf("GitHub REST %s %s: HTTP %d", method, path, resp.StatusCode)
 	}
-	if out == nil {
-		return nil
-	}
-	return json.NewDecoder(resp.Body).Decode(out)
+	return nil
 }

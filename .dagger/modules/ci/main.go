@@ -51,39 +51,6 @@ type Ci struct {
 	Reviewer string
 	// +private
 	RiskyPaths []string
-	// +private
-	CheckName string
-	// +private
-	RiskyExecutableBit bool
-	// +private
-	ManifestFiles []string
-	// +private
-	ManifestSafeFields []string
-	// +private
-	ManifestSourcePrefix string
-	// approve-bot-runs (approve.go).
-	// +private
-	ApprovesBotRuns bool
-	// The job-kinds table of ci:workflow-isolation (workflows.go).
-	// +private
-	JobKinds string
-	// The review gate (reviewgate.go).
-	// +private
-	StatusPrefix string
-	// +private
-	ReviewMarker string
-	// +private
-	SecondPersonApproval bool
-	// +private
-	ReviewTimeoutHours int
-	// +private
-	RequireReviewGate bool
-	// The fork policy (fork.go).
-	// +private
-	ForkPolicy string
-	// The age rule of the bump targets (release.go).
-	// +private
-	MinReleaseAgeDays int
 }
 
 func New(
@@ -93,112 +60,21 @@ func New(
 	// +optional
 	repository string,
 	// Logins whose pull requests can merge without a person. A bot is
-	// app/<login>, and "*" is every author. With none, every pull request
-	// needs a person.
+	// app/<login>. With none, every pull request needs a person.
 	// +optional
 	authors []string,
 	// The login whose review of the head counts. With none, nothing merges.
 	// +optional
 	reviewer string,
-	// Path patterns. A pull request that changes a matching path is merged
-	// by a person. A pattern without "*" is a path prefix. A pattern with
-	// "*" must match the whole path: "*" matches in one level, and "**" as a
-	// level matches zero or more levels.
+	// Path prefixes. A pull request that changes one is merged by a person.
 	// +optional
 	riskyPaths []string,
-	// A check whose newest run on the head must succeed. With none, branch
-	// protection names the checks that must pass.
-	// +optional
-	checkName string,
-	// A pull request that adds a file with git mode 100755, or that changes
-	// the mode of a file to 100755, is merged by a person. The rules read
-	// the modes from the Git trees of the merge base and the head.
-	// +optional
-	riskyExecutableBit bool,
-	// Path patterns of JSON manifest files, as for riskyPaths. A pull
-	// request that adds, removes or changes a top-level field of a matching
-	// file outside manifestSafeFields, or a file that does not parse, is
-	// merged by a person. With none, the rules read no manifest.
-	// +optional
-	manifestFiles []string,
-	// The top-level fields of a manifest, and the fields of its entries,
-	// that can change without a person.
-	// +optional
-	manifestSafeFields []string,
-	// In a list of entries of a manifest, for example the plugins of a
-	// marketplace, source can change only to a relative path under this
-	// prefix, for example ./plugins/. With none, a change of source needs a
-	// person.
-	// +optional
-	manifestSourcePrefix string,
-	// With true, approve-bot-runs approves the pull_request runs that GitHub
-	// holds (action_required) on a head that a job pushed with its
-	// GITHUB_TOKEN. With false, the module approves no run.
-	// +optional
-	approveBotRuns bool,
-	// The job-kinds table of ci:workflow-isolation, in YAML: the kind of each
-	// job in .github/workflows (CHECK, AGENT, GITHUB, SCAN or LEGACY), and
-	// what the kinds can hold in this repository. With none, the check is
-	// off.
-	// +optional
-	jobKinds string,
-	// review-gate posts the commit status <statusPrefix>/review on the head of
-	// each open pull request: success when the newest review of the head by
-	// the reviewer has no open blocking finding, and failure when it has one.
-	// With none, the review gate is off.
-	// +optional
-	statusPrefix string,
-	// The name of the block in the review body of the reviewer that lists the
-	// open findings, for example aec-review:v1 for the block
-	// <!-- aec-review:v1 {"open":[{"id":"F1","severity":"blocking"}]} -->.
-	// With none, the gate reads the reviewer as the merge rules do: the rules
-	// reviewed and threads, and the Codex summary.
-	// +optional
-	reviewMarker string,
-	// With true, an APPROVE of the exact head opens the review gate when the
-	// approver is a person with write access, is not the author, and pushed
-	// none of the commits (the activity API). Never on a fork pull request.
-	// +optional
-	secondPersonApproval bool,
-	// A head with no review gate status this many hours after its check
-	// finished gets the needs-human action "review by a person: approve head
-	// X?". With 0, there is no timeout.
-	// +optional
-	reviewTimeoutHours int,
-	// With true, the merge rules require the success of the review gate on the
-	// head (the rule review-gate).
-	// +optional
-	requireReviewGate bool,
-	// What the module does with a pull request from a fork. checks-only (the
-	// default): the same as for each pull request. review-and-suggest: a fork
-	// pull request that conflicts with its base gets the needs-human action,
-	// because the token cannot update a fork.
-	// +optional
-	forkPolicy string,
-	// release-age chooses the newest bump target that is at least this many
-	// days old. With 0, it chooses the newest target.
-	// +optional
-	minReleaseAgeDays int,
 ) *Ci {
 	return &Ci{
-		Repository:           repository,
-		Authors:              authors,
-		Reviewer:             reviewer,
-		RiskyPaths:           riskyPaths,
-		CheckName:            checkName,
-		RiskyExecutableBit:   riskyExecutableBit,
-		ManifestFiles:        manifestFiles,
-		ManifestSafeFields:   manifestSafeFields,
-		ManifestSourcePrefix: manifestSourcePrefix,
-		ApprovesBotRuns:      approveBotRuns,
-		JobKinds:             jobKinds,
-		StatusPrefix:         statusPrefix,
-		ReviewMarker:         reviewMarker,
-		SecondPersonApproval: secondPersonApproval,
-		ReviewTimeoutHours:   reviewTimeoutHours,
-		RequireReviewGate:    requireReviewGate,
-		ForkPolicy:           forkPolicy,
-		MinReleaseAgeDays:    minReleaseAgeDays,
+		Repository: repository,
+		Authors:    authors,
+		Reviewer:   reviewer,
+		RiskyPaths: riskyPaths,
 		// The files that a clone has: the .gitignore files leave out local
 		// state, for example .decapod/workspaces. In a linked worktree .git
 		// is a file that names a path on the host, so it stays out, and the

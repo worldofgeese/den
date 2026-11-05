@@ -28,33 +28,20 @@ This project's architecture consists of the following key layers/directories:
   pinned container (VALIDATION.md, Dagger Checks). `automerge.go` holds the
   merge rules as a pure function over a snapshot of a pull request, and the
   read-only `automerge-dry-run` and `automerge-replay` read GitHub's GraphQL
-  API with a token secret. When a repository sets `riskyExecutableBit` or
-  `manifestFiles`, the snapshot also holds the changed files from the Git
-  trees of the REST API (`automerge_files.go`). Three parts are for other
-  repositories, and this repository leaves them off: `approve.go` approves
-  the runs that GitHub holds after a push with a job token (setting
-  `approveBotRuns`), `workflows.go` checks the job kinds of
-  `.github/workflows` against the table of the setting `jobKinds`, and
-  `reviewgate.go` posts the review gate `<statusPrefix>/review` from the
-  review of the head or the approval of a second person (setting
-  `statusPrefix`). The gate decides with the pure function `reviewGate`
-  over the same snapshot as the merge rules, and the rule `review-gate`
-  reads the gate only with `requireReviewGate`. `fork.go` holds the fork
-  policy (setting `forkPolicy`): with `review-and-suggest`, the shepherd
-  gives a fork pull request that conflicts the label `needs-human`.
-  `release.go` holds the age rule of the bump targets (setting
-  `minReleaseAgeDays`) as the pure function `chooseRelease`, and
-  `release-age` gives it to a bump.
-  `.github/workflows/dagger.yml` runs the checks on
+  API with a token secret. `.github/workflows/dagger.yml` runs the checks on
   GitHub-hosted runners for each pull request and each push to `main`
   (VALIDATION.md, Dagger Checks in CI). `shepherd.go` asks the Codex
-  connector to review each new head and reports the verdict of the merge
-  rules for each pull request, and `.github/workflows/shepherd.yml`
-  runs it with the token of the environment `shepherd`.
+  connector to review each new head, reports the verdict of the merge
+  rules for each pull request and, with `--merge`, merges at most one
+  accepted pull request in each run. `.github/workflows/shepherd.yml`
+  runs it with `--merge` and the token of the environment `shepherd`.
   `.github/workflows/bump.yml` runs `scripts/bump-flake-inputs.sh` each night,
   and the PR that it opens is the only path for new flake inputs (plan P6).
-  The fixer and the live automerge of the Dagger plan come in its later
-  phases.
+  The fixer of the Dagger plan comes in a later phase. The module has only
+  the settings that this repository uses: the settings for other
+  repositories (den PRs #100, #102, #103, #104 and #106) were reverted on
+  2026-11-03, because AEC does not use the module (INTERFACES.md, Dagger ci
+  Module).
 - `modules/pi.nix`: the `piAgent` Home Manager options. Hosts declare pi MCP
   servers and pi packages (latest or pinned); activation merges them into pi's own
   writable files (`mcp.json`, `settings.json`) instead of linking store files,
@@ -499,7 +486,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `bc077343dc762274aa7bb9de55d392d796a2fcefb5b0c25ba35d8d481248637c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (24 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `e2ab71ba07bbc746d7c581071c8ecab1981692396d1ef54de2252a73b26f8e6a`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

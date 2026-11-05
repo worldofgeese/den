@@ -11,9 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path"
 	"regexp"
-	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -22,120 +20,18 @@ import (
 )
 
 // mergePolicy is the part of the rules that a repository sets in its
-// dagger.toml. With no authors or no reviewer, no pull request merges
-// without a person.
+// dagger.toml. An empty value refuses: with no authors, no pull request
+// merges without a person.
 type mergePolicy struct {
 	// Logins whose pull requests can merge without a person. A bot is
-	// "app/<login>", as gh prints it. "*" is every author.
+	// "app/<login>", as gh prints it.
 	Authors []string
 	// The login whose review of the head counts. For the Codex connector, a
 	// summary comment of a clean, completed review of the head counts too.
 	Reviewer string
-	// Path patterns (matchRiskyPath). A pull request that changes a matching
-	// path is merged by a person.
+	// Path prefixes. A pull request that changes one is merged by a person.
 	RiskyPaths []string
-	// A check whose newest run on the head must succeed. With none, the rule
-	// protected leaves the required checks to branch protection.
-	CheckName string
-	// A pull request that adds a file with git mode 100755, or that changes
-	// the mode of a file to 100755, is merged by a person.
-	RiskyExecutableBit bool
-	// Path patterns of JSON manifest files (matchRiskyPath). With none, the
-	// rules read no manifest.
-	ManifestFiles []string
-	// The fields of a manifest that can change without a person. A change of
-	// another field is merged by a person.
-	ManifestSafeFields []string
-	// In a list of entries of a manifest, source can change only to a
-	// relative path under this prefix, for example ./plugins/.
-	ManifestSourcePrefix string
-	// The review gate (reviewgate.go) posts the commit status
-	// <StatusPrefix>/review. With none, the gate is off, and no status is the
-	// status of the gate.
-	StatusPrefix string
-	// The name of the block in the review body of the reviewer that lists the
-	// open findings. With none, the gate reads the reviewer the den way.
-	ReviewMarker string
-	// An APPROVE of the exact head by a second person opens the gate.
-	SecondPersonApproval bool
-	// A head with no status of the gate this long after its check finished
-	// needs a person. With none, there is no timeout.
-	ReviewTimeout time.Duration
-	// The rule review-gate requires the success of the gate on the head.
-	RequireReviewGate bool
-	// What the shepherd does with a fork pull request (fork.go). With none,
-	// the policy is checks-only.
-	ForkPolicy string
 }
-
-// allowsAuthor reports whether the pull requests of login can merge without
-// a person. "*" is every author, and an empty list refuses each author.
-func (p mergePolicy) allowsAuthor(login string) bool {
-	return slices.Contains(p.Authors, "*") || slices.Contains(p.Authors, login)
-}
-
-// gateContext is the context of the commit status of the review gate.
-func (p mergePolicy) gateContext() string {
-	return p.StatusPrefix + "/review"
-}
-
-// gateStatus reports whether c is the commit status of the review gate.
-// GitHub compares the contexts of statuses without case. With no
-// statusPrefix, no status is the status of the gate.
-func (p mergePolicy) gateStatus(c prCheck) bool {
-	return p.StatusPrefix != "" && c.Workflow == "status" && strings.EqualFold(c.Name, p.gateContext())
-}
-
-// gateStatusOf returns the newest status of the review gate on the head.
-func (p mergePolicy) gateStatusOf(s *prSnapshot) (prCheck, bool) {
-	for _, c := range newestChecks(s.Checks) {
-		if p.gateStatus(c) {
-			return c, true
-		}
-	}
-	return prCheck{}, false
-}
-
-// matchRiskyPath reports whether the path name matches a risky-path pattern.
-// A pattern without "*" is a prefix of the path. A pattern with "*" is a glob
-// that must match the whole path. "*" matches in one level, and "**" as a
-// whole level matches zero or more levels. "?", "[" and "\" match only
-// themselves.
-func matchRiskyPath(pattern, name string) bool {
-	if !strings.Contains(pattern, "*") {
-		return strings.HasPrefix(name, pattern)
-	}
-	return matchLevels(strings.Split(pattern, "/"), strings.Split(name, "/"))
-}
-
-// matchLevels matches the levels of a path to the levels of a glob.
-func matchLevels(pattern, name []string) bool {
-	for len(pattern) > 0 && pattern[0] != "**" {
-		if len(name) == 0 {
-			return false
-		}
-		// literalGlob leaves only "*" special, so path.Match cannot return
-		// an error.
-		if ok, _ := path.Match(literalGlob.Replace(pattern[0]), name[0]); !ok {
-			return false
-		}
-		pattern, name = pattern[1:], name[1:]
-	}
-	if len(pattern) == 0 {
-		return len(name) == 0
-	}
-	// "**" matches zero or more levels.
-	for i := 0; i <= len(name); i++ {
-		if matchLevels(pattern[1:], name[i:]) {
-			return true
-		}
-	}
-	return false
-}
-
-// literalGlob escapes each character other than "*" that path.Match reads
-// as special.
-var literalGlob = strings.NewReplacer(`\`, `\\`, `?`, `\?`, `[`, `\[`)
 
 // stopLabels stop all automation (plan D4).
 var stopLabels = []string{"hold", "do-not-merge", "needs-human"}
@@ -152,33 +48,19 @@ type prCheck struct {
 	// state.
 	Name, Workflow, Status, Conclusion, State string
 	At                                        time.Time
-	// Done is when a check run completed, or when a commit status that is
-	// not pending was posted.
-	Done time.Time
-	// The description of a commit status.
-	Description string
 }
 
-type prReview struct {
-	Author, State, Commit string
-	// The text of the review, and when the reviewer submitted it.
-	Body string
-	At   time.Time
-}
+type prReview struct{ Author, State, Commit string }
 
 type prComment struct{ Author, Body string }
 
 type prSnapshot struct {
-	Number      int
-	State       string // OPEN, MERGED or CLOSED
-	Draft       bool
-	Base, Trunk string
-	Author      string
-	Head        string
-	// HeadRef is the name of the head branch. Fork: the head branch is in
-	// another repository.
-	HeadRef        string
-	Fork           bool
+	Number         int
+	State          string // OPEN, MERGED or CLOSED
+	Draft          bool
+	Base, Trunk    string
+	Author         string
+	Head           string
 	Labels         []string
 	Body           string
 	ReviewDecision string
@@ -198,13 +80,7 @@ type prSnapshot struct {
 	ChecksIncomplete bool
 	// LabelsIncomplete: a replay did not read the whole label history.
 	LabelsIncomplete bool
-	// ReviewsIncomplete: GitHub has more reviews than the query read.
-	ReviewsIncomplete bool
-	Unresolved        int
-	// Trees has each changed file in the Git trees of the merge base and the
-	// head (automerge_files.go). fetch reads them only for
-	// riskyExecutableBit and manifestFiles.
-	Trees *prTrees
+	Unresolved       int
 }
 
 type mergeRule struct {
@@ -248,8 +124,10 @@ var mergeRules = []mergeRule{
 		return ""
 	}},
 	{"author", false, func(s *prSnapshot, p mergePolicy) string {
-		if p.allowsAuthor(s.Author) {
-			return ""
+		for _, a := range p.Authors {
+			if a == s.Author {
+				return ""
+			}
 		}
 		return "author " + s.Author + " is merged by a person"
 	}},
@@ -260,27 +138,12 @@ var mergeRules = []mergeRule{
 		}
 		for _, f := range s.Files {
 			for _, r := range p.RiskyPaths {
-				if matchRiskyPath(r, f) {
+				if strings.HasPrefix(f, r) {
 					return "it changes " + f + ", which a person merges"
 				}
 			}
 		}
 		return ""
-	}},
-	// A new executable file, a file that becomes executable, and a change of
-	// a manifest file outside its safe fields are merged by a person.
-	// automerge_files.go reads the changed files.
-	{"executable-bit", false, func(s *prSnapshot, p mergePolicy) string {
-		if !p.RiskyExecutableBit {
-			return ""
-		}
-		return executableBit(s)
-	}},
-	{"manifest-fields", false, func(s *prSnapshot, p mergePolicy) string {
-		if len(p.ManifestFiles) == 0 {
-			return ""
-		}
-		return manifestFields(s, p)
 	}},
 	{"reviewed", false, func(s *prSnapshot, p mergePolicy) string {
 		if p.Reviewer == "" {
@@ -299,25 +162,6 @@ var mergeRules = []mergeRule{
 		}
 		return p.Reviewer + " has not reviewed head " + short(s.Head)
 	}},
-	// With requireReviewGate, the review gate (reviewgate.go) must have
-	// posted success on the head. The status of the gate is not a review: the
-	// rule reviewed still needs the review of the reviewer.
-	{"review-gate", false, func(s *prSnapshot, p mergePolicy) string {
-		if !p.RequireReviewGate {
-			return ""
-		}
-		if p.StatusPrefix == "" {
-			return "requireReviewGate is set, but statusPrefix is empty, so the review gate is off"
-		}
-		c, ok := p.gateStatusOf(s)
-		if !ok {
-			return "head " + short(s.Head) + " has no " + p.gateContext() + " status"
-		}
-		if c.State != "SUCCESS" {
-			return p.gateContext() + " is " + strings.ToLower(c.State) + " on head " + short(s.Head)
-		}
-		return ""
-	}},
 	{"changes-requested", false, func(s *prSnapshot, _ mergePolicy) string {
 		if s.ReviewDecision == "CHANGES_REQUESTED" {
 			return "changes requested"
@@ -330,44 +174,18 @@ var mergeRules = []mergeRule{
 		}
 		return ""
 	}},
-	{"checks", false, func(s *prSnapshot, p mergePolicy) string {
+	{"checks", false, func(s *prSnapshot, _ mergePolicy) string {
 		if s.ChecksIncomplete {
 			return "head " + short(s.Head) + " has more checks than the rules read; a person merges"
 		}
 		newest := newestChecks(s.Checks)
-		// The status of the review gate is not a check that ran on the head.
-		// Its failure refuses below, as the failure of each status does.
-		if !slices.ContainsFunc(newest, func(c prCheck) bool { return !p.gateStatus(c) }) {
+		if len(newest) == 0 {
 			return "no check ran on head " + short(s.Head)
 		}
 		for _, c := range newest {
 			if !c.green() {
 				return "checks are not all complete and green"
 			}
-		}
-		return ""
-	}},
-	// A repository with no required check in branch protection can be CLEAN
-	// before a check runs. With checkName, the newest run of that check on
-	// the head must succeed. A skipped or a neutral run is green for the
-	// checks rule, but it did not succeed.
-	{"required-check", false, func(s *prSnapshot, p mergePolicy) string {
-		if p.CheckName == "" {
-			return ""
-		}
-		ran := false
-		for _, c := range newestChecks(s.Checks) {
-			// The status of the review gate is never the named check.
-			if c.Name != p.CheckName || p.gateStatus(c) {
-				continue
-			}
-			if !c.succeeded() {
-				return "check " + p.CheckName + " did not succeed on head " + short(s.Head)
-			}
-			ran = true
-		}
-		if !ran {
-			return "check " + p.CheckName + " has no run on head " + short(s.Head)
 		}
 		return ""
 	}},
@@ -410,17 +228,11 @@ func judge(s *prSnapshot, p mergePolicy, replay bool) (string, string) {
 }
 
 func (c prCheck) green() bool {
-	return c.succeeded() ||
-		(c.Status == "COMPLETED" && (c.Conclusion == "SKIPPED" || c.Conclusion == "NEUTRAL"))
-}
-
-// succeeded reports whether the check passed. A skipped or a neutral check
-// run is green, but it did not pass.
-func (c prCheck) succeeded() bool {
 	if c.Status == "" {
 		return c.State == "SUCCESS"
 	}
-	return c.Status == "COMPLETED" && c.Conclusion == "SUCCESS"
+	return c.Status == "COMPLETED" &&
+		(c.Conclusion == "SUCCESS" || c.Conclusion == "SKIPPED" || c.Conclusion == "NEUTRAL")
 }
 
 // newestChecks keeps the newest entry of each check (its name and workflow).
@@ -539,7 +351,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
     defaultBranchRef { name }
     mergeCommitAllowed squashMergeAllowed rebaseMergeAllowed
     pullRequest(number: $n) {
-      number state isDraft baseRefName baseRefOid headRefOid headRefName isCrossRepository body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
+      number state isDraft baseRefName headRefOid body reviewDecision mergeable mergeStateStatus mergedAt changedFiles
       author { __typename login }
       labels(first: 50) { nodes { name } }
       timelineItems(first: 100, itemTypes: [LABELED_EVENT, UNLABELED_EVENT]) {
@@ -550,7 +362,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
           ... on UnlabeledEvent { createdAt label { name } }
         }
       }
-      reviews(first: 100) { totalCount nodes { author { __typename login } state submittedAt commit { oid } body } }
+      reviews(first: 100) { nodes { author { __typename login } state submittedAt commit { oid } } }
       comments(last: 50) { nodes { author { __typename login } body } }
       reviewThreads(first: 100) { nodes { isResolved } }
       files(first: 100) { nodes { path } }
@@ -558,7 +370,7 @@ const prQuery = `query($o: String!, $r: String!, $n: Int!) {
         nodes { commit { statusCheckRollup { contexts(first: 100) { totalCount nodes {
           __typename
           ... on CheckRun { name status conclusion startedAt completedAt checkSuite { workflowRun { workflow { name } } } }
-          ... on StatusContext { context state description createdAt }
+          ... on StatusContext { context state createdAt }
         } } } } }
       }
     }
@@ -582,23 +394,20 @@ func (a *gqlActor) name() string {
 }
 
 type gqlPR struct {
-	Number            int
-	State             string
-	IsDraft           bool
-	BaseRefName       string
-	BaseRefOid        string
-	HeadRefOid        string
-	HeadRefName       string
-	IsCrossRepository bool
-	Body              string
-	ReviewDecision    string
-	Mergeable         string
-	MergeStateStatus  string
-	MergedAt          *time.Time
-	ChangedFiles      int
-	Author            *gqlActor
-	Labels            struct{ Nodes []struct{ Name string } }
-	TimelineItems     struct {
+	Number           int
+	State            string
+	IsDraft          bool
+	BaseRefName      string
+	HeadRefOid       string
+	Body             string
+	ReviewDecision   string
+	Mergeable        string
+	MergeStateStatus string
+	MergedAt         *time.Time
+	ChangedFiles     int
+	Author           *gqlActor
+	Labels           struct{ Nodes []struct{ Name string } }
+	TimelineItems    struct {
 		PageInfo struct{ HasNextPage bool }
 		Nodes    []struct {
 			Typename  string `json:"__typename"`
@@ -607,8 +416,12 @@ type gqlPR struct {
 		}
 	}
 	Reviews struct {
-		TotalCount int
-		Nodes      []gqlReview
+		Nodes []struct {
+			Author      *gqlActor
+			State       string
+			SubmittedAt *time.Time
+			Commit      *struct{ Oid string }
+		}
 	}
 	Comments struct {
 		Nodes []struct {
@@ -619,16 +432,6 @@ type gqlPR struct {
 	ReviewThreads struct{ Nodes []struct{ IsResolved bool } }
 	Files         struct{ Nodes []struct{ Path string } }
 	Commits       struct{ Nodes []gqlCommitNode }
-	// Not from GraphQL: fetch reads the Git trees (readTrees).
-	Trees *prTrees `json:"-"`
-}
-
-type gqlReview struct {
-	Author      *gqlActor
-	State       string
-	SubmittedAt *time.Time
-	Commit      *struct{ Oid string }
-	Body        string
 }
 
 type gqlCommitNode struct {
@@ -649,8 +452,8 @@ type gqlContext struct {
 	CheckSuite               *struct {
 		WorkflowRun *struct{ Workflow struct{ Name string } }
 	}
-	Context, State, Description string
-	CreatedAt                   *time.Time
+	Context, State string
+	CreatedAt      *time.Time
 }
 
 type gqlRepo struct {
@@ -669,9 +472,7 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 		Number: pr.Number, State: pr.State, Draft: pr.IsDraft, Base: pr.BaseRefName,
 		Trunk: trunk, Author: pr.Author.name(), Head: pr.HeadRefOid, Body: pr.Body,
 		ReviewDecision: pr.ReviewDecision, Mergeable: pr.Mergeable, MergeState: pr.MergeStateStatus,
-		ChangedFiles: pr.ChangedFiles, Trees: pr.Trees,
-		HeadRef: pr.HeadRefName, Fork: pr.IsCrossRepository,
-		ReviewsIncomplete: pr.Reviews.TotalCount > len(pr.Reviews.Nodes),
+		ChangedFiles: pr.ChangedFiles,
 	}
 	var cutoff time.Time
 	if replay && pr.MergedAt != nil {
@@ -712,8 +513,7 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 	}
 	for _, r := range pr.Reviews.Nodes {
 		if r.Commit != nil && r.SubmittedAt != nil && before(r.SubmittedAt) {
-			s.Reviews = append(s.Reviews, prReview{Author: r.Author.name(), State: r.State, Commit: r.Commit.Oid,
-				Body: r.Body, At: *r.SubmittedAt})
+			s.Reviews = append(s.Reviews, prReview{Author: r.Author.name(), State: r.State, Commit: r.Commit.Oid})
 		}
 	}
 	for _, c := range pr.Comments.Nodes {
@@ -760,20 +560,14 @@ func snapshotFrom(pr *gqlPR, trunk string, replay bool) prSnapshot {
 				} else if at := c.CompletedAt; at != nil {
 					check.At = *at
 				}
-				if check.Status == "COMPLETED" && c.CompletedAt != nil {
-					check.Done = *c.CompletedAt
-				}
 				s.Checks = append(s.Checks, check)
 			case "StatusContext":
 				if !before(c.CreatedAt) {
 					continue
 				}
-				check := prCheck{Name: c.Context, Workflow: "status", State: c.State, Description: c.Description}
+				check := prCheck{Name: c.Context, Workflow: "status", State: c.State}
 				if c.CreatedAt != nil {
 					check.At = *c.CreatedAt
-					if c.State != "PENDING" && c.State != "EXPECTED" {
-						check.Done = *c.CreatedAt
-					}
 				}
 				s.Checks = append(s.Checks, check)
 			}
@@ -797,9 +591,6 @@ func mergeMethod(r *gqlRepo) string {
 }
 
 func (m *Ci) github(ctx context.Context, token *dagger.Secret) (*githubClient, string, string, error) {
-	if err := checkForkPolicy(m.ForkPolicy); err != nil {
-		return nil, "", "", err
-	}
 	owner, name, ok := strings.Cut(m.Repository, "/")
 	if !ok || owner == "" || name == "" {
 		return nil, "", "", fmt.Errorf("set the repository setting to owner/name, not %q", m.Repository)
@@ -812,16 +603,10 @@ func (m *Ci) github(ctx context.Context, token *dagger.Secret) (*githubClient, s
 }
 
 func (m *Ci) policy() mergePolicy {
-	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths, CheckName: m.CheckName,
-		RiskyExecutableBit: m.RiskyExecutableBit, ManifestFiles: m.ManifestFiles,
-		ManifestSafeFields: m.ManifestSafeFields, ManifestSourcePrefix: m.ManifestSourcePrefix,
-		StatusPrefix: m.StatusPrefix, ReviewMarker: m.ReviewMarker, SecondPersonApproval: m.SecondPersonApproval,
-		ReviewTimeout: time.Duration(m.ReviewTimeoutHours) * time.Hour, RequireReviewGate: m.RequireReviewGate,
-		ForkPolicy: m.ForkPolicy}
+	return mergePolicy{Authors: m.Authors, Reviewer: m.Reviewer, RiskyPaths: m.RiskyPaths}
 }
 
-// queryPR reads pull request n with prQuery.
-func queryPR(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
+func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
 	var out struct{ Repository gqlRepo }
 	if err := g.graphql(ctx, prQuery, map[string]any{"o": owner, "r": name, "n": n}, &out); err != nil {
 		return nil, fmt.Errorf("pull request %d: %w", n, err)
@@ -830,23 +615,6 @@ func queryPR(ctx context.Context, g *githubClient, owner, name string, n int) (*
 		return nil, fmt.Errorf("pull request %d does not exist", n)
 	}
 	return &out.Repository, nil
-}
-
-// fetch reads pull request n for the merge rules: prQuery, and the Git trees
-// when a file rule is on.
-func (m *Ci) fetch(ctx context.Context, g *githubClient, owner, name string, n int) (*gqlRepo, error) {
-	repo, err := queryPR(ctx, g, owner, name, n)
-	if err != nil {
-		return nil, err
-	}
-	if m.RiskyExecutableBit || len(m.ManifestFiles) > 0 {
-		trees, err := m.readTrees(ctx, g, owner, name, repo.PullRequest)
-		if err != nil {
-			return nil, fmt.Errorf("pull request %d: %w", n, err)
-		}
-		repo.PullRequest.Trees = trees
-	}
-	return repo, nil
 }
 
 // Judge an open pull request by the merge rules, and say what a merge would

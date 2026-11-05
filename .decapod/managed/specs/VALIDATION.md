@@ -148,12 +148,7 @@ the same alejandra and ShellCheck releases as a host.
 | `just check-decapod-overrides` | `ci:decapod-overrides` | The image that `.decapod/managed/Dockerfile.decapod` pins, with `jq` |
 | none: the workflow `decapod-validate.yml` | `ci:decapod-validate` (`scripts/decapod-validate-ci.sh`) | The same Decapod image |
 | none: the merge rules of plan P0 | `ci:automerge-rules` | The module's own Go: fixed pull requests for each rule and for the replay. No network and no token |
-| none: the shepherd of plan P3 | `ci:shepherd-rules` | The module's own Go: fixed pull requests for each step of the shepherd, and the shepherd against a fake GitHub API for each `forkPolicy`. No network and no token |
-| none: `approve-bot-runs` | `ci:approve-bot-runs-rules` | The module's own Go: the live approval loop against a fake GitHub API and a fake clock. No network and no token |
-| none: the job kinds of `.github/workflows` | `ci:workflow-isolation` | The module's own Go: it reads the workflows with the table of the `jobKinds` setting. This repository sets no table, so the check is off and reads nothing |
-| none: the job kinds | `ci:workflow-isolation-rules` | The module's own Go: fixed workflows and a fixed table, with a case for each rule. No network and no token |
-| none: `review-gate` | `ci:review-gate-rules` | The module's own Go: the live gate against a fake GitHub API (GraphQL, the permission and activity APIs, and the statuses), and `fetch` with and without a file rule. No network and no token |
-| none: `release-age` | `ci:release-age-rules` | The module's own Go: fixed candidates and a fixed time for the age rule of `minReleaseAgeDays`, and the JSON input. No network and no token |
+| none: the shepherd of plan P3 | `ci:shepherd-rules` | The module's own Go: fixed pull requests for each step of the shepherd. No network and no token |
 | `check-doom-darwin` | none | It builds the Darwin Doom wrapper. A Linux engine cannot build for Darwin |
 | `check-guix` | none | It needs the pulled `guix` with the nonguix and rosenthal channels. Only a Guix host has them |
 | `install-hooks` | none | It installs the git hooks of a host checkout |
@@ -325,7 +320,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `bc077343dc762274aa7bb9de55d392d796a2fcefb5b0c25ba35d8d481248637c`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (24 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `e2ab71ba07bbc746d7c581071c8ecab1981692396d1ef54de2252a73b26f8e6a`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

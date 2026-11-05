@@ -16,25 +16,17 @@ type Ci struct { // ci (../../../../../../:0:0)
 	// field again.
 	refetchID bool
 
-	approveBotRuns         *string
-	approveBotRunsRules    *Void
-	automergeDryRun        *string
-	automergeReplay        *string
-	automergeRules         *Void
-	decapodOverrides       *Void
-	decapodValidate        *Void
-	fmt                    *Void
-	id                     *ID
-	nixEval                *Void
-	releaseAge             *string
-	releaseAgeRules        *Void
-	reviewGate             *string
-	reviewGateRules        *Void
-	shellcheck             *Void
-	shepherd               *string
-	shepherdRules          *Void
-	workflowIsolation      *Void
-	workflowIsolationRules *Void
+	automergeDryRun  *string
+	automergeReplay  *string
+	automergeRules   *Void
+	decapodOverrides *Void
+	decapodValidate  *Void
+	fmt              *Void
+	id               *ID
+	nixEval          *Void
+	shellcheck       *Void
+	shepherd         *string
+	shepherdRules    *Void
 }
 
 func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
@@ -44,43 +36,6 @@ func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
 		// must be reevaluated.
 		refetchID: true,
 	}
-}
-
-// Approve the pull_request runs that GitHub holds for approval
-// (action_required) on a head that a job pushed with its GITHUB_TOKEN. Call
-// it after the push, with the token of that job. It approves each held run
-// of this repository on the head. It looks again every 10 seconds, until no
-// run waits 30 seconds after the last approval, or until 3 minutes pass. A
-// run of a fork stays held for a person. It fails only when runs waited and
-// GitHub approved none of them: then the token needs actions: write. The
-// setting approveBotRuns must be true.
-func (r *Ci) ApproveBotRuns(ctx context.Context, token *Secret, sha string) (string, error) {
-	assertNotNil("token", token)
-	if r.approveBotRuns != nil {
-		return *r.approveBotRuns, nil
-	}
-	q := r.query.Select("approveBotRuns")
-	q = q.Arg("token", token)
-	q = q.Arg("sha", sha)
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx)
-}
-
-// approve-bot-runs approves the held runs of a head as expected, against a
-// fake GitHub API and a fake clock: no runs, runs that appear late, runs
-// that GitHub does not approve, the give-up time, and runs of a fork or of
-// another head. With the setting off, it sends no request. No network and no
-// token.
-func (r *Ci) ApproveBotRunsRules(ctx context.Context) error {
-	if r.approveBotRunsRules != nil {
-		return nil
-	}
-	q := r.query.Select("approveBotRunsRules")
-
-	return q.Execute(ctx)
 }
 
 // Judge an open pull request by the merge rules, and say what a merge would
@@ -130,12 +85,9 @@ func (r *Ci) AutomergeReplay(ctx context.Context, token *Secret, opts ...CiAutom
 	return response, q.Execute(ctx)
 }
 
-// The merge rules give the expected verdict for fixed pull requests and
-// settings, the risky-path patterns match the expected paths, and a replay
-// reads a merged pull request as of its merge. The rules read file modes and
-// manifests from Git trees and blobs in the JSON of the GitHub REST API. The
-// rule review-gate reads the status of the review gate, and that status is
-// never a review or a check that ran. No network and no token.
+// The merge rules give the expected verdict for fixed pull requests, and a
+// replay reads a merged pull request as of its merge. No network and no
+// token.
 func (r *Ci) AutomergeRules(ctx context.Context) error {
 	if r.automergeRules != nil {
 		return nil
@@ -244,92 +196,6 @@ func (r *Ci) NixEval(ctx context.Context) error {
 	return q.Execute(ctx)
 }
 
-// Choose the bump target by the age rule. candidates is a JSON list, newest
-// first, of {"version": "...", "published": "<RFC 3339 time>"}. For a commit,
-// published is the committer date of the commit on the default branch of the
-// upstream repository. The function chooses the first candidate that is at
-// least minReleaseAgeDays old, and lists each newer candidate that it skipped
-// with the reason. With no candidate that is old enough, chosen is null. It
-// reads no network and changes nothing.
-func (r *Ci) ReleaseAge(ctx context.Context, candidates string) (string, error) {
-	if r.releaseAge != nil {
-		return *r.releaseAge, nil
-	}
-	q := r.query.Select("releaseAge")
-	q = q.Arg("candidates", candidates)
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx)
-}
-
-// release-age chooses the expected bump target for fixed candidates and a
-// fixed time: the rule as written (7 days), switched off (0) and inverted
-// (the newest candidate is old enough). No network.
-func (r *Ci) ReleaseAgeRules(ctx context.Context) error {
-	if r.releaseAgeRules != nil {
-		return nil
-	}
-	q := r.query.Select("releaseAgeRules")
-
-	return q.Execute(ctx)
-}
-
-// CiReviewGateOpts contains options for Ci.ReviewGate
-type CiReviewGateOpts struct {
-	// The pull request. With none, each open pull request.
-	Pr int
-	// Print the results and post nothing.
-	DryRun bool
-}
-
-// For each open pull request, or for one, post the commit status
-// <statusPrefix>/review on the head, and print a Markdown table of the
-// results. success: the newest review of the exact head by the reviewer has
-// no open blocking finding, or a second person approved the head (with
-// secondPersonApproval). failure: the review has an open blocking finding. A
-// result that the head already has is not posted again. With
-// reviewTimeoutHours, a row says when a head waits for a person. The function
-// posts no label. The setting statusPrefix must not be empty.
-func (r *Ci) ReviewGate(ctx context.Context, token *Secret, opts ...CiReviewGateOpts) (string, error) {
-	assertNotNil("token", token)
-	if r.reviewGate != nil {
-		return *r.reviewGate, nil
-	}
-	q := r.query.Select("reviewGate")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `pr` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Pr) {
-			q = q.Arg("pr", opts[i].Pr)
-		}
-		// `dryRun` optional argument
-		if !querybuilder.IsZeroValue(opts[i].DryRun) {
-			q = q.Arg("dryRun", opts[i].DryRun)
-		}
-	}
-	q = q.Arg("token", token)
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx)
-}
-
-// review-gate posts the expected commit status for fixed pull requests,
-// against a fake GitHub API: both ways to read the reviewer, a review of an
-// older head, second-person approvals and their refusals, the review
-// timeout, and the posting rules. With statusPrefix empty, it refuses before
-// any GitHub call. No network and no token.
-func (r *Ci) ReviewGateRules(ctx context.Context) error {
-	if r.reviewGateRules != nil {
-		return nil
-	}
-	q := r.query.Select("reviewGateRules")
-
-	return q.Execute(ctx)
-}
-
 // ShellCheck passes on scripts/*.sh (`just check-shellcheck`).
 func (r *Ci) Shellcheck(ctx context.Context) error {
 	if r.shellcheck != nil {
@@ -354,9 +220,7 @@ type CiShepherdOpts struct {
 // After 3 requests without a review, add the needs-human label. The table
 // also gives the verdict of the merge rules for each pull request (plan P4).
 // With merge, it merges the first accepted pull request, pinned to the head
-// commit that the rules judged. With forkPolicy review-and-suggest, a fork
-// pull request that conflicts gets the needs-human label with a comment
-// (fork.go). With dryRun, post and merge nothing.
+// commit that the rules judged. With dryRun, post and merge nothing.
 func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts) (string, error) {
 	assertNotNil("token", token)
 	if r.shepherd != nil {
@@ -381,9 +245,8 @@ func (r *Ci) Shepherd(ctx context.Context, token *Secret, opts ...CiShepherdOpts
 	return response, q.Execute(ctx)
 }
 
-// The shepherd takes the expected step for fixed pull requests, and the
-// action of each fork policy against a fake GitHub API. No network and no
-// token.
+// The shepherd takes the expected step for fixed pull requests. No network
+// and no token.
 func (r *Ci) ShepherdRules(ctx context.Context) error {
 	if r.shepherdRules != nil {
 		return nil
@@ -393,120 +256,17 @@ func (r *Ci) ShepherdRules(ctx context.Context) error {
 	return q.Execute(ctx)
 }
 
-// Each job in .github/workflows holds only what its kind allows. The jobKinds
-// setting gives each job its kind, and a job that it does not name fails.
-// Each workflow sets `permissions: {}`, and each job its own scopes. No
-// workflow starts on pull_request_target. A workflow with a job of another
-// kind than CHECK starts only on events that run the copy of the workflow on
-// main. If one of those events is workflow_dispatch, which can pick a branch,
-// the condition of that job requires github.ref == 'refs/heads/main'. A CHECK
-// job holds at most contents: read, no secret and no cache. An AGENT job runs
-// in agentEnvironment and holds at most contents: read and the secret of the
-// AGENT jobs. A GITHUB job holds only the token of the job and the scopes
-// that it can have. Only the pagesDeploy jobs hold pages and id-token. AGENT,
-// GITHUB, SCAN and LEGACY jobs never check out or fetch the code of a pull
-// request. Each job uses only the allowed actions, pinned to a commit SHA,
-// and no checkout keeps the token of the job. A LEGACY job keeps exactly what
-// the table records for it, and the other rules apply to it. With no
-// jobKinds, the check is off: it reads no workflow.
-func (r *Ci) WorkflowIsolation(ctx context.Context) error {
-	if r.workflowIsolation != nil {
-		return nil
-	}
-	q := r.query.Select("workflowIsolation")
-
-	return q.Execute(ctx)
-}
-
-// The job kinds give the expected problems for fixed workflows and a fixed
-// jobKinds table. The passing fixture has a job of each kind and two LEGACY
-// jobs, and it gives no problem. Each rule case breaks one rule, and gives
-// that problem. A change to the table changes what the jobs can hold. A table
-// that is not valid is refused, and with no table the check is off. No
-// network and no token.
-func (r *Ci) WorkflowIsolationRules(ctx context.Context) error {
-	if r.workflowIsolationRules != nil {
-		return nil
-	}
-	q := r.query.Select("workflowIsolationRules")
-
-	return q.Execute(ctx)
-}
-
 // CiOpts contains options for Query.Ci
 type CiOpts struct {
 	// The GitHub repository, owner/name, that the merge rules read.
 	Repository string
 	// Logins whose pull requests can merge without a person. A bot is
-	// app/<login>, and "*" is every author. With none, every pull request
-	// needs a person.
+	// app/<login>. With none, every pull request needs a person.
 	Authors []string
 	// The login whose review of the head counts. With none, nothing merges.
 	Reviewer string
-	// Path patterns. A pull request that changes a matching path is merged
-	// by a person. A pattern without "*" is a path prefix. A pattern with
-	// "*" must match the whole path: "*" matches in one level, and "**" as a
-	// level matches zero or more levels.
+	// Path prefixes. A pull request that changes one is merged by a person.
 	RiskyPaths []string
-	// A check whose newest run on the head must succeed. With none, branch
-	// protection names the checks that must pass.
-	CheckName string
-	// A pull request that adds a file with git mode 100755, or that changes
-	// the mode of a file to 100755, is merged by a person. The rules read
-	// the modes from the Git trees of the merge base and the head.
-	RiskyExecutableBit bool
-	// Path patterns of JSON manifest files, as for riskyPaths. A pull
-	// request that adds, removes or changes a top-level field of a matching
-	// file outside manifestSafeFields, or a file that does not parse, is
-	// merged by a person. With none, the rules read no manifest.
-	ManifestFiles []string
-	// The top-level fields of a manifest, and the fields of its entries,
-	// that can change without a person.
-	ManifestSafeFields []string
-	// In a list of entries of a manifest, for example the plugins of a
-	// marketplace, source can change only to a relative path under this
-	// prefix, for example ./plugins/. With none, a change of source needs a
-	// person.
-	ManifestSourcePrefix string
-	// With true, approve-bot-runs approves the pull_request runs that GitHub
-	// holds (action_required) on a head that a job pushed with its
-	// GITHUB_TOKEN. With false, the module approves no run.
-	ApproveBotRuns bool
-	// The job-kinds table of ci:workflow-isolation, in YAML: the kind of each
-	// job in .github/workflows (CHECK, AGENT, GITHUB, SCAN or LEGACY), and
-	// what the kinds can hold in this repository. With none, the check is
-	// off.
-	JobKinds string
-	// review-gate posts the commit status <statusPrefix>/review on the head of
-	// each open pull request: success when the newest review of the head by
-	// the reviewer has no open blocking finding, and failure when it has one.
-	// With none, the review gate is off.
-	StatusPrefix string
-	// The name of the block in the review body of the reviewer that lists the
-	// open findings, for example aec-review:v1 for the block
-	// <!-- aec-review:v1 {"open":[{"id":"F1","severity":"blocking"}]} -->.
-	// With none, the gate reads the reviewer as the merge rules do: the rules
-	// reviewed and threads, and the Codex summary.
-	ReviewMarker string
-	// With true, an APPROVE of the exact head opens the review gate when the
-	// approver is a person with write access, is not the author, and pushed
-	// none of the commits (the activity API). Never on a fork pull request.
-	SecondPersonApproval bool
-	// A head with no review gate status this many hours after its check
-	// finished gets the needs-human action "review by a person: approve head
-	// X?". With 0, there is no timeout.
-	ReviewTimeoutHours int
-	// With true, the merge rules require the success of the review gate on the
-	// head (the rule review-gate).
-	RequireReviewGate bool
-	// What the module does with a pull request from a fork. checks-only (the
-	// default): the same as for each pull request. review-and-suggest: a fork
-	// pull request that conflicts with its base gets the needs-human action,
-	// because the token cannot update a fork.
-	ForkPolicy string
-	// release-age chooses the newest bump target that is at least this many
-	// days old. With 0, it chooses the newest target.
-	MinReleaseAgeDays int
 }
 
 func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../../:0:0)
@@ -528,62 +288,6 @@ func (r *Query) Ci(ws *Workspace, opts ...CiOpts) *Ci { // ci (../../../../../..
 		// `riskyPaths` optional argument
 		if !querybuilder.IsZeroValue(opts[i].RiskyPaths) {
 			q = q.Arg("riskyPaths", opts[i].RiskyPaths)
-		}
-		// `checkName` optional argument
-		if !querybuilder.IsZeroValue(opts[i].CheckName) {
-			q = q.Arg("checkName", opts[i].CheckName)
-		}
-		// `riskyExecutableBit` optional argument
-		if !querybuilder.IsZeroValue(opts[i].RiskyExecutableBit) {
-			q = q.Arg("riskyExecutableBit", opts[i].RiskyExecutableBit)
-		}
-		// `manifestFiles` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ManifestFiles) {
-			q = q.Arg("manifestFiles", opts[i].ManifestFiles)
-		}
-		// `manifestSafeFields` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ManifestSafeFields) {
-			q = q.Arg("manifestSafeFields", opts[i].ManifestSafeFields)
-		}
-		// `manifestSourcePrefix` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ManifestSourcePrefix) {
-			q = q.Arg("manifestSourcePrefix", opts[i].ManifestSourcePrefix)
-		}
-		// `approveBotRuns` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ApproveBotRuns) {
-			q = q.Arg("approveBotRuns", opts[i].ApproveBotRuns)
-		}
-		// `jobKinds` optional argument
-		if !querybuilder.IsZeroValue(opts[i].JobKinds) {
-			q = q.Arg("jobKinds", opts[i].JobKinds)
-		}
-		// `statusPrefix` optional argument
-		if !querybuilder.IsZeroValue(opts[i].StatusPrefix) {
-			q = q.Arg("statusPrefix", opts[i].StatusPrefix)
-		}
-		// `reviewMarker` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ReviewMarker) {
-			q = q.Arg("reviewMarker", opts[i].ReviewMarker)
-		}
-		// `secondPersonApproval` optional argument
-		if !querybuilder.IsZeroValue(opts[i].SecondPersonApproval) {
-			q = q.Arg("secondPersonApproval", opts[i].SecondPersonApproval)
-		}
-		// `reviewTimeoutHours` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ReviewTimeoutHours) {
-			q = q.Arg("reviewTimeoutHours", opts[i].ReviewTimeoutHours)
-		}
-		// `requireReviewGate` optional argument
-		if !querybuilder.IsZeroValue(opts[i].RequireReviewGate) {
-			q = q.Arg("requireReviewGate", opts[i].RequireReviewGate)
-		}
-		// `forkPolicy` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ForkPolicy) {
-			q = q.Arg("forkPolicy", opts[i].ForkPolicy)
-		}
-		// `minReleaseAgeDays` optional argument
-		if !querybuilder.IsZeroValue(opts[i].MinReleaseAgeDays) {
-			q = q.Arg("minReleaseAgeDays", opts[i].MinReleaseAgeDays)
 		}
 	}
 	q = q.Arg("ws", ws)

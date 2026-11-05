@@ -8,11 +8,10 @@ import (
 	"time"
 )
 
-// The shepherd takes the expected step for fixed pull requests, and the
-// action of each fork policy against a fake GitHub API. No network and no
-// token.
+// The shepherd takes the expected step for fixed pull requests. No network
+// and no token.
 // +check
-func (m *Ci) ShepherdRules(ctx context.Context) error {
+func (m *Ci) ShepherdRules(_ context.Context) error {
 	now := fixtureTime
 	old := now.Add(-time.Hour)
 	summary := func(sha, status string) shepherdComment {
@@ -35,9 +34,6 @@ func (m *Ci) ShepherdRules(ctx context.Context) error {
 		{"a draft waits", func(p *shepherdPR) { p.Draft = true }, nil, stepNone},
 		{"a stop label stops the shepherd", func(p *shepherdPR) { p.Labels = []string{"hold"} }, nil, stepNone},
 		{"an author outside the list gets checks only", func(p *shepherdPR) { p.Author = "mallory" }, nil, stepNone},
-		{"with no authors, each author gets checks only", nil, func(p *mergePolicy) { p.Authors = nil }, stepNone},
-		{"authors * gets a request for each author", func(p *shepherdPR) { p.Author = "mallory" },
-			func(p *mergePolicy) { p.Authors = []string{"*"} }, stepRequest},
 		{"only the Codex connector can be asked", nil, func(p *mergePolicy) { p.Reviewer = "bob" }, stepNone},
 		{"incomplete comments stop the shepherd", func(p *shepherdPR) { p.CommentsIncomplete = true }, nil, stepNone},
 		{"a completed review of the head needs nothing", func(p *shepherdPR) {
@@ -90,11 +86,6 @@ func (m *Ci) ShepherdRules(ctx context.Context) error {
 			failed = append(failed, fmt.Sprintf("shepherd case %q: step %q (%s), want %q", c.name, got, why, c.want))
 		}
 	}
-	for _, c := range forkCases() {
-		failed = append(failed, c.check(ctx)...)
-	}
-	failed = append(failed, forkTableCases(ctx)...)
-	failed = append(failed, forkCallCases(ctx)...)
 	if len(failed) > 0 {
 		return errors.New(strings.Join(failed, "\n"))
 	}

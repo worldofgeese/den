@@ -323,9 +323,14 @@ were reverted, and the module is again the one of 040a18b.
   updated `flake.lock`, the renewed `reviewed_sources_digest`, the section
   "Flake Input Updates" of OPERATIONS.md and the spec refresh of
   `decapod validate`. When the update moves the Decapod of `flake.lock` to a
-  new release, the bump installs it, and validate writes that release into
-  `AGENTS.md`, `CLAUDE.md`, `CODEX.md`, `GEMINI.md`,
-  `.decapod/managed/Dockerfile.decapod` and the manifest. CI installs the
+  new release, the bump installs it. Then it writes `AGENTS.md`, `CLAUDE.md`,
+  `CODEX.md` and `GEMINI.md` again with `decapod init with --all --force
+  --no-specs --no-ci`, as `just decapod-refresh` does, and it keeps
+  `.decapod/config.toml`. Then validate writes the release into
+  `.decapod/managed/Dockerfile.decapod` and the manifest. Since Decapod
+  0.125.0, validate does not overwrite the entrypoints of an older release.
+  So the bumps of 2026-11-04 (0.125.0) and 2026-11-05 (0.126.3) kept the old
+  header, and the entrypoint check failed. CI installs the
   release in the header of `AGENTS.md`, so CI and the hosts run the same
   Decapod after the merge. A rev before its release on crates.io keeps the
   old header, and the bump warns.

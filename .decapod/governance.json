@@ -82,6 +82,15 @@
       "id": "pin-prr-023-d",
       "summary": "Bind trajectory task id to code_01m6p6rqjwb6sszs",
       "input_digest": "sha256:53579e2a2c064fc5fae73f3a922396fd11923871a3e6a35cf17d47dccce50591"
+    },
+    {
+      "id": "prr-0ji-25-validation",
+      "summary": "Record observed validation result; pin builds",
+      "input_digest": "sha256:53579e2a2c064fc5fae73f3a922396fd11923871a3e6a35cf17d47dccce50591",
+      "proof_refs": [
+        "/nix/store/8v5yb03w2f455b0ngcn4fqfcm047dqhc-pr-reviewer-0.2.3",
+        "decapod validate 185 pass 1 fail (#1474)"
+      ]
     }
   ],
   "intents": {

@@ -88,6 +88,14 @@
       "proof_refs": [
         "decapod-validate-3a384f2"
       ]
+    },
+    {
+      "id": "prr-0ji-18-validate-merged",
+      "summary": "validation after merging main fd80d75: only DecapodLabs/decapod#1474 fails",
+      "input_digest": "sha256:bb9ebf832cbfbf43022b0ed0ff176cfc654063bce72aa9d6b44fd2717f2a0f28",
+      "proof_refs": [
+        "decapod-validate-25399b7"
+      ]
     }
   ],
   "intents": {
@@ -138,8 +146,12 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:edab187912eaa5712eb6a41c0028a41d1f2ee3ad5f162bec6e34a9ba79232c15",
+      "artifact_hash": "sha256:625362b00be2cc42894b8d533c3c169345916450e2a1fdf34882eedfe81b7b41",
       "checks": [
+        {
+          "name": "decapod-validate-25399b7",
+          "status": "failed"
+        },
         {
           "name": "decapod-validate-3a384f2",
           "status": "failed"
@@ -177,10 +189,17 @@
             "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6N997DFRBPG7STZ4KT9NJHE",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6N997DFRBPG7STZ4KT9NJHE": {
@@ -222,6 +241,21 @@
                 ],
                 "sequence": 5,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "plain decapod validate on merge commit 25399b7 (main fd80d75 merged): pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
+                ],
+                "proof_refs": [
+                  "decapod-validate-25399b7"
+                ],
+                "scope": [
+                  "prr-0ji.18"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -232,7 +266,8 @@
       "evidence": [
         "added worldofgeese/pr-reviewer to repos; automerge author allowlist already includes worldofgeese",
         "owner Decision Gate 2026-11-04 (bead prr-0ji.18 notes): den PRs may be opened and merged when only publication_readiness fails",
-        "plain decapod validate on 3a384f2: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
+        "plain decapod validate on 3a384f2: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)",
+        "plain decapod validate on merge commit 25399b7 (main fd80d75 merged): pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
       ],
       "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",

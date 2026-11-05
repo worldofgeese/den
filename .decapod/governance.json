@@ -62,6 +62,18 @@
     "base_commit": "a00a58e6c343bacdc3ef0c0268a9849e3cdeff59",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "prr-0ji-19-validation",
+      "summary": "Record observed validation result; flake input pinned to v0.2.3 builds",
+      "input_digest": "sha256:a70a9d0dd9332079dd261fc1475f2188e7926d2ae22923a52d12ad48e3b3cc23",
+      "proof_refs": [
+        "/nix/store/zxgyrs0dzfnfrvfn7hkmzz686hwq7zi8-pr-reviewer-0.2.3",
+        "decapod validate 186 pass 1 fail (publication_readiness, #1474)",
+        "nix flake check --no-build exit 0"
+      ]
+    }
+  ],
   "intents": {
     "intent:change_01M6NJSYT078H2CE92CY77B1G3": {
       "acceptance_criteria": [],

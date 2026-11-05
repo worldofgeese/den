@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "a42a4bfdf6bba03b7488a528ae9e529e458f8116",
+    "accepted_commit": "7e9c7de7ef9a30e303e20eb5b3002ba8d954e07d",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -58,35 +58,19 @@
     }
   },
   "change": {
-    "id": "change_01M6NS2R97V4FVW8D6Z77YNMYN",
-    "base_commit": "a42a4bfdf6bba03b7488a528ae9e529e458f8116",
+    "id": "change_01M6P6SGQK2D8DZ34ERZ86K789",
+    "base_commit": "7e9c7de7ef9a30e303e20eb5b3002ba8d954e07d",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "prr-0ji-23",
-      "summary": "Pin pr-reviewer v0.2.2: module rev/hash/cargoHash and OPERATIONS.md",
-      "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba"
-    },
-    {
-      "id": "prr-0ji-23-pin",
-      "summary": "Pin pr-reviewer v0.2.2 (a769d3c): module rev, version, hash, cargoHash; OPERATIONS.md",
-      "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba",
-      "proof_refs": [
-        "/nix/store/jklfp710cyzjzhcpa5w8h17d61lm51gi-pr-reviewer-0.2.2"
-      ]
-    },
-    {
-      "id": "prr-0ji-23-validation",
-      "summary": "Record observed validation result",
-      "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba",
-      "proof_refs": [
-        "decapod validate 185 pass 1 fail (#1474)"
-      ]
+      "id": "pin-prr-023",
+      "summary": "Pin pr-reviewer v0.2.3 (rev 651c2e2); OPERATIONS spec updated; no deploy",
+      "input_digest": "sha256:2015e96caa844892fca304c537aeeaacda4dc915a1fb07e47204b6f38c61f126"
     }
   ],
   "intents": {
-    "intent:change_01M6NS2R97V4FVW8D6Z77YNMYN": {
+    "intent:change_01M6P6SGQK2D8DZ34ERZ86K789": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -96,82 +80,122 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6NS2R97V4FVW8D6Z77YNMYN",
+      "id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Pin pr-reviewer v0.2.2 in den (prr-0ji.23)\n\nPin worldofgeese/pr-reviewer v0.2.2 (fixes #2 #4 #6 #9) in modules/M-02877/pr-reviewer.nix. Do not deploy; PureViper owns deploy.",
-      "refined_intent": "Pin pr-reviewer v0.2.2 in den (prr-0ji.23)\n\nPin worldofgeese/pr-reviewer v0.2.2 (fixes #2 #4 #6 #9) in modules/M-02877/pr-reviewer.nix. Do not deploy; PureViper owns deploy.",
+      "raw_intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
+      "refined_intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Pin pr-reviewer v0.2.2 in den (prr-0ji.23)\n\nPin worldofgeese/pr-reviewer v0.2.2 (fixes #2 #4 #6 #9) in modules/M-02877/pr-reviewer.nix. Do not deploy; PureViper owns deploy.",
-      "phases": [],
+      "constraints": {},
+      "intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Pin pr-reviewer v0.2.2 in den (prr-0ji.23)",
+      "state": "DRAFT",
+      "title": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)",
       "todo_ids": [
-        "code_01m6ns1s4adf27b1"
+        "code_01m6p6rqjwb6sszs"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1793881756Z"
+      "updated_at": "1793894171Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:547067049854b662275c9ea0027dd9e436ccec868d5faac08b0123f546680eae",
-      "checks": [],
+      "artifact_hash": "sha256:e8a28915eca4c734282bce96424d40759e701b00ebd90d85e43102f0830a7ba1",
+      "checks": [
+        {
+          "name": "nix-build-pr-reviewer-0.2.3",
+          "status": "passed"
+        },
+        {
+          "name": "pr-reviewer-version-0.2.3",
+          "status": "passed"
+        }
+      ],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6NS2R97V4FVW8D6Z77YNMYN",
+            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6NS2R97V4FVW8D6Z77YNMYN",
+            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M6P6SGSTBKZPXNQCFBF6NX4N": {
+            "evidence_only": true,
+            "id": "branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
+            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/M-02877/pr-reviewer.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "modules/M-02877/pr-reviewer.nix",
+                  ".decapod/managed/specs/OPERATIONS.md"
+                ],
+                "proof_refs": [
+                  "nix-build-pr-reviewer-0.2.3",
+                  "pr-reviewer-version-0.2.3"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M6NS2R97V4FVW8D6Z77YNMYN",
-      "modified_files": [],
+      "inspected_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/pr-reviewer.nix"
+      ],
+      "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/pr-reviewer.nix"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6NS2RBNSARTDWC9GV23T7XZ",
+      "run_id": "branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6ns1s4adf27b1",
+      "task_id": "code_01m6p6rqjwb6sszs",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

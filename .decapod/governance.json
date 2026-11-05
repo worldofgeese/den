@@ -122,7 +122,7 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:e8a28915eca4c734282bce96424d40759e701b00ebd90d85e43102f0830a7ba1",
+      "artifact_hash": "sha256:3896f8f5b95095a62a766fba0b18defb06cc934bd8b9d6371aaa6846cac994e9",
       "checks": [
         {
           "name": "nix-build-pr-reviewer-0.2.3",
@@ -154,10 +154,17 @@
             "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6P6SGSTBKZPXNQCFBF6NX4N": {
@@ -183,6 +190,19 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "pr-reviewer 0.2.3 built from rev 651c2e2 and reports --version 0.2.3"
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -190,7 +210,9 @@
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "pr-reviewer 0.2.3 built from rev 651c2e2 and reports --version 0.2.3"
+      ],
       "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",
         "modules/M-02877/pr-reviewer.nix"
@@ -209,7 +231,7 @@
       "run_id": "branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6p6rqjwb6sszs",
+      "task_id": "todo_01m6p6",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

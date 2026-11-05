@@ -116,11 +116,15 @@ the review rounds and stacked-PR behavior below are v0.2.1's.
   configured but undeclared repo is logged, not removed. The declared repos
   are LEGO/conference-dashboard, LEGO/devrel-infra,
   LEGO/agentic-engineering-community, LEGO/ai-daily-assistant,
-  LEGO/team-friendship-hour and worldofgeese/pr-reviewer. The last is the
-  daemon's own repository (dogfooding): it is reviewed and automerged under
-  the same policy as the others, and the machine runs the pinned release of
-  that repository, so a fix merged there reaches the machine only after the
-  pin in the same file moves.
+  LEGO/team-friendship-hour, worldofgeese/pr-reviewer and worldofgeese/den.
+  worldofgeese/pr-reviewer is the daemon's own repository (dogfooding): it is
+  reviewed and automerged under the same policy as the others, and the machine
+  runs the pinned release of that repository, so a fix merged there reaches
+  the machine only after the pin in the same file moves. worldofgeese/den is
+  this configuration repository (added 2026-11-05, approved by Tao): its PRs
+  are reviewed and automerged under the same policy, and den's Codex shepherd
+  labels a PR `needs-human` when its quota runs out, which the automerge
+  skips.
 - **PRs opened before a repo was added** are reviewed too: each poll queues
   every open PR whose head SHA has no recorded review, so the first poll after
   registration picks up the existing backlog.
@@ -158,7 +162,7 @@ approves, so GitHub auto-merge cannot key on its reviews. A merge made with a
 workflow's `GITHUB_TOKEN` would not start the deploys on main.
 
 The agent runs every 120 s. It merges a PR only when all of these hold:
-- The PR is not a draft and has no `hold` or `do-not-merge` label.
+- The PR is not a draft and has no `hold`, `do-not-merge` or `needs-human` label.
 - The author is worldofgeese, `app/github-actions` or `app/dependabot`.
   Teammates' PRs stay manual.
 - `pr-reviewer queue list` has a completed `review_pr` task at the PR's
@@ -185,7 +189,7 @@ and is tried again only after a new push.
 
 The log is `~/Library/Logs/pr-reviewer-automerge.log`. It gets one line per
 merge, and one per change of skip reason. `PR_AUTOMERGE_DRY_RUN=1` runs a pass
-that only logs. To hold a PR, label it `hold`. To stop merging, run
+that only logs. To hold a PR, label it `hold`. A `needs-human` label holds it too. To stop merging, run
 `launchctl bootout gui/$UID/com.dktaohan.pr-reviewer-automerge`.
 
 #### Live end-to-end test

@@ -77,8 +77,9 @@ projections by itself, so the move is the first commit of that branch. Do not
 run `decapod init with --force` directly: it resets `external_tracker` and
 `[tracker] provider` in `.decapod/config.toml`. The nightly bump makes the
 same move when it moves the `decapod` flake input (INTERFACES.md, Nightly
-bump). Only the bump moves flake inputs (plan P6), so a Decapod PR by hand
-changes the projections and not `flake.lock`.
+bump). The owner does not want Decapod to wait for the bump (2026-11-05). So
+a Decapod PR of its own can also move the `decapod` input in `flake.lock`.
+The other inputs move only through the bump (plan P6).
 
 `.github/workflows/decapod-validate.yml` checks out the full history and passes
 `CHANGE_EVENT`, `CHANGE_BASE` and `CHANGE_HEAD`. Decapod requires this change

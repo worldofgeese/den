@@ -67,6 +67,11 @@
       "id": "ckpt-bump-decapod-force",
       "summary": "the nightly bump writes the entrypoints again with decapod init --force when it moves Decapod; INTERFACES.md and VALIDATION.md describe it",
       "input_digest": "sha256:d651814589040d7f5ae22584e44e49b7d530d939b7a9939dcae67044a6159aeb"
+    },
+    {
+      "id": "ckpt-decapod-exception",
+      "summary": "ARCHITECTURE.md and VALIDATION.md record the owner's exception: a PR of its own can move the decapod input",
+      "input_digest": "sha256:17736b5bc15446323de493e4927de0dad398632e4e543e82be50312c7de214d0"
     }
   ],
   "intents": {
@@ -99,17 +104,13 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "The owner wants den on the latest Decapod release at all times. Since Decapod 0.125.0, decapod validate does not overwrite the entrypoints of an older release, so the nightly bumps of 2026-11-04 and 2026-11-05 failed. This PR makes scripts/bump-flake-inputs.sh write the entrypoints again with decapod init with --all --force --no-specs --no-ci, as just decapod-refresh does, and updates INTERFACES.md and VALIDATION.md. Only the nightly bump moves flake inputs (plan P6), so the bump PR moves Decapod to 0.126.3 after this merge.",
+      "intent": "The owner wants den on the latest Decapod release at all times, and Decapod need not wait for the nightly bump (owner decision 2026-11-05, relayed by PureViper). Since Decapod 0.125.0, decapod validate does not overwrite the entrypoints of an older release, so the nightly bumps of 2026-11-04 and 2026-11-05 failed. This PR makes scripts/bump-flake-inputs.sh write the entrypoints again with decapod init with --all --force --no-specs --no-ci, as just decapod-refresh does, and records the Decapod exception to plan P6 in ARCHITECTURE.md and VALIDATION.md. A second PR moves the decapod input to 0.126.3.",
       "phases": [],
       "proof_hooks": [
-        "shellcheck passes on scripts/bump-flake-inputs.sh",
-        "the pre-commit just check passes",
-        "just dagger-check passes",
-        "decapod validate: only publication_readiness (DecapodLabs/decapod#1474, owner-approved exception) may fail",
-        "after the merge, bump.yml (workflow_dispatch) opens or updates the bump PR with AGENTS.md at the latest Decapod release"
+        "in an isolated clone with Decapod 0.126.3, the init --force step of the bump rewrites the four entrypoints and keeps .decapod/config.toml"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
+      "state": "DRAFT",
       "stop_conditions": [
         "a decapod validate failure other than publication_readiness (DecapodLabs/decapod#1474)",
         "the bump run after the merge fails"
@@ -120,7 +121,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793874019Z"
+      "updated_at": "1793874958Z"
     },
     "trajectory": {
       "active_boundaries": [
@@ -128,8 +129,12 @@
         "Do not change flake.lock: only the nightly bump moves flake inputs (plan P6).",
         "Do not run Decapod 0.126.3 on the shared .decapod datastore before the coordinated cutover."
       ],
-      "artifact_hash": "sha256:3a8d0bd1d8ca7bc84d2c3f1605affdda4b866d0917f02179b3e4112a79c8ab47",
+      "artifact_hash": "sha256:5b4a69a8be1b6cd0a1eceb5d0bed28cadabd6042dff7c1c09515ba9ac46a92eb",
       "checks": [
+        {
+          "name": "decapod validate",
+          "status": "partial"
+        },
         {
           "name": "shellcheck scripts/bump-flake-inputs.sh",
           "status": "passed"
@@ -156,10 +161,17 @@
             "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6NK0XQHT5YZ5JDAZMSYYKYY": {
@@ -191,6 +203,24 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "Owner decision 2026-11-05, relayed by PureViper on pi-messenger: 'I want Decapod to update whenever it's fine; it doesn't need to only update in the nightly bump.' ARCHITECTURE.md and VALIDATION.md now allow a PR of its own to move the decapod input; other inputs still move only through the bump.",
+                  "pi-dktaohan pruned the verification record of cicd_01m6g0z6xdp0kee8 (den #107, merged a00a58e): qa verify regen needs a passing decapod validate, which 0.121.2 cannot give (DecapodLabs/decapod#1474). The todo is open again, and plain validate no longer fails PROOF_HOOK_FAILED. It is completed with --validated after the 0.126.3 cutover."
+                ],
+                "proof_refs": [
+                  "decapod validate"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -202,8 +232,10 @@
       "destination": "pull request",
       "evidence": [
         "Coordination on pi-messenger (pi-dktaohan is BrightQuartz): QuickWolf, QuickJaguar, TrueQuartz and PureViper agreed that the shared-store cutover to 0.126.3 waits for the bump PR, PureViper's M-02877 slot, pause acknowledgements, a tested snapshot and a verified migration by BrightQuartz.",
+        "Owner decision 2026-11-05, relayed by PureViper on pi-messenger: 'I want Decapod to update whenever it's fine; it doesn't need to only update in the nightly bump.' ARCHITECTURE.md and VALIDATION.md now allow a PR of its own to move the decapod input; other inputs still move only through the bump.",
         "bump.yml runs 41793138999 (2026-11-04) and 41990820890 (2026-11-05) failed: 'bump: Decapod 0.121.2 -> 0.125.0' and '-> 0.126.3', then 'Refusing to overwrite existing path without --force' for AGENTS.md, CLAUDE.md, GEMINI.md and CODEX.md, then 4 entrypoint integrity failures.",
-        "ghcr.io/decapodlabs/decapod:v0.126.3-debian exists for linux/amd64 and linux/arm64 (crane manifest), digest sha256:b0c37eb8954367382ae9074635c62f06ee5f120e7b8a4116daf868db26ce03b5. Bump PR #94 failed den/dagger-check on 2026-11-03 because v0.123.2-debian was not published yet."
+        "ghcr.io/decapodlabs/decapod:v0.126.3-debian exists for linux/amd64 and linux/arm64 (crane manifest), digest sha256:b0c37eb8954367382ae9074635c62f06ee5f120e7b8a4116daf868db26ce03b5. Bump PR #94 failed den/dagger-check on 2026-11-03 because v0.123.2-debian was not published yet.",
+        "pi-dktaohan pruned the verification record of cicd_01m6g0z6xdp0kee8 (den #107, merged a00a58e): qa verify regen needs a passing decapod validate, which 0.121.2 cannot give (DecapodLabs/decapod#1474). The todo is open again, and plain validate no longer fails PROOF_HOOK_FAILED. It is completed with --validated after the 0.126.3 cutover."
       ],
       "inspected_files": [
         ".decapod/managed/specs/ARCHITECTURE.md",
@@ -213,6 +245,7 @@
       ],
       "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
       "modified_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/VALIDATION.md",
         "scripts/bump-flake-inputs.sh"

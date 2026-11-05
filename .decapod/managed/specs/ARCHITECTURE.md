@@ -36,7 +36,9 @@ This project's architecture consists of the following key layers/directories:
   accepted pull request in each run. `.github/workflows/shepherd.yml`
   runs it with `--merge` and the token of the environment `shepherd`.
   `.github/workflows/bump.yml` runs `scripts/bump-flake-inputs.sh` each night,
-  and the PR that it opens is the only path for new flake inputs (plan P6).
+  and the PR that it opens is the normal path for new flake inputs (plan P6).
+  The owner allows one exception (2026-11-05): a PR of its own can move the
+  `decapod` input when a new Decapod release is ready.
   The fixer of the Dagger plan comes in a later phase. The module has only
   the settings that this repository uses: the settings for other
   repositories (den PRs #100, #102, #103, #104 and #106) were reverted on

@@ -302,9 +302,12 @@ file. Since 2026-11-01 the backup goes over the LAN. Mother's
 ### Homebrew Cask Upgrade Guard
 Activation's `brew bundle` upgrades casks, including self-updating ones. The
 self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)
-can leave root-owned files. Jamf App Installers also leaves root-owned files.
-It updates Visual Studio Code in place as root, in `~/Applications` too, and a
-managed preference turns off the VS Code updater. This user has `sudo` only while SAP Privileges
+can leave root-owned files. Jamf App Installers also leaves root-owned files:
+it updates the apps it manages in place as root. It manages Visual Studio Code
+(in `~/Applications` too, with a managed preference that turns off the VS Code
+updater), so den does not install the `visual-studio-code` cask: one updater per
+app. Only `visual-studio-code@insiders`, which Jamf does not manage, stays a
+cask. This user has `sudo` only while SAP Privileges
 grants admin, so Homebrew then can't move the app aside, and the failed upgrade
 can delete part of the bundle first.
 `just deploy-darwin` therefore runs `scripts/cask-app-preflight.sh` before
@@ -316,10 +319,10 @@ The preflight uses one outdated list for all checks: `brew outdated --cask`
 without `--greedy`, after a `brew update`. This list is the set of casks that
 `brew bundle` upgrades, because no Brewfile entry sets `greedy`. For an
 `auto_updates` cask, the non-greedy test compares the version in the app bundle
-with the tap version. After Jamf updates Visual Studio Code, the cask is not
-outdated, so `brew bundle` does not touch the root-owned app and the deploy
-continues. If Homebrew publishes a release before Jamf installs it, the cask is
-outdated and the deploy stops for the `chown` command.
+with the tap version. Before Visual Studio Code left the Brewfile, a Homebrew
+release that came before Jamf's install made the cask outdated, and the deploy
+stopped for the `chown` command. The same applies to any other cask that an
+in-place root updater touches.
 SAP Privileges (Jamf-managed) makes the user an admin for 10 minutes at a time
 and revokes it on screen lock, so `/Applications` (root:admin, 775) is writable
 only intermittently, and a deploy outlasts a grant. Casks recorded there are

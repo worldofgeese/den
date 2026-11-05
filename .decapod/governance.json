@@ -67,6 +67,11 @@
       "id": "ckpt-decapod-0126-3",
       "summary": "move the decapod input to 0.126.3 and write the release-bound files with 0.126.3",
       "input_digest": "sha256:8cd6f211a8533bf035764cc3c4e7c3070d8fc521cc1ab91a77b5095062540f45"
+    },
+    {
+      "id": "ckpt-reviewed-sources-0126-3",
+      "summary": "renew reviewed_sources_digest to the inventory digest of the committed 0.126.3 sources",
+      "input_digest": "sha256:f23917dda1868d024bd1c6d779c435c6fed78ee9440f47ebab4717dd26e5ccda"
     }
   ],
   "intents": {
@@ -124,7 +129,7 @@
         "Current claimed task and isolated work branch",
         "Decapod 0.126.3 runs only in this isolated clone (/tmp/den-iso.meCdeY/prb), with its own store and HOME. A guard shim refuses the shared den repository."
       ],
-      "artifact_hash": "sha256:ffcc1106063c5566802da384cddd287a8bfdd3ae83c09fab0a38ba1ffabd5aca",
+      "artifact_hash": "sha256:8b2c3c37e4a5fee54b33b00cba2a055ce527bc9ec24f8c1bcbe57719996b3598",
       "checks": [
         {
           "name": "just dagger-check",
@@ -152,10 +157,17 @@
             "intent_id": "intent:change_01M6NQRCZ1WK7JPE5XJ57BW5ET",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6NQRD0XQPEQ4AB15ZDZSCWV",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6NQRCZ1WK7JPE5XJ57BW5ET",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6NQRD0XQPEQ4AB15ZDZSCWV": {
@@ -191,6 +203,20 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "Plain decapod validate on fc8b022 failed PROOF_PROFILE_RECONCILIATION_REQUIRED: the inventory digest moved to sha256:e526c8a4425bad041c42c8f8b3731daf22a35badb8d5d54b9ed5a06090bab72d after the commit. reviewed_sources_digest renewed to it."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "flake.lock (only the decapod node), AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod, .decapod/config.toml (reviewed_sources_digest), dagger.lock, VALIDATION.md and the manifest",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -205,6 +231,7 @@
       "destination": "pull request",
       "evidence": [
         "Plain decapod validate (0.126.3, before the commit): pass=182 fail=1; the only blocker was UNSTAGED_GOVERNANCE_ARTIFACT. No justfile probe failure (#1470) and no sections/validation failure (#1474).",
+        "Plain decapod validate on fc8b022 failed PROOF_PROFILE_RECONCILIATION_REQUIRED: the inventory digest moved to sha256:e526c8a4425bad041c42c8f8b3731daf22a35badb8d5d54b9ed5a06090bab72d after the commit. reviewed_sources_digest renewed to it.",
         "The init --force step of scripts/bump-flake-inputs.sh (den #118) ran with 0.126.3: all four entrypoints name 0.126.3, and .decapod/config.toml kept its SHA-256.",
         "flake.lock: decapod 3216d71 (2026-11-01) -> c4ab88b (2026-11-05), package version 0.126.3; no other node changed.",
         "just dagger-check: 8 of 8 passed with ghcr.io/decapodlabs/decapod:v0.126.3-debian; dagger.lock pins sha256:b0c37eb8954367382ae9074635c62f06ee5f120e7b8a4116daf868db26ce03b5.",

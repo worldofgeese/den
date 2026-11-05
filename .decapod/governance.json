@@ -62,6 +62,13 @@
     "base_commit": "a42a4bfdf6bba03b7488a528ae9e529e458f8116",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "prr-0ji-23",
+      "summary": "Pin pr-reviewer v0.2.2: module rev/hash/cargoHash and OPERATIONS.md",
+      "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba"
+    }
+  ],
   "intents": {
     "intent:change_01M6NS2R97V4FVW8D6Z77YNMYN": {
       "acceptance_criteria": [],
@@ -84,18 +91,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Pin pr-reviewer v0.2.2 in den (prr-0ji.23)\n\nPin worldofgeese/pr-reviewer v0.2.2 (fixes #2 #4 #6 #9) in modules/M-02877/pr-reviewer.nix. Do not deploy; PureViper owns deploy.",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Pin pr-reviewer v0.2.2 in den (prr-0ji.23)",
       "todo_ids": [
         "code_01m6ns1s4adf27b1"
       ],
-      "updated_at": "1793879794Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793881756Z"
     },
     "trajectory": {
       "active_boundaries": [

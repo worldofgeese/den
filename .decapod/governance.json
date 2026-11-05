@@ -67,6 +67,22 @@
       "id": "prr-0ji-23",
       "summary": "Pin pr-reviewer v0.2.2: module rev/hash/cargoHash and OPERATIONS.md",
       "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba"
+    },
+    {
+      "id": "prr-0ji-23-pin",
+      "summary": "Pin pr-reviewer v0.2.2 (a769d3c): module rev, version, hash, cargoHash; OPERATIONS.md",
+      "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba",
+      "proof_refs": [
+        "/nix/store/jklfp710cyzjzhcpa5w8h17d61lm51gi-pr-reviewer-0.2.2"
+      ]
+    },
+    {
+      "id": "prr-0ji-23-validation",
+      "summary": "Record observed validation result",
+      "input_digest": "sha256:62efca723c5cb40c1b8c01a84b79da94d341c71bd9ba96a544fe254852a4b0ba",
+      "proof_refs": [
+        "decapod validate 185 pass 1 fail (#1474)"
+      ]
     }
   ],
   "intents": {

@@ -94,18 +94,30 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": [
+          "modules/M-02877/logseq"
+        ]
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "just check-fmt",
+        "darwin-rebuild build --flake .#M-02877"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
       "todo_ids": [
         "code_01m6n85hxzsfefgd"
       ],
-      "updated_at": "1793862085Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793862537Z"
     },
     "trajectory": {
       "active_boundaries": [

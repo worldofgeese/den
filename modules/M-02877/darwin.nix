@@ -952,7 +952,10 @@
           "secretive"
           "aerospace"
           "chatgpt"
-          "visual-studio-code"
+          # Not "visual-studio-code": Jamf App Installers owns VS Code and
+          # updates it in place as root. A second updater made every deploy
+          # stop for a manual chown (cask-app-preflight.sh). One updater per
+          # app. Jamf does not manage the Insiders build.
           "visual-studio-code@insiders"
           "monokle"
           # macOS client owns login, system extension, and tailscaled.

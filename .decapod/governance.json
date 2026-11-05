@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "b10bc6338df4a98d6e7923e876d1533e0513e5f4",
+    "accepted_commit": "c0a72a8ee9c5734408098f1c7ab9bdc0cbca9b79",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -25,6 +25,11 @@
       "claim:pr-reviewer-v020-deployed": {
         "falsifier": "After deploy, status is unhealthy, the binary is not the new store path, or the log still warns 'configured but not declared'.",
         "statement": "After the owner runs just deploy-darwin, the daemon runs the v0.2.0 store path, pr-reviewer status is healthy and the launchd log has no 'not declared' warning.",
+        "status": "open"
+      },
+      "claim:pr-reviewer-v021-deployed": {
+        "falsifier": "After deploy, status is unhealthy, the binary is not the new store path, or the log warns 'configured but not declared'.",
+        "statement": "After just deploy-darwin, the daemon runs the v0.2.1 store path, pr-reviewer status is healthy and the launchd log has no 'not declared' warning.",
         "status": "open"
       },
       "claim:replace-template-claim:question:project-specific-claim": {
@@ -58,49 +63,17 @@
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
       "trajectory:d8358ea75e771107": "Deploy (just deploy-darwin) needs the owner's sudo and is not run by the agent; the deployed claim stays open until the owner has deployed.",
+      "trajectory:eea26ddd3a1fc0a4": "Deploy needs the cask-app-preflight chown that task prr-0ji.7 hit; if it still fails, the deploy is blocked on the owner.",
       "trajectory:fdec2beaf29b30d0": "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the merge. Without root.jwe the paphos upgrade build fails and alerts nixos-upgrade-failed; the running system stays unchanged."
     }
   },
   "change": {
-    "id": "change_01M6KGP4R8028ZKXZE7RTR5XQ4",
-    "base_commit": "b10bc6338df4a98d6e7923e876d1533e0513e5f4",
+    "id": "change_01M6N86ACGB72QYV916R2AJC27",
+    "base_commit": "c0a72a8ee9c5734408098f1c7ab9bdc0cbca9b79",
     "target_base": "origin/main"
   },
-  "claims": {
-    "pr-reviewer-v021-builds": {
-      "statement": "den's pr-reviewer.nix builds pr-reviewer 0.2.1 from worldofgeese/pr-reviewer 7837d90 with no patches.",
-      "falsifier": "nix build of the pinned package fails, reports a version other than 0.2.1, or the darwin configuration no longer evaluates.",
-      "status": "supported",
-      "proof_refs": [
-        "nix build (den nixpkgs lock): /nix/store/zlpnfhiqphl1r58p2hffmh7r7sd1xd15-pr-reviewer-0.2.1; pr-reviewer --version = 0.2.1"
-      ]
-    },
-    "pr-reviewer-v021-deployed": {
-      "statement": "After just deploy-darwin, the daemon runs the v0.2.1 store path, pr-reviewer status is healthy and the launchd log has no 'not declared' warning.",
-      "falsifier": "After deploy, status is unhealthy, the binary is not the new store path, or the log warns 'configured but not declared'.",
-      "status": "open"
-    }
-  },
-  "checkpoints": [
-    {
-      "id": "prr-0ji-16-pin",
-      "summary": "Pin worldofgeese/pr-reviewer v0.2.1 (7837d90) in pr-reviewer.nix and update OPERATIONS.md",
-      "input_digest": "sha256:9de5a8531c295417be409d96f5ba6959cd3aeec6e2112fa043cbb53376257ad3",
-      "proof_refs": [
-        "/nix/store/zlpnfhiqphl1r58p2hffmh7r7sd1xd15-pr-reviewer-0.2.1"
-      ]
-    },
-    {
-      "id": "prr-0ji-16-validate",
-      "summary": "the validation of the v0.2.1 pin: only DecapodLabs/decapod#1474 fails; the owner's authority to publish",
-      "input_digest": "sha256:97434396f63e0b84e511bfc6d0afb68e4001c50612d1e80c7887a53ca20319a5",
-      "proof_refs": [
-        "decapod-validate-f430601"
-      ]
-    }
-  ],
   "intents": {
-    "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4": {
+    "intent:change_01M6N86ACGB72QYV916R2AJC27": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -110,11 +83,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
+      "id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Raise Nix source revision of the review daemon to release 0.2.1\n\nMirror bead home-manager-xtp. Bump modules/M-02877/pr-reviewer.nix rev/hash to v0.2.1 (7837d90), deploy, verify.",
-      "refined_intent": "Raise Nix source revision of the review daemon to release 0.2.1\n\nMirror bead home-manager-xtp. Bump modules/M-02877/pr-reviewer.nix rev/hash to v0.2.1 (7837d90), deploy, verify.",
+      "raw_intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "refined_intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -122,163 +95,75 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 4,
-        "forbidden_paths": []
+        "file_touch_budget": null,
+        "forbidden_paths": [
+          "modules/M-02877/logseq"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Pin worldofgeese/pr-reviewer v0.2.1 (7837d90) in modules/M-02877/pr-reviewer.nix so the daemon runs the bug-batch release (prr-0ji.16).",
+      "intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "just check-fmt",
+        "darwin-rebuild build --flake .#M-02877"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Run pr-reviewer v0.2.1 on the review machine",
+      "title": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
       "todo_ids": [
-        "code_01m6kgmh7t3x7yh2"
+        "code_01m6n85hxzsfefgd"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793804332Z"
+      "updated_at": "1793862537Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:50b80338291bc3c4e8dd0a7058d0ae4dad2e92e880eec86152e576aca623a771",
-      "checks": [
-        {
-          "name": "decapod-validate-f430601",
-          "status": "failed"
-        },
-        {
-          "name": "just-check-f430601",
-          "status": "unavailable"
-        },
-        {
-          "name": "nix build pr-reviewer 0.2.1",
-          "status": "passed"
-        },
-        {
-          "name": "pr-reviewer --version 0.2.1",
-          "status": "passed"
-        }
-      ],
-      "current_phase": "publish-with-human-override",
+      "artifact_hash": "sha256:0a067467cb9416339b6eb54514c9bc02225ecba5e622432ed158f207b4e16f8b",
+      "checks": [],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
+            "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
+            "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:branch_01M6KGP4TEM1KCMHZD4Z11VTN8",
-            "event_id": "event:4",
-            "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6KGP4TEM1KCMHZD4Z11VTN8",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 3,
         "schema_version": "1.0.0",
-        "trajectories": {
-          "branch_01M6KGP4TEM1KCMHZD4Z11VTN8": {
-            "evidence_only": true,
-            "id": "branch_01M6KGP4TEM1KCMHZD4Z11VTN8",
-            "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
-            "steps": [
-              {
-                "action": "trajectory.record",
-                "command": "nix build pinned pr-reviewer (den nixpkgs lock)",
-                "custody_event_id": "event:4",
-                "observations": [
-                  "modules/M-02877/pr-reviewer.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "modules/M-02877/pr-reviewer.nix",
-                  ".decapod/managed/specs/OPERATIONS.md"
-                ],
-                "proof_refs": [
-                  "nix build pr-reviewer 0.2.1",
-                  "pr-reviewer --version 0.2.1"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 4,
-                "validation_findings": [
-                  "Deploy needs the cask-app-preflight chown that task prr-0ji.7 hit; if it still fails, the deploy is blocked on the owner."
-                ]
-              },
-              {
-                "action": "publish-with-human-override",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "plain decapod validate on f430601: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)",
-                  "owner Decision Gate 2026-11-04 (bead prr-0ji.16 notes): den PRs may be opened and merged when only publication_readiness fails"
-                ],
-                "proof_refs": [
-                  "decapod-validate-f430601",
-                  "just-check-f430601"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
-      "declared_commands": [
-        "nix build pinned pr-reviewer (den nixpkgs lock)"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "owner Decision Gate 2026-11-04 (bead prr-0ji.16 notes): den PRs may be opened and merged when only publication_readiness fails",
-        "plain decapod validate on f430601: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
-      ],
-      "inspected_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/pr-reviewer.nix"
-      ],
-      "intent_id": "intent:change_01M6KGP4R8028ZKXZE7RTR5XQ4",
-      "modified_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/pr-reviewer.nix"
-      ],
+      "evidence": [],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+      "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6KGP4TEM1KCMHZD4Z11VTN8",
+      "run_id": "branch_01M6N86AERBEA1YAB3RSGPHCN3",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6kgmh7t3x7yh2",
+      "task_id": "code_01m6n85hxzsfefgd",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "Deploy needs the cask-app-preflight chown that task prr-0ji.7 hit; if it still fails, the deploy is blocked on the owner."
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

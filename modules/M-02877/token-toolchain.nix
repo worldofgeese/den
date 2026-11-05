@@ -165,8 +165,9 @@
         "npm:@dietrichgebert/ponytail"
         "npm:context-mode"
       ];
-      # The context-mode package starts its own server.bundle.mjs and registers
-      # each tool with pi.registerTool() (its MCP bridge, context-mode#426).
+      # The context-mode package (2.x) loads pi/index.js (package.json
+      # pi.extensions), which registers each tool with pi.registerTool() (its
+      # MCP bridge, context-mode#426); it ships no server.bundle.mjs.
       # A context-mode entry in mcp.json started a second server, and pi got
       # each ctx_* tool twice: once as a tool, once as mcp__context_mode__*
       # (den#55). The package's bash routing hook needs no MCP entry.

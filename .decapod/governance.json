@@ -84,18 +84,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "pr-reviewer: cover worldofgeese/den, skip needs-human PRs in automerge",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "pr-reviewer: cover worldofgeese/den, skip needs-human PRs in automerge",
       "todo_ids": [
         "code_01m6nkrajfdp8hnd"
       ],
-      "updated_at": "1793875427Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793876417Z"
     },
     "trajectory": {
       "active_boundaries": [

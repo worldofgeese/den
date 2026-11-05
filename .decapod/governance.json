@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "7e9c7de7ef9a30e303e20eb5b3002ba8d954e07d",
+    "accepted_commit": "a00a58e6c343bacdc3ef0c0268a9849e3cdeff59",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -58,43 +58,24 @@
     }
   },
   "change": {
-    "id": "change_01M6P6SGQK2D8DZ34ERZ86K789",
-    "base_commit": "7e9c7de7ef9a30e303e20eb5b3002ba8d954e07d",
+    "id": "change_01M6NJSYT078H2CE92CY77B1G3",
+    "base_commit": "a00a58e6c343bacdc3ef0c0268a9849e3cdeff59",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "pin-prr-023",
-      "summary": "Pin pr-reviewer v0.2.3 (rev 651c2e2); OPERATIONS spec updated; no deploy",
-      "input_digest": "sha256:2015e96caa844892fca304c537aeeaacda4dc915a1fb07e47204b6f38c61f126"
-    },
-    {
-      "id": "pin-prr-023-b",
-      "summary": "Plan approved; pin v0.2.3",
-      "input_digest": "sha256:3076ed8cd3308fa914eb075e2b4b2594ed63a5e6387fb4d3d25266bcbab27290"
-    },
-    {
-      "id": "pin-prr-023-c",
-      "summary": "Bind trajectory to workspace task id",
-      "input_digest": "sha256:cbec6d990e33811f1e6b9de566092accf0a9156790c09e1537f8cc05b88e1c15"
-    },
-    {
-      "id": "pin-prr-023-d",
-      "summary": "Bind trajectory task id to code_01m6p6rqjwb6sszs",
-      "input_digest": "sha256:53579e2a2c064fc5fae73f3a922396fd11923871a3e6a35cf17d47dccce50591"
-    },
-    {
-      "id": "prr-0ji-25-validation",
-      "summary": "Record observed validation result; pin builds",
-      "input_digest": "sha256:53579e2a2c064fc5fae73f3a922396fd11923871a3e6a35cf17d47dccce50591",
+      "id": "prr-0ji-19-validation",
+      "summary": "Record observed validation result; flake input pinned to v0.2.3 builds",
+      "input_digest": "sha256:a70a9d0dd9332079dd261fc1475f2188e7926d2ae22923a52d12ad48e3b3cc23",
       "proof_refs": [
-        "/nix/store/8v5yb03w2f455b0ngcn4fqfcm047dqhc-pr-reviewer-0.2.3",
-        "decapod validate 185 pass 1 fail (#1474)"
+        "/nix/store/zxgyrs0dzfnfrvfn7hkmzz686hwq7zi8-pr-reviewer-0.2.3",
+        "decapod validate 186 pass 1 fail (publication_readiness, #1474)",
+        "nix flake check --no-build exit 0"
       ]
     }
   ],
   "intents": {
-    "intent:change_01M6P6SGQK2D8DZ34ERZ86K789": {
+    "intent:change_01M6NJSYT078H2CE92CY77B1G3": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -104,11 +85,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+      "id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
-      "refined_intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
+      "raw_intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
+      "refined_intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -121,7 +102,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
+      "intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -129,116 +110,108 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)",
+      "title": "prr-0ji.19: consume the pr-reviewer flake in den",
       "todo_ids": [
-        "code_01m6p6rqjwb6sszs"
+        "code_01m6ngwnpw6mg5kx"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793894962Z"
+      "updated_at": "1793898912Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:b3e6f421f2a41633ec8a985b6d6674c4682573e41eab00c719b3e0304d83316d",
+      "artifact_hash": "sha256:3e1a5578627ec36c050a78d84f957f0a5bfb147337dc0b0e2019c4bce4058e7d",
       "checks": [
         {
-          "name": "nix-build-pr-reviewer-0.2.3",
+          "name": "nix-build-darwin-M-02877",
           "status": "passed"
         },
         {
-          "name": "pr-reviewer-version-0.2.3",
+          "name": "nix-flake-check",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
+            "detail": "trajectory:branch_01M6NJSYWCHTFTC8AZZRT0GSAE",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6P6SGSTBKZPXNQCFBF6NX4N": {
+          "branch_01M6NJSYWCHTFTC8AZZRT0GSAE": {
             "evidence_only": true,
-            "id": "branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
-            "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+            "id": "branch_01M6NJSYWCHTFTC8AZZRT0GSAE",
+            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
             "steps": [
               {
-                "action": "trajectory.record",
+                "action": "implementation",
+                "command": "nix flake lock",
                 "custody_event_id": "event:4",
                 "observations": [
                   "modules/M-02877/pr-reviewer.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
+                  "flake.nix",
+                  "flake.nix",
+                  "flake.lock",
                   "modules/M-02877/pr-reviewer.nix",
-                  ".decapod/managed/specs/OPERATIONS.md"
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "pr-reviewer flake input at worldofgeese/pr-reviewer 527cceb builds pr-reviewer-0.2.1; den darwin-system closure builds"
                 ],
                 "proof_refs": [
-                  "nix-build-pr-reviewer-0.2.3",
-                  "pr-reviewer-version-0.2.3"
+                  "nix-build-darwin-M-02877",
+                  "nix-flake-check"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "pr-reviewer 0.2.3 built from rev 651c2e2 and reports --version 0.2.3"
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
+                "validation_findings": [
+                  "Deploy verification follows the merge and is recorded on bead prr-0ji.19"
+                ]
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "nix build .#darwinConfigurations.M-02877.system",
+        "nix flake check",
+        "nix flake lock"
+      ],
       "destination": "pull request",
       "evidence": [
-        "pr-reviewer 0.2.3 built from rev 651c2e2 and reports --version 0.2.3"
+        "pr-reviewer flake input at worldofgeese/pr-reviewer 527cceb builds pr-reviewer-0.2.1; den darwin-system closure builds"
       ],
       "inspected_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
+        "flake.nix",
         "modules/M-02877/pr-reviewer.nix"
       ],
-      "intent_id": "intent:change_01M6P6SGQK2D8DZ34ERZ86K789",
+      "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
       "modified_files": [
         ".decapod/managed/specs/OPERATIONS.md",
+        "flake.lock",
+        "flake.nix",
         "modules/M-02877/pr-reviewer.nix"
       ],
       "next_transitions": [
@@ -247,12 +220,14 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
+      "run_id": "branch_01M6NJSYWCHTFTC8AZZRT0GSAE",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6p6rqjwb6sszs",
+      "task_id": "code_01m6ngwnpw6mg5kx",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "Deploy verification follows the merge and is recorded on bead prr-0ji.19"
+      ]
     }
   },
   "legacy_digests": {

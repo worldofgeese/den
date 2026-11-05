@@ -75,10 +75,14 @@ The two fixes from that update, both no-ops once upstream changes:
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of
-`worldofgeese/pr-reviewer` v0.2.2 (commit a769d3c, the maintained home of the
+`worldofgeese/pr-reviewer` v0.2.3 (commit 651c2e2, the maintained home of the
 project since the 2026-11 move from `NicholaiVogel/pr-reviewer`). The build
 carries no local patches: HTTPS Basic auth for git, review rounds and stacked
-PRs are all in the pinned release. v0.2.2 over v0.2.1:
+PRs are all in the pinned release. v0.2.3 over v0.2.2: a `claude` review
+session starts with `--tools <review_tools>` (default none, so no `Bash`,
+file reads or edits) and `--strict-mcp-config` (no user-level MCP servers);
+auto-fix sessions keep `Read,Grep,Glob,Edit,Write,Bash`; this configuration
+sets no `review_tools`, so reviews run with no tools. v0.2.2 over v0.2.1:
 `@pr-reviewer fix` works for org members (own comments are skipped only with
 a pr-reviewer marker and the daemon's login), `remove` warns about the
 settings it discards while `list` and `status` show `auto_fix`, an exclusive
@@ -87,7 +91,7 @@ that a dead daemon left claimed, and the opt-in `status_on_no_new_findings`
 posts a commit status when a re-review finds nothing new (off unless set in
 `[defaults]` or a repo's `review_policy`; this configuration leaves it off).
 To move the pin, change `rev`, `version`, `hash` and `cargoHash` together in
-that file; the review rounds and stacked-PR behavior below are v0.2.2's.
+that file; the review rounds and stacked-PR behavior below are v0.2.2's and unchanged in v0.2.3.
 
 - **Review rounds.** Each posted review is one round. Round 1 is a full
   review. Rounds 2 and 3 to `max_review_cycles` (default 2) check earlier

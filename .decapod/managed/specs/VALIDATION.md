@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it, and since 2026-10-30 it is 0.121.1. Decapod reaches
+`AGENTS.md` names it, and since 2026-11-01 it is 0.121.2. Decapod reaches
 M-02877 in two ways: the `decapod` flake input in the per-user profile, and
 `cargo install` through the topgrade cargo step. Both bring the newest release.
 CI reads the header and installs exactly that release with `cargo binstall`,
@@ -75,7 +75,12 @@ brings a newer Decapod, move the repository to it in its own PR: run
 the regenerated projections. A workspace that Decapod creates refreshes the
 projections by itself, so the move is the first commit of that branch. Do not
 run `decapod init with --force` directly: it resets `external_tracker` and
-`[tracker] provider` in `.decapod/config.toml`.
+`[tracker] provider` in `.decapod/config.toml`. The nightly bump makes the
+same move when it moves the `decapod` flake input (INTERFACES.md, Nightly
+bump). The owner does not want Decapod to wait for the bump (2026-11-05). So
+a Decapod PR of its own can also move the `decapod` input in `flake.lock`.
+The same is true for each flake input: the bump is one path, not the only
+one.
 
 `.github/workflows/decapod-validate.yml` checks out the full history and passes
 `CHANGE_EVENT`, `CHANGE_BASE` and `CHANGE_HEAD`. Decapod requires this change
@@ -118,8 +123,9 @@ APFS on M-02877 is case-insensitive, so both probes find the one tracked
 `Justfile`, and the inventory lists two files with one digest. The execution
 snapshot holds only the tracked name, so `decapod validate` stops at
 `READINESS_BLOCKED: missing bound input: justfile`
-(DecapodLabs/decapod#1470). Until a Decapod release
-fixes the probe, the merge gate stays the CI `validate` check, the pre-commit
+(DecapodLabs/decapod#1470). Upstream closed #1470 on
+2026-11-04, so the first validation on a fixed release must measure it again.
+Until that measurement passes, the merge gate stays the CI `validate` check, the pre-commit
 `just check`, and the deploy proof of each changed deploy target. Close the
 bead on that evidence. Measured 2026-10-30: `decapod govern project-check`
 passes (186 pass, 0 fail), and a CI-local run (`GITHUB_ACTIONS=true`) passes

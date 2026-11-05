@@ -90,16 +90,25 @@ EOF
 
 # Den runs the Decapod of flake.lock (modules/overlays.nix), and CI runs the
 # release in the header of AGENTS.md. When the update moves Decapod, the
-# script installs that release, and validate below writes it into the
-# entrypoints, Dockerfile.decapod and the manifest. A rev of flake.lock can
-# come before its release on crates.io. Then the header stays, and the next
-# bump tries again.
+# script installs that release and writes the entrypoints again with it. Then
+# validate below writes the release into Dockerfile.decapod and the manifest.
+# Since 0.125.0, validate does not overwrite the entrypoints of an older
+# release. It keeps the old header, and the entrypoint check fails (the bumps
+# of 2026-11-04 and 2026-11-05). A rev of flake.lock can come before its
+# release on crates.io. Then the header stays, and the next bump tries again.
 pinned="$(sed -n 's/^<!-- decapod-release: \([0-9][0-9.]*\) -->$/\1/p' AGENTS.md)"
 # shellcheck disable=SC2016 # Nix expands ${builtins.currentSystem}.
 locked="$(nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.decapod.packages.${builtins.currentSystem}.default.version')"
 if [[ -n "$locked" && "$locked" != "$pinned" ]]; then
   if cargo binstall --no-confirm "decapod@${locked}"; then
     echo "bump: Decapod ${pinned} -> ${locked}"
+    # As `just decapod-refresh` does: init with --force resets
+    # .decapod/config.toml, so the script puts the file back.
+    keep="$(mktemp)"
+    cp .decapod/config.toml "$keep"
+    decapod init with --all --force --no-specs --no-ci
+    cp "$keep" .decapod/config.toml
+    rm -f "$keep" AGENTS.md.bak CLAUDE.md.bak GEMINI.md.bak CODEX.md.bak
   else
     echo "::warning::bump: Decapod ${locked} has no release to install; the entrypoints stay at ${pinned}"
   fi
@@ -141,8 +150,8 @@ no_drift() {
   git diff --quiet -- . ':!.decapod/governance/' ':!.decapod/governance.json'
 }
 validate
-# validate refreshes the specs, and after a new Decapod also the entrypoints.
-# The bump commits that refresh.
+# validate refreshes the specs. After a new Decapod, the entrypoints from init
+# and the Dockerfile.decapod from validate also change. The bump commits them.
 if ! no_drift; then
   git add .decapod/managed AGENTS.md CLAUDE.md CODEX.md GEMINI.md
   git commit -q --amend --no-edit

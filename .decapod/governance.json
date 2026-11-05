@@ -58,12 +58,39 @@
     }
   },
   "change": {
-    "id": "change_01M6NMXFRVTMBVVSRTQ2RZ4NG4",
+    "id": "change_01M6NK0XMNT5NMM5K7EW4W2NJB",
     "base_commit": "a00a58e6c343bacdc3ef0c0268a9849e3cdeff59",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "ckpt-bump-decapod-force",
+      "summary": "the nightly bump writes the entrypoints again with decapod init --force when it moves Decapod; INTERFACES.md and VALIDATION.md describe it",
+      "input_digest": "sha256:d651814589040d7f5ae22584e44e49b7d530d939b7a9939dcae67044a6159aeb"
+    },
+    {
+      "id": "ckpt-decapod-exception",
+      "summary": "ARCHITECTURE.md and VALIDATION.md record the owner's exception: a PR of its own can move the decapod input",
+      "input_digest": "sha256:17736b5bc15446323de493e4927de0dad398632e4e543e82be50312c7de214d0"
+    },
+    {
+      "id": "ckpt-flake-inputs-any-pr",
+      "summary": "ARCHITECTURE.md and VALIDATION.md: the nightly bump is one path for flake inputs, not the only one (owner decision)",
+      "input_digest": "sha256:d1c2e1c183dbce707a80de1e813f7240f8b0ce9f62f38ed5f7b8bb9bad8caa20"
+    },
+    {
+      "id": "ckpt-plan-reapproved",
+      "summary": "approve the plan again after the plan update for all flake inputs",
+      "input_digest": "sha256:b41eb644a2816bf3c02f98c4d4bf8ac5982c3348956baaea8215857d89acdab9"
+    },
+    {
+      "id": "ckpt-prA-merge-bd51435",
+      "summary": "merge origin/main bd51435 (den PR #117): keep the branch governance.json, take the main manifest, refresh it",
+      "input_digest": "sha256:1aabbb74bf554273b6a290649c30076b2b1dfe50e91ab8078045a1b0bee818ce"
+    }
+  ],
   "intents": {
-    "intent:change_01M6NMXFRVTMBVVSRTQ2RZ4NG4": {
+    "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -73,11 +100,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6NMXFRVTMBVVSRTQ2RZ4NG4",
+      "id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "pr-reviewer: cover worldofgeese/den, skip needs-human PRs in automerge",
-      "refined_intent": "pr-reviewer: cover worldofgeese/den, skip needs-human PRs in automerge",
+      "raw_intent": "Move den to the latest Decapod (0.126.3) and make the nightly bump keep it there",
+      "refined_intent": "Move den to the latest Decapod (0.126.3) and make the nightly bump keep it there",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -85,70 +112,238 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
+        "file_touch_budget": 8,
+        "forbidden_paths": [
+          "flake.lock"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "pr-reviewer: cover worldofgeese/den, skip needs-human PRs in automerge",
+      "intent": "The owner wants den on the latest Decapod release at all times. Owner decision 2026-11-05 (relayed by PureViper): any flake input can move in a normal den PR when it is ready, so the nightly bump is one path, not the only one. Since Decapod 0.125.0, decapod validate does not overwrite the entrypoints of an older release, so the nightly bumps of 2026-11-04 and 2026-11-05 failed. This PR makes scripts/bump-flake-inputs.sh write the entrypoints again with decapod init with --all --force --no-specs --no-ci, as just decapod-refresh does, and updates ARCHITECTURE.md, INTERFACES.md and VALIDATION.md. A second PR moves the decapod input to 0.126.3.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "in an isolated clone with Decapod 0.126.3, the init --force step of the bump rewrites the four entrypoints and keeps .decapod/config.toml"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "pr-reviewer: cover worldofgeese/den, skip needs-human PRs in automerge",
+      "stop_conditions": [
+        "a decapod validate failure other than publication_readiness (DecapodLabs/decapod#1474)",
+        "the bump run after the merge fails"
+      ],
+      "title": "Make the nightly bump keep den on the latest Decapod; the bump is one path for flake inputs",
       "todo_ids": [
-        "code_01m6nkrajfdp8hnd"
+        "test_01m6njzff0qn81s1"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793876417Z"
+      "updated_at": "1793876847Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Do not change flake.lock: only the nightly bump moves flake inputs (plan P6).",
+        "Do not run Decapod 0.126.3 on the shared .decapod datastore before the coordinated cutover."
       ],
-      "artifact_hash": "sha256:2a1c2b774df812c153a3bbaefc2e1d9be5d5b045802b20d89760d2999933d73e",
-      "checks": [],
+      "artifact_hash": "sha256:94dca7d5618a8e42fe8efcbebc228ab584108031eebe189fb64b2d48e2d9ddc6",
+      "checks": [
+        {
+          "name": "decapod validate",
+          "status": "partial"
+        },
+        {
+          "name": "shellcheck scripts/bump-flake-inputs.sh",
+          "status": "passed"
+        }
+      ],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6NMXFRVTMBVVSRTQ2RZ4NG4",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6NMXFRVTMBVVSRTQ2RZ4NG4",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 8,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M6NK0XQHT5YZ5JDAZMSYYKYY": {
+            "evidence_only": true,
+            "id": "branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "command": "shellcheck scripts/bump-flake-inputs.sh",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "scripts/bump-flake-inputs.sh",
+                  ".github/workflows/bump.yml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "Justfile",
+                  "scripts/bump-flake-inputs.sh",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "bump.yml runs 41793138999 (2026-11-04) and 41990820890 (2026-11-05) failed: 'bump: Decapod 0.121.2 -> 0.125.0' and '-> 0.126.3', then 'Refusing to overwrite existing path without --force' for AGENTS.md, CLAUDE.md, GEMINI.md and CODEX.md, then 4 entrypoint integrity failures.",
+                  "ghcr.io/decapodlabs/decapod:v0.126.3-debian exists for linux/amd64 and linux/arm64 (crane manifest), digest sha256:b0c37eb8954367382ae9074635c62f06ee5f120e7b8a4116daf868db26ce03b5. Bump PR #94 failed den/dagger-check on 2026-11-03 because v0.123.2-debian was not published yet.",
+                  "Coordination on pi-messenger (pi-dktaohan is BrightQuartz): QuickWolf, QuickJaguar, TrueQuartz and PureViper agreed that the shared-store cutover to 0.126.3 waits for the bump PR, PureViper's M-02877 slot, pause acknowledgements, a tested snapshot and a verified migration by BrightQuartz."
+                ],
+                "proof_refs": [
+                  "shellcheck scripts/bump-flake-inputs.sh"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "Owner decision 2026-11-05, relayed by PureViper on pi-messenger: 'I want Decapod to update whenever it's fine; it doesn't need to only update in the nightly bump.' ARCHITECTURE.md and VALIDATION.md now allow a PR of its own to move the decapod input; other inputs still move only through the bump.",
+                  "pi-dktaohan pruned the verification record of cicd_01m6g0z6xdp0kee8 (den #107, merged a00a58e): qa verify regen needs a passing decapod validate, which 0.121.2 cannot give (DecapodLabs/decapod#1474). The todo is open again, and plain validate no longer fails PROOF_HOOK_FAILED. It is completed with --validated after the 0.126.3 cutover."
+                ],
+                "proof_refs": [
+                  "decapod validate"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "Owner answer 2026-11-05 11:40 CET (relayed by PureViper): the exception covers all flake inputs. ARCHITECTURE.md and VALIDATION.md now say that the bump is one path for flake inputs, not the only one."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root",
+                  "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
+                ],
+                "sequence": 6,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:7",
+                "observations": [
+                  "Plain decapod validate on 99a4a35: pass=184 fail=1 warn=5; the only failure was NEEDS_PLAN_APPROVAL, because plan update returned the plan to DRAFT. pi-dktaohan approved the plan again under the owner's instruction to finish autonomously."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root",
+                  "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
+                ],
+                "sequence": 7,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "git merge --no-ff --no-commit origin/main",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "main moved to bd51435 (den PR #117) while PR #118 opened. pi-dktaohan merged origin/main: the branch governance.json, the main manifest, then decapod rpc --op specs.refresh."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root",
+                  "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
+                ],
+                "sequence": 8,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "git merge --no-ff --no-commit origin/main",
+        "shellcheck scripts/bump-flake-inputs.sh"
+      ],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M6NMXFRVTMBVVSRTQ2RZ4NG4",
-      "modified_files": [],
+      "evidence": [
+        "Coordination on pi-messenger (pi-dktaohan is BrightQuartz): QuickWolf, QuickJaguar, TrueQuartz and PureViper agreed that the shared-store cutover to 0.126.3 waits for the bump PR, PureViper's M-02877 slot, pause acknowledgements, a tested snapshot and a verified migration by BrightQuartz.",
+        "Owner answer 2026-11-05 11:40 CET (relayed by PureViper): the exception covers all flake inputs. ARCHITECTURE.md and VALIDATION.md now say that the bump is one path for flake inputs, not the only one.",
+        "Owner decision 2026-11-05, relayed by PureViper on pi-messenger: 'I want Decapod to update whenever it's fine; it doesn't need to only update in the nightly bump.' ARCHITECTURE.md and VALIDATION.md now allow a PR of its own to move the decapod input; other inputs still move only through the bump.",
+        "Plain decapod validate on 99a4a35: pass=184 fail=1 warn=5; the only failure was NEEDS_PLAN_APPROVAL, because plan update returned the plan to DRAFT. pi-dktaohan approved the plan again under the owner's instruction to finish autonomously.",
+        "bump.yml runs 41793138999 (2026-11-04) and 41990820890 (2026-11-05) failed: 'bump: Decapod 0.121.2 -> 0.125.0' and '-> 0.126.3', then 'Refusing to overwrite existing path without --force' for AGENTS.md, CLAUDE.md, GEMINI.md and CODEX.md, then 4 entrypoint integrity failures.",
+        "ghcr.io/decapodlabs/decapod:v0.126.3-debian exists for linux/amd64 and linux/arm64 (crane manifest), digest sha256:b0c37eb8954367382ae9074635c62f06ee5f120e7b8a4116daf868db26ce03b5. Bump PR #94 failed den/dagger-check on 2026-11-03 because v0.123.2-debian was not published yet.",
+        "main moved to bd51435 (den PR #117) while PR #118 opened. pi-dktaohan merged origin/main: the branch governance.json, the main manifest, then decapod rpc --op specs.refresh.",
+        "pi-dktaohan pruned the verification record of cicd_01m6g0z6xdp0kee8 (den #107, merged a00a58e): qa verify regen needs a passing decapod validate, which 0.121.2 cannot give (DecapodLabs/decapod#1474). The todo is open again, and plain validate no longer fails PROOF_HOOK_FAILED. It is completed with --validated after the 0.126.3 cutover."
+      ],
+      "inspected_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".github/workflows/bump.yml",
+        "Justfile",
+        "scripts/bump-flake-inputs.sh"
+      ],
+      "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+      "modified_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "scripts/bump-flake-inputs.sh"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "root"
+        "root",
+        "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
       ],
-      "run_id": "branch_01M6NMXFVEYFWCKRKQS5KWSSGH",
+      "run_id": "branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6nkrajfdp8hnd",
+      "task_id": "test_01m6njzff0qn81s1",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

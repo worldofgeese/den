@@ -68,26 +68,52 @@
     }
   },
   "change": {
-    "id": "change_01M6N86ACGB72QYV916R2AJC27",
+    "id": "change_01M6N997AYKB4DHEVYRV6P5VM8",
     "base_commit": "c0a72a8ee9c5734408098f1c7ab9bdc0cbca9b79",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "prr-0ji-18-repos",
+      "summary": "watch worldofgeese/pr-reviewer: add it to repos in modules/M-02877/pr-reviewer.nix and update OPERATIONS.md",
+      "input_digest": "sha256:f81d31e0c1e7a0089c68eb9fa41ce4c6b520284fc8be8ee623fdf9dbcf434a3b",
+      "proof_refs": [
+        "nix-instantiate-parse"
+      ]
+    },
+    {
+      "id": "prr-0ji-18-validate",
+      "summary": "the validation of the prr-0ji.18 repos change: only DecapodLabs/decapod#1474 fails; the owner's authority to publish",
+      "input_digest": "sha256:43d2b34514b2b0e3b36d7d9227f92f48e191c1d528616f87ea02e68fd75700c7",
+      "proof_refs": [
+        "decapod-validate-3a384f2"
+      ]
+    },
+    {
+      "id": "prr-0ji-18-validate-merged",
+      "summary": "validation after merging main fd80d75: only DecapodLabs/decapod#1474 fails",
+      "input_digest": "sha256:bb9ebf832cbfbf43022b0ed0ff176cfc654063bce72aa9d6b44fd2717f2a0f28",
+      "proof_refs": [
+        "decapod-validate-25399b7"
+      ]
+    }
+  ],
   "intents": {
-    "intent:change_01M6N86ACGB72QYV916R2AJC27": {
+    "intent:change_01M6N997AYKB4DHEVYRV6P5VM8": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "root"
+        "prr-0ji.18"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+      "id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
-      "refined_intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "raw_intent": "prr-0ji.18: watch worldofgeese/pr-reviewer on the review machine (scoped)\n\nAdd worldofgeese/pr-reviewer to repos in modules/M-02877/pr-reviewer.nix",
+      "refined_intent": "prr-0ji.18: watch worldofgeese/pr-reviewer on the review machine (scoped)\n\nAdd worldofgeese/pr-reviewer to repos in modules/M-02877/pr-reviewer.nix",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -95,73 +121,173 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": [
-          "modules/M-02877/logseq"
-        ]
+        "file_touch_budget": 4,
+        "forbidden_paths": []
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "intent": "Add worldofgeese/pr-reviewer to the repos list in modules/M-02877/pr-reviewer.nix so the daemon reviews and automerges its own repository under the same policy (prr-0ji.18).",
       "phases": [],
       "proof_hooks": [
-        "just check-fmt",
-        "darwin-rebuild build --flake .#M-02877"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "title": "Watch worldofgeese/pr-reviewer on the review machine",
       "todo_ids": [
-        "code_01m6n85hxzsfefgd"
+        "code_01m6n988j983g4v5"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793862537Z"
+      "updated_at": "1793863502Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:0a067467cb9416339b6eb54514c9bc02225ecba5e622432ed158f207b4e16f8b",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:625362b00be2cc42894b8d533c3c169345916450e2a1fdf34882eedfe81b7b41",
+      "checks": [
+        {
+          "name": "decapod-validate-25399b7",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-3a384f2",
+          "status": "failed"
+        },
+        {
+          "name": "nix-instantiate-parse",
+          "status": "passed"
+        }
+      ],
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M6N997DFRBPG7STZ4KT9NJHE",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6N997DFRBPG7STZ4KT9NJHE",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6N997DFRBPG7STZ4KT9NJHE",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M6N997DFRBPG7STZ4KT9NJHE": {
+            "evidence_only": true,
+            "id": "branch_01M6N997DFRBPG7STZ4KT9NJHE",
+            "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/M-02877/pr-reviewer.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "modules/M-02877/pr-reviewer.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "added worldofgeese/pr-reviewer to repos; automerge author allowlist already includes worldofgeese"
+                ],
+                "proof_refs": [
+                  "nix-instantiate-parse"
+                ],
+                "scope": [
+                  "prr-0ji.18"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on 3a384f2: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)",
+                  "owner Decision Gate 2026-11-04 (bead prr-0ji.18 notes): den PRs may be opened and merged when only publication_readiness fails"
+                ],
+                "proof_refs": [
+                  "decapod-validate-3a384f2"
+                ],
+                "scope": [
+                  "prr-0ji.18"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "plain decapod validate on merge commit 25399b7 (main fd80d75 merged): pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
+                ],
+                "proof_refs": [
+                  "decapod-validate-25399b7"
+                ],
+                "scope": [
+                  "prr-0ji.18"
+                ],
+                "sequence": 6,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
-      "modified_files": [],
+      "evidence": [
+        "added worldofgeese/pr-reviewer to repos; automerge author allowlist already includes worldofgeese",
+        "owner Decision Gate 2026-11-04 (bead prr-0ji.18 notes): den PRs may be opened and merged when only publication_readiness fails",
+        "plain decapod validate on 3a384f2: pass=185 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)",
+        "plain decapod validate on merge commit 25399b7 (main fd80d75 merged): pass=186 fail=1 warn=5 skip=13; the only failure is publication_readiness READINESS_BLOCKED (DecapodLabs/decapod#1474)"
+      ],
+      "inspected_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/pr-reviewer.nix"
+      ],
+      "intent_id": "intent:change_01M6N997AYKB4DHEVYRV6P5VM8",
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/pr-reviewer.nix"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "root"
+        "prr-0ji.18"
       ],
-      "run_id": "branch_01M6N86AERBEA1YAB3RSGPHCN3",
+      "run_id": "branch_01M6N997DFRBPG7STZ4KT9NJHE",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6n85hxzsfefgd",
+      "task_id": "code_01m6n988j983g4v5",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

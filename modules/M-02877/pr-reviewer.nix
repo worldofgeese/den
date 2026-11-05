@@ -34,6 +34,7 @@
       "LEGO/agentic-engineering-community"
       "LEGO/ai-daily-assistant"
       "LEGO/team-friendship-hour"
+      "worldofgeese/pr-reviewer"
     ];
 
     # worldofgeese/pr-reviewer is the maintained home of pr-reviewer; this

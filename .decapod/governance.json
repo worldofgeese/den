@@ -67,6 +67,11 @@
       "id": "pin-prr-023",
       "summary": "Pin pr-reviewer v0.2.3 (rev 651c2e2); OPERATIONS spec updated; no deploy",
       "input_digest": "sha256:2015e96caa844892fca304c537aeeaacda4dc915a1fb07e47204b6f38c61f126"
+    },
+    {
+      "id": "pin-prr-023-b",
+      "summary": "Plan approved; pin v0.2.3",
+      "input_digest": "sha256:3076ed8cd3308fa914eb075e2b4b2594ed63a5e6387fb4d3d25266bcbab27290"
     }
   ],
   "intents": {
@@ -91,18 +96,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)\n\nBump fetchFromGitHub rev/hash/cargoHash/version in modules/M-02877/pr-reviewer.nix to v0.2.3. No deploy.",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Pin pr-reviewer v0.2.3 in M-02877 (prr-0ji.25)",
       "todo_ids": [
         "code_01m6p6rqjwb6sszs"
       ],
-      "updated_at": "1793894171Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793894962Z"
     },
     "trajectory": {
       "active_boundaries": [

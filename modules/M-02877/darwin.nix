@@ -940,7 +940,6 @@
           "alt-tab"
           "loop"
           "raycast"
-          "logseq"
           "notunes"
           "fork"
           "keycastr"
@@ -952,10 +951,11 @@
           "secretive"
           "aerospace"
           "chatgpt"
-          # Not "visual-studio-code": Jamf App Installers owns VS Code and
-          # updates it in place as root. A second updater made every deploy
-          # stop for a manual chown (cask-app-preflight.sh). One updater per
-          # app. Jamf does not manage the Insiders build.
+          # Not "visual-studio-code" or "logseq": LEGO's Jamf owns both apps
+          # (/Applications/Logseq.app, VS Code) and updates them in place as
+          # root. A second updater made every deploy stop for a manual chown
+          # (cask-app-preflight.sh). One updater per app. Jamf does not manage
+          # the Insiders build.
           "visual-studio-code@insiders"
           "monokle"
           # macOS client owns login, system extension, and tailscaled.

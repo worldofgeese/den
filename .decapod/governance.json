@@ -72,6 +72,11 @@
       "id": "ckpt-decapod-exception",
       "summary": "ARCHITECTURE.md and VALIDATION.md record the owner's exception: a PR of its own can move the decapod input",
       "input_digest": "sha256:17736b5bc15446323de493e4927de0dad398632e4e543e82be50312c7de214d0"
+    },
+    {
+      "id": "ckpt-flake-inputs-any-pr",
+      "summary": "ARCHITECTURE.md and VALIDATION.md: the nightly bump is one path for flake inputs, not the only one (owner decision)",
+      "input_digest": "sha256:d1c2e1c183dbce707a80de1e813f7240f8b0ce9f62f38ed5f7b8bb9bad8caa20"
     }
   ],
   "intents": {
@@ -104,7 +109,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "The owner wants den on the latest Decapod release at all times, and Decapod need not wait for the nightly bump (owner decision 2026-11-05, relayed by PureViper). Since Decapod 0.125.0, decapod validate does not overwrite the entrypoints of an older release, so the nightly bumps of 2026-11-04 and 2026-11-05 failed. This PR makes scripts/bump-flake-inputs.sh write the entrypoints again with decapod init with --all --force --no-specs --no-ci, as just decapod-refresh does, and records the Decapod exception to plan P6 in ARCHITECTURE.md and VALIDATION.md. A second PR moves the decapod input to 0.126.3.",
+      "intent": "The owner wants den on the latest Decapod release at all times. Owner decision 2026-11-05 (relayed by PureViper): any flake input can move in a normal den PR when it is ready, so the nightly bump is one path, not the only one. Since Decapod 0.125.0, decapod validate does not overwrite the entrypoints of an older release, so the nightly bumps of 2026-11-04 and 2026-11-05 failed. This PR makes scripts/bump-flake-inputs.sh write the entrypoints again with decapod init with --all --force --no-specs --no-ci, as just decapod-refresh does, and updates ARCHITECTURE.md, INTERFACES.md and VALIDATION.md. A second PR moves the decapod input to 0.126.3.",
       "phases": [],
       "proof_hooks": [
         "in an isolated clone with Decapod 0.126.3, the init --force step of the bump rewrites the four entrypoints and keeps .decapod/config.toml"
@@ -115,13 +120,13 @@
         "a decapod validate failure other than publication_readiness (DecapodLabs/decapod#1474)",
         "the bump run after the merge fails"
       ],
-      "title": "Make the nightly bump keep den on the latest Decapod",
+      "title": "Make the nightly bump keep den on the latest Decapod; the bump is one path for flake inputs",
       "todo_ids": [
         "test_01m6njzff0qn81s1"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793874958Z"
+      "updated_at": "1793875859Z"
     },
     "trajectory": {
       "active_boundaries": [
@@ -129,7 +134,7 @@
         "Do not change flake.lock: only the nightly bump moves flake inputs (plan P6).",
         "Do not run Decapod 0.126.3 on the shared .decapod datastore before the coordinated cutover."
       ],
-      "artifact_hash": "sha256:5b4a69a8be1b6cd0a1eceb5d0bed28cadabd6042dff7c1c09515ba9ac46a92eb",
+      "artifact_hash": "sha256:fd24023e01aff029294b3a099e76e851593fdf767b23c7b68ef4acc08c6a76ce",
       "checks": [
         {
           "name": "decapod validate",
@@ -168,10 +173,17 @@
             "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6NK0XQHT5YZ5JDAZMSYYKYY",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6NK0XMNT5NMM5K7EW4W2NJB",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6NK0XQHT5YZ5JDAZMSYYKYY": {
@@ -221,6 +233,20 @@
                 ],
                 "sequence": 5,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "Owner answer 2026-11-05 11:40 CET (relayed by PureViper): the exception covers all flake inputs. ARCHITECTURE.md and VALIDATION.md now say that the bump is one path for flake inputs, not the only one."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root",
+                  "scripts/bump-flake-inputs.sh, .decapod/managed/specs/INTERFACES.md and VALIDATION.md, and the governance and manifest records"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -232,6 +258,7 @@
       "destination": "pull request",
       "evidence": [
         "Coordination on pi-messenger (pi-dktaohan is BrightQuartz): QuickWolf, QuickJaguar, TrueQuartz and PureViper agreed that the shared-store cutover to 0.126.3 waits for the bump PR, PureViper's M-02877 slot, pause acknowledgements, a tested snapshot and a verified migration by BrightQuartz.",
+        "Owner answer 2026-11-05 11:40 CET (relayed by PureViper): the exception covers all flake inputs. ARCHITECTURE.md and VALIDATION.md now say that the bump is one path for flake inputs, not the only one.",
         "Owner decision 2026-11-05, relayed by PureViper on pi-messenger: 'I want Decapod to update whenever it's fine; it doesn't need to only update in the nightly bump.' ARCHITECTURE.md and VALIDATION.md now allow a PR of its own to move the decapod input; other inputs still move only through the bump.",
         "bump.yml runs 41793138999 (2026-11-04) and 41990820890 (2026-11-05) failed: 'bump: Decapod 0.121.2 -> 0.125.0' and '-> 0.126.3', then 'Refusing to overwrite existing path without --force' for AGENTS.md, CLAUDE.md, GEMINI.md and CODEX.md, then 4 entrypoint integrity failures.",
         "ghcr.io/decapodlabs/decapod:v0.126.3-debian exists for linux/amd64 and linux/arm64 (crane manifest), digest sha256:b0c37eb8954367382ae9074635c62f06ee5f120e7b8a4116daf868db26ce03b5. Bump PR #94 failed den/dagger-check on 2026-11-03 because v0.123.2-debian was not published yet.",

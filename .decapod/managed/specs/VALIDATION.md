@@ -79,7 +79,8 @@ run `decapod init with --force` directly: it resets `external_tracker` and
 same move when it moves the `decapod` flake input (INTERFACES.md, Nightly
 bump). The owner does not want Decapod to wait for the bump (2026-11-05). So
 a Decapod PR of its own can also move the `decapod` input in `flake.lock`.
-The other inputs move only through the bump (plan P6).
+The same is true for each flake input: the bump is one path, not the only
+one.
 
 `.github/workflows/decapod-validate.yml` checks out the full history and passes
 `CHANGE_EVENT`, `CHANGE_BASE` and `CHANGE_HEAD`. Decapod requires this change

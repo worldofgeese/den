@@ -115,8 +115,12 @@ the review rounds and stacked-PR behavior below are v0.2.1's.
   list entry plus `just deploy-darwin`. Reconciliation is add-only; a
   configured but undeclared repo is logged, not removed. The declared repos
   are LEGO/conference-dashboard, LEGO/devrel-infra,
-  LEGO/agentic-engineering-community, LEGO/ai-daily-assistant and
-  LEGO/team-friendship-hour.
+  LEGO/agentic-engineering-community, LEGO/ai-daily-assistant,
+  LEGO/team-friendship-hour and worldofgeese/pr-reviewer. The last is the
+  daemon's own repository (dogfooding): it is reviewed and automerged under
+  the same policy as the others, and the machine runs the pinned release of
+  that repository, so a fix merged there reaches the machine only after the
+  pin in the same file moves.
 - **PRs opened before a repo was added** are reviewed too: each poll queues
   every open PR whose head SHA has no recorded review, so the first poll after
   registration picks up the existing backlog.

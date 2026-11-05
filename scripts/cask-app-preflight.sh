@@ -19,7 +19,7 @@
 # 1. Root-owned files inside the app. Self-updaters (Squirrel ShipIt, Sparkle,
 #    JetBrains) leave these in /Applications. Jamf App Installers also leaves
 #    them: it updates the apps it manages in place as root. den therefore does
-#    not install those apps as casks (Visual Studio Code is Jamf's alone). For
+#    not install those apps as casks (Visual Studio Code and Logseq are Jamf's alone). For
 #    a cask app that does get root-owned files, Homebrew cannot move the
 #    app aside, and its sudo chown is refused: sudo works only while Privileges
 #    grants admin, and never unattended. Worse, the failed upgrade can delete

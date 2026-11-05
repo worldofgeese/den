@@ -305,8 +305,8 @@ self-updaters of apps in `/Applications` (ShipIt, Sparkle, JetBrains Toolbox)
 can leave root-owned files. Jamf App Installers also leaves root-owned files:
 it updates the apps it manages in place as root. It manages Visual Studio Code
 (in `~/Applications` too, with a managed preference that turns off the VS Code
-updater), so den does not install the `visual-studio-code` cask: one updater per
-app. Only `visual-studio-code@insiders`, which Jamf does not manage, stays a
+updater) and Logseq (`/Applications/Logseq.app`), so den installs neither the
+`visual-studio-code` nor the `logseq` cask: one updater per app. Only `visual-studio-code@insiders`, which Jamf does not manage, stays a
 cask. This user has `sudo` only while SAP Privileges
 grants admin, so Homebrew then can't move the app aside, and the failed upgrade
 can delete part of the bundle first.

@@ -6,6 +6,20 @@
 (setq display-line-numbers-type t)
 (setq org-directory "~/org/")
 
+;;; Wayland clipboard
+(when (and (eq system-type 'gnu/linux)
+           (getenv "WAYLAND_DISPLAY")
+           (executable-find "wl-paste"))
+  (defun my/wayland-paste ()
+    "Return new Wayland clipboard text for the kill ring."
+    (with-temp-buffer
+      (let ((coding-system-for-read 'utf-8-unix))
+        (when (and (eq 0 (call-process "wl-paste" nil t nil
+                                      "--no-newline" "--type" "text/plain;charset=utf-8"))
+                   (not (equal (buffer-string) (car kill-ring))))
+          (buffer-string)))))
+  (setq interprogram-paste-function #'my/wayland-paste))
+
 ;;; Evil escape and focused writing
 (after! evil-escape
   (setq-default evil-escape-key-sequence "jk"))

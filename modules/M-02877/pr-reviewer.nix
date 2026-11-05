@@ -35,6 +35,7 @@
       "LEGO/ai-daily-assistant"
       "LEGO/team-friendship-hour"
       "worldofgeese/pr-reviewer"
+      "worldofgeese/den"
     ];
 
     # worldofgeese/pr-reviewer is the maintained home of pr-reviewer; this
@@ -159,7 +160,7 @@
         # it in that branch, and GitHub's legacy merge API cannot merge a
         # native stack. Stacks are merged by hand, from the bottom PR.
         elif $p.baseRefName != $trunk then "stacked on \($p.baseRefName); merge the stack from its bottom PR"
-        elif any($labels[]; . == "hold" or . == "do-not-merge") then "labelled hold or do-not-merge"
+        elif any($labels[]; . == "hold" or . == "do-not-merge" or . == "needs-human") then "labelled hold, do-not-merge or needs-human"
         elif ($p.author.login | IN("worldofgeese", "app/github-actions", "app/dependabot") | not)
         then "author \($p.author.login) is merged by hand"
         elif (any($done[]; . == "\($p.number) \($p.headRefOid)") | not)

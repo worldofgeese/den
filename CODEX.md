@@ -1,5 +1,5 @@
-<!-- decapod-release: 0.121.2 -->
-<!-- decapod-fingerprint: 841390be5a4c8c995b58a2359998493406202230a1c07cae3867c63ceb5d64fe -->
+<!-- decapod-release: 0.126.3 -->
+<!-- decapod-fingerprint: 1386abd3330ea5299617532d0457d9b2c4f41f5a0d2a27f9096aadec910fa546 -->
 # CODEX.md - Agent Entrypoint
 
 You are working in a Decapod-managed repository.
@@ -35,9 +35,9 @@ decapod docs ingest && decapod session acquire
 decapod rpc --op agent.init
 decapod workspace status
 decapod todo add "<task>" && decapod todo claim --id <task-id>
-decapod infer orientation --task-id <task-id>
-decapod workspace ensure
+decapod workspace ensure --branch agent/<agent-id>/<task-id>-<topic>
 cd .decapod/workspaces/<your-worktree>
+decapod infer orientation --task-id <task-id>
 decapod constitution get core/DECAPOD
 decapod rpc --op context.resolve
 ```

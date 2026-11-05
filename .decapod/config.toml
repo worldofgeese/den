@@ -40,7 +40,7 @@ validation_buildkite_preflights = false
 
 [proof.required_profile]
 id = "repo.pr-readiness.v1"
-reviewed_sources_digest = "sha256:d3f3312d7783e969280d47b0aa4b29027d7403c511cab51b95155c8e41038e69"
+reviewed_sources_digest = "sha256:9e8e803a0c528c23fe192e034c93ceea67ae0475b5365b76e2f002b3114f45c6"
 
 [[proof.commands]]
 name = "fmt"

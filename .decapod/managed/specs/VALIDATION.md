@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it, and since 2026-11-01 it is 0.121.2. Decapod reaches
+`AGENTS.md` names it, and since 2026-11-05 it is 0.126.3. Decapod reaches
 M-02877 in two ways: the `decapod` flake input in the per-user profile, and
 `cargo install` through the topgrade cargo step. Both bring the newest release.
 CI reads the header and installs exactly that release with `cargo binstall`,
@@ -117,15 +117,19 @@ them. The nightly bump of plan P6 must renew them in the same PR. Then update th
 review the change, and copy both digests from `decapod rpc --op agent.init`
 (`inventory_digest` and `command_contract_digest`).
 
-On macOS the contract cannot pass yet. Decapod 0.121.1 probes both `justfile`
+Before Decapod 0.126.3, the contract could not pass on macOS. Decapod 0.121.1 probes both `justfile`
 and `Justfile` (`SOURCE_FILES` in `src/decapod/core/init_reconciliation/mod.rs`).
 APFS on M-02877 is case-insensitive, so both probes find the one tracked
 `Justfile`, and the inventory lists two files with one digest. The execution
 snapshot holds only the tracked name, so `decapod validate` stops at
 `READINESS_BLOCKED: missing bound input: justfile`
 (DecapodLabs/decapod#1470). Upstream closed #1470 on
-2026-11-04, so the first validation on a fixed release must measure it again.
-Until that measurement passes, the merge gate stays the CI `validate` check, the pre-commit
+2026-11-04. Measured 2026-11-05 with 0.126.3 in an isolated clone on M-02877:
+`decapod validate` no longer stops at the `justfile` probe, and
+`publication_readiness` no longer fails on `sections/validation`
+(DecapodLabs/decapod#1474). Validation now writes its receipt into
+`.decapod/governance.json` and asks to stage it with the commit. Until den
+runs 0.126.3 on the shared datastore, the merge gate stays the CI `validate` check, the pre-commit
 `just check`, and the deploy proof of each changed deploy target. Close the
 bead on that evidence. Measured 2026-10-30: `decapod govern project-check`
 passes (186 pass, 0 fail), and a CI-local run (`GITHUB_ACTIONS=true`) passes

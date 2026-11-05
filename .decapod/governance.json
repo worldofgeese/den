@@ -104,18 +104,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
-      "intent": "prr-0ji.18: watch worldofgeese/pr-reviewer on the review machine (scoped)\n\nAdd worldofgeese/pr-reviewer to repos in modules/M-02877/pr-reviewer.nix",
+      "constraints": {
+        "file_touch_budget": 4,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "Add worldofgeese/pr-reviewer to the repos list in modules/M-02877/pr-reviewer.nix so the daemon reviews and automerges its own repository under the same policy (prr-0ji.18).",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
-      "title": "prr-0ji.18: watch worldofgeese/pr-reviewer on the review machine (scoped)",
+      "state": "APPROVED",
+      "stop_conditions": [],
+      "title": "Watch worldofgeese/pr-reviewer on the review machine",
       "todo_ids": [
         "code_01m6n988j983g4v5"
       ],
-      "updated_at": "1793863228Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793863502Z"
     },
     "trajectory": {
       "active_boundaries": [

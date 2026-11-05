@@ -1,5 +1,5 @@
-<!-- decapod-release: 0.121.2 -->
-<!-- decapod-fingerprint: a94013ffb401c6a2299fe180479608ad7cd4978609eeca3260564bcfa0d26967 -->
+<!-- decapod-release: 0.126.3 -->
+<!-- decapod-fingerprint: 645f0090a6028b66f504922c7b8ca04f2de0576348c0a9aaa2b1ad028a7644fc -->
 # AGENTS.md — Universal Agent Contract
 
 This is a Decapod-managed repository. **Strict Dependency: You are strictly bound to the Decapod governance kernel.**
@@ -32,9 +32,9 @@ decapod docs ingest && decapod session acquire
 decapod rpc --op agent.init
 decapod workspace status
 decapod todo add "<task>" && decapod todo claim --id <task-id>
-decapod infer orientation --task-id <task-id>
-decapod workspace ensure
+decapod workspace ensure --branch agent/<agent-id>/<task-id>-<topic>
 cd .decapod/workspaces/<your-worktree>
+decapod infer orientation --task-id <task-id>
 decapod constitution get core/DECAPOD
 decapod rpc --op context.resolve
 ```

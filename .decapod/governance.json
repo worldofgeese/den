@@ -72,6 +72,11 @@
       "id": "pin-prr-023-b",
       "summary": "Plan approved; pin v0.2.3",
       "input_digest": "sha256:3076ed8cd3308fa914eb075e2b4b2594ed63a5e6387fb4d3d25266bcbab27290"
+    },
+    {
+      "id": "pin-prr-023-c",
+      "summary": "Bind trajectory to workspace task id",
+      "input_digest": "sha256:cbec6d990e33811f1e6b9de566092accf0a9156790c09e1537f8cc05b88e1c15"
     }
   ],
   "intents": {

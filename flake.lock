@@ -2177,15 +2177,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1793871172,
-        "narHash": "sha256-9Yw9JpsMgoFQhKWF35+EMF4UjXh8NkmOdh5XmxBOYDc=",
+        "lastModified": 1793890429,
+        "narHash": "sha256-RGCLmIrJ+2w2afAjKlQUU9Kd24lHxF9Y9JWoSlLSCag=",
         "owner": "worldofgeese",
         "repo": "pr-reviewer",
-        "rev": "527cceb6a96b8fec9fb818bbafc357dcf972cfef",
+        "rev": "651c2e2c13e756a03565290206673475351a3461",
         "type": "github"
       },
       "original": {
         "owner": "worldofgeese",
+        "ref": "v0.2.3",
         "repo": "pr-reviewer",
         "type": "github"
       }

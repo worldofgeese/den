@@ -76,17 +76,28 @@ The two fixes from that update, both no-ops once upstream changes:
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
 `worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
-`packages.default`). `worldofgeese/pr-reviewer` is the maintained home of the
-project since the 2026-11 move from `NicholaiVogel/pr-reviewer`. `flake.lock`
-pins the revision, so den holds no hand-maintained rev, source hash or
-`cargoHash`; the flake builds from `Cargo.lock` with the tests off, because the
-suite binds loopback sockets that the Nix sandbox refuses. The build carries no
-local patches: HTTPS Basic auth for git, review rounds and stacked PRs are all
-in v0.2.1, which also fixes requeued work being skipped as a duplicate, the
-stale "will follow up" comment on skipped reviews, silent `config set` of
-unknown keys and missing GitHub request timeouts. To move to a newer revision,
-run `nix flake update pr-reviewer` and deploy; the review rounds and
-stacked-PR behavior below are v0.2.1's.
+`packages.default`), pinned to its v0.2.3 release (commit 651c2e2; the
+maintained home of the project since the 2026-11 move from
+`NicholaiVogel/pr-reviewer`). The input URL names the release tag and
+`flake.lock` pins the revision, so den holds no hand-maintained rev, source
+hash or `cargoHash`; the flake builds from `Cargo.lock` with the tests off,
+because the suite binds loopback sockets that the Nix sandbox refuses. The
+build carries no local patches: HTTPS Basic auth for git, review rounds and
+stacked PRs are all in the pinned release. v0.2.3 over v0.2.2: a `claude`
+review session starts with `--tools <review_tools>` (default none, so no
+`Bash`, file reads or edits) and `--strict-mcp-config` (no user-level MCP
+servers); auto-fix sessions keep `Read,Grep,Glob,Edit,Write,Bash`; this
+configuration sets no `review_tools`, so reviews run with no tools. v0.2.2 over
+v0.2.1: `@pr-reviewer fix` works for org members (own comments are skipped only
+with a pr-reviewer marker and the daemon's login), `remove` warns about the
+settings it discards while `list` and `status` show `auto_fix`, an exclusive
+lock on `daemon.lock` allows one daemon and the start-up sweep requeues work
+that a dead daemon left claimed, and the opt-in `status_on_no_new_findings`
+posts a commit status when a re-review finds nothing new (off unless set in
+`[defaults]` or a repo's `review_policy`; this configuration leaves it off).
+To move to a newer release, change the tag in the input URL in `flake.nix`, run
+`nix flake update pr-reviewer` and deploy; the review rounds and stacked-PR
+behavior below are v0.2.2's and unchanged in v0.2.3.
 
 - **Review rounds.** Each posted review is one round. Round 1 is a full
   review. Rounds 2 and 3 to `max_review_cycles` (default 2) check earlier
@@ -120,20 +131,24 @@ stacked-PR behavior below are v0.2.1's.
   configured but undeclared repo is logged, not removed. The declared repos
   are LEGO/conference-dashboard, LEGO/devrel-infra,
   LEGO/agentic-engineering-community, LEGO/ai-daily-assistant,
-  LEGO/team-friendship-hour and worldofgeese/pr-reviewer. The last is the
-  daemon's own repository (dogfooding): it is reviewed and automerged under
-  the same policy as the others, and the machine runs the pinned release of
-  that repository, so a fix merged there reaches the machine only after the
-  pin in the same file moves.
+  LEGO/team-friendship-hour, worldofgeese/pr-reviewer and worldofgeese/den.
+  worldofgeese/pr-reviewer is the daemon's own repository (dogfooding): it is
+  reviewed and automerged under the same policy as the others, and the machine
+  runs the pinned release of that repository, so a fix merged there reaches
+  the machine only after the pin in the same file moves. worldofgeese/den is
+  this configuration repository (added 2026-11-05, approved by Tao): its PRs
+  are reviewed and automerged under the same policy, and den's Codex shepherd
+  labels a PR `needs-human` when its quota runs out, which the automerge
+  skips.
 - **PRs opened before a repo was added** are reviewed too: each poll queues
   every open PR whose head SHA has no recorded review, so the first poll after
   registration picks up the existing backlog.
 - **Runtime state** (config.toml with the machine-bound encrypted token,
   keyfile, state.db, managed clones) stays in
   `~/Library/Application Support/pr-reviewer` and is mutated only by the CLI.
-- **Never start it by hand.** The pidfile is not a lock, so a manual
-  `pr-reviewer start` runs a second daemon that double-reviews every PR.
-  Restart with `launchctl kickstart -k gui/$UID/com.dktaohan.pr-reviewer`.
+- **Never start it by hand.** Since v0.2.2 a second `pr-reviewer start`
+  fails on the `daemon.lock` lock instead of double-reviewing every PR, but
+  launchd still owns the process. Restart with `launchctl kickstart -k gui/$UID/com.dktaohan.pr-reviewer`.
 - **Health**: `launchctl print gui/$UID/com.dktaohan.pr-reviewer` (state,
   last exit), `pr-reviewer status` (heartbeat, queue, rate limit), log at
   `~/Library/Logs/pr-reviewer.log`.
@@ -162,7 +177,7 @@ approves, so GitHub auto-merge cannot key on its reviews. A merge made with a
 workflow's `GITHUB_TOKEN` would not start the deploys on main.
 
 The agent runs every 120 s. It merges a PR only when all of these hold:
-- The PR is not a draft and has no `hold` or `do-not-merge` label.
+- The PR is not a draft and has no `hold`, `do-not-merge` or `needs-human` label.
 - The author is worldofgeese, `app/github-actions` or `app/dependabot`.
   Teammates' PRs stay manual.
 - `pr-reviewer queue list` has a completed `review_pr` task at the PR's
@@ -189,7 +204,7 @@ and is tried again only after a new push.
 
 The log is `~/Library/Logs/pr-reviewer-automerge.log`. It gets one line per
 merge, and one per change of skip reason. `PR_AUTOMERGE_DRY_RUN=1` runs a pass
-that only logs. To hold a PR, label it `hold`. To stop merging, run
+that only logs. To hold a PR, label it `hold`. A `needs-human` label holds it too. To stop merging, run
 `launchctl bootout gui/$UID/com.dktaohan.pr-reviewer-automerge`.
 
 #### Live end-to-end test

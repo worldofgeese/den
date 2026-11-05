@@ -1,4 +1,4 @@
-{
+{inputs, ...}: {
   # pr-reviewer: a self-hosted daemon that polls GitHub and reviews PRs with
   # the local claude CLI. It used to be `cargo install`ed from a /tmp checkout
   # and started by hand, so it silently stopped whenever the terminal or the
@@ -37,34 +37,13 @@
       "worldofgeese/pr-reviewer"
     ];
 
-    # worldofgeese/pr-reviewer is the maintained home of pr-reviewer; this
-    # pins its v0.2.1 tag. It ships no flake and is absent from nixpkgs, so
-    # this is a buildRustPackage against a pinned revision; `version` tracks
-    # Cargo.toml. Moving the pin means a new rev, hash and cargoHash.
-    #
-    # Tests are skipped: the suite binds loopback sockets, which the Nix
-    # sandbox refuses, and it shells out to git.
-    pr-reviewer = pkgs.rustPlatform.buildRustPackage {
-      pname = "pr-reviewer";
-      version = "0.2.1";
-
-      src = pkgs.fetchFromGitHub {
-        owner = "worldofgeese";
-        repo = "pr-reviewer";
-        rev = "7837d90dd3c72cfd51df90ab7d7537b3226bcb69";
-        hash = "sha256-FWZVr2E1WgV7aPcGvvrp4/VPNq79WWg4kpLYXj3CjdI=";
-      };
-
-      cargoHash = "sha256-iq9GVGR0xT6n/T9j2zMLr3b1dU0A+l/GVQNkn27dn/U=";
-      doCheck = false;
-
-      meta = {
-        description = "Self-hosted PR review daemon that drives local AI CLI tools";
-        homepage = "https://github.com/worldofgeese/pr-reviewer";
-        mainProgram = "pr-reviewer";
-        platforms = lib.platforms.unix;
-      };
-    };
+    # worldofgeese/pr-reviewer is the maintained home of pr-reviewer and ships
+    # its own flake (worldofgeese/pr-reviewer#26), so the version, source hash
+    # and cargo dependency hashes come from flake.lock and nothing here is
+    # hand-maintained. The flake builds from Cargo.lock with the tests off: the
+    # suite binds loopback sockets, which the Nix sandbox refuses. Moving to a
+    # new release is `nix flake update pr-reviewer`.
+    pr-reviewer = inputs.pr-reviewer.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
     # The model gateway key the review harness authenticates with.
     #

@@ -74,15 +74,19 @@ The two fixes from that update, both no-ops once upstream changes:
 
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
-agent `com.dktaohan.pr-reviewer`, from a pinned Nix build of
-`worldofgeese/pr-reviewer` v0.2.1 (commit 7837d90, the maintained home of the
-project since the 2026-11 move from `NicholaiVogel/pr-reviewer`). The build
-carries no local patches: HTTPS Basic auth for git, review rounds and stacked
-PRs are all in v0.2.1, which also fixes requeued work being skipped as a
-duplicate, the stale "will follow up" comment on skipped reviews, silent
-`config set` of unknown keys and missing GitHub request timeouts. To move
-the pin, change `rev`, `version`, `hash` and `cargoHash` together in that file;
-the review rounds and stacked-PR behavior below are v0.2.1's.
+agent `com.dktaohan.pr-reviewer`, built from the flake that
+`worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
+`packages.default`). `worldofgeese/pr-reviewer` is the maintained home of the
+project since the 2026-11 move from `NicholaiVogel/pr-reviewer`. `flake.lock`
+pins the revision, so den holds no hand-maintained rev, source hash or
+`cargoHash`; the flake builds from `Cargo.lock` with the tests off, because the
+suite binds loopback sockets that the Nix sandbox refuses. The build carries no
+local patches: HTTPS Basic auth for git, review rounds and stacked PRs are all
+in v0.2.1, which also fixes requeued work being skipped as a duplicate, the
+stale "will follow up" comment on skipped reviews, silent `config set` of
+unknown keys and missing GitHub request timeouts. To move to a newer revision,
+run `nix flake update pr-reviewer` and deploy; the review rounds and
+stacked-PR behavior below are v0.2.1's.
 
 - **Review rounds.** Each posted review is one round. Round 1 is a full
   review. Rounds 2 and 3 to `max_review_cycles` (default 2) check earlier

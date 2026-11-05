@@ -2170,6 +2170,26 @@
         "type": "github"
       }
     },
+    "pr-reviewer": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793871172,
+        "narHash": "sha256-9Yw9JpsMgoFQhKWF35+EMF4UjXh8NkmOdh5XmxBOYDc=",
+        "owner": "worldofgeese",
+        "repo": "pr-reviewer",
+        "rev": "527cceb6a96b8fec9fb818bbafc357dcf972cfef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "worldofgeese",
+        "repo": "pr-reviewer",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -2263,6 +2283,7 @@
         "nixarchy": "nixarchy",
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-nod": "nixpkgs-nod",
+        "pr-reviewer": "pr-reviewer",
         "rust-overlay": "rust-overlay"
       }
     },

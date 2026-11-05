@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "c0a72a8ee9c5734408098f1c7ab9bdc0cbca9b79",
+    "accepted_commit": "fd80d759b00d088a587dbddca0f515ed1ec7f20d",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -68,12 +68,12 @@
     }
   },
   "change": {
-    "id": "change_01M6N86ACGB72QYV916R2AJC27",
-    "base_commit": "c0a72a8ee9c5734408098f1c7ab9bdc0cbca9b79",
+    "id": "change_01M6NB4P507YP87KFMFXCN1VCT",
+    "base_commit": "fd80d759b00d088a587dbddca0f515ed1ec7f20d",
     "target_base": "origin/main"
   },
   "intents": {
-    "intent:change_01M6N86ACGB72QYV916R2AJC27": {
+    "intent:change_01M6NB4P507YP87KFMFXCN1VCT": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -83,60 +83,48 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+      "id": "intent:change_01M6NB4P507YP87KFMFXCN1VCT",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
-      "refined_intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "raw_intent": "drop the logseq cask; Jamf owns Logseq",
+      "refined_intent": "drop the logseq cask; Jamf owns Logseq",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": [
-          "modules/M-02877/logseq"
-        ]
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
-      "phases": [],
+      "constraints": {},
+      "intent": "drop the logseq cask; Jamf owns Logseq",
       "proof_hooks": [
-        "just check-fmt",
-        "darwin-rebuild build --flake .#M-02877"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Let Jamf own Visual Studio Code: drop the visual-studio-code cask",
+      "state": "DRAFT",
+      "title": "drop the logseq cask; Jamf owns Logseq",
       "todo_ids": [
-        "code_01m6n85hxzsfefgd"
+        "code_01m6nafetfc0bqca"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1793862537Z"
+      "updated_at": "1793865177Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:0a067467cb9416339b6eb54514c9bc02225ecba5e622432ed158f207b4e16f8b",
+      "artifact_hash": "sha256:49fbb00363ac7ec1444a316f05b3485c15ce8cd588ab4ab780bcdaae5688b7ab",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+            "intent_id": "intent:change_01M6NB4P507YP87KFMFXCN1VCT",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+            "intent_id": "intent:change_01M6NB4P507YP87KFMFXCN1VCT",
             "kind": "refined",
             "sequence": 3
           }
@@ -150,7 +138,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M6N86ACGB72QYV916R2AJC27",
+      "intent_id": "intent:change_01M6NB4P507YP87KFMFXCN1VCT",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -158,10 +146,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6N86AERBEA1YAB3RSGPHCN3",
+      "run_id": "branch_01M6NB4P71RT1JH5V4SNYYV7NM",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6n85hxzsfefgd",
+      "task_id": "code_01m6nafetfc0bqca",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

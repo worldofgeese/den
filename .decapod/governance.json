@@ -84,18 +84,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "prr-0ji.19: consume the pr-reviewer flake in den",
       "todo_ids": [
         "code_01m6ngwnpw6mg5kx"
       ],
-      "updated_at": "1793873214Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793898912Z"
     },
     "trajectory": {
       "active_boundaries": [

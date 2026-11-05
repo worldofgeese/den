@@ -77,6 +77,11 @@
       "id": "pin-prr-023-c",
       "summary": "Bind trajectory to workspace task id",
       "input_digest": "sha256:cbec6d990e33811f1e6b9de566092accf0a9156790c09e1537f8cc05b88e1c15"
+    },
+    {
+      "id": "pin-prr-023-d",
+      "summary": "Bind trajectory task id to code_01m6p6rqjwb6sszs",
+      "input_digest": "sha256:53579e2a2c064fc5fae73f3a922396fd11923871a3e6a35cf17d47dccce50591"
     }
   ],
   "intents": {
@@ -127,7 +132,7 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:3896f8f5b95095a62a766fba0b18defb06cc934bd8b9d6371aaa6846cac994e9",
+      "artifact_hash": "sha256:b3e6f421f2a41633ec8a985b6d6674c4682573e41eab00c719b3e0304d83316d",
       "checks": [
         {
           "name": "nix-build-pr-reviewer-0.2.3",
@@ -236,7 +241,7 @@
       "run_id": "branch_01M6P6SGSTBKZPXNQCFBF6NX4N",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "todo_01m6p6",
+      "task_id": "code_01m6p6rqjwb6sszs",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

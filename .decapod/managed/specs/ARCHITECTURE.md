@@ -84,7 +84,8 @@ This project's architecture consists of the following key layers/directories:
   status naming the error and selects neither route. Each evaluation is
   recorded as pending with its route (normal, g5 or blocked) at the moment the
   route is chosen, before any spawn, and as settled when it ends, including a
-  timeout or spawn error; both persist as `decapod-gate` entries (`pending`,
+  timeout or spawn error, and only after its process has exited (a timeout kills the
+  child and the evaluation stays pending until the exit is seen); both persist as `decapod-gate` entries (`pending`,
   `result`). Session start appends a `revision` entry (the runner store path
   plus the SHA-256 of the installed extension file, baked in as
   `extensionFile`). The hash is taken once, when the code loads, so a session
@@ -555,7 +556,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `d0aad1e893352343ba341b7f1cea3b90484c8b87c5b79219b278fa62b6d7ba51`
+- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

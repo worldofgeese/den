@@ -27,7 +27,8 @@
 //
 // Drain barrier for the cutover: every evaluation is recorded as pending, with
 // its route, at the moment the route is chosen and before anything is spawned,
-// and recorded as settled when it ends (also on timeout or spawn error). The
+// and recorded as settled when it ends (also on timeout or spawn error), which
+// is after its process has exited. The
 // read-only tool `decapod_gate_status` reports the extension revision, the
 // marker state, the pending normal-route evaluations and whether a G5-route
 // evaluation settled since this session first saw the marker. The revision
@@ -103,27 +104,42 @@ function textOf(content) {
 // Resolves to { allowed, status }; never rejects. `run` is { command, args,
 // options } for `spawnFn` (child_process.spawn; its result may be a promise, which
 // is how tests delay the spawn). The timeout covers the spawn too.
+//
+// The promise settles only once the child is gone (or never existed), also after a
+// timeout: the caller drops the evaluation from "pending" when this resolves, and
+// the drain barrier must not report 0 pending while a normal-route process is alive.
 function evaluate(run, text, spawnFn, timeoutMs) {
   return new Promise((resolve) => {
     let out = "";
-    let settled = false;
+    let verdict;
     let child;
-    const finish = (result) => {
-      if (settled) return;
-      settled = true;
+    let childGone = false;
+    let spawnDone = false;
+    const settle = () => {
+      if (verdict && spawnDone && (!child || childGone)) resolve(verdict);
+    };
+    const decide = (result) => {
+      if (verdict) return;
+      verdict = result;
       clearTimeout(timer);
-      resolve(result);
+      settle();
     };
     const timer = setTimeout(() => {
       child?.kill("SIGKILL");
-      finish({ allowed: false, status: `decapod eval timed out after ${timeoutMs / 1000}s` });
+      decide({ allowed: false, status: `decapod eval timed out after ${timeoutMs / 1000}s` });
     }, timeoutMs);
     const started = (spawned) => {
-      if (settled) return void spawned.kill("SIGKILL");
       child = spawned;
-      child.on("error", (error) =>
-        finish({ allowed: false, status: `decapod did not run (${error.code ?? error.message})` }),
-      );
+      child.on("exit", () => {
+        childGone = true;
+        settle();
+      });
+      child.on("error", (error) => {
+        childGone = true;
+        decide({ allowed: false, status: `decapod did not run (${error.code ?? error.message})` });
+      });
+      // A spawn that finished after the verdict (timeout) is killed at once.
+      if (verdict) return void child.kill("SIGKILL");
       child.stdin.on("error", () => {});
       child.stdout.on("data", (chunk) => (out += chunk));
       child.on("close", (code) => {
@@ -131,10 +147,10 @@ function evaluate(run, text, spawnFn, timeoutMs) {
         try {
           status = JSON.parse(out).status;
         } catch {
-          return finish({ allowed: false, status: `unparsable decapod eval output (exit ${code})` });
+          return decide({ allowed: false, status: `unparsable decapod eval output (exit ${code})` });
         }
-        if (code !== 0) return finish({ allowed: false, status: `${status ?? "no status"}, exit ${code}` });
-        finish({ allowed: status === "allow", status: String(status) });
+        if (code !== 0) return decide({ allowed: false, status: `${status ?? "no status"}, exit ${code}` });
+        decide({ allowed: status === "allow", status: String(status) });
       });
       child.stdin.end(text);
     };
@@ -142,8 +158,12 @@ function evaluate(run, text, spawnFn, timeoutMs) {
       .then(() => spawnFn(run.command, run.args, { ...run.options, stdio: ["pipe", "pipe", "ignore"] }))
       .then(started)
       .catch((error) =>
-        finish({ allowed: false, status: `decapod did not start (${error?.code ?? error?.message})` }),
-      );
+        decide({ allowed: false, status: `decapod did not start (${error?.code ?? error?.message})` }),
+      )
+      .finally(() => {
+        spawnDone = true;
+        settle();
+      });
   });
 }
 

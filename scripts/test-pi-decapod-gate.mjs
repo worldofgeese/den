@@ -562,6 +562,29 @@ test("the revision is fixed when the code loads, not re-read at each session sta
   ]);
 });
 
+test("a timed-out evaluation stays pending until its process has exited", async () => {
+  useFakeDecapod();
+  let realKill;
+  // The child ignores the kill for 600 ms, as a slow-dying process would.
+  const slowKill = (command, args, options) => {
+    const child = spawn(command, args, options);
+    realKill = child.kill.bind(child);
+    child.kill = (signal) => void setTimeout(() => realKill(signal), 600);
+    return child;
+  };
+  const s = load(join(project, "src"), [], runners.allow, { spawn: slowKill, timeoutMs: 300 });
+  s.receive(user("SLEEP30"));
+  await tick();
+  await new Promise((resolve) => setTimeout(resolve, 450));
+  // Past the timeout, before the process is gone.
+  assert.equal((await s.status()).pendingNormal.count, 1);
+  assert.equal(s.results().length, 0);
+  const result = await s.toolCall();
+  assert.equal(result.block, true);
+  assert.match(result.reason, /timed out/);
+  assert.equal((await s.status()).pendingNormal.count, 0);
+});
+
 test("a spawn error settles the evaluation and clears pending", async () => {
   const s = load(join(project, "src"), [], runners.allow, {
     spawn: async () => {

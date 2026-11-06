@@ -101,6 +101,11 @@
       "id": "gate-drain-6wx-validation2",
       "summary": "Record the validation after the pr-reviewer fixes",
       "input_digest": "sha256:6a67351dd4c35a849b5a0fe104fe38b1b0bcbb701d88a00455ad2d17ee047b5c"
+    },
+    {
+      "id": "gate-drain-6wx-review2",
+      "summary": "Keep timed-out evaluations pending until the child has exited",
+      "input_digest": "sha256:03a8d262bba4848de08fab07882f181bf0ebc36d920e0ccccd1afdb605887ac4"
     }
   ],
   "intents": {
@@ -155,7 +160,7 @@
         "Current claimed task and isolated work branch",
         "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:f23e40f2aab16e942d5560f3668f4f8dbd62a63fb7364c67e537f7c18a9cea4c",
+      "artifact_hash": "sha256:40a2d2d16311cb3700659e5bbd85f18c732ce4c0531016d8c9dfd3b46185d7e8",
       "checks": [
         {
           "name": "darwin_system_build",
@@ -219,10 +224,17 @@
             "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "trajectory_step_recorded",
             "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 8,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6RR32KG23GPYMXC048T790Y": {
@@ -319,6 +331,23 @@
                 ],
                 "sequence": 8,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "just check-pi-decapod-gate",
+                "custody_event_id": "event:9",
+                "observations": [
+                  "Codex round: a timed-out evaluation stays pending until its process exits; just check-pi-decapod-gate: 33/33 pass"
+                ],
+                "proof_refs": [
+                  "pi_decapod_gate_unit_tests"
+                ],
+                "scope": [
+                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  "root"
+                ],
+                "sequence": 9,
+                "validation_findings": []
               }
             ]
           }
@@ -329,6 +358,7 @@
       ],
       "destination": "pull request",
       "evidence": [
+        "Codex round: a timed-out evaluation stays pending until its process exits; just check-pi-decapod-gate: 33/33 pass",
         "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted",
         "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted",
         "plain decapod validate on 6e7dd02: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure",

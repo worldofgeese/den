@@ -82,6 +82,14 @@
       "proof_refs": [
         "decapod validate publication_readiness: trajectory task binding"
       ]
+    },
+    {
+      "id": "sf3-validation",
+      "summary": "Record the validation of the PAUSE override",
+      "input_digest": "sha256:d00d1f823e934e5d2512cc0a7431105b94e96107f13f37e3cd9ad9541313a8ea",
+      "proof_refs": [
+        "decapod validate: only publication_readiness fails"
+      ]
     }
   ],
   "intents": {
@@ -136,11 +144,15 @@
         "Current claimed task and isolated work branch",
         "PAUSE override of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:0740bfb4505f06bcdfd8ccbeb774c0b9fa2a198375eecf7cf17081be0c7feb2a",
+      "artifact_hash": "sha256:c9d05fda7345f4457852e64850e62921946b2135792fefb83fbe717a84adf8b7",
       "checks": [
         {
           "name": "darwin_system_build",
           "status": "passed"
+        },
+        {
+          "name": "decapod_validate",
+          "status": "partial"
         },
         {
           "name": "flake_update_leaves_evaluator_unchanged",
@@ -176,10 +188,17 @@
             "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6RHPS8TK54BK3BC95H297J6",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6RHPS8TK54BK3BC95H297J6": {
@@ -217,6 +236,22 @@
                 "validation_findings": [
                   "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here"
                 ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on 9c27690: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 120 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+                ],
+                "proof_refs": [
+                  "decapod_validate"
+                ],
+                "scope": [
+                  "flake.nix flake.lock modules/M-02877 scripts/test-pi-decapod-gate.mjs .decapod/managed/specs",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -229,7 +264,8 @@
       ],
       "destination": "pull request",
       "evidence": [
-        "22/22 node tests pass; M-02877 system /nix/store/0qkjl7pbp20a7rna1gklh0h36da1jfyv-darwin-system-26.11.ff0e21a contains evaluator 5fqifajaikv42fn5812mclfmxxdbpqr6-decapod-0.121.2 and runner vgfyhd68ps9pnvq5rgp2gxlk627s63w3-decapod-gate-g5"
+        "22/22 node tests pass; M-02877 system /nix/store/0qkjl7pbp20a7rna1gklh0h36da1jfyv-darwin-system-26.11.ff0e21a contains evaluator 5fqifajaikv42fn5812mclfmxxdbpqr6-decapod-0.121.2 and runner vgfyhd68ps9pnvq5rgp2gxlk627s63w3-decapod-gate-g5",
+        "plain decapod validate on 9c27690: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 120 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
       ],
       "inspected_files": [
         "flake.nix",

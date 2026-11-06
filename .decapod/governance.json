@@ -91,6 +91,11 @@
       "id": "gate-drain-6wx-validation",
       "summary": "Record the validation of the drain barrier change",
       "input_digest": "sha256:1d9e30068a11ccd78cb8ed9ca9a8250563bc25a4483149f1258a79e72bfcf1f2"
+    },
+    {
+      "id": "gate-drain-6wx-review1",
+      "summary": "Address pr-reviewer: status tool exempt from the gate drain, revision fixed at load, barrier scope documented",
+      "input_digest": "sha256:68ebc23c394b2d3342c41e47b353874d3dfa5a8edd6dc782fd7457d7d7ac8a86"
     }
   ],
   "intents": {
@@ -145,7 +150,7 @@
         "Current claimed task and isolated work branch",
         "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:b2c317dbccf74a79aab31bd59be6164d1558a5693ea51cbc82b8dfbdf506d082",
+      "artifact_hash": "sha256:46e8f7d7297b72fa907acf8dbe4ef99600f1bbc5a14b46651d8e7600d59a3639",
       "checks": [
         {
           "name": "darwin_system_build",
@@ -195,10 +200,17 @@
             "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6RR32KG23GPYMXC048T790Y": {
@@ -262,6 +274,23 @@
                 ],
                 "sequence": 6,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "just check-pi-decapod-gate",
+                "custody_event_id": "event:7",
+                "observations": [
+                  "pr-reviewer round 1: status tool exempt from tool_call drain and block; revision fixed at code load; spec states the barrier is per pi process. just check-pi-decapod-gate: 32/32 pass"
+                ],
+                "proof_refs": [
+                  "pi_decapod_gate_unit_tests"
+                ],
+                "scope": [
+                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": []
               }
             ]
           }
@@ -274,7 +303,8 @@
       "evidence": [
         "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted",
         "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted",
-        "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+        "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure",
+        "pr-reviewer round 1: status tool exempt from tool_call drain and block; revision fixed at code load; spec states the barrier is per pi process. just check-pi-decapod-gate: 32/32 pass"
       ],
       "inspected_files": [
         "modules/M-02877/agent-integrations.nix",

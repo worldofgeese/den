@@ -375,7 +375,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `7eafde56712b533055172769c365d076daf1a303462d0c7bea90218b3a9c19c4`
+- Repository signal fingerprint: `d0aad1e893352343ba341b7f1cea3b90484c8b87c5b79219b278fa62b6d7ba51`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

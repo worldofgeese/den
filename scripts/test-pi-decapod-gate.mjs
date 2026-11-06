@@ -122,6 +122,7 @@ function load(cwd = join(project, "src"), entries = [], pauseRunner = runners.al
     // Like pi: the handler is not awaited before the next event.
     receive: (message) => handlers.message_start({ message }, ctx),
     toolCall: () => handlers.tool_call({ toolName: "bash", input: {} }, ctx),
+    statusToolCall: () => handlers.tool_call({ toolName: "decapod_gate_status", input: {} }, ctx),
     input: (text, source) => handlers.input({ text, source }, ctx),
     beforeAgentStart: () => {
       const event = { systemPromptOptions: {} };
@@ -524,6 +525,41 @@ test("an evaluation that chose its route before the marker but has not spawned y
   assert.equal(calls().length, beforeNormal + 1);
   assert.equal((await s.status()).pendingNormal.count, 0);
   resume();
+});
+
+test("the status tool call is not held back by the drain or blocked by the gate", async () => {
+  useFakeDecapod();
+  const s = load(join(project, "src"), [], runners.allow, { timeoutMs: 1500 });
+  s.receive(user("SLEEP30"));
+  await tick();
+  // Through the live path: the tool_call handler returns at once and the tool sees the pending evaluation.
+  const started = Date.now();
+  assert.equal(await s.statusToolCall(), undefined);
+  assert.ok(Date.now() - started < 500, "must not wait for the pending evaluation");
+  assert.equal((await s.status()).pendingNormal.count, 1);
+  // Other tools still wait for the drain, and the timed-out evaluation blocks them ...
+  const blockedTool = await s.toolCall();
+  assert.equal(blockedTool.block, true);
+  // ... but the status tool still answers while the gate is blocked.
+  assert.equal(await s.statusToolCall(), undefined);
+  const status = await s.status();
+  assert.equal(status.pendingNormal.count, 0);
+  assert.equal(status.lastEvaluation.allowed, false);
+});
+
+test("the revision is fixed when the code loads, not re-read at each session start", async () => {
+  const file = join(tmp, "replaced-extension.ts");
+  writeFileSync(file, "old bytes");
+  const s = load(join(project, "src"), [], runners.allow, { extensionFile: file });
+  const before = (await s.status()).revision;
+  writeFileSync(file, "new bytes after a deploy");
+  s.resume();
+  assert.deepEqual((await s.status()).revision, before);
+  assert.equal(before.extensionSha256, createHash("sha256").update("old bytes").digest("hex"));
+  assert.deepEqual(s.entries.filter((e) => e.data.kind === "revision").map((e) => e.data.extensionSha256), [
+    before.extensionSha256,
+    before.extensionSha256,
+  ]);
 });
 
 test("a spawn error settles the evaluation and clears pending", async () => {

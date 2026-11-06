@@ -87,12 +87,18 @@ This project's architecture consists of the following key layers/directories:
   timeout or spawn error; both persist as `decapod-gate` entries (`pending`,
   `result`). Session start appends a `revision` entry (the runner store path
   plus the SHA-256 of the installed extension file, baked in as
-  `extensionFile`). The read-only tool `decapod_gate_status` returns the same
+  `extensionFile`). The hash is taken once, when the code loads, so a session
+  started later in the same process after a deploy still names the code that is
+  running. The read-only tool `decapod_gate_status` returns the same
   revision, the marker state (absent, present, error), the pending normal-route
   evaluations (count and start times), the latest evaluation and whether a
   G5-route evaluation settled since the session first saw the marker. That is
   the drain barrier the PAUSE acknowledgement quotes: the revision, one settled
   G5 evaluation after the marker, and 0 pending normal-route evaluations. The
+  pending map is per pi process, so the barrier covers only the process that
+  answers; it says nothing about other pi processes in the same project. The
+  status tool is exempt from the `tool_call` drain and block, so it answers
+  while an evaluation is pending or the gate is blocked. The
   runner is the Nix-built
   `decapod-gate-g5` script, the immutable form of BrightQuartz's reviewed
   `~/.cache/pi-dktaohan/decapod-gate.sh`. It calls `/usr/bin/sandbox-exec`,
@@ -102,9 +108,12 @@ This project's architecture consists of the following key layers/directories:
   temporary directory with a minimal environment and a sandbox that denies the
   den repository and all writes under the home directory. The extension is
   installed through `pkgs.replaceVars`, which bakes the marker and runner store
-  paths in; no environment variable can redirect them. A missing runner, a
+  paths and the installed file's own path in; no environment variable can
+  redirect them. A missing runner, a
   failure, a non-zero exit, invalid output or a timeout blocks. Tests inject
-  both paths as arguments of the exported `gate(pi, { pauseMarker, pauseRunner })`.
+  the paths, and a `spawn` function and `timeoutMs` to delay the spawn and shorten
+  the wait, as arguments of the exported
+  `gate(pi, { pauseMarker, pauseRunner, extensionFile, spawn, timeoutMs })`.
   Known gap: `decapod eval` flags benign `sudo <word>` phrasing as unsafe
   execution (`prompt_injection.unsafe_execution`), so a message that contains
   it stops tool calls until an allowed human prompt clears it. This is the
@@ -546,7 +555,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `7eafde56712b533055172769c365d076daf1a303462d0c7bea90218b3a9c19c4`
+- Repository signal fingerprint: `d0aad1e893352343ba341b7f1cea3b90484c8b87c5b79219b278fa62b6d7ba51`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

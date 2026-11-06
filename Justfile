@@ -228,10 +228,17 @@ deploy-oracle host="" build-host="":
 # deploy-freshness runs before both: a checkout that does not contain
 # origin/main removes merged work from the machine. See
 # scripts/deploy-freshness.sh.
+#
+# One lock, /tmp/den-darwin-switch.lock (macOS /usr/bin/lockf), is held from the
+# start of cask-app-preflight through the end of darwin-rebuild switch, so two
+# deploys cannot overlap. A second deploy fails at once (`-t 0`; lockf exits 75)
+# with a line that points at `pgrep -fl 'darwin-rebuild switch'`. The lock covers
+# only those two steps: the freshness check and the cachix push stay outside it.
+# `sh -c` runs sudo as its direct command, so `darwin-rebuild switch *` in the
+# sudoers rule still matches (see the env note above).
 deploy-darwin:
     ./scripts/deploy-freshness.sh
-    ./scripts/cask-app-preflight.sh
-    sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877
+    /usr/bin/lockf -k -t 0 /tmp/den-darwin-switch.lock sh -ec './scripts/cask-app-preflight.sh; sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877' || { rc=$?; [ "$rc" -ne 75 ] || echo "error: another switch is running (lock /tmp/den-darwin-switch.lock); pgrep -fl 'darwin-rebuild switch' shows it" >&2; exit "$rc"; }
     @just cachix-push /run/current-system || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
     @# Surface the signing state every deploy: a broken signing keychain once
     @# went unnoticed for hours as one warning line inside topgrade output.

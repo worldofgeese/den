@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "a00a58e6c343bacdc3ef0c0268a9849e3cdeff59",
+    "accepted_commit": "3a5429d1f39016364188acc988b2f7d1d4e96807",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -47,6 +47,7 @@
       "trajectory:1df243fb5dea8cf5": "loving-kypris was unreachable at 06:00 UTC on 2026-11-02, so the first scheduled 00:30 run is unverified until the host is back.",
       "trajectory:2e73ace6f8b455ed": "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
       "trajectory:2fc25673715437ce": "Headroom's model loading uses huggingface_hub and honors HF_HOME (the image sets no HF_* variables)",
+      "trajectory:41ab09cc3a9efcb7": "Deploy verification follows the merge and is recorded on bead prr-0ji.19",
       "trajectory:4b9d0230624a5890": "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to",
       "trajectory:4c3a11d1469258d8": "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
@@ -58,24 +59,29 @@
     }
   },
   "change": {
-    "id": "change_01M6NJSYT078H2CE92CY77B1G3",
-    "base_commit": "a00a58e6c343bacdc3ef0c0268a9849e3cdeff59",
+    "id": "change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+    "base_commit": "3a5429d1f39016364188acc988b2f7d1d4e96807",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "prr-0ji-19-validation",
-      "summary": "Record observed validation result; flake input pinned to v0.2.3 builds",
-      "input_digest": "sha256:a70a9d0dd9332079dd261fc1475f2188e7926d2ae22923a52d12ad48e3b3cc23",
-      "proof_refs": [
-        "/nix/store/zxgyrs0dzfnfrvfn7hkmzz686hwq7zi8-pr-reviewer-0.2.3",
-        "decapod validate 186 pass 1 fail (publication_readiness, #1474)",
-        "nix flake check --no-build exit 0"
-      ]
+      "id": "darwin-switch-lock",
+      "summary": "just deploy-darwin holds /tmp/den-darwin-switch.lock (lockf -k -t 0) from cask-app-preflight through darwin-rebuild switch; docs updated",
+      "input_digest": "sha256:4fc78a1b07c6ccd2dee0060d6d50a218b76ef3e51c49a68d348e3bef29442901"
+    },
+    {
+      "id": "darwin-switch-lock-plan",
+      "summary": "plan approved; lock proof recorded",
+      "input_digest": "sha256:70b6b3904be85f74412ec2eb414e47022fe52824753c01a9bfbbcfd48486decd"
+    },
+    {
+      "id": "darwin-switch-lock-validate",
+      "summary": "validation of the darwin switch lock: only DecapodLabs/decapod#1474 fails",
+      "input_digest": "sha256:5462ebb7a3b3ebb9e25c18ef1fff3e70df5829837906c1e011c0131a24443018"
     }
   ],
   "intents": {
-    "intent:change_01M6NJSYT078H2CE92CY77B1G3": {
+    "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -85,11 +91,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
+      "id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
-      "refined_intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
+      "raw_intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
+      "refined_intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -98,121 +104,145 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": []
+        "forbidden_paths": [
+          "nothing"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "prr-0ji.19: consume the pr-reviewer flake in den\n\nReplace fetchFromGitHub+cargoHash in modules/M-02877/pr-reviewer.nix with a pr-reviewer flake input (worldofgeese/pr-reviewer#26)",
+      "intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "overlap stand-in: second /usr/bin/lockf -k -t 0 run exits 75",
+        "just --show deploy-darwin: sudo -H darwin-rebuild switch stays direct"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "prr-0ji.19: consume the pr-reviewer flake in den",
+      "title": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
       "todo_ids": [
-        "code_01m6ngwnpw6mg5kx"
+        "cicd_01m6qw3x5w1nfc6q"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793898912Z"
+      "updated_at": "1793950538Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:3e1a5578627ec36c050a78d84f957f0a5bfb147337dc0b0e2019c4bce4058e7d",
+      "artifact_hash": "sha256:a3ed46a529a19c245a86408e76b07f0d87a6e1c244b73199fb2ad2d340cd48ec",
       "checks": [
         {
-          "name": "nix-build-darwin-M-02877",
+          "name": "decapod-validate-e91e680",
+          "status": "failed"
+        },
+        {
+          "name": "just-check",
           "status": "passed"
         },
         {
-          "name": "nix-flake-check",
+          "name": "just-show-sudo-direct",
+          "status": "passed"
+        },
+        {
+          "name": "lockf-overlap-standin",
           "status": "passed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
+            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
+            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6NJSYWCHTFTC8AZZRT0GSAE",
+            "detail": "trajectory:branch_01M6QW7S5HHP3HTBY5BB2W03H3",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
+            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6QW7S5HHP3HTBY5BB2W03H3",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6NJSYWCHTFTC8AZZRT0GSAE": {
+          "branch_01M6QW7S5HHP3HTBY5BB2W03H3": {
             "evidence_only": true,
-            "id": "branch_01M6NJSYWCHTFTC8AZZRT0GSAE",
-            "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
+            "id": "branch_01M6QW7S5HHP3HTBY5BB2W03H3",
+            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
             "steps": [
               {
-                "action": "implementation",
-                "command": "nix flake lock",
+                "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/pr-reviewer.nix",
-                  "flake.nix",
-                  "flake.nix",
-                  "flake.lock",
-                  "modules/M-02877/pr-reviewer.nix",
+                  "Justfile",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "pr-reviewer flake input at worldofgeese/pr-reviewer 527cceb builds pr-reviewer-0.2.1; den darwin-system closure builds"
+                  "Justfile",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/INTERFACES.md"
                 ],
                 "proof_refs": [
-                  "nix-build-darwin-M-02877",
-                  "nix-flake-check"
+                  "lockf-overlap-standin",
+                  "just-show-sudo-direct"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "Deploy verification follows the merge and is recorded on bead prr-0ji.19"
-                ]
+                "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on e91e680 fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+                ],
+                "proof_refs": [
+                  "decapod-validate-e91e680",
+                  "just-check"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "nix build .#darwinConfigurations.M-02877.system",
-        "nix flake check",
-        "nix flake lock"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "pr-reviewer flake input at worldofgeese/pr-reviewer 527cceb builds pr-reviewer-0.2.1; den darwin-system closure builds"
+        "plain decapod validate on e91e680 fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
       ],
       "inspected_files": [
-        "flake.nix",
-        "modules/M-02877/pr-reviewer.nix"
-      ],
-      "intent_id": "intent:change_01M6NJSYT078H2CE92CY77B1G3",
-      "modified_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "flake.lock",
-        "flake.nix",
-        "modules/M-02877/pr-reviewer.nix"
+        "Justfile"
+      ],
+      "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+      "modified_files": [
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "Justfile"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -220,14 +250,12 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6NJSYWCHTFTC8AZZRT0GSAE",
+      "run_id": "branch_01M6QW7S5HHP3HTBY5BB2W03H3",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6ngwnpw6mg5kx",
+      "task_id": "cicd_01m6qw3x5w1nfc6q",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "Deploy verification follows the merge and is recorded on bead prr-0ji.19"
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

@@ -68,6 +68,11 @@
       "id": "darwin-switch-lock",
       "summary": "just deploy-darwin holds /tmp/den-darwin-switch.lock (lockf -k -t 0) from cask-app-preflight through darwin-rebuild switch; docs updated",
       "input_digest": "sha256:4fc78a1b07c6ccd2dee0060d6d50a218b76ef3e51c49a68d348e3bef29442901"
+    },
+    {
+      "id": "darwin-switch-lock-plan",
+      "summary": "plan approved; lock proof recorded",
+      "input_digest": "sha256:70b6b3904be85f74412ec2eb414e47022fe52824753c01a9bfbbcfd48486decd"
     }
   ],
   "intents": {
@@ -92,18 +97,30 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": [
+          "nothing"
+        ]
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
+      "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "overlap stand-in: second /usr/bin/lockf -k -t 0 run exits 75",
+        "just --show deploy-darwin: sudo -H darwin-rebuild switch stays direct"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
       "todo_ids": [
         "cicd_01m6qw3x5w1nfc6q"
       ],
-      "updated_at": "1793950213Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1793950538Z"
     },
     "trajectory": {
       "active_boundaries": [

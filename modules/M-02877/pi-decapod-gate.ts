@@ -105,8 +105,12 @@ export default function (pi) {
   let blocked;
   // Keys of messages that already have a persisted result.
   const gated = new Set();
-  // Texts that extensions sent as user messages: not human prompts.
-  const extensionTexts = new Set();
+  // Number of `input` events from extensions that have not yet produced a user
+  // message. Pi expands skills and templates after `input`, so the text cannot
+  // identify the message; arrival order does. Best effort: if another handler
+  // swallows an extension input, the count stays high and a later human prompt
+  // is treated as extension-sent. That fails safe: it cannot clear a block.
+  let pendingExtensionInputs = 0;
   // Messages gate one at a time in arrival order, so a later human prompt
   // clears only the blocks that came before it.
   let queue = Promise.resolve();
@@ -124,13 +128,14 @@ export default function (pi) {
     blocked = undefined;
     gated.clear();
     queue = Promise.resolve();
+    pendingExtensionInputs = 0;
     for (const entry of ctx.sessionManager.getBranch()) {
       if (entry.type === "custom" && entry.customType === ENTRY_TYPE && entry.data?.key) record(entry.data);
     }
   });
 
   pi.on("input", (event) => {
-    if (event.source === "extension") extensionTexts.add(event.text);
+    if (event.source === "extension") pendingExtensionInputs++;
     return { action: "continue" };
   });
 
@@ -146,20 +151,36 @@ export default function (pi) {
     if (!root) return;
     const text = textOf(message.content);
     const key = createHash("sha256").update(`${message.role}\0${message.timestamp}\0${text}`).digest("hex");
-    const { human, sender } = describe(message, message.role === "user" && extensionTexts.delete(text));
+    const extensionSent = message.role === "user" && pendingExtensionInputs > 0;
+    if (extensionSent) pendingExtensionInputs--;
+    const { human, sender } = describe(message, extensionSent);
     queue = queue.then(async () => {
       if (gated.has(key)) return;
-      const { allowed, status } = await evaluate(root, text);
+      let result;
+      try {
+        result = await evaluate(root, text);
+      } catch (error) {
+        result = { allowed: false, status: `gate failed (${error?.message ?? error})` };
+      }
+      const { allowed, status } = result;
       const data = { key, sender, human, allowed, status };
       record(data);
-      pi.appendEntry(ENTRY_TYPE, data);
-      if (!allowed && ctx.hasUI) ctx.ui.notify(`Decapod prompt gate: ${sender} not allowed (${status})`, "error");
+      try {
+        pi.appendEntry(ENTRY_TYPE, data);
+        if (!allowed && ctx.hasUI) ctx.ui.notify(`Decapod prompt gate: ${sender} not allowed (${status})`, "error");
+      } catch {
+        // The in-memory result already counts; persisting or notifying must not break the chain.
+      }
     });
   });
 
   pi.on("tool_call", async (_event, ctx) => {
     if (!decapodRoot(ctx.cwd)) return;
-    await queue;
+    // A message can arrive while we wait: drain until no newer gate was queued.
+    for (let seen; seen !== queue; ) {
+      seen = queue;
+      await seen;
+    }
     if (!blocked) return;
     const reason = `Decapod prompt gate: ${blocked.sender} was not allowed (status: ${blocked.status}). Stop and ask the human to review it. A later allowed human prompt clears this block.`;
     if (ctx.hasUI) ctx.ui.notify(reason, "error");

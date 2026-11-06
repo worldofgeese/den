@@ -122,15 +122,23 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7cf20524743a8dc5d6c250d882cb0ad8d79f21614eeda6b51c48a9b4dff481a3",
+      "artifact_hash": "sha256:c1b81e19a95db7459127e0c558b830be22c885d1be4ba9c172a22d789165cd87",
       "checks": [
         {
           "name": "darwin-build",
           "status": "passed"
         },
         {
+          "name": "decapod eval task-38.md and task-25.md",
+          "status": "passed"
+        },
+        {
           "name": "decapod-validate-87840cd",
           "status": "failed"
+        },
+        {
+          "name": "node --test scripts/test-pi-decapod-gate.mjs",
+          "status": "passed"
         },
         {
           "name": "unit-tests",
@@ -158,10 +166,17 @@
             "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6QZF827YS2XYZBX04YTQD2Y",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6QZF827YS2XYZBX04YTQD2Y": {
@@ -191,6 +206,28 @@
                 "validation_findings": [
                   "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides"
                 ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "modules/M-02877/pi-decapod-gate.ts",
+                  "scripts/test-pi-decapod-gate.mjs",
+                  "Justfile",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "AC6 resolved: Crew specs reworded, task-38.md and task-25.md evaluate to allow; the sudo-phrase gap stays documented"
+                ],
+                "proof_refs": [
+                  "node --test scripts/test-pi-decapod-gate.mjs",
+                  "decapod eval task-38.md and task-25.md"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "Extension-sent user messages are identified by arrival order, best effort and fail safe"
+                ]
               }
             ]
           }
@@ -202,11 +239,14 @@
       ],
       "destination": "pull request",
       "evidence": [
+        "AC6 resolved: Crew specs reworded, task-38.md and task-25.md evaluate to allow; the sudo-phrase gap stays documented",
         "plain decapod validate on 87840cd fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
       ],
       "inspected_files": [],
       "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
       "modified_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        "Justfile",
         "modules/M-02877/agent-integrations.nix",
         "modules/M-02877/pi-decapod-gate.ts",
         "scripts/test-pi-decapod-gate.mjs"
@@ -223,6 +263,7 @@
       "task_id": "code_01m6qw44ype2z98g",
       "tool_calls": [],
       "unresolved_assumptions": [
+        "Extension-sent user messages are identified by arrival order, best effort and fail safe",
         "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides"
       ]
     }

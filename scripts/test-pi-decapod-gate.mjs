@@ -136,6 +136,48 @@ test("a user message sent by an extension does not clear a block", async () => {
   assert.equal((await s.toolCall()).block, true);
 });
 
+test("a message that arrives while a tool call waits is gated before that tool call runs", async () => {
+  useFakeDecapod();
+  const s = load();
+  s.receive(user("SLOWALLOW"));
+  const pending = s.toolCall();
+  s.receive(custom("BLOCKME", "Peer"));
+  const result = await pending;
+  assert.equal(result.block, true);
+  assert.match(result.reason, /from Peer was not allowed/);
+});
+
+test("an extension message whose text pi expands still does not clear a block", async () => {
+  useFakeDecapod();
+  const s = load();
+  s.receive(user("BLOCKME"));
+  s.input("/skill:research", "extension");
+  s.receive(user("the expanded skill body"));
+  assert.equal((await s.toolCall()).block, true);
+  // The extension input is used up: the next user message is a human prompt.
+  s.input("fine", "interactive");
+  s.receive(user("fine"));
+  assert.equal(await s.toolCall(), undefined);
+});
+
+test("a failure while persisting a result keeps the gate working", async () => {
+  useFakeDecapod();
+  const entries = [];
+  const handlers = {};
+  const pi = {
+    on: (name, fn) => (handlers[name] = fn),
+    appendEntry: () => {
+      throw new Error("disk full");
+    },
+  };
+  const ctx = { cwd: join(project, "src"), hasUI: false, sessionManager: { getBranch: () => entries } };
+  gate(pi);
+  handlers.session_start({}, ctx);
+  handlers.message_start({ message: user("BLOCKME") }, ctx);
+  handlers.message_start({ message: custom("hi", "Peer") }, ctx);
+  assert.equal((await handlers.tool_call({}, ctx)).block, true);
+});
+
 test("outside a Decapod project the extension never runs decapod", async () => {
   useFakeDecapod();
   const before = calls().length;

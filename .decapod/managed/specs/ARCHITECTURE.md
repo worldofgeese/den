@@ -68,10 +68,20 @@ This project's architecture consists of the following key layers/directories:
   so a resumed session keeps an open block and does not gate old messages again.
   Once per run it adds a system-prompt section that tells the agent to skip the
   manual gate of AGENTS.md. Outside a Decapod project it does nothing.
-  Known gap: `decapod eval` flags the words `sudo (deploys)` (any `sudo <word>`)
-  as unsafe execution, so a message that quotes them, such as the Crew spec
-  `.pi/messenger/crew/tasks/task-38.md`, blocks tool calls until a human prompt
-  is allowed.
+  A user message sent by an extension is told apart from a human prompt by
+  arrival order (one pending `input` event with source `extension` per such
+  message), because pi expands skills and templates after `input` and the text
+  no longer matches. This is best effort and fails safe: if another handler
+  swallows an extension input, a later human prompt is treated as extension-sent
+  and cannot clear a block. Before each tool call the extension drains the gate
+  queue until no newer message is waiting.
+  Known gap: `decapod eval` flags benign `sudo <word>` phrasing as unsafe
+  execution (`prompt_injection.unsafe_execution`), so a message that contains
+  it stops tool calls until an allowed human prompt clears it. This is the
+  contract's intended behaviour and the gate is not weakened. The Crew task
+  specs under `.pi/messenger/crew/tasks` were reworded, and `task-38.md` and
+  `task-25.md` now evaluate to `allow`. The unit test runs in `just check`
+  (`check-pi-decapod-gate`).
 - `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
   `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
   module together. The launcher clears Guix's Emacs load-path variables.
@@ -506,7 +516,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `4a8558efafc2b4dfebf640db8a1499541cdd4bc5c28a46a3ad3549cf852739dd`
+- Repository signal fingerprint: `7146d90195a04e38f0c5791e008a1bec29a30f893005fa18a229709297712f3c`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

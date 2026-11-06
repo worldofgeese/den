@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1.0",
   "template_version": "scaffold-v4",
-  "generated_at": "1793974068Z",
+  "generated_at": "1793974638Z",
   "repo_signal_fingerprint": "e3325781f4b38d64d9c9246e6ab594a726ff9efcef3826947f865ebb4011a506",
   "declared_capabilities": [
     "infrastructure-management",

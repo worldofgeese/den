@@ -74,6 +74,14 @@
         "just check-pi-decapod-gate: 22 pass",
         "nix build .#darwinConfigurations.M-02877.system"
       ]
+    },
+    {
+      "id": "sf3-bind-task",
+      "summary": "Bind the trajectory to its task; refresh the specs manifest",
+      "input_digest": "sha256:3bfbff54854a537fa7e66a4381b35f2ae0dd7217381d6478a5c3e64ec607a05f",
+      "proof_refs": [
+        "decapod validate publication_readiness: trajectory task binding"
+      ]
     }
   ],
   "intents": {
@@ -128,7 +136,7 @@
         "Current claimed task and isolated work branch",
         "PAUSE override of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:240b7b79d2479cfde519a5e17b838334cf6fb6d44ff09587872b456c55550db8",
+      "artifact_hash": "sha256:0740bfb4505f06bcdfd8ccbeb774c0b9fa2a198375eecf7cf17081be0c7feb2a",
       "checks": [
         {
           "name": "darwin_system_build",
@@ -248,7 +256,7 @@
       "run_id": "branch_01M6RHPS8TK54BK3BC95H297J6",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6rhnzfy36d2yr",
+      "task_id": "todo_01m6rh",
       "tool_calls": [],
       "unresolved_assumptions": [
         "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here"

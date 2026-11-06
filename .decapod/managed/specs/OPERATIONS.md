@@ -43,6 +43,15 @@ the missing commits. To recover, commit or stash the local edits, run
 `git pull --ff-only`, and deploy again. To deploy an older commit on purpose,
 set `DEN_DEPLOY_STALE=1`.
 
+Two deploys must not overlap. On 2026-11-05 agents agreed by chat who would run
+the M-02877 switch, and nothing in the tooling stopped a second one. `just
+deploy-darwin` now holds `/tmp/den-darwin-switch.lock` (`/usr/bin/lockf -k -t
+0`) from the start of `scripts/cask-app-preflight.sh` through the end of
+`darwin-rebuild switch`. A second deploy fails at once with exit 75 and `error:
+another switch is running`; `pgrep -fl 'darwin-rebuild switch'` shows the
+holder. The lock wraps `sh -c`, so `sudo` stays the direct command and the
+sudoers rule `darwin-rebuild switch *` still matches.
+
 The same deploy also built five uncommitted edits, and their authors are not
 known. Each was checked, then committed on 2026-10-30:
 - `flake.lock`: the lock of that run's "Flake inputs" step. Nine root inputs

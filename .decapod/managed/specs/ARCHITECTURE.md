@@ -78,8 +78,22 @@ This project's architecture consists of the following key layers/directories:
   Decapod cutover PAUSE: while the marker file
   `/Users/dktaohan/.local/state/den/decapod-pause` exists, every evaluation runs
   only the G5 runner and never the `decapod` on PATH. The marker is checked on
-  each evaluation, so RESUME (removing it) takes effect at once; a marker that
-  cannot be checked counts as present. The runner is the Nix-built
+  each evaluation, so RESUME (removing it) takes effect at once. Only ENOENT
+  means the normal route and an existing marker means only G5; any other error
+  while inspecting it (EACCES, EIO, ELOOP, ENOTDIR) BLOCKS that evaluation with a
+  status naming the error and selects neither route. Each evaluation is
+  recorded as pending with its route (normal, g5 or blocked) at the moment the
+  route is chosen, before any spawn, and as settled when it ends, including a
+  timeout or spawn error; both persist as `decapod-gate` entries (`pending`,
+  `result`). Session start appends a `revision` entry (the runner store path
+  plus the SHA-256 of the installed extension file, baked in as
+  `extensionFile`). The read-only tool `decapod_gate_status` returns the same
+  revision, the marker state (absent, present, error), the pending normal-route
+  evaluations (count and start times), the latest evaluation and whether a
+  G5-route evaluation settled since the session first saw the marker. That is
+  the drain barrier the PAUSE acknowledgement quotes: the revision, one settled
+  G5 evaluation after the marker, and 0 pending normal-route evaluations. The
+  runner is the Nix-built
   `decapod-gate-g5` script, the immutable form of BrightQuartz's reviewed
   `~/.cache/pi-dktaohan/decapod-gate.sh`. It calls `/usr/bin/sandbox-exec`,
   `/usr/bin/env` and coreutils by absolute path and runs the Decapod 0.121.2
@@ -532,7 +546,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e3325781f4b38d64d9c9246e6ab594a726ff9efcef3826947f865ebb4011a506`
+- Repository signal fingerprint: `7eafde56712b533055172769c365d076daf1a303462d0c7bea90218b3a9c19c4`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

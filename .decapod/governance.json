@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "86bc430beb8bf2514fc6b0eee5734cbf47c62f1c",
+    "accepted_commit": "c5a23bcbd654ff264b67393d1f4cdbe34b68cb54",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -51,6 +51,7 @@
       "trajectory:4b9d0230624a5890": "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to",
       "trajectory:4c3a11d1469258d8": "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
+      "trajectory:56b396336dfc37b6": "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
@@ -61,39 +62,19 @@
     }
   },
   "change": {
-    "id": "change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
-    "base_commit": "86bc430beb8bf2514fc6b0eee5734cbf47c62f1c",
+    "id": "change_01M6RR32HDZBXZC8JS0G3MY0JF",
+    "base_commit": "c5a23bcbd654ff264b67393d1f4cdbe34b68cb54",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "sf3-g5-override",
-      "summary": "PAUSE override: pinned isolated G5 evaluator, baked marker and runner paths, tests, spec update",
-      "input_digest": "sha256:e4c775af510eb44bfbed86e6f37599e2a18857d0905d2ea4e22923a50bedd6ad",
-      "proof_refs": [
-        "just check-pi-decapod-gate: 22 pass",
-        "nix build .#darwinConfigurations.M-02877.system"
-      ]
-    },
-    {
-      "id": "sf3-bind-task",
-      "summary": "Bind the trajectory to its task; refresh the specs manifest",
-      "input_digest": "sha256:3bfbff54854a537fa7e66a4381b35f2ae0dd7217381d6478a5c3e64ec607a05f",
-      "proof_refs": [
-        "decapod validate publication_readiness: trajectory task binding"
-      ]
-    },
-    {
-      "id": "sf3-validation",
-      "summary": "Record the validation of the PAUSE override",
-      "input_digest": "sha256:d00d1f823e934e5d2512cc0a7431105b94e96107f13f37e3cd9ad9541313a8ea",
-      "proof_refs": [
-        "decapod validate: only publication_readiness fails"
-      ]
+      "id": "gate-drain-6wx",
+      "summary": "decapod-gate drain barrier, revision entry, blocking marker errors, status tool",
+      "input_digest": "sha256:812e5f2bf3f6ef374271944761fbdb2d97ea976d8bcabb0b0cc43f7433a9e117"
     }
   ],
   "intents": {
-    "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T": {
+    "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -103,11 +84,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+      "id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
-      "refined_intent": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
+      "raw_intent": "decapod-gate: drain barrier, revision entry, blocking marker errors (home-manager-6wx)",
+      "refined_intent": "decapod-gate: drain barrier, revision entry, blocking marker errors (home-manager-6wx)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -122,7 +103,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
+      "intent": "home-manager-6wx: decapod-gate drain barrier, revision entry and blocking marker errors",
       "phases": [],
       "proof_hooks": [
         "just check-pi-decapod-gate",
@@ -131,39 +112,27 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
+      "title": "home-manager-6wx: decapod-gate drain barrier, revision entry and blocking marker errors",
       "todo_ids": [
-        "code_01m6rhnzfy36d2yr"
+        "bugs_01m6rr297476e1s0"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793974141Z"
+      "updated_at": "1793979763Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "PAUSE override of the pi decapod-gate extension; no deploy; no live marker"
+        "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:c9d05fda7345f4457852e64850e62921946b2135792fefb83fbe717a84adf8b7",
+      "artifact_hash": "sha256:4c8979d217fddfc52819a293c5a8ffb178fc84f9b39ccdd8349b2a4d663b111a",
       "checks": [
         {
           "name": "darwin_system_build",
           "status": "passed"
         },
         {
-          "name": "decapod_validate",
-          "status": "partial"
-        },
-        {
-          "name": "flake_update_leaves_evaluator_unchanged",
-          "status": "passed"
-        },
-        {
           "name": "pi_decapod_gate_unit_tests",
-          "status": "passed"
-        },
-        {
-          "name": "runner_allow_and_sandbox_control",
           "status": "passed"
         }
       ],
@@ -172,27 +141,27 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6RHPS8TK54BK3BC95H297J6",
+            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M6RHPS8TK54BK3BC95H297J6",
+            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "trajectory_step_recorded",
             "sequence": 5
           }
@@ -201,83 +170,70 @@
         "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6RHPS8TK54BK3BC95H297J6": {
+          "branch_01M6RR32KG23GPYMXC048T790Y": {
             "evidence_only": true,
-            "id": "branch_01M6RHPS8TK54BK3BC95H297J6",
-            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+            "id": "branch_01M6RR32KG23GPYMXC048T790Y",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "steps": [
               {
                 "action": "implementation",
-                "command": "nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs",
+                "command": "just check-pi-decapod-gate",
                 "custody_event_id": "event:4",
                 "observations": [
                   "modules/M-02877/pi-decapod-gate.ts",
-                  "modules/M-02877/agent-integrations.nix",
                   "scripts/test-pi-decapod-gate.mjs",
-                  "flake.nix",
-                  "flake.nix",
-                  "flake.lock",
                   "modules/M-02877/agent-integrations.nix",
                   "modules/M-02877/pi-decapod-gate.ts",
+                  "modules/M-02877/agent-integrations.nix",
                   "scripts/test-pi-decapod-gate.mjs",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  "22/22 node tests pass; M-02877 system /nix/store/0qkjl7pbp20a7rna1gklh0h36da1jfyv-darwin-system-26.11.ff0e21a contains evaluator 5fqifajaikv42fn5812mclfmxxdbpqr6-decapod-0.121.2 and runner vgfyhd68ps9pnvq5rgp2gxlk627s63w3-decapod-gate-g5"
+                  ".decapod/managed/specs/ARCHITECTURE.md"
                 ],
                 "proof_refs": [
-                  "pi_decapod_gate_unit_tests",
-                  "darwin_system_build",
-                  "runner_allow_and_sandbox_control",
-                  "flake_update_leaves_evaluator_unchanged"
+                  "pi_decapod_gate_unit_tests"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here"
-                ]
+                "validation_findings": []
               },
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:5",
                 "observations": [
-                  "plain decapod validate on 9c27690: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 120 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+                  "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted"
                 ],
                 "proof_refs": [
-                  "decapod_validate"
+                  "darwin_system_build"
                 ],
                 "scope": [
-                  "flake.nix flake.lock modules/M-02877 scripts/test-pi-decapod-gate.mjs .decapod/managed/specs",
+                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
                   "root"
                 ],
                 "sequence": 5,
-                "validation_findings": []
+                "validation_findings": [
+                  "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
+                ]
               }
             ]
           }
         }
       },
       "declared_commands": [
-        "nix build .#darwinConfigurations.M-02877.system --no-link",
-        "nix flake update (scratch copy)",
-        "nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs"
+        "just check-pi-decapod-gate"
       ],
       "destination": "pull request",
       "evidence": [
-        "22/22 node tests pass; M-02877 system /nix/store/0qkjl7pbp20a7rna1gklh0h36da1jfyv-darwin-system-26.11.ff0e21a contains evaluator 5fqifajaikv42fn5812mclfmxxdbpqr6-decapod-0.121.2 and runner vgfyhd68ps9pnvq5rgp2gxlk627s63w3-decapod-gate-g5",
-        "plain decapod validate on 9c27690: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 120 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+        "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted"
       ],
       "inspected_files": [
-        "flake.nix",
         "modules/M-02877/agent-integrations.nix",
         "modules/M-02877/pi-decapod-gate.ts",
         "scripts/test-pi-decapod-gate.mjs"
       ],
-      "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+      "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
       "modified_files": [
         ".decapod/managed/specs/ARCHITECTURE.md",
-        "flake.lock",
-        "flake.nix",
         "modules/M-02877/agent-integrations.nix",
         "modules/M-02877/pi-decapod-gate.ts",
         "scripts/test-pi-decapod-gate.mjs"
@@ -286,16 +242,16 @@
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "flake.nix flake.lock modules/M-02877 scripts/test-pi-decapod-gate.mjs .decapod/managed/specs",
+        "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
         "root"
       ],
-      "run_id": "branch_01M6RHPS8TK54BK3BC95H297J6",
+      "run_id": "branch_01M6RR32KG23GPYMXC048T790Y",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "todo_01m6rh",
+      "task_id": "bugs_01m6rr297476e1s0",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here"
+        "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
       ]
     }
   },

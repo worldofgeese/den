@@ -259,6 +259,8 @@
     home.file.".pi/agent/extensions/decapod-gate.ts".source = pkgs.replaceVars ./pi-decapod-gate.ts {
       pauseMarker = decapodPauseMarker;
       pauseRunner = "${decapodG5Runner}";
+      # The installed file itself: the extension hashes it at session start.
+      extensionFile = "${home}/.pi/agent/extensions/decapod-gate.ts";
     };
 
     home.activation = {

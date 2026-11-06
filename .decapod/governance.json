@@ -86,6 +86,11 @@
       "id": "gate-drain-6wx-final",
       "summary": "Bind the trajectory to its task as in den PR 124; plan approved",
       "input_digest": "sha256:f60d253b031a1dcdbaa8d5c7dfbfa5cb3348c679c9acbf7eddfe44dcb1986486"
+    },
+    {
+      "id": "gate-drain-6wx-validation",
+      "summary": "Record the validation of the drain barrier change",
+      "input_digest": "sha256:1d9e30068a11ccd78cb8ed9ca9a8250563bc25a4483149f1258a79e72bfcf1f2"
     }
   ],
   "intents": {
@@ -140,11 +145,15 @@
         "Current claimed task and isolated work branch",
         "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:718689736c26ea89646b5301873ca1e8d0b6e40fa73a17f2a10c932c76e882c4",
+      "artifact_hash": "sha256:b2c317dbccf74a79aab31bd59be6164d1558a5693ea51cbc82b8dfbdf506d082",
       "checks": [
         {
           "name": "darwin_system_build",
           "status": "passed"
+        },
+        {
+          "name": "decapod_validate",
+          "status": "partial"
         },
         {
           "name": "pi_decapod_gate_unit_tests",
@@ -179,10 +188,17 @@
             "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6RR32KG23GPYMXC048T790Y": {
@@ -229,6 +245,23 @@
                 "validation_findings": [
                   "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
                 ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure",
+                  "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted"
+                ],
+                "proof_refs": [
+                  "decapod_validate"
+                ],
+                "scope": [
+                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -239,7 +272,9 @@
       ],
       "destination": "pull request",
       "evidence": [
-        "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted"
+        "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted",
+        "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted",
+        "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
       ],
       "inspected_files": [
         "modules/M-02877/agent-integrations.nix",

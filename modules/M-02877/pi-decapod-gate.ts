@@ -114,6 +114,8 @@ export default function (pi) {
   // Messages gate one at a time in arrival order, so a later human prompt
   // clears only the blocks that came before it.
   let queue = Promise.resolve();
+  // Bumped on session_start; a gate that settles after a session switch is dropped.
+  let generation = 0;
 
   const record = (data) => {
     gated.add(data.key);
@@ -125,6 +127,7 @@ export default function (pi) {
   };
 
   pi.on("session_start", (_event, ctx) => {
+    generation++;
     blocked = undefined;
     gated.clear();
     queue = Promise.resolve();
@@ -154,14 +157,16 @@ export default function (pi) {
     const extensionSent = message.role === "user" && pendingExtensionInputs > 0;
     if (extensionSent) pendingExtensionInputs--;
     const { human, sender } = describe(message, extensionSent);
+    const mine = generation;
     queue = queue.then(async () => {
-      if (gated.has(key)) return;
+      if (mine !== generation || gated.has(key)) return;
       let result;
       try {
         result = await evaluate(root, text);
       } catch (error) {
         result = { allowed: false, status: `gate failed (${error?.message ?? error})` };
       }
+      if (mine !== generation) return;
       const { allowed, status } = result;
       const data = { key, sender, human, allowed, status };
       record(data);

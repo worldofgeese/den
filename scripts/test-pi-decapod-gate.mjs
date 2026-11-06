@@ -178,6 +178,20 @@ test("a failure while persisting a result keeps the gate working", async () => {
   assert.equal((await handlers.tool_call({}, ctx)).block, true);
 });
 
+test("a gate that settles after a session switch does not touch the new session", async () => {
+  useFakeDecapod();
+  const entries = [];
+  const s = load(join(project, "src"), entries);
+  s.receive(user("BLOCKME"));
+  assert.equal((await s.toolCall()).block, true);
+  s.receive(user("SLOWALLOW"));
+  s.resume();
+  // The replayed block survives; the old allowed human result arrives late and is dropped.
+  await new Promise((resolve) => setTimeout(resolve, 600));
+  assert.equal((await s.toolCall()).block, true);
+  assert.equal(entries.filter((entry) => entry.data.status === "allow").length, 0);
+});
+
 test("outside a Decapod project the extension never runs decapod", async () => {
   useFakeDecapod();
   const before = calls().length;

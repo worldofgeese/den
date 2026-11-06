@@ -27,6 +27,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rust-overlay.follows = "rust-overlay";
     };
+    # The evaluator of the Decapod cutover PAUSE route (G5): the only Decapod
+    # that the pi prompt-gate extension may run while the PAUSE marker exists
+    # (modules/M-02877/agent-integrations.nix). Pinned by full revision (0.121.2)
+    # and deliberately WITHOUT `follows`: the cutover moves the `decapod` input
+    # and the nightly `nix flake update` moves every floating input, and neither
+    # may change this one. Its own nixpkgs and rust-overlay lock nodes stay put.
+    # Changing it is a separate, checked transition.
+    decapod-g5.url = "github:DecapodLabs/decapod/3216d7170b80a350c5a8417c38dda9c5c4d8bb23";
     # The daemon that reviews our pull requests; its flake exposes
     # packages.default. The URL pins a release tag, so den keeps pinning
     # releases and flake.lock pins the revision and every hash.

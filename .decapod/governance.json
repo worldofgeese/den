@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "74f38cb2228c4797cf46a6448f5da97d19b96a64",
+    "accepted_commit": "86bc430beb8bf2514fc6b0eee5734cbf47c62f1c",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -54,24 +54,30 @@
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
+      "trajectory:bb7f2b410288c6ec": "Extension-sent user messages are identified by arrival order, best effort and fail safe",
       "trajectory:dbf928a616b74bec": "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent",
+      "trajectory:ea8d12aa7cc7885a": "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides",
       "trajectory:fdec2beaf29b30d0": "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the merge. Without root.jwe the paphos upgrade build fails and alerts nixos-upgrade-failed; the running system stays unchanged."
     }
   },
   "change": {
-    "id": "change_01M6QZF803MWCJJFXCNN32E72Z",
-    "base_commit": "74f38cb2228c4797cf46a6448f5da97d19b96a64",
+    "id": "change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
+    "base_commit": "86bc430beb8bf2514fc6b0eee5734cbf47c62f1c",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "gate-ext-1",
-      "summary": "pi extension runs the Decapod prompt gate before tool calls; installed via agent-integrations.nix; unit tests; ARCHITECTURE spec",
-      "input_digest": "sha256:6bb7b0b3d7c99fe58b16c788787ce0a921096122a3280724c44e51139ba87e39"
+      "id": "sf3-g5-override",
+      "summary": "PAUSE override: pinned isolated G5 evaluator, baked marker and runner paths, tests, spec update",
+      "input_digest": "sha256:e4c775af510eb44bfbed86e6f37599e2a18857d0905d2ea4e22923a50bedd6ad",
+      "proof_refs": [
+        "just check-pi-decapod-gate: 22 pass",
+        "nix build .#darwinConfigurations.M-02877.system"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M6QZF803MWCJJFXCNN32E72Z": {
+    "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -81,11 +87,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+      "id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-cai: pi extension decapod prompt gate before tool calls",
-      "refined_intent": "home-manager-cai: pi extension decapod prompt gate before tool calls",
+      "raw_intent": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
+      "refined_intent": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -93,140 +99,115 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": null,
+        "file_touch_budget": 20,
         "forbidden_paths": [
-          "modules/M-02877/darwin.nix"
+          ".github/"
         ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "A pi extension, installed through home-manager, runs decapod eval on every incoming message in Decapod projects and blocks tool calls while a message is not allowed",
+      "intent": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
       "phases": [],
       "proof_hooks": [
-        "node --test scripts/test-pi-decapod-gate.mjs",
-        "nix build .#darwinConfigurations.M-02877.system",
-        "decapod validate"
+        "just check-pi-decapod-gate",
+        "nix build .#darwinConfigurations.M-02877.system"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Run the Decapod prompt gate automatically before tool calls (home-manager-cai)",
+      "title": "home-manager-sf3: decapod-gate PAUSE override via pinned isolated G5 evaluator",
       "todo_ids": [
-        "code_01m6qw44ype2z98g"
+        "code_01m6rhnzfy36d2yr"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793953632Z"
+      "updated_at": "1793974141Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "PAUSE override of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:c1b81e19a95db7459127e0c558b830be22c885d1be4ba9c172a22d789165cd87",
+      "artifact_hash": "sha256:240b7b79d2479cfde519a5e17b838334cf6fb6d44ff09587872b456c55550db8",
       "checks": [
         {
-          "name": "darwin-build",
+          "name": "darwin_system_build",
           "status": "passed"
         },
         {
-          "name": "decapod eval task-38.md and task-25.md",
+          "name": "flake_update_leaves_evaluator_unchanged",
           "status": "passed"
         },
         {
-          "name": "decapod-validate-87840cd",
-          "status": "failed"
-        },
-        {
-          "name": "node --test scripts/test-pi-decapod-gate.mjs",
+          "name": "pi_decapod_gate_unit_tests",
           "status": "passed"
         },
         {
-          "name": "unit-tests",
+          "name": "runner_allow_and_sandbox_control",
           "status": "passed"
         }
       ],
-      "current_phase": "publish-with-human-override",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6QZF827YS2XYZBX04YTQD2Y",
+            "detail": "trajectory:branch_01M6RHPS8TK54BK3BC95H297J6",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6QZF827YS2XYZBX04YTQD2Y",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6QZF827YS2XYZBX04YTQD2Y": {
+          "branch_01M6RHPS8TK54BK3BC95H297J6": {
             "evidence_only": true,
-            "id": "branch_01M6QZF827YS2XYZBX04YTQD2Y",
-            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+            "id": "branch_01M6RHPS8TK54BK3BC95H297J6",
+            "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
             "steps": [
               {
-                "action": "publish-with-human-override",
-                "command": "node --test scripts/test-pi-decapod-gate.mjs",
+                "action": "implementation",
+                "command": "nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs",
                 "custody_event_id": "event:4",
                 "observations": [
                   "modules/M-02877/pi-decapod-gate.ts",
                   "modules/M-02877/agent-integrations.nix",
                   "scripts/test-pi-decapod-gate.mjs",
-                  "plain decapod validate on 87840cd fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+                  "flake.nix",
+                  "flake.nix",
+                  "flake.lock",
+                  "modules/M-02877/agent-integrations.nix",
+                  "modules/M-02877/pi-decapod-gate.ts",
+                  "scripts/test-pi-decapod-gate.mjs",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "22/22 node tests pass; M-02877 system /nix/store/0qkjl7pbp20a7rna1gklh0h36da1jfyv-darwin-system-26.11.ff0e21a contains evaluator 5fqifajaikv42fn5812mclfmxxdbpqr6-decapod-0.121.2 and runner vgfyhd68ps9pnvq5rgp2gxlk627s63w3-decapod-gate-g5"
                 ],
                 "proof_refs": [
-                  "unit-tests",
-                  "darwin-build",
-                  "decapod-validate-87840cd"
+                  "pi_decapod_gate_unit_tests",
+                  "darwin_system_build",
+                  "runner_allow_and_sandbox_control",
+                  "flake_update_leaves_evaluator_unchanged"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides"
-                ]
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "modules/M-02877/pi-decapod-gate.ts",
-                  "scripts/test-pi-decapod-gate.mjs",
-                  "Justfile",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  "AC6 resolved: Crew specs reworded, task-38.md and task-25.md evaluate to allow; the sudo-phrase gap stays documented"
-                ],
-                "proof_refs": [
-                  "node --test scripts/test-pi-decapod-gate.mjs",
-                  "decapod eval task-38.md and task-25.md"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": [
-                  "Extension-sent user messages are identified by arrival order, best effort and fail safe"
+                  "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here"
                 ]
               }
             ]
@@ -234,19 +215,25 @@
         }
       },
       "declared_commands": [
-        "nix build .#darwinConfigurations.M-02877.system",
-        "node --test scripts/test-pi-decapod-gate.mjs"
+        "nix build .#darwinConfigurations.M-02877.system --no-link",
+        "nix flake update (scratch copy)",
+        "nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs"
       ],
       "destination": "pull request",
       "evidence": [
-        "AC6 resolved: Crew specs reworded, task-38.md and task-25.md evaluate to allow; the sudo-phrase gap stays documented",
-        "plain decapod validate on 87840cd fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+        "22/22 node tests pass; M-02877 system /nix/store/0qkjl7pbp20a7rna1gklh0h36da1jfyv-darwin-system-26.11.ff0e21a contains evaluator 5fqifajaikv42fn5812mclfmxxdbpqr6-decapod-0.121.2 and runner vgfyhd68ps9pnvq5rgp2gxlk627s63w3-decapod-gate-g5"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+      "inspected_files": [
+        "flake.nix",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/pi-decapod-gate.ts",
+        "scripts/test-pi-decapod-gate.mjs"
+      ],
+      "intent_id": "intent:change_01M6RHPS6HYGYQB4JCNTJW2Y5T",
       "modified_files": [
         ".decapod/managed/specs/ARCHITECTURE.md",
-        "Justfile",
+        "flake.lock",
+        "flake.nix",
         "modules/M-02877/agent-integrations.nix",
         "modules/M-02877/pi-decapod-gate.ts",
         "scripts/test-pi-decapod-gate.mjs"
@@ -255,16 +242,16 @@
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
+        "flake.nix flake.lock modules/M-02877 scripts/test-pi-decapod-gate.mjs .decapod/managed/specs",
         "root"
       ],
-      "run_id": "branch_01M6QZF827YS2XYZBX04YTQD2Y",
+      "run_id": "branch_01M6RHPS8TK54BK3BC95H297J6",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6qw44ype2z98g",
+      "task_id": "code_01m6rhnzfy36d2yr",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "Extension-sent user messages are identified by arrival order, best effort and fail safe",
-        "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides"
+        "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here"
       ]
     }
   },

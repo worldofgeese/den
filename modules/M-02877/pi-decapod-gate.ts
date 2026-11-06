@@ -15,10 +15,18 @@
 // the last clear was not allowed. An allowed human prompt clears the block: it
 // is the human review that the contract asks for.
 //
+// Decapod cutover PAUSE: while the marker file exists, the evaluation runs ONLY
+// the pinned, isolated G5 runner, by its absolute store path, with an empty
+// environment (no PATH) and not in the project root. There is no fallback to
+// the `decapod` on PATH. Marker and runner are baked in at build time
+// (modules/M-02877/agent-integrations.nix); no runtime environment variable
+// can redirect them, because that would be a bypass. A marker that cannot be
+// read, or a runner that is missing, fails closed.
+//
 // Plain JavaScript on purpose, so node can run the test without a build step.
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const ENTRY_TYPE = "decapod-gate";
@@ -34,6 +42,20 @@ function decapodRoot(cwd) {
   }
 }
 
+// Substituted by agent-integrations.nix. Tests call `gate` with their own paths.
+const BAKED = { pauseMarker: "@pauseMarker@", pauseRunner: "@pauseRunner@" };
+
+// True while the cutover PAUSE marker exists. Only a missing marker means "not
+// paused"; any other failure to look (permissions, I/O) counts as paused.
+function paused(marker) {
+  try {
+    lstatSync(marker);
+    return true;
+  } catch (error) {
+    return error?.code !== "ENOENT";
+  }
+}
+
 function textOf(content) {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return "";
@@ -43,8 +65,9 @@ function textOf(content) {
     .join("\n");
 }
 
-// Resolves to { allowed, status }; never rejects.
-function evaluate(root, text) {
+// Resolves to { allowed, status }; never rejects. `run` is { command, args,
+// options } for child_process.spawn.
+function evaluate(run, text) {
   return new Promise((resolve) => {
     let out = "";
     let settled = false;
@@ -57,10 +80,7 @@ function evaluate(root, text) {
     };
     let child;
     try {
-      child = spawn("decapod", ["eval", "--stdin", "--format", "json"], {
-        cwd: root,
-        stdio: ["pipe", "pipe", "ignore"],
-      });
+      child = spawn(run.command, run.args, { ...run.options, stdio: ["pipe", "pipe", "ignore"] });
     } catch (error) {
       return finish({ allowed: false, status: `decapod did not start (${error.code ?? error.message})` });
     }
@@ -100,7 +120,12 @@ function describe(message, extensionSent) {
   };
 }
 
+// What pi calls: the build-time paths.
 export default function (pi) {
+  return gate(pi, BAKED);
+}
+
+export function gate(pi, { pauseMarker, pauseRunner }) {
   // The latest message that was not allowed since the last clear.
   let blocked;
   // Keys of messages that already have a persisted result.
@@ -162,7 +187,15 @@ export default function (pi) {
       if (mine !== generation || gated.has(key)) return;
       let result;
       try {
-        result = await evaluate(root, text);
+        // Checked on every evaluation, so RESUME takes effect at once.
+        const run = paused(pauseMarker)
+          ? { command: pauseRunner, args: [], options: { cwd: "/", env: {} } }
+          : {
+              command: "decapod",
+              args: ["eval", "--stdin", "--format", "json"],
+              options: { cwd: root },
+            };
+        result = await evaluate(run, text);
       } catch (error) {
         result = { allowed: false, status: `gate failed (${error?.message ?? error})` };
       }

@@ -81,6 +81,11 @@
       "id": "gate-drain-6wx-rebind",
       "summary": "Bind the trajectory to the full task id",
       "input_digest": "sha256:0e8cc7ac7a3113b1ea7fd397465a1c1f32077da96644ecbcf6415e972e972bf8"
+    },
+    {
+      "id": "gate-drain-6wx-final",
+      "summary": "Bind the trajectory to its task as in den PR 124; plan approved",
+      "input_digest": "sha256:f60d253b031a1dcdbaa8d5c7dfbfa5cb3348c679c9acbf7eddfe44dcb1986486"
     }
   ],
   "intents": {
@@ -128,14 +133,14 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793979763Z"
+      "updated_at": "1793980909Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
         "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
       ],
-      "artifact_hash": "sha256:4c8979d217fddfc52819a293c5a8ffb178fc84f9b39ccdd8349b2a4d663b111a",
+      "artifact_hash": "sha256:718689736c26ea89646b5301873ca1e8d0b6e40fa73a17f2a10c932c76e882c4",
       "checks": [
         {
           "name": "darwin_system_build",
@@ -258,7 +263,7 @@
       "run_id": "branch_01M6RR32KG23GPYMXC048T790Y",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bugs_01m6rr297476e1s0",
+      "task_id": "todo_01m6rr",
       "tool_calls": [],
       "unresolved_assumptions": [
         "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"

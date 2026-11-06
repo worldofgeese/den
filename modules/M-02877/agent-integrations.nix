@@ -229,6 +229,10 @@
       skills = ["-${home}/.agents/skills/research"];
     };
 
+    # Runs the Decapod prompt safety gate before tool calls in Decapod
+    # projects, so the agent need not run it by hand. Only pi has extensions.
+    home.file.".pi/agent/extensions/decapod-gate.ts".source = ./pi-decapod-gate.ts;
+
     home.activation = {
       # `signet connect pi` writes the team Signet key into the header of the
       # extension that it generates, with mode 0644 under 0755 directories, so

@@ -275,6 +275,7 @@ check: install-hooks
     just check-fmt
     just check-shellcheck
     just check-decapod-overrides
+    just check-pi-decapod-gate
 
 # Prove the project overrides in .decapod/OVERRIDE.md are actually loaded.
 #
@@ -290,6 +291,13 @@ check: install-hooks
 # The Dagger check ci:decapod-overrides runs the same script.
 check-decapod-overrides:
     ./scripts/check-decapod-overrides.sh
+
+# Unit tests for the pi extension that runs the Decapod prompt gate
+# (modules/M-02877/pi-decapod-gate.ts). The test imports the .ts file directly,
+# which needs Node with built-in type stripping (22.18 or newer); nixpkgs' node
+# has it.
+check-pi-decapod-gate:
+    nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs
 
 # Regenerate the Decapod entrypoint projections after a Decapod upgrade.
 # `decapod init with --force` resets `external_tracker` and `[tracker] provider`

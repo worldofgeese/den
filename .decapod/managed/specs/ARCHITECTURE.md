@@ -54,7 +54,34 @@ This project's architecture consists of the following key layers/directories:
   the `signet-auto-curator` launchd agent (the memory curator's auto pass every
   600 s), and the session environment that points Signet clients at the
   personal Signet. The team pool is reached only by the curator and by a shell
-  with `SIGNET_STORE=team`.
+  with `SIGNET_STORE=team`. It also installs the pi extension
+  `~/.pi/agent/extensions/decapod-gate.ts` (source
+  `modules/M-02877/pi-decapod-gate.ts`, test `scripts/test-pi-decapod-gate.mjs`).
+  In a project whose nearest ancestor root has `.decapod/`, the extension runs
+  `decapod eval --stdin --format json` in that root on every incoming message
+  (human prompt or custom message, also one steered into a running turn).
+  Only exit 0 with `status: allow` passes; a block, a failure, unparsable
+  output or a 20 s timeout fails closed. Every `tool_call` waits for the
+  gating of all messages received so far and returns `{ block: true, reason }`
+  while a message since the last clear was not allowed. A later allowed human
+  prompt clears the block. Results persist with `pi.appendEntry` (`decapod-gate`),
+  so a resumed session keeps an open block and does not gate old messages again.
+  Once per run it adds a system-prompt section that tells the agent to skip the
+  manual gate of AGENTS.md. Outside a Decapod project it does nothing.
+  A user message sent by an extension is told apart from a human prompt by
+  arrival order (one pending `input` event with source `extension` per such
+  message), because pi expands skills and templates after `input` and the text
+  no longer matches. This is best effort and fails safe: if another handler
+  swallows an extension input, a later human prompt is treated as extension-sent
+  and cannot clear a block. Before each tool call the extension drains the gate
+  queue until no newer message is waiting.
+  Known gap: `decapod eval` flags benign `sudo <word>` phrasing as unsafe
+  execution (`prompt_injection.unsafe_execution`), so a message that contains
+  it stops tool calls until an allowed human prompt clears it. This is the
+  contract's intended behaviour and the gate is not weakened. The Crew task
+  specs under `.pi/messenger/crew/tasks` were reworded, and `task-38.md` and
+  `task-25.md` now evaluate to `allow`. The unit test runs in `just check`
+  (`check-pi-decapod-gate`).
 - `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
   `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
   module together. The launcher clears Guix's Emacs load-path variables.
@@ -489,7 +516,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e2ab71ba07bbc746d7c581071c8ecab1981692396d1ef54de2252a73b26f8e6a`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `0c7a2343c2a105be16bfa9a4046edbc84e8a93f3e7cb13793f03e9cdcc914a16`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

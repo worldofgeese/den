@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "3a5429d1f39016364188acc988b2f7d1d4e96807",
+    "accepted_commit": "74f38cb2228c4797cf46a6448f5da97d19b96a64",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -59,29 +59,19 @@
     }
   },
   "change": {
-    "id": "change_01M6QW7S3BBRQV6SCGWDH7C6CE",
-    "base_commit": "3a5429d1f39016364188acc988b2f7d1d4e96807",
+    "id": "change_01M6QZF803MWCJJFXCNN32E72Z",
+    "base_commit": "74f38cb2228c4797cf46a6448f5da97d19b96a64",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "darwin-switch-lock",
-      "summary": "just deploy-darwin holds /tmp/den-darwin-switch.lock (lockf -k -t 0) from cask-app-preflight through darwin-rebuild switch; docs updated",
-      "input_digest": "sha256:4fc78a1b07c6ccd2dee0060d6d50a218b76ef3e51c49a68d348e3bef29442901"
-    },
-    {
-      "id": "darwin-switch-lock-plan",
-      "summary": "plan approved; lock proof recorded",
-      "input_digest": "sha256:70b6b3904be85f74412ec2eb414e47022fe52824753c01a9bfbbcfd48486decd"
-    },
-    {
-      "id": "darwin-switch-lock-validate",
-      "summary": "validation of the darwin switch lock: only DecapodLabs/decapod#1474 fails",
-      "input_digest": "sha256:5462ebb7a3b3ebb9e25c18ef1fff3e70df5829837906c1e011c0131a24443018"
+      "id": "gate-ext-1",
+      "summary": "pi extension runs the Decapod prompt gate before tool calls; installed via agent-integrations.nix; unit tests; ARCHITECTURE spec",
+      "input_digest": "sha256:6bb7b0b3d7c99fe58b16c788787ce0a921096122a3280724c44e51139ba87e39"
     }
   ],
   "intents": {
-    "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE": {
+    "intent:change_01M6QZF803MWCJJFXCNN32E72Z": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -91,11 +81,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+      "id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
-      "refined_intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
+      "raw_intent": "home-manager-cai: pi extension decapod prompt gate before tool calls",
+      "refined_intent": "home-manager-cai: pi extension decapod prompt gate before tool calls",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -105,155 +95,72 @@
       "constraints": {
         "file_touch_budget": null,
         "forbidden_paths": [
-          "nothing"
+          "modules/M-02877/darwin.nix"
         ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
+      "intent": "A pi extension, installed through home-manager, runs decapod eval on every incoming message in Decapod projects and blocks tool calls while a message is not allowed",
       "phases": [],
       "proof_hooks": [
-        "overlap stand-in: second /usr/bin/lockf -k -t 0 run exits 75",
-        "just --show deploy-darwin: sudo -H darwin-rebuild switch stays direct"
+        "node --test scripts/test-pi-decapod-gate.mjs",
+        "nix build .#darwinConfigurations.M-02877.system",
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Lock the darwin switch so two deploys cannot overlap (home-manager-alo)",
+      "title": "Run the Decapod prompt gate automatically before tool calls (home-manager-cai)",
       "todo_ids": [
-        "cicd_01m6qw3x5w1nfc6q"
+        "code_01m6qw44ype2z98g"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793950538Z"
+      "updated_at": "1793953632Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:a3ed46a529a19c245a86408e76b07f0d87a6e1c244b73199fb2ad2d340cd48ec",
-      "checks": [
-        {
-          "name": "decapod-validate-e91e680",
-          "status": "failed"
-        },
-        {
-          "name": "just-check",
-          "status": "passed"
-        },
-        {
-          "name": "just-show-sudo-direct",
-          "status": "passed"
-        },
-        {
-          "name": "lockf-overlap-standin",
-          "status": "passed"
-        }
-      ],
-      "current_phase": "publish-with-human-override",
+      "artifact_hash": "sha256:2c0d7cabba558e2f0832dfb4e0cad589d494bfc7a89933b895b656dac092f543",
+      "checks": [],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+            "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:branch_01M6QW7S5HHP3HTBY5BB2W03H3",
-            "event_id": "event:4",
-            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6QW7S5HHP3HTBY5BB2W03H3",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 3,
         "schema_version": "1.0.0",
-        "trajectories": {
-          "branch_01M6QW7S5HHP3HTBY5BB2W03H3": {
-            "evidence_only": true,
-            "id": "branch_01M6QW7S5HHP3HTBY5BB2W03H3",
-            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
-            "steps": [
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:4",
-                "observations": [
-                  "Justfile",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "Justfile",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/INTERFACES.md"
-                ],
-                "proof_refs": [
-                  "lockf-overlap-standin",
-                  "just-show-sudo-direct"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "publish-with-human-override",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "plain decapod validate on e91e680 fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
-                ],
-                "proof_refs": [
-                  "decapod-validate-e91e680",
-                  "just-check"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "plain decapod validate on e91e680 fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
-      ],
-      "inspected_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "Justfile"
-      ],
-      "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
-      "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/OPERATIONS.md",
-        "Justfile"
-      ],
+      "evidence": [],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M6QZF803MWCJJFXCNN32E72Z",
+      "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M6QW7S5HHP3HTBY5BB2W03H3",
+      "run_id": "branch_01M6QZF827YS2XYZBX04YTQD2Y",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m6qw3x5w1nfc6q",
+      "task_id": "code_01m6qw44ype2z98g",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -73,6 +73,11 @@
       "id": "darwin-switch-lock-plan",
       "summary": "plan approved; lock proof recorded",
       "input_digest": "sha256:70b6b3904be85f74412ec2eb414e47022fe52824753c01a9bfbbcfd48486decd"
+    },
+    {
+      "id": "darwin-switch-lock-validate",
+      "summary": "validation of the darwin switch lock: only DecapodLabs/decapod#1474 fails",
+      "input_digest": "sha256:5462ebb7a3b3ebb9e25c18ef1fff3e70df5829837906c1e011c0131a24443018"
     }
   ],
   "intents": {
@@ -126,8 +131,16 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:1b5e1a3f605ce5bad715bf64f4c795d16407fc73593b93135df5e1bae2e9323d",
+      "artifact_hash": "sha256:a3ed46a529a19c245a86408e76b07f0d87a6e1c244b73199fb2ad2d340cd48ec",
       "checks": [
+        {
+          "name": "decapod-validate-e91e680",
+          "status": "failed"
+        },
+        {
+          "name": "just-check",
+          "status": "passed"
+        },
         {
           "name": "just-show-sudo-direct",
           "status": "passed"
@@ -137,7 +150,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -158,10 +171,17 @@
             "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6QW7S5HHP3HTBY5BB2W03H3",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6QW7S3BBRQV6SCGWDH7C6CE",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6QW7S5HHP3HTBY5BB2W03H3": {
@@ -188,6 +208,22 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "plain decapod validate on e91e680 fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+                ],
+                "proof_refs": [
+                  "decapod-validate-e91e680",
+                  "just-check"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -195,7 +231,9 @@
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "plain decapod validate on e91e680 fails only on publication_readiness (DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure"
+      ],
       "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",
         "Justfile"

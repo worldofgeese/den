@@ -78,8 +78,29 @@ This project's architecture consists of the following key layers/directories:
   Decapod cutover PAUSE: while the marker file
   `/Users/dktaohan/.local/state/den/decapod-pause` exists, every evaluation runs
   only the G5 runner and never the `decapod` on PATH. The marker is checked on
-  each evaluation, so RESUME (removing it) takes effect at once; a marker that
-  cannot be checked counts as present. The runner is the Nix-built
+  each evaluation, so RESUME (removing it) takes effect at once. Only ENOENT
+  means the normal route and an existing marker means only G5; any other error
+  while inspecting it (EACCES, EIO, ELOOP, ENOTDIR) BLOCKS that evaluation with a
+  status naming the error and selects neither route. Each evaluation is
+  recorded as pending with its route (normal, g5 or blocked) at the moment the
+  route is chosen, before any spawn, and as settled when it ends, including a
+  timeout or spawn error, and only after its process has exited (a timeout kills the
+  child and the evaluation stays pending until the exit is seen); both persist as `decapod-gate` entries (`pending`,
+  `result`). Session start appends a `revision` entry (the runner store path
+  plus the SHA-256 of the installed extension file, baked in as
+  `extensionFile`). The hash is taken once, when the code loads, so a session
+  started later in the same process after a deploy still names the code that is
+  running. The read-only tool `decapod_gate_status` returns the same
+  revision, the marker state (absent, present, error), the pending normal-route
+  evaluations (count and start times), the latest evaluation and whether a
+  G5-route evaluation settled since the session first saw the marker. That is
+  the drain barrier the PAUSE acknowledgement quotes: the revision, one settled
+  G5 evaluation after the marker, and 0 pending normal-route evaluations. The
+  pending map is per pi process, so the barrier covers only the process that
+  answers; it says nothing about other pi processes in the same project. The
+  status tool is exempt from the `tool_call` drain and block, so it answers
+  while an evaluation is pending or the gate is blocked. The
+  runner is the Nix-built
   `decapod-gate-g5` script, the immutable form of BrightQuartz's reviewed
   `~/.cache/pi-dktaohan/decapod-gate.sh`. It calls `/usr/bin/sandbox-exec`,
   `/usr/bin/env` and coreutils by absolute path and runs the Decapod 0.121.2
@@ -88,9 +109,12 @@ This project's architecture consists of the following key layers/directories:
   temporary directory with a minimal environment and a sandbox that denies the
   den repository and all writes under the home directory. The extension is
   installed through `pkgs.replaceVars`, which bakes the marker and runner store
-  paths in; no environment variable can redirect them. A missing runner, a
+  paths and the installed file's own path in; no environment variable can
+  redirect them. A missing runner, a
   failure, a non-zero exit, invalid output or a timeout blocks. Tests inject
-  both paths as arguments of the exported `gate(pi, { pauseMarker, pauseRunner })`.
+  the paths, and a `spawn` function and `timeoutMs` to delay the spawn and shorten
+  the wait, as arguments of the exported
+  `gate(pi, { pauseMarker, pauseRunner, extensionFile, spawn, timeoutMs })`.
   Known gap: `decapod eval` flags benign `sudo <word>` phrasing as unsafe
   execution (`prompt_injection.unsafe_execution`), so a message that contains
   it stops tool calls until an allowed human prompt clears it. This is the
@@ -532,7 +556,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e3325781f4b38d64d9c9246e6ab594a726ff9efcef3826947f865ebb4011a506`
+- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

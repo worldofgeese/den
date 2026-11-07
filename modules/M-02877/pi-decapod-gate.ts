@@ -21,16 +21,34 @@
 // the `decapod` on PATH. Marker and runner are baked in at build time
 // (modules/M-02877/agent-integrations.nix); no runtime environment variable
 // can redirect them, because that would be a bypass. A marker that cannot be
-// read, or a runner that is missing, fails closed.
+// read, or a runner that is missing, fails closed: an error other than "no such
+// file" while inspecting the marker BLOCKS that evaluation. It selects neither
+// the PATH decapod nor the G5 runner.
 //
+// Drain barrier for the cutover: every evaluation is recorded as pending, with
+// its route, at the moment the route is chosen and before anything is spawned,
+// and recorded as settled when it ends (also on timeout or spawn error), which
+// is after its process has exited. The
+// read-only tool `decapod_gate_status` reports the extension revision, the
+// marker state, the pending normal-route evaluations and whether a G5-route
+// evaluation settled since this session first saw the marker. The revision
+// (runner store path plus SHA-256 of the installed extension file) is also
+// appended as a `decapod-gate` entry at session start; it is fixed when the
+// code loads, so it names the code that is running, not the file on disk now.
+// The status tool is exempt from the tool_call drain and block, so it answers
+// while an evaluation is pending or the gate is blocked.
+//
+
 // Plain JavaScript on purpose, so node can run the test without a build step.
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+
 
 const ENTRY_TYPE = "decapod-gate";
 const GATE_TIMEOUT_MS = 20_000;
+const STATUS_TOOL = "decapod_gate_status";
 const PROMPT_LINE =
   "The Decapod prompt safety gate runs automatically: an extension evaluates every incoming message with `decapod eval` before any tool call. Do not run the manual gate from AGENTS.md. If a tool call is blocked by the gate, stop and ask the human to review.";
 
@@ -42,18 +60,36 @@ function decapodRoot(cwd) {
   }
 }
 
-// Substituted by agent-integrations.nix. Tests call `gate` with their own paths.
-const BAKED = { pauseMarker: "@pauseMarker@", pauseRunner: "@pauseRunner@" };
+// Substituted by agent-integrations.nix. Tests call `gate` with their own values.
+const BAKED = {
+  pauseMarker: "@pauseMarker@",
+  pauseRunner: "@pauseRunner@",
+  extensionFile: "@extensionFile@",
+};
 
-// True while the cutover PAUSE marker exists. Only a missing marker means "not
-// paused"; any other failure to look (permissions, I/O) counts as paused.
-function paused(marker) {
+// Only a missing marker means "not paused" (absent). An existing marker is
+// "present". Any other failure to look (permissions, I/O, a loop in the path)
+// is "error": the caller must block, not guess.
+function inspectMarker(marker) {
   try {
     lstatSync(marker);
-    return true;
+    return { state: "present" };
   } catch (error) {
-    return error?.code !== "ENOENT";
+    if (error?.code === "ENOENT") return { state: "absent" };
+    return { state: "error", error: String(error?.code ?? error?.message ?? error) };
   }
+}
+
+// The revision that answers for this process: which runner it pins and which
+// extension bytes were installed when the session started.
+function readRevision(pauseRunner, extensionFile) {
+  let extensionSha256;
+  try {
+    extensionSha256 = createHash("sha256").update(readFileSync(extensionFile)).digest("hex");
+  } catch (error) {
+    extensionSha256 = `unreadable (${error?.code ?? error?.message ?? error})`;
+  }
+  return { runner: pauseRunner, extensionSha256 };
 }
 
 function textOf(content) {
@@ -66,44 +102,68 @@ function textOf(content) {
 }
 
 // Resolves to { allowed, status }; never rejects. `run` is { command, args,
-// options } for child_process.spawn.
-function evaluate(run, text) {
+// options } for `spawnFn` (child_process.spawn; its result may be a promise, which
+// is how tests delay the spawn). The timeout covers the spawn too.
+//
+// The promise settles only once the child is gone (or never existed), also after a
+// timeout: the caller drops the evaluation from "pending" when this resolves, and
+// the drain barrier must not report 0 pending while a normal-route process is alive.
+function evaluate(run, text, spawnFn, timeoutMs) {
   return new Promise((resolve) => {
     let out = "";
-    let settled = false;
-    let timer;
-    const finish = (result) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve(result);
-    };
+    let verdict;
     let child;
-    try {
-      child = spawn(run.command, run.args, { ...run.options, stdio: ["pipe", "pipe", "ignore"] });
-    } catch (error) {
-      return finish({ allowed: false, status: `decapod did not start (${error.code ?? error.message})` });
-    }
-    timer = setTimeout(() => {
-      child.kill("SIGKILL");
-      finish({ allowed: false, status: `decapod eval timed out after ${GATE_TIMEOUT_MS / 1000}s` });
-    }, GATE_TIMEOUT_MS);
-    child.on("error", (error) =>
-      finish({ allowed: false, status: `decapod did not run (${error.code ?? error.message})` }),
-    );
-    child.stdin.on("error", () => {});
-    child.stdout.on("data", (chunk) => (out += chunk));
-    child.on("close", (code) => {
-      let status;
-      try {
-        status = JSON.parse(out).status;
-      } catch {
-        return finish({ allowed: false, status: `unparsable decapod eval output (exit ${code})` });
-      }
-      if (code !== 0) return finish({ allowed: false, status: `${status ?? "no status"}, exit ${code}` });
-      finish({ allowed: status === "allow", status: String(status) });
-    });
-    child.stdin.end(text);
+    let childGone = false;
+    let spawnDone = false;
+    const settle = () => {
+      if (verdict && spawnDone && (!child || childGone)) resolve(verdict);
+    };
+    const decide = (result) => {
+      if (verdict) return;
+      verdict = result;
+      clearTimeout(timer);
+      settle();
+    };
+    const timer = setTimeout(() => {
+      child?.kill("SIGKILL");
+      decide({ allowed: false, status: `decapod eval timed out after ${timeoutMs / 1000}s` });
+    }, timeoutMs);
+    const started = (spawned) => {
+      child = spawned;
+      child.on("exit", () => {
+        childGone = true;
+        settle();
+      });
+      child.on("error", (error) => {
+        childGone = true;
+        decide({ allowed: false, status: `decapod did not run (${error.code ?? error.message})` });
+      });
+      // A spawn that finished after the verdict (timeout) is killed at once.
+      if (verdict) return void child.kill("SIGKILL");
+      child.stdin.on("error", () => {});
+      child.stdout.on("data", (chunk) => (out += chunk));
+      child.on("close", (code) => {
+        let status;
+        try {
+          status = JSON.parse(out).status;
+        } catch {
+          return decide({ allowed: false, status: `unparsable decapod eval output (exit ${code})` });
+        }
+        if (code !== 0) return decide({ allowed: false, status: `${status ?? "no status"}, exit ${code}` });
+        decide({ allowed: status === "allow", status: String(status) });
+      });
+      child.stdin.end(text);
+    };
+    Promise.resolve()
+      .then(() => spawnFn(run.command, run.args, { ...run.options, stdio: ["pipe", "pipe", "ignore"] }))
+      .then(started)
+      .catch((error) =>
+        decide({ allowed: false, status: `decapod did not start (${error?.code ?? error?.message})` }),
+      )
+      .finally(() => {
+        spawnDone = true;
+        settle();
+      });
   });
 }
 
@@ -125,7 +185,10 @@ export default function (pi) {
   return gate(pi, BAKED);
 }
 
-export function gate(pi, { pauseMarker, pauseRunner }) {
+export function gate(
+  pi,
+  { pauseMarker, pauseRunner, extensionFile, spawn: spawnFn = spawn, timeoutMs = GATE_TIMEOUT_MS },
+) {
   // The latest message that was not allowed since the last clear.
   let blocked;
   // Keys of messages that already have a persisted result.
@@ -141,6 +204,59 @@ export function gate(pi, { pauseMarker, pauseRunner }) {
   let queue = Promise.resolve();
   // Bumped on session_start; a gate that settles after a session switch is dropped.
   let generation = 0;
+  // Evaluations between choosing a route and settling. Process-wide on purpose:
+  // an evaluation that outlives a session switch still counts until it ends.
+  const pending = new Map();
+  let nextEvaluationId = 0;
+  // Fixed when this code is loaded: pi can start further sessions (/new, /resume,
+  // fork) in the same process after a deploy replaced the file, and those still
+  // run THIS code, so they must report this hash.
+  const revision = readRevision(pauseRunner, extensionFile);
+  // Per session (reset on session_start).
+  let lastEvaluation;
+  let markerFirstSeenAt;
+  let lastG5SettledAt;
+
+  // Every look at the marker goes through here, so "first saw it" is exact.
+  const inspect = () => {
+    const marker = inspectMarker(pauseMarker);
+    if (marker.state === "present") markerFirstSeenAt ??= Date.now();
+    else if (marker.state === "absent") markerFirstSeenAt = undefined;
+    return marker;
+  };
+
+  const persist = (data) => {
+    try {
+      pi.appendEntry(ENTRY_TYPE, data);
+    } catch {
+      // The in-memory state already counts; persisting must not break the chain.
+    }
+  };
+
+  const gateStatus = () => {
+    const normal = [...pending.values()].filter((entry) => entry.route === "normal");
+    return {
+      revision,
+      marker: inspect(),
+      pendingNormal: { count: normal.length, startedAt: normal.map((entry) => entry.startedAt) },
+      lastEvaluation: lastEvaluation ?? null,
+      g5SettledSinceMarkerSeen:
+        markerFirstSeenAt !== undefined && lastG5SettledAt !== undefined && lastG5SettledAt >= markerFirstSeenAt,
+    };
+  };
+
+  pi.registerTool({
+    name: STATUS_TOOL,
+    label: "Decapod gate status",
+    description:
+      "Read-only. Reports the Decapod prompt gate extension revision, the PAUSE marker state, the pending normal-route evaluations, the most recent evaluation, and whether a G5-route evaluation settled since this session first saw the marker.",
+    parameters: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    async execute() {
+      const report = gateStatus();
+      return { content: [{ type: "text", text: JSON.stringify(report, null, 2) }], details: report };
+    },
+  });
 
   const record = (data) => {
     gated.add(data.key);
@@ -157,6 +273,10 @@ export function gate(pi, { pauseMarker, pauseRunner }) {
     gated.clear();
     queue = Promise.resolve();
     pendingExtensionInputs = 0;
+    lastEvaluation = undefined;
+    markerFirstSeenAt = undefined;
+    lastG5SettledAt = undefined;
+    persist({ kind: "revision", ...revision, at: new Date().toISOString() });
     for (const entry of ctx.sessionManager.getBranch()) {
       if (entry.type === "custom" && entry.customType === ENTRY_TYPE && entry.data?.key) record(entry.data);
     }
@@ -185,35 +305,60 @@ export function gate(pi, { pauseMarker, pauseRunner }) {
     const mine = generation;
     queue = queue.then(async () => {
       if (mine !== generation || gated.has(key)) return;
+      let route;
       let result;
+      let id;
       try {
-        // Checked on every evaluation, so RESUME takes effect at once.
-        const run = paused(pauseMarker)
-          ? { command: pauseRunner, args: [], options: { cwd: "/", env: {} } }
-          : {
-              command: "decapod",
-              args: ["eval", "--stdin", "--format", "json"],
-              options: { cwd: root },
-            };
-        result = await evaluate(run, text);
+        // Checked on every evaluation, so RESUME takes effect at once. Marker
+        // check, route choice and the pending record happen with no await
+        // between them, so no evaluation can be in flight unrecorded.
+        const marker = inspect();
+        if (marker.state === "error") {
+          route = "blocked";
+          result = { allowed: false, status: `PAUSE marker cannot be inspected (${marker.error})` };
+        } else {
+          route = marker.state === "present" ? "g5" : "normal";
+          const run =
+            route === "g5"
+              ? { command: pauseRunner, args: [], options: { cwd: "/", env: {} } }
+              : {
+                  command: "decapod",
+                  args: ["eval", "--stdin", "--format", "json"],
+                  options: { cwd: root },
+                };
+          id = ++nextEvaluationId;
+          const startedAt = new Date().toISOString();
+          pending.set(id, { route, startedAt });
+          if (mine === generation) persist({ kind: "pending", id, route, at: startedAt });
+          result = await evaluate(run, text, spawnFn, timeoutMs);
+        }
       } catch (error) {
         result = { allowed: false, status: `gate failed (${error?.message ?? error})` };
+      } finally {
+        pending.delete(id);
       }
       if (mine !== generation) return;
       const { allowed, status } = result;
-      const data = { key, sender, human, allowed, status };
+      const at = new Date();
+      lastEvaluation = { route, at: at.toISOString(), allowed, status };
+      if (route === "g5") lastG5SettledAt = at.getTime();
+      const data = { kind: "result", key, sender, human, allowed, status, route, id: id ?? null, at: at.toISOString() };
       record(data);
+      persist(data);
       try {
-        pi.appendEntry(ENTRY_TYPE, data);
         if (!allowed && ctx.hasUI) ctx.ui.notify(`Decapod prompt gate: ${sender} not allowed (${status})`, "error");
       } catch {
-        // The in-memory result already counts; persisting or notifying must not break the chain.
+        // Notifying must not break the chain.
       }
     });
   });
 
-  pi.on("tool_call", async (_event, ctx) => {
+  pi.on("tool_call", async (event, ctx) => {
     if (!decapodRoot(ctx.cwd)) return;
+    // The status tool is read-only and has to answer exactly when the gate is
+    // blocked or an evaluation is still pending, so it is neither held back by
+    // the drain nor blocked. Waiting would also hide the pending evaluations.
+    if (event.toolName === STATUS_TOOL) return;
     // A message can arrive while we wait: drain until no newer gate was queued.
     for (let seen; seen !== queue; ) {
       seen = queue;

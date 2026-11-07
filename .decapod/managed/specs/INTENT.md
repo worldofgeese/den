@@ -198,7 +198,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `e3325781f4b38d64d9c9246e6ab594a726ff9efcef3826947f865ebb4011a506`
+- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -1200,67 +1200,48 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-01 it changed 57 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-07 it changed 38 nodes of `flake.lock`.
 
 | Node | Before | After |
 |---|---|---|
-| `ai-mirror` | 929c9d1 (2026-09-22) | c4b69d0 (2026-10-30) |
-| `aquamarine` | f31c47a (2026-09-17) | 52ea11f (2026-10-03) |
-| `darwin` | bb0b90d (2026-10-23) | ff0e21a (2026-10-31) |
-| `decapod` | 2939be8 (2026-10-22) | 3216d71 (2026-11-01) |
-| `devshell` | (new) | 255a2b1 (2026-01-19) |
-| `emacs-overlay` | dca11ca (2026-10-29) | 9000a9a (2026-10-31) |
-| `ewm` | b175b96 (2026-09-28) | 21d3c95 (2026-10-29) |
-| `flake-parts_4` | 8645992 (2025-10-20) | 250481a (2026-01-05) |
-| `flake-parts_5` | (new) | 8645992 (2025-10-20) |
-| `gliff` | (new) | 58c7424 (2026-10-24) |
-| `helium` | c9f74b5 (2026-10-29) | 0a71a74 (2026-10-31) |
-| `home-manager_5` | 1dc2d1f (2026-09-01) | 6407259 (2026-10-15) |
-| `hypr-rdp` | 8744778 (2026-09-10) | (removed) |
-| `hyprgraphics` | 7c895c4 (2026-08-11) | 80c7d00 (2026-10-03) |
-| `hyprland` | 23118f9 (2026-09-22) | 3633316 (2026-10-16) |
-| `hyprland-guiutils` | 4c30cf3 (2026-08-11) | 204f39d (2026-10-12) |
-| `hyprland-protocols` | cc9a8fd (2026-09-15) | 4c27ba9 (2026-10-06) |
-| `hyprtoolkit` | af515b6 (2026-08-05) | 2907e0d (2026-10-12) |
-| `hyprutils` | a21e87b (2026-09-05) | 95983ee (2026-09-21) |
-| `llm-agents` | 467c27c (2026-10-30) | e78ca7f (2026-11-01) |
-| `mcp-nixarchy` | (new) | a3059f3 (2026-10-25) |
-| `mcp-servers-nix` | 11fe241 (2026-09-11) | d1185e9 (2026-10-25) |
-| `microvm` | fdfc182 (2026-09-04) | 4876e2a (2026-10-24) |
-| `nix-doom-emacs-unstraightened` | 2b297e8 (2026-10-29) | 85c6081 (2026-10-31) |
-| `nix-flatpak` | 4408189 (2026-01-09) | 7c7c173 (2026-10-10) |
-| `nixarchy` | 864eeb0 (2026-09-28) | e2cafea (2026-11-01) |
-| `nixarchy-devenv` | f482185 (2026-09-24) | e1c7180 (2026-10-20) |
-| `nixarchy-distrobox` | 74d1337 (2026-09-24) | cfa684f (2026-10-20) |
-| `nixarchy-flatsnap` | e9993a1 (2026-09-25) | e9532c3 (2026-10-20) |
-| `nixarchy-ghtui` | 6d42838 (2026-09-24) | 3fb9c8d (2026-10-20) |
-| `nixarchy-gliff-manager` | (new) | 5b868f6 (2026-10-20) |
-| `nixarchy-gltui` | c8b79e6 (2026-09-24) | 8445d25 (2026-10-20) |
-| `nixarchy-herdr` | 5bb2796 (2026-09-25) | affd985 (2026-10-20) |
-| `nixarchy-hyprsettngs` | (new) | 367ca99 (2026-10-20) |
-| `nixarchy-menu` | 2cce175 (2026-09-25) | cfb4fc1 (2026-10-20) |
-| `nixarchy-microvm` | 27e5992 (2026-09-24) | ca0bc01 (2026-10-20) |
-| `nixarchy-omatheme` | e62e88f (2026-09-28) | 51fb129 (2026-10-20) |
-| `nixarchy-pkg` | 93add27 (2026-09-24) | b7786c2 (2026-10-20) |
-| `nixarchy-plugin-browser` | b380ebb (2026-09-24) | 1f21a1b (2026-10-20) |
-| `nixarchy-podman` | 73d4a68 (2026-09-24) | e1aaf12 (2026-10-20) |
-| `nixarchy-voice` | 7c51dfb (2026-09-27) | 0231774 (2026-10-20) |
-| `nixi` | 4e6c1b5 (2026-09-24) | 39af9e3 (2026-10-23) |
-| `nixi-companion` | (new) | 09af56c (2026-10-23) |
-| `nixpkgs` | e62746b (2026-10-28) | 885ba4d (2026-10-30) |
-| `nixpkgs-lib_2` | a73b9c7 (2025-08-10) | 2075416 (2025-12-14) |
-| `nixpkgs-lib_3` | (new) | a73b9c7 (2025-08-10) |
-| `nixpkgs_2` | e554fab (2026-09-17) | 7fd4004 (2026-10-11) |
-| `nixpkgs_3` | e158d9e (2026-09-26) | 1c89083 (2026-10-30) |
-| `nixpkgs_4` | e62746b (2026-10-28) | d357a2b (2026-11-01) |
-| `omarchroma` | 5d05f16 (2026-09-24) | 7048180 (2026-09-28) |
-| `omarchy` | c668141 (2026-09-15) | 5978d93 (2026-10-27) |
-| `pre-commit-hooks` | 59f4ca0 (2026-09-15) | 1ba1dbf (2026-10-13) |
-| `rust-overlay` | 96a0986 (2026-10-30) | c85ccd3 (2026-11-01) |
-| `sops-nix` | 5efb5a6 (2026-09-27) | 442449f (2026-10-24) |
-| `spectrum` | a7762d6 (2026-08-03) | 77d2389 (2026-08-06) |
-| `xdph` | ba31964 (2026-08-29) | 0121b2e (2026-10-12) |
-| `zen-browser` | ec2c94c (2026-09-06) | 4434539 (2026-10-27) |
+| `ai-mirror` | c4b69d0 (2026-10-30) | 4d108e3 (2026-11-03) |
+| `aquamarine` | 52ea11f (2026-10-03) | eac1b82 (2026-10-30) |
+| `decapod` | 3216d71 (2026-11-01) | c6b7919 (2026-11-07) |
+| `den` | 0f7675b (2026-10-21) | bf2504f (2026-11-06) |
+| `devenv` | 0d6c556 (2026-10-28) | 9655d32 (2026-11-03) |
+| `doomemacs` | 59cdaa3 (2026-10-02) | 7ccac7f (2026-11-06) |
+| `doomemacs-modules` | 897f815 (2026-10-02) | f054be8 (2026-11-04) |
+| `emacs-overlay` | 9000a9a (2026-10-31) | e80998e (2026-11-06) |
+| `ewm` | 21d3c95 (2026-10-29) | 1760c18 (2026-11-06) |
+| `flake-parts_2` | 024633c (2026-10-01) | ea2630b (2026-11-01) |
+| `flake-parts_3` | 024633c (2026-10-01) | ea2630b (2026-11-01) |
+| `gliff` | 58c7424 (2026-10-24) | 32bb062 (2026-11-05) |
+| `helium` | 0a71a74 (2026-10-31) | 9fe3f8f (2026-11-05) |
+| `home-manager` | 095fef2 (2026-10-28) | 2c0c1f0 (2026-11-06) |
+| `home-manager_5` | 6407259 (2026-10-15) | 095fef2 (2026-10-28) |
+| `hyprland` | 3633316 (2026-10-16) | 64bde62 (2026-11-04) |
+| `hyprland-guiutils` | 204f39d (2026-10-12) | d038577 (2026-10-27) |
+| `hyprland-protocols` | 4c27ba9 (2026-10-06) | cd1aba6 (2026-10-23) |
+| `hyprtoolkit` | 2907e0d (2026-10-12) | 92646e1 (2026-10-29) |
+| `hyprutils` | 95983ee (2026-09-21) | 7e1f692 (2026-10-23) |
+| `hyprwire` | 4ce7cd6 (2026-08-11) | a546e42 (2026-10-15) |
+| `llm-agents` | e78ca7f (2026-11-01) | 70f9350 (2026-11-07) |
+| `mcp-servers-nix` | d1185e9 (2026-10-25) | 094e3ba (2026-11-04) |
+| `microvm` | 4876e2a (2026-10-24) | b7bd556 (2026-10-29) |
+| `nix-doom-emacs-unstraightened` | 85c6081 (2026-10-31) | 4209ae6 (2026-11-06) |
+| `nixarchy` | e2cafea (2026-11-01) | 6cd4e33 (2026-11-07) |
+| `nixarchy-voice` | 0231774 (2026-10-20) | 2bcba43 (2026-11-03) |
+| `nixi-companion` | 09af56c (2026-10-23) | 9aff36f (2026-11-06) |
+| `nixpkgs-lib` | f7cd230 (2026-09-27) | 7851ba6 (2026-11-01) |
+| `nixpkgs_2` | 885ba4d (2026-10-30) | 6dadaf4 (2026-11-04) |
+| `nixpkgs_3` | 7fd4004 (2026-10-11) | 1c89083 (2026-10-30) |
+| `nixpkgs_4` | 1c89083 (2026-10-30) | 1d06008 (2026-11-03) |
+| `nixpkgs_5` | d357a2b (2026-11-01) | 6dadaf4 (2026-11-04) |
+| `omarchy` | 5978d93 (2026-10-27) | ac2690c (2026-11-05) |
+| `rust-overlay_2` | c85ccd3 (2026-11-01) | 74cebce (2026-11-06) |
+| `sops-nix` | 442449f (2026-10-24) | b18e01c (2026-11-02) |
+| `xdph` | 0121b2e (2026-10-12) | d1467fe (2026-10-28) |
+| `zen-browser` | 4434539 (2026-10-27) | 37ba4a6 (2026-11-06) |
 
 ## Limited NAS Recovery Evidence
 

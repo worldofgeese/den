@@ -1200,48 +1200,19 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-07 it changed 38 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-08 it changed 9 nodes of `flake.lock`.
 
 | Node | Before | After |
 |---|---|---|
-| `ai-mirror` | c4b69d0 (2026-10-30) | 4d108e3 (2026-11-03) |
-| `aquamarine` | 52ea11f (2026-10-03) | eac1b82 (2026-10-30) |
-| `decapod` | 3216d71 (2026-11-01) | c6b7919 (2026-11-07) |
-| `den` | 0f7675b (2026-10-21) | bf2504f (2026-11-06) |
-| `devenv` | 0d6c556 (2026-10-28) | 9655d32 (2026-11-03) |
-| `doomemacs` | 59cdaa3 (2026-10-02) | 7ccac7f (2026-11-06) |
-| `doomemacs-modules` | 897f815 (2026-10-02) | f054be8 (2026-11-04) |
-| `emacs-overlay` | 9000a9a (2026-10-31) | e80998e (2026-11-06) |
-| `ewm` | 21d3c95 (2026-10-29) | 1760c18 (2026-11-06) |
-| `flake-parts_2` | 024633c (2026-10-01) | ea2630b (2026-11-01) |
-| `flake-parts_3` | 024633c (2026-10-01) | ea2630b (2026-11-01) |
-| `gliff` | 58c7424 (2026-10-24) | 32bb062 (2026-11-05) |
-| `helium` | 0a71a74 (2026-10-31) | 9fe3f8f (2026-11-05) |
-| `home-manager` | 095fef2 (2026-10-28) | 2c0c1f0 (2026-11-06) |
-| `home-manager_5` | 6407259 (2026-10-15) | 095fef2 (2026-10-28) |
-| `hyprland` | 3633316 (2026-10-16) | 64bde62 (2026-11-04) |
-| `hyprland-guiutils` | 204f39d (2026-10-12) | d038577 (2026-10-27) |
-| `hyprland-protocols` | 4c27ba9 (2026-10-06) | cd1aba6 (2026-10-23) |
-| `hyprtoolkit` | 2907e0d (2026-10-12) | 92646e1 (2026-10-29) |
-| `hyprutils` | 95983ee (2026-09-21) | 7e1f692 (2026-10-23) |
-| `hyprwire` | 4ce7cd6 (2026-08-11) | a546e42 (2026-10-15) |
-| `llm-agents` | e78ca7f (2026-11-01) | 70f9350 (2026-11-07) |
-| `mcp-servers-nix` | d1185e9 (2026-10-25) | 094e3ba (2026-11-04) |
-| `microvm` | 4876e2a (2026-10-24) | b7bd556 (2026-10-29) |
-| `nix-doom-emacs-unstraightened` | 85c6081 (2026-10-31) | 4209ae6 (2026-11-06) |
-| `nixarchy` | e2cafea (2026-11-01) | 6cd4e33 (2026-11-07) |
-| `nixarchy-voice` | 0231774 (2026-10-20) | 2bcba43 (2026-11-03) |
-| `nixi-companion` | 09af56c (2026-10-23) | 9aff36f (2026-11-06) |
-| `nixpkgs-lib` | f7cd230 (2026-09-27) | 7851ba6 (2026-11-01) |
-| `nixpkgs_2` | 885ba4d (2026-10-30) | 6dadaf4 (2026-11-04) |
-| `nixpkgs_3` | 7fd4004 (2026-10-11) | 1c89083 (2026-10-30) |
-| `nixpkgs_4` | 1c89083 (2026-10-30) | 1d06008 (2026-11-03) |
-| `nixpkgs_5` | d357a2b (2026-11-01) | 6dadaf4 (2026-11-04) |
-| `omarchy` | 5978d93 (2026-10-27) | ac2690c (2026-11-05) |
-| `rust-overlay_2` | c85ccd3 (2026-11-01) | 74cebce (2026-11-06) |
-| `sops-nix` | 442449f (2026-10-24) | b18e01c (2026-11-02) |
-| `xdph` | 0121b2e (2026-10-12) | d1467fe (2026-10-28) |
-| `zen-browser` | 4434539 (2026-10-27) | 37ba4a6 (2026-11-06) |
+| `decapod` | c6b7919 (2026-11-07) | 2416446 (2026-11-08) |
+| `emacs-overlay` | e80998e (2026-11-06) | e18944d (2026-11-07) |
+| `ewm` | 1760c18 (2026-11-06) | 9c5325e (2026-11-07) |
+| `llm-agents` | 70f9350 (2026-11-07) | cc555cc (2026-11-08) |
+| `nix-doom-emacs-unstraightened` | 4209ae6 (2026-11-06) | 167c8cb (2026-11-07) |
+| `nixarchy` | 6cd4e33 (2026-11-07) | 0687162 (2026-11-07) |
+| `nixpkgs_4` | 1d06008 (2026-11-03) | f9a75f4 (2026-11-05) |
+| `nixpkgs_5` | 6dadaf4 (2026-11-04) | 4fe25e1 (2026-11-06) |
+| `rust-overlay_2` | 74cebce (2026-11-06) | d3fe742 (2026-11-07) |
 
 ## Limited NAS Recovery Evidence
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "6cd5587d7b5ae9641764d1c23bfe1b5c14461958",
+    "accepted_commit": "6c4d9ccf4f4f0c1ff06cfbb09409b3983aae1ec4",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -54,6 +54,7 @@
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
       "trajectory:56b396336dfc37b6": "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
+      "trajectory:7061cba2212328f4": "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
       "trajectory:a11ddf38831feaab": "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy",
@@ -64,19 +65,24 @@
     }
   },
   "change": {
-    "id": "change_01M70DQTD1G1KCRQP9XZHYWA8G",
-    "base_commit": "6cd5587d7b5ae9641764d1c23bfe1b5c14461958",
+    "id": "change_01M70K2MKXA6KE14BTPZX4X8QC",
+    "base_commit": "6c4d9ccf4f4f0c1ff06cfbb09409b3983aae1ec4",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "ckpt-decapod-binary-copy-validate",
-      "summary": "the validation of the decapod binary copy: only DecapodLabs/decapod#1582 fails",
-      "input_digest": "sha256:ae5abd4cd52f0d77572429b8613e4d57b871ebd2309d8e14fffab364454b8c36"
+      "id": "azure-cli-cask",
+      "summary": "azure-cli moved from brews to casks",
+      "input_digest": "sha256:5a164ae102df0a835031ea5ce58918da2f5273cf49a5f137aee8bbb393787e27"
+    },
+    {
+      "id": "azure-cli-cask-validate",
+      "summary": "validation of b041e7a: only PROOF_HOOK_FAILED (decapod#1582, #1583)",
+      "input_digest": "sha256:891e06c9051c9949bebf39a755cd8bb6a00ed3a9d3dcf1c44553b640d43b5310"
     }
   ],
   "intents": {
-    "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G": {
+    "intent:change_01M70K2MKXA6KE14BTPZX4X8QC": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -86,11 +92,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+      "id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
-      "refined_intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
+      "raw_intent": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
+      "refined_intent": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -103,7 +109,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
+      "intent": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -111,43 +117,31 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
+      "title": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
       "todo_ids": [
-        "test_01m70d1jq2n5fq41"
+        "code_01m70jv1w24pb2fv"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794237322Z"
+      "updated_at": "1794243125Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:e9ec063a75fd9f204cc317efa007b2f8e431ccee62bf6b3684b95f9c37079915",
+      "artifact_hash": "sha256:8be6531ee88b575cdec59abb4d5b670c92639c6a3166b08049d6d1c654832db8",
       "checks": [
         {
-          "name": "check-decapod-overrides-ae4c32c",
-          "status": "passed"
-        },
-        {
-          "name": "check-drvpaths-ae4c32c",
-          "status": "passed"
-        },
-        {
-          "name": "check-fmt-ae4c32c",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-validate-ae4c32c",
+          "name": "decapod-validate-b041e7a",
           "status": "failed"
         },
         {
-          "name": "eval-M-02877-paphos-oracle-ae4c32c",
+          "name": "nix-build-darwin-system",
           "status": "passed"
         },
         {
-          "name": "qa-verify-scratch-ae4c32c",
-          "status": "partial"
+          "name": "nix-eval-brewfile",
+          "status": "passed"
         }
       ],
       "current_phase": "publish-with-human-override",
@@ -155,20 +149,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M70DQTFGBAK6TKA01KEQEPTB",
+            "detail": "trajectory:branch_01M70K2MNXD4WWWA0RQKKEGHTK",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -177,78 +171,65 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M70DQTFGBAK6TKA01KEQEPTB": {
+          "branch_01M70K2MNXD4WWWA0RQKKEGHTK": {
             "evidence_only": true,
-            "id": "branch_01M70DQTFGBAK6TKA01KEQEPTB",
-            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+            "id": "branch_01M70K2MNXD4WWWA0RQKKEGHTK",
+            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
             "steps": [
               {
                 "action": "publish-with-human-override",
-                "command": "decapod validate",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/overlays.nix",
-                  "modules/overlays.nix",
+                  "modules/M-02877/darwin.nix",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "plain decapod validate on ae4c32c: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, the bug of DecapodLabs/decapod#1582 that this change works around",
-                  "scratch clone of the den store: upstream package, qa verify regen: External action denied: capability 'verification_exec' does not allow binary '.decapod-wrapped'; new package: that gate passes and the validation child runs (it then stops on the scratch workspace's own validate state)"
+                  "Brewfile has cask \"azure-cli\" and no brew \"azure-cli\"; nix build of darwinConfigurations.M-02877.system succeeded",
+                  "plain decapod validate on b041e7a: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, blocked by DecapodLabs/decapod#1582 and #1583"
                 ],
                 "proof_refs": [
-                  "decapod-validate-ae4c32c",
-                  "check-drvpaths-ae4c32c",
-                  "check-fmt-ae4c32c",
-                  "check-decapod-overrides-ae4c32c",
-                  "eval-M-02877-paphos-oracle-ae4c32c",
-                  "qa-verify-scratch-ae4c32c"
+                  "nix-eval-brewfile",
+                  "nix-build-darwin-system",
+                  "decapod-validate-b041e7a"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED. PureViper, under Tao's delegation, allows it when decapod#1582 is the only cause.",
-                  "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)"
+                  "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED (DecapodLabs/decapod#1582, #1583). PureViper, under Tao's delegation, allowed den PRs with only that failure.",
+                  "decapod validate fails only on PROOF_HOOK_FAILED for done todos blocked by DecapodLabs/decapod#1582 or #1583"
                 ]
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "decapod validate",
-        "scripts/check-drvpaths.sh"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "plain decapod validate on ae4c32c: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, the bug of DecapodLabs/decapod#1582 that this change works around",
-        "scratch clone of the den store: upstream package, qa verify regen: External action denied: capability 'verification_exec' does not allow binary '.decapod-wrapped'; new package: that gate passes and the validation child runs (it then stops on the scratch workspace's own validate state)"
+        "Brewfile has cask \"azure-cli\" and no brew \"azure-cli\"; nix build of darwinConfigurations.M-02877.system succeeded",
+        "plain decapod validate on b041e7a: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, blocked by DecapodLabs/decapod#1582 and #1583"
       ],
-      "inspected_files": [
-        "modules/overlays.nix"
-      ],
-      "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+      "inspected_files": [],
+      "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
       "modified_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "modules/overlays.nix"
+        "modules/M-02877/darwin.nix"
       ],
       "next_transitions": [
-        "Checkpoint and commit this record, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/managed/specs",
-        "modules/overlays.nix",
         "root"
       ],
-      "run_id": "branch_01M70DQTFGBAK6TKA01KEQEPTB",
+      "run_id": "branch_01M70K2MNXD4WWWA0RQKKEGHTK",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [
-        "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED. PureViper, under Tao's delegation, allows it when decapod#1582 is the only cause."
+        "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED (DecapodLabs/decapod#1582, #1583). PureViper, under Tao's delegation, allowed den PRs with only that failure."
       ],
-      "task_id": "test_01m70d1jq2n5fq41",
+      "task_id": "code_01m70jv1w24pb2fv",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)"
+        "decapod validate fails only on PROOF_HOOK_FAILED for done todos blocked by DecapodLabs/decapod#1582 or #1583"
       ]
     }
   },

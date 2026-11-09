@@ -918,7 +918,6 @@
           # podman VM cannot see /opt/homebrew.
           "distrobox"
           "aws-nuke"
-          "azure-cli"
           "pulumi"
           "container"
           "jira-cli"
@@ -932,6 +931,8 @@
           "dolt"
         ];
         casks = [
+          # Homebrew moved azure-cli from a formula to a cask on 2026-11-09; brew bundle fails on the formula.
+          "azure-cli"
           "claude"
           "d12frosted/emacs-plus/emacs-plus-app"
           "zed"

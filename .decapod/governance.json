@@ -78,6 +78,16 @@
         "installed topgrade 17.15.0 --dry-run: deployed file shows Tailscale step; generated file shows 12 steps, no Tailscale",
         "nix eval darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.topgrade.settings.misc.disable: ends with tailscale"
       ]
+    },
+    {
+      "id": "oun-repository-contract-coverage",
+      "summary": "Give every workflow a reviewed source_coverage row, add scripts/test-omarchy-share.sh to the shellcheck proof, renew reviewed_commands_digest, and document the coverage in VALIDATION.md.",
+      "input_digest": "sha256:4d384d9920f715050e2e7438ddb7f53a2e0983720cc6ffb3547fcf566ab3cdb4",
+      "proof_refs": [
+        "agent.init: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece = reviewed_commands_digest; inventory_digest sha256:28dcbc45ccd3741cc966c5283fedfd6a4b9714f6f8bff9339b61d8cafc89df13 = reviewed_sources_digest; status proof_pending",
+        "review: 5 workflows, 5 source_coverage rows, programs and toolchain files present",
+        "shellcheck 0.11.0 on the 10 contract args: exit 0"
+      ]
     }
   ],
   "intents": {
@@ -108,31 +118,43 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "home-manager-d8z: add \"tailscale\" to the topgrade misc.disable list for M-02877. topgrade 17.15.0 adds a Tailscale step. On the standalone Tailscale app, `tailscale update` is not supported and exits 1. The app updates itself with Sparkle.",
+      "intent": "home-manager-d8z: add \"tailscale\" to the topgrade misc.disable list for M-02877. topgrade 17.15.0 adds a Tailscale step. On the standalone Tailscale app, `tailscale update` is not supported and exits 1. The app updates itself with Sparkle. home-manager-oun: Decapod 0.132.0 full validation fails with REPOSITORY_CONTRACT_INVALID, because source_coverage in .decapod/config.toml maps only decapod-validate.yml. Add a reviewed ci_only row for bump.yml, dagger.yml, eval-targets.yml and shepherd.yml, and renew both reviewed digests.",
       "phases": [],
       "proof_hooks": [
-        "alejandra --check on modules/M-02877/dktaohan.nix",
-        "nix eval of the M-02877 home-manager topgrade settings lists tailscale in misc.disable",
-        "topgrade 17.15.0 dry run with the generated topgrade.toml shows no Tailscale step"
+        "decapod validate (0.132.0) reports no REPOSITORY_CONTRACT_INVALID failure"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
       "title": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
       "todo_ids": [
-        "code_01m6zjeywthv2cpj"
+        "code_01m6zjeywthv2cpj",
+        "cicd_01m6zpqmewery418"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794210471Z"
+      "updated_at": "1794213169Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Change only modules/M-02877/dktaohan.nix, the ARCHITECTURE.md topgrade section, and Decapod-generated surfaces.",
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Second commit: change only .decapod/config.toml (source_coverage, shellcheck args, reviewed_commands_digest) and VALIDATION.md."
       ],
-      "artifact_hash": "sha256:39242349aa77f18aab1466311e4ccd30cf666429ef505bf1e5c8d67fa1f6c677",
+      "artifact_hash": "sha256:1209d818114e0baddc2b007e3440d87b7a6577f722ecb276b7e66ea885cb0c2c",
       "checks": [
+        {
+          "name": "contract-reconciliation",
+          "status": "passed"
+        },
+        {
+          "name": "contract-shellcheck-args",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate",
+          "status": "failed"
+        },
         {
           "name": "fmt",
           "status": "passed"
@@ -167,10 +189,24 @@
             "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6ZMBR377JRGACHNT8BJ2MQZ": {
@@ -210,6 +246,58 @@
                 "validation_findings": [
                   "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"
                 ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "Branch pushed to origin at 8d6bf56 before preflight (allowed); no workflow triggers on non-main branch pushes; refs/dolt/data unchanged"
+                ],
+                "proof_refs": [
+                  "decapod-validate"
+                ],
+                "scope": [
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "modules/M-02877/dktaohan.nix",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "decapod rpc --op agent.init (review aids: command_contract_digest, inventory_digest)",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".decapod/config.toml",
+                  ".github/workflows/bump.yml",
+                  ".github/workflows/dagger.yml",
+                  ".github/workflows/decapod-validate.yml",
+                  ".github/workflows/eval-targets.yml",
+                  ".github/workflows/shepherd.yml",
+                  "dagger.toml",
+                  ".dagger/modules/ci/main.go",
+                  "scripts/bump-flake-inputs.sh",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "2026-11-09T09:23+01:00 user reply 'Do and fix everything yourself' delegates the maintainer review of source_coverage and both digests to the agent",
+                  "Review: every .github/workflows/*.yml has exactly one source_coverage row; fmt and shellcheck programs and toolchain files exist; environment {}, directory ., timeout 300",
+                  "Review: shellcheck args lacked scripts/test-omarchy-share.sh (added dc9a6ac 2026-11-02); just check-shellcheck covers scripts/*.sh; the script passes ShellCheck 0.11.0; added to args",
+                  "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
+                  "Merge policy dagger.toml: authors include worldofgeese, reviewer app/chatgpt-codex-connector, riskyPaths exclude .decapod/config.toml and modules/M-02877/dktaohan.nix; branch protection requires den/dagger-check and validate"
+                ],
+                "proof_refs": [
+                  "contract-shellcheck-args",
+                  "contract-reconciliation"
+                ],
+                "scope": [
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "modules/M-02877/dktaohan.nix",
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -217,43 +305,67 @@
       },
       "declared_commands": [
         "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/",
+        "decapod rpc --op agent.init (review aids: command_contract_digest, inventory_digest)",
         "nix eval darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.topgrade.settings.misc.disable",
+        "shellcheck 0.11.0 on the exact contract args (10 scripts)",
         "topgrade --dry-run --yes --config <generated topgrade.toml> (topgrade 17.15.0)"
       ],
       "destination": "pull request",
       "evidence": [
         "2026-11-09T08:27+01:00 user reply 'You may and you may run topgrade --yes' authorizes the commit, decapod validate, push, and PR creation",
+        "2026-11-09T09:23+01:00 user reply 'Do and fix everything yourself' delegates the maintainer review of source_coverage and both digests to the agent",
+        "Branch pushed to origin at 8d6bf56 before preflight (allowed); no workflow triggers on non-main branch pushes; refs/dolt/data unchanged",
         "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
         "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
+        "Merge policy dagger.toml: authors include worldofgeese, reviewer app/chatgpt-codex-connector, riskyPaths exclude .decapod/config.toml and modules/M-02877/dktaohan.nix; branch protection requires den/dagger-check and validate",
+        "Review: every .github/workflows/*.yml has exactly one source_coverage row; fmt and shellcheck programs and toolchain files exist; environment {}, directory ., timeout 300",
+        "Review: shellcheck args lacked scripts/test-omarchy-share.sh (added dc9a6ac 2026-11-02); just check-shellcheck covers scripts/*.sh; the script passes ShellCheck 0.11.0; added to args",
         "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0",
         "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
+        "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
         "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
         "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step"
       ],
       "inspected_files": [
+        ".dagger/modules/ci/main.go",
+        ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        ".github/workflows/bump.yml",
+        ".github/workflows/dagger.yml",
+        ".github/workflows/decapod-validate.yml",
+        ".github/workflows/eval-targets.yml",
+        ".github/workflows/shepherd.yml",
         "Justfile",
+        "dagger.toml",
         "modules/M-02877/dktaohan.nix",
+        "scripts/bump-flake-inputs.sh",
         "scripts/cask-app-preflight.sh",
         "scripts/deploy-freshness.sh"
       ],
       "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
       "modified_files": [
+        ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/VALIDATION.md",
         "modules/M-02877/dktaohan.nix"
       ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "After maintainer reconciles the repository contract: rebase or merge main, rerun decapod validate, then publish the PR",
+        "Refine plan and declare falsifiable checks",
+        "Stage, checkpoint, commit, decapod validate, publish the PR"
       ],
       "repo_scope": [
+        ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/VALIDATION.md",
         "modules/M-02877/dktaohan.nix",
         "root"
       ],
       "run_id": "branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m6zjeywthv2cpj",
+      "task_id": "cicd_01m6zpqmewery418",
       "tool_calls": [],
       "unresolved_assumptions": [
         "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"

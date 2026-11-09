@@ -220,6 +220,15 @@ deploy-oracle host="" build-host="":
 # manual target nobody ran. The push is non-fatal on purpose: a failed upload
 # means a slow next deploy, not a broken this one.
 #
+# The push has so far failed only while the Mac was locked (2026-11-09; a bad
+# token or a network outage would fail it too). The Secure Enclave
+# age key that decrypts CACHIX_AUTH_TOKEN (age-plugin-se, access control none)
+# still needs an unlocked Mac. Both failures on 2026-11-06 (13:11 and 14:38 CET)
+# ran with the display off since 13:07:29 (pmset log). A background push from a
+# detached worktree with the Mac unlocked works ("Nothing to push - all store
+# paths are already on Cachix"). The next deploy made while the Mac is unlocked
+# uploads the whole closure, so the cache recovers by itself. Hence the warning.
+#
 # cask-app-preflight runs first: activation's `brew bundle` upgrades casks, and
 # an upgrade over an app with root-owned files, or in an appdir this non-admin
 # user cannot write, fails and can leave the app half-deleted or empty. It
@@ -239,7 +248,7 @@ deploy-oracle host="" build-host="":
 deploy-darwin:
     ./scripts/deploy-freshness.sh
     /usr/bin/lockf -k -t 0 /tmp/den-darwin-switch.lock sh -ec './scripts/cask-app-preflight.sh; sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877' || { rc=$?; [ "$rc" -ne 75 ] || echo "error: another switch is running (lock /tmp/den-darwin-switch.lock); pgrep -fl 'darwin-rebuild switch' shows it" >&2; exit "$rc"; }
-    @just cachix-push /run/current-system || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
+    @just cachix-push /run/current-system || echo "warning: cachix push failed, most likely because the Mac is locked (the Secure Enclave key that decrypts the Cachix token works only while it is unlocked); the switch succeeded, and the next deploy made while the Mac is unlocked pushes the whole closure" >&2
     @# Surface the signing state every deploy: a broken signing keychain once
     @# went unnoticed for hours as one warning line inside topgrade output.
     @hm-app-signing status || true

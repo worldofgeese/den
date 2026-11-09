@@ -81,6 +81,16 @@ The two fixes from that update, both no-ops once upstream changes:
 - atuin 18.23.0: its PTY end-to-end suites time out in the Darwin build
   sandbox. `modules/overlays.nix` skips checks on Darwin only.
 
+### azure-cli is a Homebrew cask (M-02877)
+On 2026-11-09 Homebrew removed the `azure-cli` formula and shipped it as a
+cask. `brew bundle` in activation then failed with 'No available formula with
+the name "azure-cli"', which broke every deploy. `modules/M-02877/darwin.nix`
+now lists `azure-cli` under `homebrew.casks`, not `homebrew.brews`. The old
+formula keg (2.90.0) stays installed, and its `az` link collides with the
+cask's binary, so run `brew uninstall --formula azure-cli` once, right before
+the first deploy of this change. The Brewfile must contain `cask "azure-cli"`
+and no `brew "azure-cli"`.
+
 ### Decapod binary name (workaround for DecapodLabs/decapod#1582)
 Upstream's `packages.default` is a `makeWrapper` script, `bin/decapod`, that
 execs `bin/.decapod-wrapped`. `decapod qa verify` and `decapod todo done

@@ -96,6 +96,14 @@
       "proof_refs": [
         "decapod validate on 3edf455: readiness blocked only by the trajectory task binding"
       ]
+    },
+    {
+      "id": "d8z-merge-main-a4ab07c",
+      "summary": "Merge origin/main a4ab07c (flake bump PR #129) into the work branch; regenerate the spec manifest.",
+      "input_digest": "sha256:62f8f0d78bcb8f5c3dee278917763b8662d557339526955268d078a4236789a9",
+      "proof_refs": [
+        "agent.init after merge: proof_pending; both reviewed digests match"
+      ]
     }
   ],
   "intents": {
@@ -149,7 +157,7 @@
         "Current claimed task and isolated work branch",
         "Second commit: change only .decapod/config.toml (source_coverage, shellcheck args, reviewed_commands_digest) and VALIDATION.md."
       ],
-      "artifact_hash": "sha256:375e146e8ecf7f164f13a170eb368cf18cc945e8bf15b388d6c21fb7e84c0b12",
+      "artifact_hash": "sha256:55d627e1779c826a91d8deaf3cd0edb5626059e9310099600eea2309b4c710e7",
       "checks": [
         {
           "name": "contract-reconciliation",
@@ -165,6 +173,10 @@
         },
         {
           "name": "decapod-validate-3edf455",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-d61cb74",
           "status": "failed"
         },
         {
@@ -222,10 +234,17 @@
             "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 7,
+        "next_sequence": 8,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6ZMBR377JRGACHNT8BJ2MQZ": {
@@ -336,6 +355,27 @@
                 ],
                 "sequence": 7,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "decapod validate on d61cb74: 187 pass, 1 fail: STALE_ACCEPTED_BASE; origin/main moved to a4ab07c (bump PR #129: flake.lock, OPERATIONS.md, reviewed_sources_digest, manifest)",
+                  "Merged origin/main a4ab07c (no rebase, the branch is pushed). config.toml auto-merged: reviewed_sources_digest sha256:33dadae4... from main, reviewed_commands_digest sha256:5f871fcf... from this branch. Manifest conflict resolved by taking main's file and regenerating it with specs.refresh.",
+                  "agent.init after the merge: status proof_pending, command_contract_digest = reviewed_commands_digest, inventory_digest sha256:33dadae453b4a701f3a354132b5e0f592b8cde4462493079e1a9eb20585b6e1d = reviewed_sources_digest"
+                ],
+                "proof_refs": [
+                  "decapod-validate-d61cb74"
+                ],
+                "scope": [
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/M-02877/dktaohan.nix",
+                  "root"
+                ],
+                "sequence": 8,
+                "validation_findings": []
               }
             ]
           }
@@ -356,12 +396,15 @@
         "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
         "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
         "Merge policy dagger.toml: authors include worldofgeese, reviewer app/chatgpt-codex-connector, riskyPaths exclude .decapod/config.toml and modules/M-02877/dktaohan.nix; branch protection requires den/dagger-check and validate",
+        "Merged origin/main a4ab07c (no rebase, the branch is pushed). config.toml auto-merged: reviewed_sources_digest sha256:33dadae4... from main, reviewed_commands_digest sha256:5f871fcf... from this branch. Manifest conflict resolved by taking main's file and regenerating it with specs.refresh.",
         "Review: every .github/workflows/*.yml has exactly one source_coverage row; fmt and shellcheck programs and toolchain files exist; environment {}, directory ., timeout 300",
         "Review: shellcheck args lacked scripts/test-omarchy-share.sh (added dc9a6ac 2026-11-02); just check-shellcheck covers scripts/*.sh; the script passes ShellCheck 0.11.0; added to args",
         "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0",
         "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
         "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
+        "agent.init after the merge: status proof_pending, command_contract_digest = reviewed_commands_digest, inventory_digest sha256:33dadae453b4a701f3a354132b5e0f592b8cde4462493079e1a9eb20585b6e1d = reviewed_sources_digest",
         "decapod validate (0.132.0) on 3edf455: 187 pass, 1 fail; the REPOSITORY_CONTRACT gate passes; readiness blocked: trajectory bound to cicd_01m6zpqmewery418, expected code_01m6zjeywthv2cpj (the branch task). Rebound the trajectory to code_01m6zjeywthv2cpj; cicd_01m6zpqmewery418 stays in the plan todo_ids.",
+        "decapod validate on d61cb74: 187 pass, 1 fail: STALE_ACCEPTED_BASE; origin/main moved to a4ab07c (bump PR #129: flake.lock, OPERATIONS.md, reviewed_sources_digest, manifest)",
         "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
         "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step"
       ],
@@ -392,6 +435,7 @@
       "next_transitions": [
         "After maintainer reconciles the repository contract: rebase or merge main, rerun decapod validate, then publish the PR",
         "Commit the binding, rerun decapod validate",
+        "Commit the merge, rerun decapod validate, publish the PR",
         "Refine plan and declare falsifiable checks",
         "Stage, checkpoint, commit, decapod validate, publish the PR"
       ],

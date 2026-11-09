@@ -64,29 +64,19 @@
     }
   },
   "change": {
-    "id": "change_01M70BZVA8HPAM3CRK2GFPXN40",
+    "id": "change_01M70DQTD1G1KCRQP9XZHYWA8G",
     "base_commit": "6cd5587d7b5ae9641764d1c23bfe1b5c14461958",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "cachix-locked",
-      "summary": "deploy-darwin cachix warning names locked Mac",
-      "input_digest": "sha256:b756732ef925c0b80884e76f242ee5ffdd952487a7a8b0af7cd6dd1ec7ca4620"
-    },
-    {
-      "id": "cachix-locked-warning-validate",
-      "summary": "validation of the cachix warning change: only DecapodLabs/decapod#1582 fails; Tao authorized publishing",
-      "input_digest": "sha256:8cae6e1f835e5b20f65346cd7fadead74d21667e56d13ec604ab89e6aad58da6"
-    },
-    {
-      "id": "cachix-review-fix",
-      "summary": "review fix: hedged comment; validation unchanged",
-      "input_digest": "sha256:dadf4a0e473a7707345bee768e977be92e0f0607026ef179271412274d85deb3"
+      "id": "ckpt-decapod-binary-copy-validate",
+      "summary": "the validation of the decapod binary copy: only DecapodLabs/decapod#1582 fails",
+      "input_digest": "sha256:ae5abd4cd52f0d77572429b8613e4d57b871ebd2309d8e14fffab364454b8c36"
     }
   ],
   "intents": {
-    "intent:change_01M70BZVA8HPAM3CRK2GFPXN40": {
+    "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -96,11 +86,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+      "id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Name locked-Mac cause in deploy-darwin cachix push warning (home-manager-3gr)",
-      "refined_intent": "Name locked-Mac cause in deploy-darwin cachix push warning (home-manager-3gr)",
+      "raw_intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
+      "refined_intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -113,7 +103,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Name locked-Mac cause in deploy-darwin cachix push warning (home-manager-3gr)",
+      "intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -121,31 +111,43 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Name locked-Mac cause in deploy-darwin cachix push warning (home-manager-3gr)",
+      "title": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
       "todo_ids": [
-        "cicd_01m70bz12gf7dcbp"
+        "test_01m70d1jq2n5fq41"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794235572Z"
+      "updated_at": "1794237322Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:268057a87d6a8905bca2bd8ab628a8e6f67e3f473402c076aeaeffb99fd49608",
+      "artifact_hash": "sha256:e9ec063a75fd9f204cc317efa007b2f8e431ccee62bf6b3684b95f9c37079915",
       "checks": [
         {
-          "name": "decapod-validate-059efa9",
-          "status": "failed"
-        },
-        {
-          "name": "decapod-validate-0ca51f1",
-          "status": "failed"
-        },
-        {
-          "name": "just-show-deploy-darwin",
+          "name": "check-decapod-overrides-ae4c32c",
           "status": "passed"
+        },
+        {
+          "name": "check-drvpaths-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "check-fmt-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate-ae4c32c",
+          "status": "failed"
+        },
+        {
+          "name": "eval-M-02877-paphos-oracle-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "qa-verify-scratch-ae4c32c",
+          "status": "partial"
         }
       ],
       "current_phase": "publish-with-human-override",
@@ -153,111 +155,100 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M70BZVCX0PX68QPQ60CFAZVA",
+            "detail": "trajectory:branch_01M70DQTFGBAK6TKA01KEQEPTB",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M70BZVCX0PX68QPQ60CFAZVA",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M70BZVCX0PX68QPQ60CFAZVA": {
+          "branch_01M70DQTFGBAK6TKA01KEQEPTB": {
             "evidence_only": true,
-            "id": "branch_01M70BZVCX0PX68QPQ60CFAZVA",
-            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+            "id": "branch_01M70DQTFGBAK6TKA01KEQEPTB",
+            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
             "steps": [
               {
                 "action": "publish-with-human-override",
+                "command": "decapod validate",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "Justfile",
-                  "Justfile",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "plain decapod validate on 059efa9: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done TODOs cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, which decapod qa verify cannot verify because Decapod 0.133.x rejects the binary .decapod-wrapped (DecapodLabs/decapod#1582)"
+                  "modules/overlays.nix",
+                  "modules/overlays.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "plain decapod validate on ae4c32c: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, the bug of DecapodLabs/decapod#1582 that this change works around",
+                  "scratch clone of the den store: upstream package, qa verify regen: External action denied: capability 'verification_exec' does not allow binary '.decapod-wrapped'; new package: that gate passes and the validation child runs (it then stops on the scratch workspace's own validate state)"
                 ],
                 "proof_refs": [
-                  "decapod-validate-059efa9",
-                  "just-show-deploy-darwin"
+                  "decapod-validate-ae4c32c",
+                  "check-drvpaths-ae4c32c",
+                  "check-fmt-ae4c32c",
+                  "check-decapod-overrides-ae4c32c",
+                  "eval-M-02877-paphos-oracle-ae4c32c",
+                  "qa-verify-scratch-ae4c32c"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "The PR opens while decapod validate fails on PROOF_HOOK_FAILED caused by DecapodLabs/decapod#1582. Tao (via PureViper) authorized opening den PRs with only that failure.",
-                  "decapod validate fails only on DecapodLabs/decapod#1582 (verification_exec rejects .decapod-wrapped). Authorized by Tao through PureViper on 2026-11-09."
+                  "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED. PureViper, under Tao's delegation, allows it when decapod#1582 is the only cause.",
+                  "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)"
                 ]
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "after the review fix, plain decapod validate on 0ca51f1: only PROOF_HOOK_FAILED (DecapodLabs/decapod#1582) fails, as before"
-                ],
-                "proof_refs": [
-                  "decapod-validate-0ca51f1"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "decapod validate",
+        "scripts/check-drvpaths.sh"
+      ],
       "destination": "pull request",
       "evidence": [
-        "after the review fix, plain decapod validate on 0ca51f1: only PROOF_HOOK_FAILED (DecapodLabs/decapod#1582) fails, as before",
-        "plain decapod validate on 059efa9: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done TODOs cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, which decapod qa verify cannot verify because Decapod 0.133.x rejects the binary .decapod-wrapped (DecapodLabs/decapod#1582)"
+        "plain decapod validate on ae4c32c: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, the bug of DecapodLabs/decapod#1582 that this change works around",
+        "scratch clone of the den store: upstream package, qa verify regen: External action denied: capability 'verification_exec' does not allow binary '.decapod-wrapped'; new package: that gate passes and the validation child runs (it then stops on the scratch workspace's own validate state)"
       ],
       "inspected_files": [
-        "Justfile"
+        "modules/overlays.nix"
       ],
-      "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+      "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
-        "Justfile"
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/overlays.nix"
       ],
       "next_transitions": [
         "Checkpoint and commit this record, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
+        ".decapod/managed/specs",
+        "modules/overlays.nix",
         "root"
       ],
-      "run_id": "branch_01M70BZVCX0PX68QPQ60CFAZVA",
+      "run_id": "branch_01M70DQTFGBAK6TKA01KEQEPTB",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [
-        "The PR opens while decapod validate fails on PROOF_HOOK_FAILED caused by DecapodLabs/decapod#1582. Tao (via PureViper) authorized opening den PRs with only that failure."
+        "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED. PureViper, under Tao's delegation, allows it when decapod#1582 is the only cause."
       ],
-      "task_id": "cicd_01m70bz12gf7dcbp",
+      "task_id": "test_01m70d1jq2n5fq41",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "decapod validate fails only on DecapodLabs/decapod#1582 (verification_exec rejects .decapod-wrapped). Authorized by Tao through PureViper on 2026-11-09."
+        "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)"
       ]
     }
   },

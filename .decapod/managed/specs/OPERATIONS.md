@@ -81,6 +81,21 @@ The two fixes from that update, both no-ops once upstream changes:
 - atuin 18.23.0: its PTY end-to-end suites time out in the Darwin build
   sandbox. `modules/overlays.nix` skips checks on Darwin only.
 
+### Decapod binary name (workaround for DecapodLabs/decapod#1582)
+Upstream's `packages.default` is a `makeWrapper` script, `bin/decapod`, that
+execs `bin/.decapod-wrapped`. `decapod qa verify` and `decapod todo done
+--validated` run `std::env::current_exe()` under the `verification_exec`
+capability, which allows only a file name that starts with `decapod`. So the
+Nix build failed with "capability 'verification_exec' does not allow binary
+'.decapod-wrapped'", and plain `decapod validate` reported PROOF_HOOK_FAILED
+for every done todo. `modules/overlays.nix` now wraps the upstream package:
+the real binary is a COPY at `libexec/decapod/decapod` (a symlink would not
+work, because Linux resolves `/proc/self/exe`), and `bin/decapod` is upstream's
+own wrapper script with only its exec target rewritten, so the environment
+(`LD_LIBRARY_PATH` for sqlite) is unchanged. The version, `meta` and `passthru`
+are upstream's, so `decapod capabilities` still reports the flake's release.
+Remove the override once #1582 is fixed upstream.
+
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that

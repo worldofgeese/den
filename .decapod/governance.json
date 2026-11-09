@@ -68,6 +68,13 @@
     "base_commit": "6cd5587d7b5ae9641764d1c23bfe1b5c14461958",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "ckpt-decapod-binary-copy-validate",
+      "summary": "the validation of the decapod binary copy: only DecapodLabs/decapod#1582 fails",
+      "input_digest": "sha256:ae5abd4cd52f0d77572429b8613e4d57b871ebd2309d8e14fffab364454b8c36"
+    }
+  ],
   "intents": {
     "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G": {
       "acceptance_criteria": [],
@@ -116,9 +123,34 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:f940fc9bb0deedd95e529b751b8940cafc08e3fe26d72f4a5c6b42d9cea38485",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:e9ec063a75fd9f204cc317efa007b2f8e431ccee62bf6b3684b95f9c37079915",
+      "checks": [
+        {
+          "name": "check-decapod-overrides-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "check-drvpaths-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "check-fmt-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate-ae4c32c",
+          "status": "failed"
+        },
+        {
+          "name": "eval-M-02877-paphos-oracle-ae4c32c",
+          "status": "passed"
+        },
+        {
+          "name": "qa-verify-scratch-ae4c32c",
+          "status": "partial"
+        }
+      ],
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -132,31 +164,92 @@
             "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M70DQTFGBAK6TKA01KEQEPTB",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M70DQTFGBAK6TKA01KEQEPTB": {
+            "evidence_only": true,
+            "id": "branch_01M70DQTFGBAK6TKA01KEQEPTB",
+            "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
+            "steps": [
+              {
+                "action": "publish-with-human-override",
+                "command": "decapod validate",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/overlays.nix",
+                  "modules/overlays.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "plain decapod validate on ae4c32c: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, the bug of DecapodLabs/decapod#1582 that this change works around",
+                  "scratch clone of the den store: upstream package, qa verify regen: External action denied: capability 'verification_exec' does not allow binary '.decapod-wrapped'; new package: that gate passes and the validation child runs (it then stops on the scratch workspace's own validate state)"
+                ],
+                "proof_refs": [
+                  "decapod-validate-ae4c32c",
+                  "check-drvpaths-ae4c32c",
+                  "check-fmt-ae4c32c",
+                  "check-decapod-overrides-ae4c32c",
+                  "eval-M-02877-paphos-oracle-ae4c32c",
+                  "qa-verify-scratch-ae4c32c"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": [
+                  "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED. PureViper, under Tao's delegation, allows it when decapod#1582 is the only cause.",
+                  "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)"
+                ]
+              }
+            ]
+          }
+        }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "decapod validate",
+        "scripts/check-drvpaths.sh"
+      ],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
+      "evidence": [
+        "plain decapod validate on ae4c32c: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, the bug of DecapodLabs/decapod#1582 that this change works around",
+        "scratch clone of the den store: upstream package, qa verify regen: External action denied: capability 'verification_exec' does not allow binary '.decapod-wrapped'; new package: that gate passes and the validation child runs (it then stops on the scratch workspace's own validate state)"
+      ],
+      "inspected_files": [
+        "modules/overlays.nix"
+      ],
       "intent_id": "intent:change_01M70DQTD1G1KCRQP9XZHYWA8G",
-      "modified_files": [],
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/overlays.nix"
+      ],
       "next_transitions": [
+        "Checkpoint and commit this record, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
+        ".decapod/managed/specs",
+        "modules/overlays.nix",
         "root"
       ],
       "run_id": "branch_01M70DQTFGBAK6TKA01KEQEPTB",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED. PureViper, under Tao's delegation, allows it when decapod#1582 is the only cause."
+      ],
       "task_id": "test_01m70d1jq2n5fq41",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)"
+      ]
     }
   },
   "legacy_digests": {

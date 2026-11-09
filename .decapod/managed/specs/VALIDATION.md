@@ -61,16 +61,26 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it, and since the bump of 2026-11-08 it is 0.132.0. Decapod reaches
-M-02877 in two ways: the `decapod` flake input in the per-user profile, and
-`cargo install` through the topgrade cargo step. Both bring the newest release.
+`AGENTS.md` names it, and since 2026-11-09 it is 0.133.0. Decapod reaches
+M-02877 only through the `decapod` flake input in the per-user profile. The
+cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
+newest crate) was removed on 2026-11-09. `cargo install-update` updates only
+installed crates, so it does not come back.
 CI reads the header and installs exactly that release with `cargo binstall`,
 and the cache key holds the release. Until 2026-10-30, CI installed the newest
 crate and cached it by the hash of `AGENTS.md`, so the pin held only while that
 cache entry lived (den#61).
 
-The user wants every tool at its newest release. When the flake or topgrade
-brings a newer Decapod, move the repository to it in its own PR: run
+The owner always wants the newest Decapod, with no hold and no downgrade
+(2026-11-09). The nightly bump moves the `decapod` flake input, and topgrade's
+den steps deploy it. On 2026-11-09 two such deploys took the shared store from
+0.121.2 to 0.133.0 with no announcement. That move applied no store migration
+(`.decapod/managed/migrations/applied.json` has not changed since 2026-08-06),
+and `decapod data database verify` passed after it. A later release can migrate
+the store at its first command, so a deploy that changes Decapod first copies
+the store (OPERATIONS.md, "Decapod store copies").
+
+To move sooner than the bump, move the repository in its own PR: run
 `just decapod-refresh` in the workspace, then `decapod validate`, then commit
 the regenerated projections. A workspace that Decapod creates refreshes the
 projections by itself, so the move is the first commit of that branch. Do not
@@ -141,6 +151,28 @@ of commit 911cc9d passes (188 pass, 0 fail, `publication_ready` true). So
 full local validation is part of the merge gate again, with the CI `validate`
 check, the pre-commit `just check`, and the deploy proof of each changed
 deploy target.
+
+Three upstream defects limit proof on M-02877 (2026-11-09):
+- `decapod qa verify` runs the verifying binary under the `verification_exec`
+  capability, which accepts only the file name `decapod` or `decapod*`. The
+  Nix package's `bin/decapod` is a wrapper script for `bin/.decapod-wrapped`,
+  so every verification of a done task is denied, and plain `decapod validate`
+  then fails with PROOF_HOOK_FAILED (DecapodLabs/decapod#1582). Den bead
+  home-manager-b0k installs the real binary under the file name `decapod`.
+  Until it is deployed, a symlink named `decapod` to `bin/.decapod-wrapped`
+  passes the check on macOS.
+- Even past that check, every replay of the `validate_passes` gate fails.
+  The `laya_readiness` receipt of `decapod validate --format json` has a
+  `request_id` and a `binding.evidence_digest` that change on every run, and
+  the normalizer masks only those of `vega_readiness`
+  (DecapodLabs/decapod#1583). So no done task can be verified, and
+  `decapod qa verify recover` fails at its final check. Plain
+  `decapod validate` stays at PROOF_HOOK_FAILED until both are fixed. Only
+  the owner can allow a PR in that state, per PR.
+- `decapod todo journal checkpoint --accept-historical-gap` repairs only a
+  store where one task has a historical journal gap. This store has 13 such
+  tasks from releases older than 2026-10-24, so `decapod todo journal verify`
+  fails until DecapodLabs/decapod#1581 is fixed.
 
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin

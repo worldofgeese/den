@@ -74,6 +74,11 @@
       "id": "azure-cli-cask",
       "summary": "azure-cli moved from brews to casks",
       "input_digest": "sha256:5a164ae102df0a835031ea5ce58918da2f5273cf49a5f137aee8bbb393787e27"
+    },
+    {
+      "id": "azure-cli-cask-validate",
+      "summary": "validation of b041e7a: only PROOF_HOOK_FAILED (decapod#1582, #1583)",
+      "input_digest": "sha256:891e06c9051c9949bebf39a755cd8bb6a00ed3a9d3dcf1c44553b640d43b5310"
     }
   ],
   "intents": {
@@ -124,9 +129,22 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:c9d6aaa36710cb1f65e42151a4fd22bea3429a7b58bf547364d357df57c63d7d",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:8be6531ee88b575cdec59abb4d5b670c92639c6a3166b08049d6d1c654832db8",
+      "checks": [
+        {
+          "name": "decapod-validate-b041e7a",
+          "status": "failed"
+        },
+        {
+          "name": "nix-build-darwin-system",
+          "status": "passed"
+        },
+        {
+          "name": "nix-eval-brewfile",
+          "status": "passed"
+        }
+      ],
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -140,19 +158,63 @@
             "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M70K2MNXD4WWWA0RQKKEGHTK",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M70K2MNXD4WWWA0RQKKEGHTK": {
+            "evidence_only": true,
+            "id": "branch_01M70K2MNXD4WWWA0RQKKEGHTK",
+            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+            "steps": [
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/M-02877/darwin.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "Brewfile has cask \"azure-cli\" and no brew \"azure-cli\"; nix build of darwinConfigurations.M-02877.system succeeded",
+                  "plain decapod validate on b041e7a: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, blocked by DecapodLabs/decapod#1582 and #1583"
+                ],
+                "proof_refs": [
+                  "nix-eval-brewfile",
+                  "nix-build-darwin-system",
+                  "decapod-validate-b041e7a"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": [
+                  "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED (DecapodLabs/decapod#1582, #1583). PureViper, under Tao's delegation, allowed den PRs with only that failure.",
+                  "decapod validate fails only on PROOF_HOOK_FAILED for done todos blocked by DecapodLabs/decapod#1582 or #1583"
+                ]
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "Brewfile has cask \"azure-cli\" and no brew \"azure-cli\"; nix build of darwinConfigurations.M-02877.system succeeded",
+        "plain decapod validate on b041e7a: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, blocked by DecapodLabs/decapod#1582 and #1583"
+      ],
       "inspected_files": [],
       "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
-      "modified_files": [],
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "modules/M-02877/darwin.nix"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
@@ -161,10 +223,14 @@
       ],
       "run_id": "branch_01M70K2MNXD4WWWA0RQKKEGHTK",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED (DecapodLabs/decapod#1582, #1583). PureViper, under Tao's delegation, allowed den PRs with only that failure."
+      ],
       "task_id": "code_01m70jv1w24pb2fv",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on PROOF_HOOK_FAILED for done todos blocked by DecapodLabs/decapod#1582 or #1583"
+      ]
     }
   },
   "legacy_digests": {

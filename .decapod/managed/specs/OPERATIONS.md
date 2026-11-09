@@ -52,6 +52,34 @@ another switch is running`; `pgrep -fl 'darwin-rebuild switch'` shows the
 holder. The lock wraps `sh -c`, so `sudo` stays the direct command and the
 sudoers rule `darwin-rebuild switch *` still matches.
 
+### Decapod store copies
+All agents on M-02877 share one Decapod store, `.decapod/data/decapod.db` in
+the main checkout. Decapod moves forward with no hold: the nightly bump moves
+the `decapod` flake input, and topgrade deploys it. A new release can migrate
+the store at its first command. So `scripts/decapod-deploy-backup.sh` runs in
+the switch lock, just before `darwin-rebuild switch`. When the deploy changes
+the decapod package (Home Manager's package for dktaohan is not on the symlink
+path of the installed `decapod`), the script copies the store with SQLite's
+online backup. The store opens read-only, so agents can write during the copy.
+The copy goes, readable only by the user (umask 077), to
+`~/.local/state/den-decapod-backups/<UTC time>-<old>-to-<new>.db`, not into
+`~/.local/state/den`: that directory holds only the Decapod PAUSE marker, and
+the G5 marker test runs only when it creates the directory itself. It must
+pass `PRAGMA integrity_check` and have pages, and the newest 5 copies stay.
+The deploy stops, and a failed copy is removed, when the evaluation fails or
+takes more than 30 minutes (it can fetch the new flake inputs of a bump over
+slow Wi-Fi), when it finds no decapod package or more than one, and
+when the copy or its check fails. To deploy without the copy on purpose, for
+example when the store itself is broken, run
+`DEN_SKIP_DECAPOD_BACKUP=1 just deploy-darwin`.
+
+A copy is a rollback point, not a restore. Only the owner restores a copy,
+with every agent stopped. The copy is made before `darwin-rebuild switch`
+builds, and on a cold cache the build takes minutes. Agents' writes during
+the build are not in the copy, so a restore loses them. The supported Decapod backup,
+`decapod data database backup`, runs only in a Decapod workspace, so a deploy
+cannot use it.
+
 The same deploy also built five uncommitted edits, and their authors are not
 known. Each was checked, then committed on 2026-10-30:
 - `flake.lock`: the lock of that run's "Flake inputs" step. Nine root inputs

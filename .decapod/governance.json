@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "6c4d9ccf4f4f0c1ff06cfbb09409b3983aae1ec4",
+    "accepted_commit": "6cd5587d7b5ae9641764d1c23bfe1b5c14461958",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -54,7 +54,6 @@
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
       "trajectory:56b396336dfc37b6": "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
-      "trajectory:7061cba2212328f4": "decapod validate fails only on DecapodLabs/decapod#1582 (the 2 old done todos stay unverified until the new binary is deployed and recovered)",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
       "trajectory:a11ddf38831feaab": "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy",
@@ -65,24 +64,79 @@
     }
   },
   "change": {
-    "id": "change_01M70K2MKXA6KE14BTPZX4X8QC",
-    "base_commit": "6c4d9ccf4f4f0c1ff06cfbb09409b3983aae1ec4",
+    "id": "change_01M70D2QR2F0SA033CY5QFD74H",
+    "base_commit": "6cd5587d7b5ae9641764d1c23bfe1b5c14461958",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "azure-cli-cask",
-      "summary": "azure-cli moved from brews to casks",
-      "input_digest": "sha256:5a164ae102df0a835031ea5ce58918da2f5273cf49a5f137aee8bbb393787e27"
+      "id": "cicd_01m70d229cat1j96",
+      "summary": "Pre-switch copy of the shared Decapod store when a deploy changes Decapod; specs for latest-moving, retired cargo copy, #1581/#1582; entrypoints 0.133.0",
+      "input_digest": "sha256:77e4b57395b6a37653e1d59cd98ab8e233e3d37bcee13c7af6c2ebd6844ae5f5"
     },
     {
-      "id": "azure-cli-cask-validate",
-      "summary": "validation of b041e7a: only PROOF_HOOK_FAILED (decapod#1582, #1583)",
-      "input_digest": "sha256:891e06c9051c9949bebf39a755cd8bb6a00ed3a9d3dcf1c44553b640d43b5310"
+      "id": "cicd_01m70d229cat1j96-r2",
+      "summary": "Pre-switch copy of the shared Decapod store when a deploy changes Decapod; specs for latest-moving, retired cargo copy, #1581/#1582; entrypoints 0.133.0 (manifest refresh included)",
+      "input_digest": "sha256:9719aa3a7c2c272e8e4d42c1b57d3abfca3a6fef7be4de9420d920da8fa229a8"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r3",
+      "summary": "Pre-switch copy of the shared Decapod store when a deploy changes Decapod; specs for latest-moving, retired cargo copy, upstream proof defects #1581/#1582/#1583; entrypoints 0.133.0",
+      "input_digest": "sha256:b088bba8ee0a698b6ef0fe38a3ee6767fb8fe1960c23f49efac86f4edb2a7056"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r4",
+      "summary": "Review fixes: stop on zero/multiple decapod packages, 300 s eval timeout, remove failed or killed copies, document the copy window and the PR rule provenance, stubbed test in just check",
+      "input_digest": "sha256:7b419390b1168a2b4e7ea9b0acb01f8b7e8ead02de087db9ea55f33bf6631230"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r5",
+      "summary": "Review fixes (1c1db28) with the review loop recorded in the trajectory",
+      "input_digest": "sha256:7b419390b1168a2b4e7ea9b0acb01f8b7e8ead02de087db9ea55f33bf6631230"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r6",
+      "summary": "Pre-switch copy of the shared Decapod store when a deploy changes Decapod, with the review fixes (stop on zero/multiple packages, 300 s eval limit, failed copies removed, stubbed test); specs; entrypoints 0.133.0",
+      "input_digest": "sha256:7b419390b1168a2b4e7ea9b0acb01f8b7e8ead02de087db9ea55f33bf6631230"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r7",
+      "summary": "Squashed candidate with the review loop and checks recorded",
+      "input_digest": "sha256:93352d0acbe6759f70e9d1a41215ca8a043ad0c737cb2874de1288d3e05f22df"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r8",
+      "summary": "Copies move to ~/.local/state/den-decapod-backups (PureViper review); rebased on 6c4d9cc (#133)",
+      "input_digest": "sha256:fa287f5a28fc83a02f623966d8ff5f6d65dc641c3af9c1be7345b01e4c65773d"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r9",
+      "summary": "Manifest refresh after the first validation of the rebased candidate",
+      "input_digest": "sha256:215bfd6990c2dfd2c10213c049ca96e327ffafee2640adbff9592b64ada060a2"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r10",
+      "summary": "Review notes: timeout check and expiry test, empty page_count guard; standing PR rule removed from VALIDATION.md (Codex P1)",
+      "input_digest": "sha256:774fa12de4faf763091e5dfaed078f50d95903b247d27712b9d35a490a560a2b"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r11",
+      "summary": "Rebased on a02b1cf (#134)",
+      "input_digest": "sha256:ba419a09c4a4acede1c4f932a22b5c0367240bbb5b363e99ba42d6df541f973e"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r12",
+      "summary": "Evaluation limit 30 minutes; copies readable only by the user (umask 077)",
+      "input_digest": "sha256:8ae9732ba709827d2bc0143e2b19454f312c6e9a2f4e0c88e0c833da4709c6f9"
+    },
+    {
+      "id": "cicd_01m70d229cat1j96-r13",
+      "summary": "Manifest refresh after the first validation of 3cca3fc",
+      "input_digest": "sha256:6829d13964729ad0a803703ca8d10c41ba28ea9691edffbe2e466ae9f1e3e49a"
     }
   ],
   "intents": {
-    "intent:change_01M70K2MKXA6KE14BTPZX4X8QC": {
+    "intent:change_01M70D2QR2F0SA033CY5QFD74H": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -92,11 +146,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+      "id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
-      "refined_intent": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
+      "raw_intent": "home-manager-6ag: back up the shared Decapod store when a deploy changes Decapod",
+      "refined_intent": "home-manager-6ag: back up the shared Decapod store when a deploy changes Decapod",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -109,127 +163,366 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
+      "intent": "Owner decision 2026-11-09: Decapod moves forward with no hold (nightly bump + topgrade deploy). A new release can migrate the shared store .decapod/data/decapod.db at its first command. just deploy-darwin copies the store (SQLite online backup, read-only source, integrity_check + non-empty) before darwin-rebuild when the deploy changes the decapod package, keeps the newest 5 copies, and stops on a failed copy (DEN_SKIP_DECAPOD_BACKUP=1 overrides). Specs record the retired cargo copy, the latest-moving policy and the upstream proof defects #1581 and #1582. The entrypoints move to 0.133.0.",
       "phases": [],
       "proof_hooks": [
+        "shellcheck scripts/decapod-deploy-backup.sh",
+        "behaviour tests: unchanged=no copy, changed=verified copy, skip, eval failure, corrupt store, retention 5",
+        "just check (pre-commit)",
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "M-02877: move azure-cli from brews to casks (home-manager-v3qo)",
+      "title": "Back up the shared Decapod store when a deploy changes Decapod",
       "todo_ids": [
-        "code_01m70jv1w24pb2fv"
+        "cicd_01m70d229cat1j96"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794243125Z"
+      "updated_at": "1794236790Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "No switch, no brew and no G5 marker; the shared store is only read (sqlite3 -readonly .backup); restore stays an owner action"
       ],
-      "artifact_hash": "sha256:8be6531ee88b575cdec59abb4d5b670c92639c6a3166b08049d6d1c654832db8",
+      "artifact_hash": "sha256:3f6ffe1d6713c167363dbfc5fe606e7081ef91f8a0020275bcc59e9ddc7390b7",
       "checks": [
         {
-          "name": "decapod-validate-b041e7a",
+          "name": "behaviour-changed-verified-copy",
+          "status": "passed"
+        },
+        {
+          "name": "behaviour-corrupt-store-stops",
+          "status": "passed"
+        },
+        {
+          "name": "behaviour-eval-failure-stops",
+          "status": "passed"
+        },
+        {
+          "name": "behaviour-skip",
+          "status": "passed"
+        },
+        {
+          "name": "behaviour-unchanged-no-copy",
+          "status": "passed"
+        },
+        {
+          "name": "mutant-fail-open-zero-match-caught",
+          "status": "passed"
+        },
+        {
+          "name": "mutant-no-empty-pages-guard-caught",
+          "status": "passed"
+        },
+        {
+          "name": "mutant-no-partial-trap-caught",
+          "status": "passed"
+        },
+        {
+          "name": "plain-validate",
           "status": "failed"
         },
         {
-          "name": "nix-build-darwin-system",
+          "name": "real-store-copy-mode-0600",
           "status": "passed"
         },
         {
-          "name": "nix-eval-brewfile",
+          "name": "retention-newest-5",
+          "status": "passed"
+        },
+        {
+          "name": "shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "shellcheck-both-scripts",
+          "status": "passed"
+        },
+        {
+          "name": "test-decapod-deploy-backup",
+          "status": "passed"
+        },
+        {
+          "name": "validate-with-done-tasks-scoped-out",
           "status": "passed"
         }
       ],
-      "current_phase": "publish-with-human-override",
+      "current_phase": "review",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M70K2MNXD4WWWA0RQKKEGHTK",
+            "detail": "trajectory:branch_01M70D2QTEXK7BV9S82SC1Q9FV",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M70K2MNXD4WWWA0RQKKEGHTK": {
+          "branch_01M70D2QTEXK7BV9S82SC1Q9FV": {
             "evidence_only": true,
-            "id": "branch_01M70K2MNXD4WWWA0RQKKEGHTK",
-            "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+            "id": "branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+            "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
             "steps": [
               {
-                "action": "publish-with-human-override",
+                "action": "implementation",
+                "command": "shellcheck scripts/decapod-deploy-backup.sh",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/darwin.nix",
+                  "Justfile",
+                  "scripts/deploy-freshness.sh",
+                  "modules/overlays.nix",
+                  "flake.nix",
+                  ".decapod/config.toml",
+                  "scripts/decapod-deploy-backup.sh",
+                  "Justfile",
+                  ".decapod/config.toml",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "Brewfile has cask \"azure-cli\" and no brew \"azure-cli\"; nix build of darwinConfigurations.M-02877.system succeeded",
-                  "plain decapod validate on b041e7a: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, blocked by DecapodLabs/decapod#1582 and #1583"
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "changed run: copy 99M, integrity_check ok, 151187 events; 7 copies -> newest 5 kept"
                 ],
                 "proof_refs": [
-                  "nix-eval-brewfile",
-                  "nix-build-darwin-system",
-                  "decapod-validate-b041e7a"
+                  "shellcheck",
+                  "behaviour-unchanged-no-copy",
+                  "behaviour-changed-verified-copy",
+                  "behaviour-skip",
+                  "behaviour-eval-failure-stops",
+                  "behaviour-corrupt-store-stops",
+                  "retention-newest-5"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": [
-                  "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED (DecapodLabs/decapod#1582, #1583). PureViper, under Tao's delegation, allowed den PRs with only that failure.",
-                  "decapod validate fails only on PROOF_HOOK_FAILED for done todos blocked by DecapodLabs/decapod#1582 or #1583"
+                  "PureViper's overlay fix home-manager-b0k keeps the package name decapod-<version>; the script matches parseDrvName name == decapod"
                 ]
+              },
+              {
+                "action": "loop:review-132:1",
+                "custody_event_id": "event:5",
+                "observations": [],
+                "proof_refs": [
+                  "https://github.com/worldofgeese/den/pull/132"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/decapod-deploy-backup.sh, Justfile deploy-darwin, .decapod/config.toml shellcheck list and digests, specs OPERATIONS/INTERFACES/VALIDATION, generated entrypoints 0.133.0"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "pr-reviewer on 7516360: fail-open on zero or several decapod matches; nix eval without timeout in the lock; partial files left and never pruned; copy-to-activation window; standing PR rule needs owner confirmation; no committed test"
+                ]
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:6",
+                "observations": [
+                  "scripts/decapod-deploy-backup.sh",
+                  "scripts/test-decapod-deploy-backup.sh",
+                  "Justfile",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "PureViper review of ed67fa7: lock section and script OK; requested the copies outside ~/.local/state/den (PAUSE marker dir; the G5 window test must create it), and a rebase on 6c4d9cc (#133). Both done."
+                ],
+                "proof_refs": [
+                  "test-decapod-deploy-backup",
+                  "shellcheck-both-scripts"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/decapod-deploy-backup.sh, Justfile deploy-darwin, .decapod/config.toml shellcheck list and digests, specs OPERATIONS/INTERFACES/VALIDATION, generated entrypoints 0.133.0"
+                ],
+                "sequence": 6,
+                "validation_findings": []
+              },
+              {
+                "action": "loop:review-132:2",
+                "custody_event_id": "event:7",
+                "observations": [],
+                "proof_refs": [
+                  "https://github.com/worldofgeese/den/pull/132"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/decapod-deploy-backup.sh, Justfile deploy-darwin, .decapod/config.toml shellcheck list and digests, specs OPERATIONS/INTERFACES/VALIDATION, generated entrypoints 0.133.0"
+                ],
+                "sequence": 7,
+                "validation_findings": [
+                  "pr-reviewer cycle 3 on f37227b: no blocking findings; two notes fixed"
+                ]
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "Rebased on a02b1cf (#134 azure-cli cask). All checks were green on 37471a0 before main moved."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root",
+                  "scripts/decapod-deploy-backup.sh, Justfile deploy-darwin, .decapod/config.toml shellcheck list and digests, specs OPERATIONS/INTERFACES/VALIDATION, generated entrypoints 0.133.0"
+                ],
+                "sequence": 8,
+                "validation_findings": []
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:9",
+                "observations": [
+                  "scripts/decapod-deploy-backup.sh",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "pr-reviewer cycle 4 on 1db859c: no blockers. Notes fixed: the evaluation limit is 30 minutes (a bump's input fetch over slow Wi-Fi could pass 300 s), and umask 077 (real-store run: dir 0700, copy 0600, 104 MB)."
+                ],
+                "proof_refs": [
+                  "test-decapod-deploy-backup",
+                  "shellcheck-both-scripts",
+                  "real-store-copy-mode-0600"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/decapod-deploy-backup.sh, Justfile deploy-darwin, .decapod/config.toml shellcheck list and digests, specs OPERATIONS/INTERFACES/VALIDATION, generated entrypoints 0.133.0"
+                ],
+                "sequence": 9,
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "./scripts/decapod-deploy-backup.sh (unchanged, skip, changed via 2b87672 worktree, eval failure, corrupt store, empty store)",
+        "shellcheck scripts/decapod-deploy-backup.sh"
+      ],
       "destination": "pull request",
       "evidence": [
-        "Brewfile has cask \"azure-cli\" and no brew \"azure-cli\"; nix build of darwinConfigurations.M-02877.system succeeded",
-        "plain decapod validate on b041e7a: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, blocked by DecapodLabs/decapod#1582 and #1583"
+        "PureViper review of ed67fa7: lock section and script OK; requested the copies outside ~/.local/state/den (PAUSE marker dir; the G5 window test must create it), and a rebase on 6c4d9cc (#133). Both done.",
+        "Rebased on a02b1cf (#134 azure-cli cask). All checks were green on 37471a0 before main moved.",
+        "changed run: copy 99M, integrity_check ok, 151187 events; 7 copies -> newest 5 kept",
+        "pr-reviewer cycle 3 on f37227b: earlier findings fixed, two non-blocking notes (timeout dependency and expiry test; empty page_count) now fixed. Codex P1 on VALIDATION.md: the standing PROOF_HOOK PR rule is removed from the spec; only the owner allows such a PR, per PR.",
+        "pr-reviewer cycle 4 on 1db859c: no blockers. Notes fixed: the evaluation limit is 30 minutes (a bump's input fetch over slow Wi-Fi could pass 300 s), and umask 077 (real-store run: dir 0700, copy 0600, 104 MB).",
+        "pr-reviewer on #132 (7516360): fail-open on zero/multiple matches, nix eval without timeout, partial files left, copy-to-activation window, standing PR rule, no committed test; all addressed or documented. Plain validate fails only on PROOF_HOOK_FAILED for cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj (DecapodLabs/decapod#1582, #1583)."
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M70K2MKXA6KE14BTPZX4X8QC",
+      "inspected_files": [
+        ".decapod/config.toml",
+        "Justfile",
+        "flake.nix",
+        "modules/overlays.nix",
+        "scripts/deploy-freshness.sh"
+      ],
+      "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+      "loops": [
+        {
+          "attempt": 1,
+          "custody_event_id": "event:5",
+          "feedback": "pr-reviewer on 7516360: fail-open on zero or several decapod matches; nix eval without timeout in the lock; partial files left and never pruned; copy-to-activation window; standing PR rule needs owner confirmation; no committed test",
+          "grader_result": "fail",
+          "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+          "loop_id": "review-132",
+          "loop_type": "verification",
+          "mutation_proposal": "none",
+          "proof_refs": [
+            "https://github.com/worldofgeese/den/pull/132"
+          ],
+          "status": "failed",
+          "trajectory_id": "branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+          "trigger": "grader"
+        },
+        {
+          "attempt": 2,
+          "custody_event_id": "event:7",
+          "feedback": "pr-reviewer cycle 3 on f37227b: no blocking findings; two notes fixed",
+          "grader_result": "pass",
+          "intent_id": "intent:change_01M70D2QR2F0SA033CY5QFD74H",
+          "loop_id": "review-132",
+          "loop_type": "verification",
+          "mutation_proposal": "none",
+          "proof_refs": [
+            "https://github.com/worldofgeese/den/pull/132"
+          ],
+          "status": "passed",
+          "trajectory_id": "branch_01M70D2QTEXK7BV9S82SC1Q9FV",
+          "trigger": "grader"
+        }
+      ],
       "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/darwin.nix"
+        ".decapod/managed/specs/VALIDATION.md",
+        "Justfile",
+        "scripts/decapod-deploy-backup.sh",
+        "scripts/test-decapod-deploy-backup.sh"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "root"
+        "root",
+        "scripts/decapod-deploy-backup.sh, Justfile deploy-darwin, .decapod/config.toml shellcheck list and digests, specs OPERATIONS/INTERFACES/VALIDATION, generated entrypoints 0.133.0"
       ],
-      "run_id": "branch_01M70K2MNXD4WWWA0RQKKEGHTK",
+      "run_id": "branch_01M70D2QTEXK7BV9S82SC1Q9FV",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [
-        "The PR opens while plain decapod validate fails on PROOF_HOOK_FAILED (DecapodLabs/decapod#1582, #1583). PureViper, under Tao's delegation, allowed den PRs with only that failure."
-      ],
-      "task_id": "code_01m70jv1w24pb2fv",
+      "shortcut_risk_signals": [],
+      "task_id": "cicd_01m70d229cat1j96",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "decapod validate fails only on PROOF_HOOK_FAILED for done todos blocked by DecapodLabs/decapod#1582 or #1583"
+        "PureViper's overlay fix home-manager-b0k keeps the package name decapod-<version>; the script matches parseDrvName name == decapod"
       ]
     }
   },

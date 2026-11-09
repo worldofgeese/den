@@ -40,7 +40,7 @@ validation_buildkite_preflights = false
 
 [proof.required_profile]
 id = "repo.pr-readiness.v1"
-reviewed_sources_digest = "sha256:33dadae453b4a701f3a354132b5e0f592b8cde4462493079e1a9eb20585b6e1d"
+reviewed_sources_digest = "sha256:078aef5ac90cf18c4d3e9372bedd0cc79485a9aa36cd2867fa8648faf0f6491e"
 
 [[proof.commands]]
 name = "fmt"
@@ -51,11 +51,11 @@ required = true
 [[proof.commands]]
 name = "shellcheck"
 command = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
-args = ["scripts/bump-flake-inputs.sh", "scripts/cask-app-preflight.sh", "scripts/check-decapod-overrides.sh", "scripts/check-drvpaths.sh", "scripts/decapod-validate-ci.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/test-omarchy-share.sh", "scripts/upgrade-cachyos-kernel.sh"]
+args = ["scripts/bump-flake-inputs.sh", "scripts/cask-app-preflight.sh", "scripts/check-decapod-overrides.sh", "scripts/check-drvpaths.sh", "scripts/decapod-deploy-backup.sh", "scripts/decapod-validate-ci.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/test-decapod-deploy-backup.sh", "scripts/test-omarchy-share.sh", "scripts/upgrade-cachyos-kernel.sh"]
 required = true
 
 [proof.repository_contract]
-reviewed_commands_digest = "sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece"
+reviewed_commands_digest = "sha256:342e180411fe118b2a657c147ed079983730fae4fa8c523c9af097bae3bd7467"
 source_coverage = [
     { source = ".github/workflows/bump.yml", ci_only = true, reason = "A nightly and manual job. It opens the flake-input bump PR and checks no candidate. The bump PR gets the same checks as other PRs." },
     { source = ".github/workflows/dagger.yml", ci_only = true, reason = "It runs dagger check in a container engine on GitHub-hosted runners. The repository profile has no container engine, no Nix daemon and no network." },

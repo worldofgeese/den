@@ -234,7 +234,13 @@ deploy-oracle host="" build-host="":
 # user cannot write, fails and can leave the app half-deleted or empty. It
 # moves such casks to ~/Applications first. See scripts/cask-app-preflight.sh.
 #
-# deploy-freshness runs before both: a checkout that does not contain
+# decapod-deploy-backup runs just before darwin-rebuild: when the deploy
+# changes the decapod package, it copies the shared store
+# .decapod/data/decapod.db to ~/.local/state/den-decapod-backups first, because
+# a new Decapod can migrate that store at its first command. See
+# scripts/decapod-deploy-backup.sh.
+#
+# deploy-freshness runs before all of them: a checkout that does not contain
 # origin/main removes merged work from the machine. See
 # scripts/deploy-freshness.sh.
 #
@@ -242,12 +248,13 @@ deploy-oracle host="" build-host="":
 # start of cask-app-preflight through the end of darwin-rebuild switch, so two
 # deploys cannot overlap. A second deploy fails at once (`-t 0`; lockf exits 75)
 # with a line that points at `pgrep -fl 'darwin-rebuild switch'`. The lock covers
-# only those two steps: the freshness check and the cachix push stay outside it.
+# only those three steps (cask-app-preflight, decapod-deploy-backup and
+# darwin-rebuild): the freshness check and the cachix push stay outside it.
 # `sh -c` runs sudo as its direct command, so `darwin-rebuild switch *` in the
 # sudoers rule still matches (see the env note above).
 deploy-darwin:
     ./scripts/deploy-freshness.sh
-    /usr/bin/lockf -k -t 0 /tmp/den-darwin-switch.lock sh -ec './scripts/cask-app-preflight.sh; sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877' || { rc=$?; [ "$rc" -ne 75 ] || echo "error: another switch is running (lock /tmp/den-darwin-switch.lock); pgrep -fl 'darwin-rebuild switch' shows it" >&2; exit "$rc"; }
+    /usr/bin/lockf -k -t 0 /tmp/den-darwin-switch.lock sh -ec './scripts/cask-app-preflight.sh; ./scripts/decapod-deploy-backup.sh; sudo -H /run/current-system/sw/bin/darwin-rebuild switch --option warn-dirty false --fallback --flake .#M-02877' || { rc=$?; [ "$rc" -ne 75 ] || echo "error: another switch is running (lock /tmp/den-darwin-switch.lock); pgrep -fl 'darwin-rebuild switch' shows it" >&2; exit "$rc"; }
     @just cachix-push /run/current-system || echo "warning: cachix push failed, most likely because the Mac is locked (the Secure Enclave key that decrypts the Cachix token works only while it is unlocked); the switch succeeded, and the next deploy made while the Mac is unlocked pushes the whole closure" >&2
     @# Surface the signing state every deploy: a broken signing keychain once
     @# went unnoticed for hours as one warning line inside topgrade output.
@@ -285,6 +292,7 @@ check: install-hooks
     just check-shellcheck
     just check-decapod-overrides
     just check-pi-decapod-gate
+    just check-decapod-deploy-backup
 
 # Prove the project overrides in .decapod/OVERRIDE.md are actually loaded.
 #
@@ -307,6 +315,12 @@ check-decapod-overrides:
 # has it.
 check-pi-decapod-gate:
     nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs
+
+# Tests for the store copy that `just deploy-darwin` makes when a deploy
+# changes Decapod (scripts/decapod-deploy-backup.sh). Stub `nix` and `sqlite3`
+# commands stand in for the evaluation and the store.
+check-decapod-deploy-backup:
+    ./scripts/test-decapod-deploy-backup.sh
 
 # Regenerate the Decapod entrypoint projections after a Decapod upgrade.
 # `decapod init with --force` resets `external_tracker` and `[tracker] provider`

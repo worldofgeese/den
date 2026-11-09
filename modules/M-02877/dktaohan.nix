@@ -421,6 +421,13 @@
               # "Password:" on 2026-09-29 for Tahoe 26.7.1), and Jamf + Nudge
               # own OS updates on this managed Mac.
               "system"
+              # topgrade 17.15.0 adds a Tailscale step that runs `sudo
+              # tailscale update`. M-02877 uses the standalone Tailscale app
+              # (io.tailscale.ipn.macsys), and on that app the command exits 1:
+              # "The 'update' command is not supported on this platform".
+              # Sparkle in the app installs Tailscale updates. The step also
+              # asks for the sudo password, which an unattended run cannot give.
+              "tailscale"
             ];
             set_title = true;
           };

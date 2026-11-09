@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it, and since 2026-11-01 it is 0.121.2. Decapod reaches
+`AGENTS.md` names it, and since the bump of 2026-11-08 it is 0.132.0. Decapod reaches
 M-02877 in two ways: the `decapod` flake input in the per-user profile, and
 `cargo install` through the topgrade cargo step. Both bring the newest release.
 CI reads the header and installs exactly that release with `cargo binstall`,
@@ -106,8 +106,21 @@ pre-commit hook (`just check`, with `scripts/check-drvpaths.sh`) and the deploy
 of each changed deploy target stay that proof. `dagger check` also evaluates
 the hosts (see Dagger Checks).
 
+`source_coverage` has one row for each workflow in `.github/workflows/`. If a
+workflow has no row, Decapod 0.132.0 stops validation with
+`REPOSITORY_CONTRACT_INVALID` (measured 2026-11-09). `decapod-validate.yml`
+maps to `fmt` and `shellcheck`. `bump.yml`, `dagger.yml`, `eval-targets.yml`
+and `shepherd.yml` are `ci_only` rows, and each row gives its reason.
+`bump.yml` and `shepherd.yml` check no candidate. `dagger.yml` and
+`eval-targets.yml` need a container engine or the Nix daemon, and the profile
+refuses both. Validation reports a `ci_only` row as a limitation stage, not as
+a passed check. Their proof stays in CI: branch protection requires
+`den/dagger-check`, and the merge rules wait for each check of the head. If you
+add a workflow, add its row in the same PR. If you add a script to
+`scripts/*.sh`, add it to the `shellcheck` arguments.
+
 The contract pins two digests. `proof.required_profile.reviewed_sources_digest`
-covers the workflow, the Justfile, the flake files and `scripts/*`.
+covers the workflows, the Justfile, the flake files and `scripts/*`.
 `proof.repository_contract.reviewed_commands_digest` covers the commands, their
 source coverage and their executions. A flake update that moves alejandra or
 ShellCheck to a new store path, a new script, or a changed workflow makes the
@@ -117,19 +130,17 @@ them. The nightly bump of plan P6 must renew them in the same PR. Then update th
 review the change, and copy both digests from `decapod rpc --op agent.init`
 (`inventory_digest` and `command_contract_digest`).
 
-On macOS the contract cannot pass yet. Decapod 0.121.1 probes both `justfile`
-and `Justfile` (`SOURCE_FILES` in `src/decapod/core/init_reconciliation/mod.rs`).
-APFS on M-02877 is case-insensitive, so both probes find the one tracked
-`Justfile`, and the inventory lists two files with one digest. The execution
-snapshot holds only the tracked name, so `decapod validate` stops at
-`READINESS_BLOCKED: missing bound input: justfile`
-(DecapodLabs/decapod#1470). Upstream closed #1470 on
-2026-11-04, so the first validation on a fixed release must measure it again.
-Until that measurement passes, the merge gate stays the CI `validate` check, the pre-commit
-`just check`, and the deploy proof of each changed deploy target. Close the
-bead on that evidence. Measured 2026-10-30: `decapod govern project-check`
-passes (186 pass, 0 fail), and a CI-local run (`GITHUB_ACTIONS=true`) passes
-with a clean drift check.
+Decapod 0.121.1 could not pass the contract on macOS. It probed both
+`justfile` and `Justfile` (`SOURCE_FILES` in
+`src/decapod/core/init_reconciliation/mod.rs`). APFS on M-02877 is
+case-insensitive, so both probes found the one tracked `Justfile`, and
+`decapod validate` stopped at `READINESS_BLOCKED: missing bound input:
+justfile` (DecapodLabs/decapod#1470). Upstream closed #1470 on 2026-11-04.
+Measured 2026-11-09 on M-02877 with Decapod 0.132.0: full `decapod validate`
+of commit 911cc9d passes (188 pass, 0 fail, `publication_ready` true). So
+full local validation is part of the merge gate again, with the CI `validate`
+check, the pre-commit `just check`, and the deploy proof of each changed
+deploy target.
 
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin

@@ -340,8 +340,15 @@ when someone edits those files. Running agents pick it up when they restart.
 topgrade must finish without input. Steps that would ask for a password or
 duplicate a managed updater are disabled in `modules/M-02877/dktaohan.nix`:
 `system` (macOS `softwareupdate` needs an admin password; Jamf and Nudge own
-OS updates), `microsoft_office` (Intune-managed AutoUpdate), and the VS Code,
-Insiders and Cursor extension steps (the editors self-update).
+OS updates), `microsoft_office` (Intune-managed AutoUpdate), the VS Code,
+Insiders and Cursor extension steps (the editors self-update), and `tailscale`.
+
+topgrade 17.15.0 adds the `tailscale` step, which runs `sudo tailscale update`.
+M-02877 uses the standalone Tailscale app (`io.tailscale.ipn.macsys`). On that
+app, `tailscale update` exits 1 with "The 'update' command is not supported on
+this platform". Sparkle in the app installs Tailscale updates, with automatic
+checks and automatic installs on. The step also asks for the sudo password,
+which an unattended run cannot give.
 
 ### Tailnet Name Resolution on M-02877
 "Use Tailscale DNS" stays off on M-02877 because the tailnet pushes global

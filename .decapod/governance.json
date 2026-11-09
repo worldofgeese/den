@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "c5a23bcbd654ff264b67393d1f4cdbe34b68cb54",
+    "accepted_commit": "e8b6e9529115e7365ca49bd3ed96b501c77cc0e4",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -55,6 +55,7 @@
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
+      "trajectory:a11ddf38831feaab": "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy",
       "trajectory:bb7f2b410288c6ec": "Extension-sent user messages are identified by arrival order, best effort and fail safe",
       "trajectory:dbf928a616b74bec": "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent",
       "trajectory:ea8d12aa7cc7885a": "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides",
@@ -62,59 +63,59 @@
     }
   },
   "change": {
-    "id": "change_01M6RR32HDZBXZC8JS0G3MY0JF",
-    "base_commit": "c5a23bcbd654ff264b67393d1f4cdbe34b68cb54",
+    "id": "change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+    "base_commit": "e8b6e9529115e7365ca49bd3ed96b501c77cc0e4",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "gate-drain-6wx",
-      "summary": "decapod-gate drain barrier, revision entry, blocking marker errors, status tool",
-      "input_digest": "sha256:812e5f2bf3f6ef374271944761fbdb2d97ea976d8bcabb0b0cc43f7433a9e117"
+      "id": "d8z-disable-topgrade-tailscale-132",
+      "summary": "Disable the topgrade 17.15.0 tailscale step on M-02877, and record the reason in the ARCHITECTURE.md topgrade section.",
+      "input_digest": "sha256:32d349c029d8cd478ff6cf3cdb0f71585448ef8340c13ca3d2b5fd1a7ff79bfc",
+      "proof_refs": [
+        "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/: exit 0",
+        "generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config: only diff vs deployed is tailscale in misc.disable",
+        "installed topgrade 17.15.0 --dry-run: deployed file shows Tailscale step; generated file shows 12 steps, no Tailscale",
+        "nix eval darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.topgrade.settings.misc.disable: ends with tailscale"
+      ]
     },
     {
-      "id": "gate-drain-6wx-bind",
-      "summary": "Bind the trajectory to its task; refresh the specs manifest",
-      "input_digest": "sha256:f3776370ffac5055e26596abbcce3700090a800f0488cd81661e1508473e9e8d"
+      "id": "oun-repository-contract-coverage",
+      "summary": "Give every workflow a reviewed source_coverage row, add scripts/test-omarchy-share.sh to the shellcheck proof, renew reviewed_commands_digest, and document the coverage in VALIDATION.md.",
+      "input_digest": "sha256:4d384d9920f715050e2e7438ddb7f53a2e0983720cc6ffb3547fcf566ab3cdb4",
+      "proof_refs": [
+        "agent.init: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece = reviewed_commands_digest; inventory_digest sha256:28dcbc45ccd3741cc966c5283fedfd6a4b9714f6f8bff9339b61d8cafc89df13 = reviewed_sources_digest; status proof_pending",
+        "review: 5 workflows, 5 source_coverage rows, programs and toolchain files present",
+        "shellcheck 0.11.0 on the 10 contract args: exit 0"
+      ]
     },
     {
-      "id": "gate-drain-6wx-rebind",
-      "summary": "Bind the trajectory to the full task id",
-      "input_digest": "sha256:0e8cc7ac7a3113b1ea7fd397465a1c1f32077da96644ecbcf6415e972e972bf8"
+      "id": "d8z-bind-trajectory-to-branch-task",
+      "summary": "Bind the trajectory to the branch task code_01m6zjeywthv2cpj again.",
+      "input_digest": "sha256:d4eef7aedc972fe985ae0426e270860d997c290ec088d1da72ffd66bc3ac8edb",
+      "proof_refs": [
+        "decapod validate on 3edf455: readiness blocked only by the trajectory task binding"
+      ]
     },
     {
-      "id": "gate-drain-6wx-final",
-      "summary": "Bind the trajectory to its task as in den PR 124; plan approved",
-      "input_digest": "sha256:f60d253b031a1dcdbaa8d5c7dfbfa5cb3348c679c9acbf7eddfe44dcb1986486"
+      "id": "d8z-merge-main-a4ab07c",
+      "summary": "Merge origin/main a4ab07c (flake bump PR #129) into the work branch; regenerate the spec manifest.",
+      "input_digest": "sha256:62f8f0d78bcb8f5c3dee278917763b8662d557339526955268d078a4236789a9",
+      "proof_refs": [
+        "agent.init after merge: proof_pending; both reviewed digests match"
+      ]
     },
     {
-      "id": "gate-drain-6wx-validation",
-      "summary": "Record the validation of the drain barrier change",
-      "input_digest": "sha256:1d9e30068a11ccd78cb8ed9ca9a8250563bc25a4483149f1258a79e72bfcf1f2"
-    },
-    {
-      "id": "gate-drain-6wx-review1",
-      "summary": "Address pr-reviewer: status tool exempt from the gate drain, revision fixed at load, barrier scope documented",
-      "input_digest": "sha256:68ebc23c394b2d3342c41e47b353874d3dfa5a8edd6dc782fd7457d7d7ac8a86"
-    },
-    {
-      "id": "gate-drain-6wx-validation2",
-      "summary": "Record the validation after the pr-reviewer fixes",
-      "input_digest": "sha256:6a67351dd4c35a849b5a0fe104fe38b1b0bcbb701d88a00455ad2d17ee047b5c"
-    },
-    {
-      "id": "gate-drain-6wx-review2",
-      "summary": "Keep timed-out evaluations pending until the child has exited",
-      "input_digest": "sha256:03a8d262bba4848de08fab07882f181bf0ebc36d920e0ccccd1afdb605887ac4"
-    },
-    {
-      "id": "gate-drain-6wx-validation3",
-      "summary": "Record the validation after the timeout fix",
-      "input_digest": "sha256:8094a9fd8a6faf1ad372616f5de3516747c8aac5b93dfaa292dcf7b2b797131d"
+      "id": "oun-record-macos-validation",
+      "summary": "Record in VALIDATION.md that full decapod validate passes on macOS with Decapod 0.132.0 (911cc9d).",
+      "input_digest": "sha256:3db9253798237f554934884b4ec82efa1243c36ced86ae33734c94e08fba36e0",
+      "proof_refs": [
+        "decapod validate on 911cc9d: ok, publication_ready true, 188 pass, 0 fail"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF": {
+    "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,11 +125,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+      "id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "decapod-gate: drain barrier, revision entry, blocking marker errors (home-manager-6wx)",
-      "refined_intent": "decapod-gate: drain barrier, revision entry, blocking marker errors (home-manager-6wx)",
+      "raw_intent": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
+      "refined_intent": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -136,47 +137,70 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 20,
-        "forbidden_paths": [
-          ".github/"
-        ]
+        "file_touch_budget": null,
+        "forbidden_paths": []
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "home-manager-6wx: decapod-gate drain barrier, revision entry and blocking marker errors",
+      "intent": "home-manager-d8z: add \"tailscale\" to the topgrade misc.disable list for M-02877. topgrade 17.15.0 adds a Tailscale step. On the standalone Tailscale app, `tailscale update` is not supported and exits 1. The app updates itself with Sparkle. home-manager-oun: Decapod 0.132.0 full validation fails with REPOSITORY_CONTRACT_INVALID, because source_coverage in .decapod/config.toml maps only decapod-validate.yml. Add a reviewed ci_only row for bump.yml, dagger.yml, eval-targets.yml and shepherd.yml, and renew both reviewed digests.",
       "phases": [],
       "proof_hooks": [
-        "just check-pi-decapod-gate",
-        "nix build .#darwinConfigurations.M-02877.system"
+        "decapod validate (0.132.0) reports no REPOSITORY_CONTRACT_INVALID failure"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "home-manager-6wx: decapod-gate drain barrier, revision entry and blocking marker errors",
+      "title": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
       "todo_ids": [
-        "bugs_01m6rr297476e1s0"
+        "code_01m6zjeywthv2cpj",
+        "cicd_01m6zpqmewery418"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793980909Z"
+      "updated_at": "1794213169Z"
     },
     "trajectory": {
       "active_boundaries": [
+        "Change only modules/M-02877/dktaohan.nix, the ARCHITECTURE.md topgrade section, and Decapod-generated surfaces.",
         "Current claimed task and isolated work branch",
-        "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
+        "Second commit: change only .decapod/config.toml (source_coverage, shellcheck args, reviewed_commands_digest) and VALIDATION.md."
       ],
-      "artifact_hash": "sha256:809ee5786e499c29dabb9bd06e4cd72684cb582925ef4a8a3d55a3e2e36d6a94",
+      "artifact_hash": "sha256:87391e92f7e116ba35d374287f825bd5cf27671e5a59d0b00eb0bf5d64911836",
       "checks": [
         {
-          "name": "darwin_system_build",
+          "name": "contract-reconciliation",
           "status": "passed"
         },
         {
-          "name": "decapod_validate",
-          "status": "partial"
+          "name": "contract-shellcheck-args",
+          "status": "passed"
         },
         {
-          "name": "pi_decapod_gate_unit_tests",
+          "name": "decapod-validate",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-3edf455",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-911cc9d",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate-d61cb74",
+          "status": "failed"
+        },
+        {
+          "name": "fmt",
+          "status": "passed"
+        },
+        {
+          "name": "topgrade-17.15.0-dry-run-no-tailscale",
+          "status": "passed"
+        },
+        {
+          "name": "topgrade-disable-eval",
           "status": "passed"
         }
       ],
@@ -185,127 +209,148 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 5
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:6",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 6
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:7",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 7
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:8",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 8
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:9",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 9
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:10",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 10
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 10,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6RR32KG23GPYMXC048T790Y": {
+          "branch_01M6ZMBR377JRGACHNT8BJ2MQZ": {
             "evidence_only": true,
-            "id": "branch_01M6RR32KG23GPYMXC048T790Y",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "id": "branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "steps": [
               {
                 "action": "implementation",
-                "command": "just check-pi-decapod-gate",
+                "command": "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/pi-decapod-gate.ts",
-                  "scripts/test-pi-decapod-gate.mjs",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/pi-decapod-gate.ts",
-                  "modules/M-02877/agent-integrations.nix",
-                  "scripts/test-pi-decapod-gate.mjs",
-                  ".decapod/managed/specs/ARCHITECTURE.md"
+                  "modules/M-02877/dktaohan.nix",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "Justfile",
+                  "scripts/deploy-freshness.sh",
+                  "scripts/cask-app-preflight.sh",
+                  "modules/M-02877/dktaohan.nix",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
+                  "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
+                  "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step",
+                  "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
+                  "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
+                  "2026-11-09T08:27+01:00 user reply 'You may and you may run topgrade --yes' authorizes the commit, decapod validate, push, and PR creation",
+                  "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0"
                 ],
                 "proof_refs": [
-                  "pi_decapod_gate_unit_tests"
+                  "fmt",
+                  "topgrade-disable-eval",
+                  "topgrade-17.15.0-dry-run-no-tailscale"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
+                "validation_findings": [
+                  "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"
+                ]
               },
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:5",
                 "observations": [
-                  "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted"
+                  "Branch pushed to origin at 8d6bf56 before preflight (allowed); no workflow triggers on non-main branch pushes; refs/dolt/data unchanged"
                 ],
                 "proof_refs": [
-                  "darwin_system_build"
+                  "decapod-validate"
                 ],
                 "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "modules/M-02877/dktaohan.nix",
                   "root"
                 ],
                 "sequence": 5,
-                "validation_findings": [
-                  "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
-                ]
+                "validation_findings": []
               },
               {
                 "action": "trajectory.record",
+                "command": "decapod rpc --op agent.init (review aids: command_contract_digest, inventory_digest)",
                 "custody_event_id": "event:6",
                 "observations": [
-                  "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure",
-                  "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted"
+                  ".decapod/config.toml",
+                  ".github/workflows/bump.yml",
+                  ".github/workflows/dagger.yml",
+                  ".github/workflows/decapod-validate.yml",
+                  ".github/workflows/eval-targets.yml",
+                  ".github/workflows/shepherd.yml",
+                  "dagger.toml",
+                  ".dagger/modules/ci/main.go",
+                  "scripts/bump-flake-inputs.sh",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "2026-11-09T09:23+01:00 user reply 'Do and fix everything yourself' delegates the maintainer review of source_coverage and both digests to the agent",
+                  "Review: every .github/workflows/*.yml has exactly one source_coverage row; fmt and shellcheck programs and toolchain files exist; environment {}, directory ., timeout 300",
+                  "Review: shellcheck args lacked scripts/test-omarchy-share.sh (added dc9a6ac 2026-11-02); just check-shellcheck covers scripts/*.sh; the script passes ShellCheck 0.11.0; added to args",
+                  "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
+                  "Merge policy dagger.toml: authors include worldofgeese, reviewer app/chatgpt-codex-connector, riskyPaths exclude .decapod/config.toml and modules/M-02877/dktaohan.nix; branch protection requires den/dagger-check and validate"
                 ],
                 "proof_refs": [
-                  "decapod_validate"
+                  "contract-shellcheck-args",
+                  "contract-reconciliation"
                 ],
                 "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "modules/M-02877/dktaohan.nix",
                   "root"
                 ],
                 "sequence": 6,
@@ -313,16 +358,18 @@
               },
               {
                 "action": "trajectory.record",
-                "command": "just check-pi-decapod-gate",
                 "custody_event_id": "event:7",
                 "observations": [
-                  "pr-reviewer round 1: status tool exempt from tool_call drain and block; revision fixed at code load; spec states the barrier is per pi process. just check-pi-decapod-gate: 32/32 pass"
+                  "decapod validate (0.132.0) on 3edf455: 187 pass, 1 fail; the REPOSITORY_CONTRACT gate passes; readiness blocked: trajectory bound to cicd_01m6zpqmewery418, expected code_01m6zjeywthv2cpj (the branch task). Rebound the trajectory to code_01m6zjeywthv2cpj; cicd_01m6zpqmewery418 stays in the plan todo_ids."
                 ],
                 "proof_refs": [
-                  "pi_decapod_gate_unit_tests"
+                  "decapod-validate-3edf455"
                 ],
                 "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/M-02877/dktaohan.nix",
                   "root"
                 ],
                 "sequence": 7,
@@ -332,13 +379,18 @@
                 "action": "trajectory.record",
                 "custody_event_id": "event:8",
                 "observations": [
-                  "plain decapod validate on 6e7dd02: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure"
+                  "decapod validate on d61cb74: 187 pass, 1 fail: STALE_ACCEPTED_BASE; origin/main moved to a4ab07c (bump PR #129: flake.lock, OPERATIONS.md, reviewed_sources_digest, manifest)",
+                  "Merged origin/main a4ab07c (no rebase, the branch is pushed). config.toml auto-merged: reviewed_sources_digest sha256:33dadae4... from main, reviewed_commands_digest sha256:5f871fcf... from this branch. Manifest conflict resolved by taking main's file and regenerating it with specs.refresh.",
+                  "agent.init after the merge: status proof_pending, command_contract_digest = reviewed_commands_digest, inventory_digest sha256:33dadae453b4a701f3a354132b5e0f592b8cde4462493079e1a9eb20585b6e1d = reviewed_sources_digest"
                 ],
                 "proof_refs": [
-                  "decapod_validate"
+                  "decapod-validate-d61cb74"
                 ],
                 "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/M-02877/dktaohan.nix",
                   "root"
                 ],
                 "sequence": 8,
@@ -346,35 +398,23 @@
               },
               {
                 "action": "trajectory.record",
-                "command": "just check-pi-decapod-gate",
                 "custody_event_id": "event:9",
                 "observations": [
-                  "Codex round: a timed-out evaluation stays pending until its process exits; just check-pi-decapod-gate: 33/33 pass"
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "decapod validate (0.132.0) on 911cc9d with origin/main a4ab07c contained: status ok, publication_ready true, scope publication_readiness, 188 pass, 0 fail, 5 warn, 13 skip",
+                  "First full local validation on macOS since DecapodLabs/decapod#1470; VALIDATION.md paragraph updated with this observed measurement"
                 ],
                 "proof_refs": [
-                  "pi_decapod_gate_unit_tests"
+                  "decapod-validate-911cc9d"
                 ],
                 "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/M-02877/dktaohan.nix",
                   "root"
                 ],
                 "sequence": 9,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:10",
-                "observations": [
-                  "plain decapod validate on 82c3bb1: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure"
-                ],
-                "proof_refs": [
-                  "decapod_validate"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 10,
                 "validation_findings": []
               }
             ]
@@ -382,44 +422,80 @@
         }
       },
       "declared_commands": [
-        "just check-pi-decapod-gate"
+        "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/",
+        "decapod rpc --op agent.init (review aids: command_contract_digest, inventory_digest)",
+        "nix eval darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.topgrade.settings.misc.disable",
+        "shellcheck 0.11.0 on the exact contract args (10 scripts)",
+        "topgrade --dry-run --yes --config <generated topgrade.toml> (topgrade 17.15.0)"
       ],
       "destination": "pull request",
       "evidence": [
-        "Codex round: a timed-out evaluation stays pending until its process exits; just check-pi-decapod-gate: 33/33 pass",
-        "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted",
-        "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted",
-        "plain decapod validate on 6e7dd02: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure",
-        "plain decapod validate on 82c3bb1: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure",
-        "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure",
-        "pr-reviewer round 1: status tool exempt from tool_call drain and block; revision fixed at code load; spec states the barrier is per pi process. just check-pi-decapod-gate: 32/32 pass"
+        "2026-11-09T08:27+01:00 user reply 'You may and you may run topgrade --yes' authorizes the commit, decapod validate, push, and PR creation",
+        "2026-11-09T09:23+01:00 user reply 'Do and fix everything yourself' delegates the maintainer review of source_coverage and both digests to the agent",
+        "Branch pushed to origin at 8d6bf56 before preflight (allowed); no workflow triggers on non-main branch pushes; refs/dolt/data unchanged",
+        "First full local validation on macOS since DecapodLabs/decapod#1470; VALIDATION.md paragraph updated with this observed measurement",
+        "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
+        "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
+        "Merge policy dagger.toml: authors include worldofgeese, reviewer app/chatgpt-codex-connector, riskyPaths exclude .decapod/config.toml and modules/M-02877/dktaohan.nix; branch protection requires den/dagger-check and validate",
+        "Merged origin/main a4ab07c (no rebase, the branch is pushed). config.toml auto-merged: reviewed_sources_digest sha256:33dadae4... from main, reviewed_commands_digest sha256:5f871fcf... from this branch. Manifest conflict resolved by taking main's file and regenerating it with specs.refresh.",
+        "Review: every .github/workflows/*.yml has exactly one source_coverage row; fmt and shellcheck programs and toolchain files exist; environment {}, directory ., timeout 300",
+        "Review: shellcheck args lacked scripts/test-omarchy-share.sh (added dc9a6ac 2026-11-02); just check-shellcheck covers scripts/*.sh; the script passes ShellCheck 0.11.0; added to args",
+        "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0",
+        "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
+        "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
+        "agent.init after the merge: status proof_pending, command_contract_digest = reviewed_commands_digest, inventory_digest sha256:33dadae453b4a701f3a354132b5e0f592b8cde4462493079e1a9eb20585b6e1d = reviewed_sources_digest",
+        "decapod validate (0.132.0) on 3edf455: 187 pass, 1 fail; the REPOSITORY_CONTRACT gate passes; readiness blocked: trajectory bound to cicd_01m6zpqmewery418, expected code_01m6zjeywthv2cpj (the branch task). Rebound the trajectory to code_01m6zjeywthv2cpj; cicd_01m6zpqmewery418 stays in the plan todo_ids.",
+        "decapod validate (0.132.0) on 911cc9d with origin/main a4ab07c contained: status ok, publication_ready true, scope publication_readiness, 188 pass, 0 fail, 5 warn, 13 skip",
+        "decapod validate on d61cb74: 187 pass, 1 fail: STALE_ACCEPTED_BASE; origin/main moved to a4ab07c (bump PR #129: flake.lock, OPERATIONS.md, reviewed_sources_digest, manifest)",
+        "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
+        "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step"
       ],
       "inspected_files": [
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/pi-decapod-gate.ts",
-        "scripts/test-pi-decapod-gate.mjs"
-      ],
-      "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-      "modified_files": [
+        ".dagger/modules/ci/main.go",
+        ".decapod/config.toml",
         ".decapod/managed/specs/ARCHITECTURE.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/pi-decapod-gate.ts",
-        "scripts/test-pi-decapod-gate.mjs"
+        ".decapod/managed/specs/VALIDATION.md",
+        ".github/workflows/bump.yml",
+        ".github/workflows/dagger.yml",
+        ".github/workflows/decapod-validate.yml",
+        ".github/workflows/eval-targets.yml",
+        ".github/workflows/shepherd.yml",
+        "Justfile",
+        "dagger.toml",
+        "modules/M-02877/dktaohan.nix",
+        "scripts/bump-flake-inputs.sh",
+        "scripts/cask-app-preflight.sh",
+        "scripts/deploy-freshness.sh"
+      ],
+      "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+      "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "modules/M-02877/dktaohan.nix"
       ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "After maintainer reconciles the repository contract: rebase or merge main, rerun decapod validate, then publish the PR",
+        "Commit the binding, rerun decapod validate",
+        "Commit the merge, rerun decapod validate, publish the PR",
+        "Commit the spec record, rerun decapod validate on the final candidate, publish the PR",
+        "Refine plan and declare falsifiable checks",
+        "Stage, checkpoint, commit, decapod validate, publish the PR"
       ],
       "repo_scope": [
-        "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+        ".decapod/config.toml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "modules/M-02877/dktaohan.nix",
         "root"
       ],
-      "run_id": "branch_01M6RR32KG23GPYMXC048T790Y",
+      "run_id": "branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "todo_01m6rr",
+      "task_id": "code_01m6zjeywthv2cpj",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
+        "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"
       ]
     }
   },

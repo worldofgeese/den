@@ -51,13 +51,17 @@ required = true
 [[proof.commands]]
 name = "shellcheck"
 command = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
-args = ["scripts/bump-flake-inputs.sh", "scripts/cask-app-preflight.sh", "scripts/check-decapod-overrides.sh", "scripts/check-drvpaths.sh", "scripts/decapod-validate-ci.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/upgrade-cachyos-kernel.sh"]
+args = ["scripts/bump-flake-inputs.sh", "scripts/cask-app-preflight.sh", "scripts/check-decapod-overrides.sh", "scripts/check-drvpaths.sh", "scripts/decapod-validate-ci.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/test-omarchy-share.sh", "scripts/upgrade-cachyos-kernel.sh"]
 required = true
 
 [proof.repository_contract]
-reviewed_commands_digest = "sha256:9754b51b69e5cd1dea1ad1385ffeeeeea5fcabf0b3eaf07e7e7e1173e9b8720b"
+reviewed_commands_digest = "sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece"
 source_coverage = [
+    { source = ".github/workflows/bump.yml", ci_only = true, reason = "A nightly and manual job. It opens the flake-input bump PR and checks no candidate. The bump PR gets the same checks as other PRs." },
+    { source = ".github/workflows/dagger.yml", ci_only = true, reason = "It runs dagger check in a container engine on GitHub-hosted runners. The repository profile has no container engine, no Nix daemon and no network." },
     { source = ".github/workflows/decapod-validate.yml", commands = ["fmt", "shellcheck"] },
+    { source = ".github/workflows/eval-targets.yml", ci_only = true, reason = "It evaluates the drvPath of each deploy target with Nix on GitHub-hosted runners. The repository profile refuses Nix daemon and network operations." },
+    { source = ".github/workflows/shepherd.yml", ci_only = true, reason = "Merge automation on a schedule, after the check workflows and on PR comments. It merges PRs that pass the merge rules and checks no candidate." },
 ]
 
 [proof.repository_contract.executions.fmt]

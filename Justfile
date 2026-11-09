@@ -220,7 +220,8 @@ deploy-oracle host="" build-host="":
 # manual target nobody ran. The push is non-fatal on purpose: a failed upload
 # means a slow next deploy, not a broken this one.
 #
-# The push fails only while the Mac is locked (2026-11-09). The Secure Enclave
+# The push has so far failed only while the Mac was locked (2026-11-09; a bad
+# token or a network outage would fail it too). The Secure Enclave
 # age key that decrypts CACHIX_AUTH_TOKEN (age-plugin-se, access control none)
 # still needs an unlocked Mac. Both failures on 2026-11-06 (13:11 and 14:38 CET)
 # ran with the display off since 13:07:29 (pmset log). A background push from a

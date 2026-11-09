@@ -73,6 +73,11 @@
       "id": "cachix-locked",
       "summary": "deploy-darwin cachix warning names locked Mac",
       "input_digest": "sha256:b756732ef925c0b80884e76f242ee5ffdd952487a7a8b0af7cd6dd1ec7ca4620"
+    },
+    {
+      "id": "cachix-locked-warning-validate",
+      "summary": "validation of the cachix warning change: only DecapodLabs/decapod#1582 fails; Tao authorized publishing",
+      "input_digest": "sha256:8cae6e1f835e5b20f65346cd7fadead74d21667e56d13ec604ab89e6aad58da6"
     }
   ],
   "intents": {
@@ -123,9 +128,18 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:e475d2c4fbc5e00cf820db153f5352fac5b303264fcf3f3d5e26a8210ebb341b",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:bfffe5809638bd176fd545abe80c8c73435b5af2dab1f91d3c316af3ecd079d1",
+      "checks": [
+        {
+          "name": "decapod-validate-059efa9",
+          "status": "failed"
+        },
+        {
+          "name": "just-show-deploy-darwin",
+          "status": "passed"
+        }
+      ],
+      "current_phase": "publish-with-human-override",
       "custody": {
         "events": [
           {
@@ -139,20 +153,65 @@
             "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M70BZVCX0PX68QPQ60CFAZVA",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M70BZVCX0PX68QPQ60CFAZVA": {
+            "evidence_only": true,
+            "id": "branch_01M70BZVCX0PX68QPQ60CFAZVA",
+            "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
+            "steps": [
+              {
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "Justfile",
+                  "Justfile",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "plain decapod validate on 059efa9: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done TODOs cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, which decapod qa verify cannot verify because Decapod 0.133.x rejects the binary .decapod-wrapped (DecapodLabs/decapod#1582)"
+                ],
+                "proof_refs": [
+                  "decapod-validate-059efa9",
+                  "just-show-deploy-darwin"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": [
+                  "The PR opens while decapod validate fails on PROOF_HOOK_FAILED caused by DecapodLabs/decapod#1582. Tao (via PureViper) authorized opening den PRs with only that failure.",
+                  "decapod validate fails only on DecapodLabs/decapod#1582 (verification_exec rejects .decapod-wrapped). Authorized by Tao through PureViper on 2026-11-09."
+                ]
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
+      "evidence": [
+        "plain decapod validate on 059efa9: pass=186 fail=1 warn=5 skip=13; the only failure is PROOF_HOOK_FAILED for done TODOs cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, which decapod qa verify cannot verify because Decapod 0.133.x rejects the binary .decapod-wrapped (DecapodLabs/decapod#1582)"
+      ],
+      "inspected_files": [
+        "Justfile"
+      ],
       "intent_id": "intent:change_01M70BZVA8HPAM3CRK2GFPXN40",
-      "modified_files": [],
+      "modified_files": [
+        ".decapod/managed/specs/INTERFACES.md",
+        "Justfile"
+      ],
       "next_transitions": [
+        "Checkpoint and commit this record, push, open the PR",
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
@@ -160,10 +219,14 @@
       ],
       "run_id": "branch_01M70BZVCX0PX68QPQ60CFAZVA",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
+      "shortcut_risk_signals": [
+        "The PR opens while decapod validate fails on PROOF_HOOK_FAILED caused by DecapodLabs/decapod#1582. Tao (via PureViper) authorized opening den PRs with only that failure."
+      ],
       "task_id": "cicd_01m70bz12gf7dcbp",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "decapod validate fails only on DecapodLabs/decapod#1582 (verification_exec rejects .decapod-wrapped). Authorized by Tao through PureViper on 2026-11-09."
+      ]
     }
   },
   "legacy_digests": {

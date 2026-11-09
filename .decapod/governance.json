@@ -90,18 +90,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "decapod: install real binary under own name so qa verify works (home-manager-b0k)",
       "todo_ids": [
         "test_01m70d1jq2n5fq41"
       ],
-      "updated_at": "1794237000Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1794237322Z"
     },
     "trajectory": {
       "active_boundaries": [

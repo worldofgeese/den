@@ -88,6 +88,14 @@
         "review: 5 workflows, 5 source_coverage rows, programs and toolchain files present",
         "shellcheck 0.11.0 on the 10 contract args: exit 0"
       ]
+    },
+    {
+      "id": "d8z-bind-trajectory-to-branch-task",
+      "summary": "Bind the trajectory to the branch task code_01m6zjeywthv2cpj again.",
+      "input_digest": "sha256:d4eef7aedc972fe985ae0426e270860d997c290ec088d1da72ffd66bc3ac8edb",
+      "proof_refs": [
+        "decapod validate on 3edf455: readiness blocked only by the trajectory task binding"
+      ]
     }
   ],
   "intents": {
@@ -141,7 +149,7 @@
         "Current claimed task and isolated work branch",
         "Second commit: change only .decapod/config.toml (source_coverage, shellcheck args, reviewed_commands_digest) and VALIDATION.md."
       ],
-      "artifact_hash": "sha256:1209d818114e0baddc2b007e3440d87b7a6577f722ecb276b7e66ea885cb0c2c",
+      "artifact_hash": "sha256:375e146e8ecf7f164f13a170eb368cf18cc945e8bf15b388d6c21fb7e84c0b12",
       "checks": [
         {
           "name": "contract-reconciliation",
@@ -153,6 +161,10 @@
         },
         {
           "name": "decapod-validate",
+          "status": "failed"
+        },
+        {
+          "name": "decapod-validate-3edf455",
           "status": "failed"
         },
         {
@@ -203,10 +215,17 @@
             "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6ZMBR377JRGACHNT8BJ2MQZ": {
@@ -298,6 +317,25 @@
                 ],
                 "sequence": 6,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:7",
+                "observations": [
+                  "decapod validate (0.132.0) on 3edf455: 187 pass, 1 fail; the REPOSITORY_CONTRACT gate passes; readiness blocked: trajectory bound to cicd_01m6zpqmewery418, expected code_01m6zjeywthv2cpj (the branch task). Rebound the trajectory to code_01m6zjeywthv2cpj; cicd_01m6zpqmewery418 stays in the plan todo_ids."
+                ],
+                "proof_refs": [
+                  "decapod-validate-3edf455"
+                ],
+                "scope": [
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/M-02877/dktaohan.nix",
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": []
               }
             ]
           }
@@ -323,6 +361,7 @@
         "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0",
         "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
         "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
+        "decapod validate (0.132.0) on 3edf455: 187 pass, 1 fail; the REPOSITORY_CONTRACT gate passes; readiness blocked: trajectory bound to cicd_01m6zpqmewery418, expected code_01m6zjeywthv2cpj (the branch task). Rebound the trajectory to code_01m6zjeywthv2cpj; cicd_01m6zpqmewery418 stays in the plan todo_ids.",
         "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
         "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step"
       ],
@@ -352,6 +391,7 @@
       ],
       "next_transitions": [
         "After maintainer reconciles the repository contract: rebase or merge main, rerun decapod validate, then publish the PR",
+        "Commit the binding, rerun decapod validate",
         "Refine plan and declare falsifiable checks",
         "Stage, checkpoint, commit, decapod validate, publish the PR"
       ],
@@ -365,7 +405,7 @@
       "run_id": "branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m6zpqmewery418",
+      "task_id": "code_01m6zjeywthv2cpj",
       "tool_calls": [],
       "unresolved_assumptions": [
         "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"

@@ -104,6 +104,14 @@
       "proof_refs": [
         "agent.init after merge: proof_pending; both reviewed digests match"
       ]
+    },
+    {
+      "id": "oun-record-macos-validation",
+      "summary": "Record in VALIDATION.md that full decapod validate passes on macOS with Decapod 0.132.0 (911cc9d).",
+      "input_digest": "sha256:3db9253798237f554934884b4ec82efa1243c36ced86ae33734c94e08fba36e0",
+      "proof_refs": [
+        "decapod validate on 911cc9d: ok, publication_ready true, 188 pass, 0 fail"
+      ]
     }
   ],
   "intents": {
@@ -157,7 +165,7 @@
         "Current claimed task and isolated work branch",
         "Second commit: change only .decapod/config.toml (source_coverage, shellcheck args, reviewed_commands_digest) and VALIDATION.md."
       ],
-      "artifact_hash": "sha256:55d627e1779c826a91d8deaf3cd0edb5626059e9310099600eea2309b4c710e7",
+      "artifact_hash": "sha256:87391e92f7e116ba35d374287f825bd5cf27671e5a59d0b00eb0bf5d64911836",
       "checks": [
         {
           "name": "contract-reconciliation",
@@ -174,6 +182,10 @@
         {
           "name": "decapod-validate-3edf455",
           "status": "failed"
+        },
+        {
+          "name": "decapod-validate-911cc9d",
+          "status": "passed"
         },
         {
           "name": "decapod-validate-d61cb74",
@@ -241,10 +253,17 @@
             "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 8,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M6ZMBR377JRGACHNT8BJ2MQZ": {
@@ -376,6 +395,27 @@
                 ],
                 "sequence": 8,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:9",
+                "observations": [
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "decapod validate (0.132.0) on 911cc9d with origin/main a4ab07c contained: status ok, publication_ready true, scope publication_readiness, 188 pass, 0 fail, 5 warn, 13 skip",
+                  "First full local validation on macOS since DecapodLabs/decapod#1470; VALIDATION.md paragraph updated with this observed measurement"
+                ],
+                "proof_refs": [
+                  "decapod-validate-911cc9d"
+                ],
+                "scope": [
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/M-02877/dktaohan.nix",
+                  "root"
+                ],
+                "sequence": 9,
+                "validation_findings": []
               }
             ]
           }
@@ -393,6 +433,7 @@
         "2026-11-09T08:27+01:00 user reply 'You may and you may run topgrade --yes' authorizes the commit, decapod validate, push, and PR creation",
         "2026-11-09T09:23+01:00 user reply 'Do and fix everything yourself' delegates the maintainer review of source_coverage and both digests to the agent",
         "Branch pushed to origin at 8d6bf56 before preflight (allowed); no workflow triggers on non-main branch pushes; refs/dolt/data unchanged",
+        "First full local validation on macOS since DecapodLabs/decapod#1470; VALIDATION.md paragraph updated with this observed measurement",
         "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
         "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
         "Merge policy dagger.toml: authors include worldofgeese, reviewer app/chatgpt-codex-connector, riskyPaths exclude .decapod/config.toml and modules/M-02877/dktaohan.nix; branch protection requires den/dagger-check and validate",
@@ -404,6 +445,7 @@
         "agent.init after the edit: command_contract_digest sha256:5f871fcf1833161a85a5637437784acd9f09740ebc3c77fabc784460ab6f2ece pinned as reviewed_commands_digest; inventory_digest sha256:28dcbc45... equals the pinned reviewed_sources_digest; reconciliation status proof_pending",
         "agent.init after the merge: status proof_pending, command_contract_digest = reviewed_commands_digest, inventory_digest sha256:33dadae453b4a701f3a354132b5e0f592b8cde4462493079e1a9eb20585b6e1d = reviewed_sources_digest",
         "decapod validate (0.132.0) on 3edf455: 187 pass, 1 fail; the REPOSITORY_CONTRACT gate passes; readiness blocked: trajectory bound to cicd_01m6zpqmewery418, expected code_01m6zjeywthv2cpj (the branch task). Rebound the trajectory to code_01m6zjeywthv2cpj; cicd_01m6zpqmewery418 stays in the plan todo_ids.",
+        "decapod validate (0.132.0) on 911cc9d with origin/main a4ab07c contained: status ok, publication_ready true, scope publication_readiness, 188 pass, 0 fail, 5 warn, 13 skip",
         "decapod validate on d61cb74: 187 pass, 1 fail: STALE_ACCEPTED_BASE; origin/main moved to a4ab07c (bump PR #129: flake.lock, OPERATIONS.md, reviewed_sources_digest, manifest)",
         "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
         "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step"
@@ -436,6 +478,7 @@
         "After maintainer reconciles the repository contract: rebase or merge main, rerun decapod validate, then publish the PR",
         "Commit the binding, rerun decapod validate",
         "Commit the merge, rerun decapod validate, publish the PR",
+        "Commit the spec record, rerun decapod validate on the final candidate, publish the PR",
         "Refine plan and declare falsifiable checks",
         "Stage, checkpoint, commit, decapod validate, publish the PR"
       ],

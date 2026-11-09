@@ -130,19 +130,17 @@ them. The nightly bump of plan P6 must renew them in the same PR. Then update th
 review the change, and copy both digests from `decapod rpc --op agent.init`
 (`inventory_digest` and `command_contract_digest`).
 
-On macOS the contract cannot pass yet. Decapod 0.121.1 probes both `justfile`
-and `Justfile` (`SOURCE_FILES` in `src/decapod/core/init_reconciliation/mod.rs`).
-APFS on M-02877 is case-insensitive, so both probes find the one tracked
-`Justfile`, and the inventory lists two files with one digest. The execution
-snapshot holds only the tracked name, so `decapod validate` stops at
-`READINESS_BLOCKED: missing bound input: justfile`
-(DecapodLabs/decapod#1470). Upstream closed #1470 on
-2026-11-04, so the first validation on a fixed release must measure it again.
-Until that measurement passes, the merge gate stays the CI `validate` check, the pre-commit
-`just check`, and the deploy proof of each changed deploy target. Close the
-bead on that evidence. Measured 2026-10-30: `decapod govern project-check`
-passes (186 pass, 0 fail), and a CI-local run (`GITHUB_ACTIONS=true`) passes
-with a clean drift check.
+Decapod 0.121.1 could not pass the contract on macOS. It probed both
+`justfile` and `Justfile` (`SOURCE_FILES` in
+`src/decapod/core/init_reconciliation/mod.rs`). APFS on M-02877 is
+case-insensitive, so both probes found the one tracked `Justfile`, and
+`decapod validate` stopped at `READINESS_BLOCKED: missing bound input:
+justfile` (DecapodLabs/decapod#1470). Upstream closed #1470 on 2026-11-04.
+Measured 2026-11-09 on M-02877 with Decapod 0.132.0: full `decapod validate`
+of commit 911cc9d passes (188 pass, 0 fail, `publication_ready` true). So
+full local validation is part of the merge gate again, with the CI `validate`
+check, the pre-commit `just check`, and the deploy proof of each changed
+deploy target.
 
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin

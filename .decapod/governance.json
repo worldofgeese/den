@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "c5a23bcbd654ff264b67393d1f4cdbe34b68cb54",
+    "accepted_commit": "e8b6e9529115e7365ca49bd3ed96b501c77cc0e4",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -55,6 +55,7 @@
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
+      "trajectory:a11ddf38831feaab": "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy",
       "trajectory:bb7f2b410288c6ec": "Extension-sent user messages are identified by arrival order, best effort and fail safe",
       "trajectory:dbf928a616b74bec": "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent",
       "trajectory:ea8d12aa7cc7885a": "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides",
@@ -62,59 +63,25 @@
     }
   },
   "change": {
-    "id": "change_01M6RR32HDZBXZC8JS0G3MY0JF",
-    "base_commit": "c5a23bcbd654ff264b67393d1f4cdbe34b68cb54",
+    "id": "change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
+    "base_commit": "e8b6e9529115e7365ca49bd3ed96b501c77cc0e4",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "gate-drain-6wx",
-      "summary": "decapod-gate drain barrier, revision entry, blocking marker errors, status tool",
-      "input_digest": "sha256:812e5f2bf3f6ef374271944761fbdb2d97ea976d8bcabb0b0cc43f7433a9e117"
-    },
-    {
-      "id": "gate-drain-6wx-bind",
-      "summary": "Bind the trajectory to its task; refresh the specs manifest",
-      "input_digest": "sha256:f3776370ffac5055e26596abbcce3700090a800f0488cd81661e1508473e9e8d"
-    },
-    {
-      "id": "gate-drain-6wx-rebind",
-      "summary": "Bind the trajectory to the full task id",
-      "input_digest": "sha256:0e8cc7ac7a3113b1ea7fd397465a1c1f32077da96644ecbcf6415e972e972bf8"
-    },
-    {
-      "id": "gate-drain-6wx-final",
-      "summary": "Bind the trajectory to its task as in den PR 124; plan approved",
-      "input_digest": "sha256:f60d253b031a1dcdbaa8d5c7dfbfa5cb3348c679c9acbf7eddfe44dcb1986486"
-    },
-    {
-      "id": "gate-drain-6wx-validation",
-      "summary": "Record the validation of the drain barrier change",
-      "input_digest": "sha256:1d9e30068a11ccd78cb8ed9ca9a8250563bc25a4483149f1258a79e72bfcf1f2"
-    },
-    {
-      "id": "gate-drain-6wx-review1",
-      "summary": "Address pr-reviewer: status tool exempt from the gate drain, revision fixed at load, barrier scope documented",
-      "input_digest": "sha256:68ebc23c394b2d3342c41e47b353874d3dfa5a8edd6dc782fd7457d7d7ac8a86"
-    },
-    {
-      "id": "gate-drain-6wx-validation2",
-      "summary": "Record the validation after the pr-reviewer fixes",
-      "input_digest": "sha256:6a67351dd4c35a849b5a0fe104fe38b1b0bcbb701d88a00455ad2d17ee047b5c"
-    },
-    {
-      "id": "gate-drain-6wx-review2",
-      "summary": "Keep timed-out evaluations pending until the child has exited",
-      "input_digest": "sha256:03a8d262bba4848de08fab07882f181bf0ebc36d920e0ccccd1afdb605887ac4"
-    },
-    {
-      "id": "gate-drain-6wx-validation3",
-      "summary": "Record the validation after the timeout fix",
-      "input_digest": "sha256:8094a9fd8a6faf1ad372616f5de3516747c8aac5b93dfaa292dcf7b2b797131d"
+      "id": "d8z-disable-topgrade-tailscale-132",
+      "summary": "Disable the topgrade 17.15.0 tailscale step on M-02877, and record the reason in the ARCHITECTURE.md topgrade section.",
+      "input_digest": "sha256:32d349c029d8cd478ff6cf3cdb0f71585448ef8340c13ca3d2b5fd1a7ff79bfc",
+      "proof_refs": [
+        "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/: exit 0",
+        "generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config: only diff vs deployed is tailscale in misc.disable",
+        "installed topgrade 17.15.0 --dry-run: deployed file shows Tailscale step; generated file shows 12 steps, no Tailscale",
+        "nix eval darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.topgrade.settings.misc.disable: ends with tailscale"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF": {
+    "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,11 +91,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+      "id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "decapod-gate: drain barrier, revision entry, blocking marker errors (home-manager-6wx)",
-      "refined_intent": "decapod-gate: drain barrier, revision entry, blocking marker errors (home-manager-6wx)",
+      "raw_intent": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
+      "refined_intent": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -136,47 +103,46 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": 20,
-        "forbidden_paths": [
-          ".github/"
-        ]
+        "file_touch_budget": null,
+        "forbidden_paths": []
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "home-manager-6wx: decapod-gate drain barrier, revision entry and blocking marker errors",
+      "intent": "home-manager-d8z: add \"tailscale\" to the topgrade misc.disable list for M-02877. topgrade 17.15.0 adds a Tailscale step. On the standalone Tailscale app, `tailscale update` is not supported and exits 1. The app updates itself with Sparkle.",
       "phases": [],
       "proof_hooks": [
-        "just check-pi-decapod-gate",
-        "nix build .#darwinConfigurations.M-02877.system"
+        "alejandra --check on modules/M-02877/dktaohan.nix",
+        "nix eval of the M-02877 home-manager topgrade settings lists tailscale in misc.disable",
+        "topgrade 17.15.0 dry run with the generated topgrade.toml shows no Tailscale step"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "home-manager-6wx: decapod-gate drain barrier, revision entry and blocking marker errors",
+      "title": "home-manager-d8z: disable the topgrade tailscale step on M-02877",
       "todo_ids": [
-        "bugs_01m6rr297476e1s0"
+        "code_01m6zjeywthv2cpj"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1793980909Z"
+      "updated_at": "1794210471Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "PAUSE gate drain barrier of the pi decapod-gate extension; no deploy; no live marker"
+        "Change only modules/M-02877/dktaohan.nix, the ARCHITECTURE.md topgrade section, and Decapod-generated surfaces.",
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:809ee5786e499c29dabb9bd06e4cd72684cb582925ef4a8a3d55a3e2e36d6a94",
+      "artifact_hash": "sha256:39242349aa77f18aab1466311e4ccd30cf666429ef505bf1e5c8d67fa1f6c677",
       "checks": [
         {
-          "name": "darwin_system_build",
+          "name": "fmt",
           "status": "passed"
         },
         {
-          "name": "decapod_validate",
-          "status": "partial"
+          "name": "topgrade-17.15.0-dry-run-no-tailscale",
+          "status": "passed"
         },
         {
-          "name": "pi_decapod_gate_unit_tests",
+          "name": "topgrade-disable-eval",
           "status": "passed"
         }
       ],
@@ -185,241 +151,112 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
+            "detail": "trajectory:branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:7",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 7
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:8",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 8
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:9",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 9
-          },
-          {
-            "detail": "trajectory:branch_01M6RR32KG23GPYMXC048T790Y",
-            "event_id": "event:10",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
-            "kind": "trajectory_step_recorded",
-            "sequence": 10
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 10,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M6RR32KG23GPYMXC048T790Y": {
+          "branch_01M6ZMBR377JRGACHNT8BJ2MQZ": {
             "evidence_only": true,
-            "id": "branch_01M6RR32KG23GPYMXC048T790Y",
-            "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+            "id": "branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
+            "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
             "steps": [
               {
                 "action": "implementation",
-                "command": "just check-pi-decapod-gate",
+                "command": "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/pi-decapod-gate.ts",
-                  "scripts/test-pi-decapod-gate.mjs",
-                  "modules/M-02877/agent-integrations.nix",
-                  "modules/M-02877/pi-decapod-gate.ts",
-                  "modules/M-02877/agent-integrations.nix",
-                  "scripts/test-pi-decapod-gate.mjs",
-                  ".decapod/managed/specs/ARCHITECTURE.md"
+                  "modules/M-02877/dktaohan.nix",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "Justfile",
+                  "scripts/deploy-freshness.sh",
+                  "scripts/cask-app-preflight.sh",
+                  "modules/M-02877/dktaohan.nix",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
+                  "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
+                  "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step",
+                  "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
+                  "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
+                  "2026-11-09T08:27+01:00 user reply 'You may and you may run topgrade --yes' authorizes the commit, decapod validate, push, and PR creation",
+                  "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0"
                 ],
                 "proof_refs": [
-                  "pi_decapod_gate_unit_tests"
+                  "fmt",
+                  "topgrade-disable-eval",
+                  "topgrade-17.15.0-dry-run-no-tailscale"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted"
-                ],
-                "proof_refs": [
-                  "darwin_system_build"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 5,
                 "validation_findings": [
-                  "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
+                  "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"
                 ]
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:6",
-                "observations": [
-                  "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure",
-                  "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted"
-                ],
-                "proof_refs": [
-                  "decapod_validate"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 6,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "command": "just check-pi-decapod-gate",
-                "custody_event_id": "event:7",
-                "observations": [
-                  "pr-reviewer round 1: status tool exempt from tool_call drain and block; revision fixed at code load; spec states the barrier is per pi process. just check-pi-decapod-gate: 32/32 pass"
-                ],
-                "proof_refs": [
-                  "pi_decapod_gate_unit_tests"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 7,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:8",
-                "observations": [
-                  "plain decapod validate on 6e7dd02: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure"
-                ],
-                "proof_refs": [
-                  "decapod_validate"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 8,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "command": "just check-pi-decapod-gate",
-                "custody_event_id": "event:9",
-                "observations": [
-                  "Codex round: a timed-out evaluation stays pending until its process exits; just check-pi-decapod-gate: 33/33 pass"
-                ],
-                "proof_refs": [
-                  "pi_decapod_gate_unit_tests"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 9,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:10",
-                "observations": [
-                  "plain decapod validate on 82c3bb1: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure"
-                ],
-                "proof_refs": [
-                  "decapod_validate"
-                ],
-                "scope": [
-                  "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
-                  "root"
-                ],
-                "sequence": 10,
-                "validation_findings": []
               }
             ]
           }
         }
       },
       "declared_commands": [
-        "just check-pi-decapod-gate"
+        "alejandra --check flake.nix modules/ secrets/ guix/ guix-packages/ pkgs/",
+        "nix eval darwinConfigurations.M-02877.config.home-manager.users.dktaohan.programs.topgrade.settings.misc.disable",
+        "topgrade --dry-run --yes --config <generated topgrade.toml> (topgrade 17.15.0)"
       ],
       "destination": "pull request",
       "evidence": [
-        "Codex round: a timed-out evaluation stays pending until its process exits; just check-pi-decapod-gate: 33/33 pass",
-        "just check-pi-decapod-gate: 30 tests pass; nix build darwin system M-02877 builds with extensionFile substituted",
-        "just check-pi-decapod-gate: 30/30 node tests pass; M-02877 system /nix/store/61ighq1w8x0xmimvq4i465vgbc9g0cr3-darwin-system-26.11.ff0e21a builds with extensionFile substituted",
-        "plain decapod validate on 6e7dd02: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure",
-        "plain decapod validate on 82c3bb1: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, DecapodLabs/decapod#1474 family); the owner authorised den PRs with only that failure",
-        "plain decapod validate on a565683: 185 pass, 1 fail; the only failure is publication_readiness (trajectory task binding, same state as den PR 124 / DecapodLabs/decapod#1474); the owner authorised den PRs with only that failure",
-        "pr-reviewer round 1: status tool exempt from tool_call drain and block; revision fixed at code load; spec states the barrier is per pi process. just check-pi-decapod-gate: 32/32 pass"
+        "2026-11-09T08:27+01:00 user reply 'You may and you may run topgrade --yes' authorizes the commit, decapod validate, push, and PR creation",
+        "Generated topgrade.toml /nix/store/gdq176np5agpmharia2ar2s308lmii9y-topgrade-config differs from the deployed file only by tailscale in misc.disable",
+        "Installed topgrade 17.15.0: dry run with the deployed file shows the Tailscale step (sudo tailscale update); with the generated file it shows 12 steps and no Tailscale step",
+        "Superseded local commit 94b7424 (never pushed): decapod 0.121.2 had downgraded generated surfaces; the branch was reset to origin/main e8b6e95 and rebuilt with decapod 0.132.0",
+        "Tailscale.app bundle id io.tailscale.ipn.macsys, no _MASReceipt; Sparkle SUAutomaticallyUpdate=1, SUEnableAutomaticChecks=1; tailscale prefs AutoUpdate Check=true Apply=true",
+        "tailscale update (unprivileged) on M-02877 exits 1: The 'update' command is not supported on this platform",
+        "topgrade v17.15.0 src/steps/generic.rs run_tailscale runs sudo tailscale update with status_checked; v17.14.1 src/step.rs has no Tailscale step"
       ],
       "inspected_files": [
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/pi-decapod-gate.ts",
-        "scripts/test-pi-decapod-gate.mjs"
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        "Justfile",
+        "modules/M-02877/dktaohan.nix",
+        "scripts/cask-app-preflight.sh",
+        "scripts/deploy-freshness.sh"
       ],
-      "intent_id": "intent:change_01M6RR32HDZBXZC8JS0G3MY0JF",
+      "intent_id": "intent:change_01M6ZMBR1BR5KWV98HDQ2RSJQ4",
       "modified_files": [
         ".decapod/managed/specs/ARCHITECTURE.md",
-        "modules/M-02877/agent-integrations.nix",
-        "modules/M-02877/pi-decapod-gate.ts",
-        "scripts/test-pi-decapod-gate.mjs"
+        "modules/M-02877/dktaohan.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "modules/M-02877/pi-decapod-gate.ts, agent-integrations.nix, scripts/test-pi-decapod-gate.mjs, ARCHITECTURE.md",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        "modules/M-02877/dktaohan.nix",
         "root"
       ],
-      "run_id": "branch_01M6RR32KG23GPYMXC048T790Y",
+      "run_id": "branch_01M6ZMBR377JRGACHNT8BJ2MQZ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "todo_01m6rr",
+      "task_id": "code_01m6zjeywthv2cpj",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy"
+        "sudo tailscale update gives the same unsupported result as the unprivileged call; not run, because sudo needs user authentication"
       ]
     }
   },

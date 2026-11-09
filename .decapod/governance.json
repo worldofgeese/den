@@ -97,18 +97,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Name locked-Mac cause in deploy-darwin cachix push warning (home-manager-3gr)",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Name locked-Mac cause in deploy-darwin cachix push warning (home-manager-3gr)",
       "todo_ids": [
         "cicd_01m70bz12gf7dcbp"
       ],
-      "updated_at": "1794235166Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1794235572Z"
     },
     "trajectory": {
       "active_boundaries": [

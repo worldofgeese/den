@@ -37,7 +37,29 @@
         # buildRustPackage here, which meant scripts/update-rust-tools.sh had to
         # re-derive the crate hash and discover cargoHash by building with a fake
         # one and scraping the mismatch out of stderr on every release.
-        decapod = inputs.decapod.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        #
+        # Upstream's Nix wrapper (makeWrapper) execs bin/.decapod-wrapped, and
+        # `decapod qa verify` runs std::env::current_exe(), which core/
+        # external_action.rs then rejects ("capability verification_exec does not
+        # allow binary .decapod-wrapped"), so every `decapod validate` fails with
+        # PROOF_HOOK_FAILED. Install the real binary as a COPY named `decapod` and
+        # point upstream's own wrapper script at it, so the wrapper environment
+        # (LD_LIBRARY_PATH for sqlite) stays identical. A symlink would not do:
+        # Linux resolves /proc/self/exe to the target's name.
+        # Remove this once DecapodLabs/decapod#1582 is fixed upstream.
+        decapod = let
+          upstream = inputs.decapod.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        in
+          final.runCommand upstream.name {
+            inherit (upstream) pname version meta;
+            passthru = upstream.passthru or {};
+          } ''
+            mkdir -p $out/bin $out/libexec/decapod
+            cp ${upstream}/bin/.decapod-wrapped $out/libexec/decapod/decapod
+            substitute ${upstream}/bin/decapod $out/bin/decapod \
+              --replace-fail ${upstream}/bin/.decapod-wrapped $out/libexec/decapod/decapod
+            chmod +x $out/bin/decapod
+          '';
 
         agent-token-dashboard = final.buildGoModule {
           pname = "agent-token-dashboard";

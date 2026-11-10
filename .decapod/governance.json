@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
+    "accepted_commit": "09866f625ee821460663c0a4c124c41a9cce1476",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,24 +66,24 @@
     }
   },
   "change": {
-    "id": "change_01M72VES4C5A6JVKJP62M4GR8B",
-    "base_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
+    "id": "change_01M72YWDGK8BPPBPRTKGQGSPBM",
+    "base_commit": "09866f625ee821460663c0a4c124c41a9cce1476",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "code_01m72ve6x1kep36b",
-      "summary": "Temporary journal repair grant for pi-dktaohan",
-      "input_digest": "sha256:e01122181e58ff43807d99eecda46665956b0e8f1bde1428e76350a301bce693"
+      "id": "code_01m72yvj5de9jfjy",
+      "summary": "Remove the journal repair grant; record the outcome",
+      "input_digest": "sha256:b680e4f3dc8e9fba16b047716e35961db35f0c1f838e5059714aaf0e992f96a4"
     },
     {
-      "id": "code_01m72ve6x1kep36b-r2",
+      "id": "code_01m72yvj5de9jfjy-r2",
       "summary": "Spec manifest refresh",
-      "input_digest": "sha256:c77951174a89dd6893ad432b26408de8522d0a8b3cc7bf3b5772d0ecfce54e39"
+      "input_digest": "sha256:52b1058c37054639f266cce04cf0b9d1e610c44e3636408d056ef4d59f3e6928"
     }
   ],
   "intents": {
-    "intent:change_01M72VES4C5A6JVKJP62M4GR8B": {
+    "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +93,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+      "id": "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
-      "refined_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
+      "raw_intent": "home-manager-wks: run the one-time journal repair, then remove the grant and record the outcome",
+      "refined_intent": "home-manager-wks: run the one-time journal repair, then remove the grant and record the outcome",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,50 +110,67 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Owner Tao approved on 2026-11-10 (approved everything): Decapod 0.136 requires a todo.journal.repair role in the main checkout's [governance.rbac] for the repair of the 13 historical journal gaps (home-manager-wks). Grant journal-repair to pi-dktaohan temporarily; after the main checkout has this config, pi-dktaohan runs the repair once, and a follow-up PR removes the grant and records the outcome. Supersedes den #139.",
+      "intent": "The one-time journal repair that den #141 allowed ran on 2026-11-10 at 14:49Z (owner approval). Remove the temporary [governance.rbac] grant to pi-dktaohan, and replace the temporary text in VALIDATION.md with the outcome: 13 tasks and 41 events accepted, and decapod todo journal verify reports journal_valid true (home-manager-wks, DecapodLabs/decapod#1534).",
       "phases": [],
       "proof_hooks": [
-        "the config parses and agent.init accepts it",
+        "decapod todo journal verify reports journal_valid true",
         "plain decapod validate passes",
         "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Grant the one-time journal repair role to pi-dktaohan",
+      "title": "Remove the journal repair grant and record the repair's outcome",
       "todo_ids": [
-        "code_01m72ve6x1kep36b"
+        "code_01m72yvj5de9jfjy"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794318543Z"
+      "updated_at": "1794322225Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "Only the temporary [governance.rbac] grant and its VALIDATION.md text"
+        "Only the removal of the temporary [governance.rbac] grant and the VALIDATION.md outcome text"
       ],
-      "artifact_hash": "sha256:8135a99152a64b72c266ef3830d564d9d3cee155399f06e90e0092a3c445a2bb",
-      "checks": [],
+      "artifact_hash": "sha256:39b775e3f9c35b8fbdfdfc8f5bd5742989675356c9ecf7cc6a86d240d7e93697",
+      "checks": [
+        {
+          "name": "gap-detection-13-tasks",
+          "status": "passed"
+        },
+        {
+          "name": "journal-backup-integrity",
+          "status": "passed"
+        },
+        {
+          "name": "journal-repair-checkpoint",
+          "status": "passed"
+        },
+        {
+          "name": "journal-verify-valid",
+          "status": "passed"
+        }
+      ],
       "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M72VES6RE6VP04NJ420X41QK",
+            "detail": "trajectory:branch_01M72YWDM8JJS7ZREM4CBPEQAF",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -162,10 +179,10 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M72VES6RE6VP04NJ420X41QK": {
+          "branch_01M72YWDM8JJS7ZREM4CBPEQAF": {
             "evidence_only": true,
-            "id": "branch_01M72VES6RE6VP04NJ420X41QK",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "id": "branch_01M72YWDM8JJS7ZREM4CBPEQAF",
+            "intent_id": "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM",
             "steps": [
               {
                 "action": "implementation",
@@ -173,9 +190,14 @@
                 "observations": [
                   ".decapod/config.toml",
                   ".decapod/managed/specs/VALIDATION.md",
-                  "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
+                  "Backup: decapod data database backup to ~/.cache/pi-dktaohan/decapod-pre-journal-repair-20261110T144846Z.db (120516608 bytes, mode 0600, integrity ok, 177727 events). The #1581 detection query on it found 13 tasks with 41 unjournaled todo events from 2026-10-21T09:49:28Z to 2026-10-23T16:21:30Z. One decapod todo journal checkpoint with 13 --accept-historical-gap flags and one reviewed --reason exited 0 and wrote 13 task.journal.gap_accepted receipts (all ts 14:49:16Z). decapod todo journal verify: exit 0, journal_valid true, checkpointed_tasks 118, divergent/missing/uncheckpointed none, digest 5ae14ae2."
                 ],
-                "proof_refs": [],
+                "proof_refs": [
+                  "journal-backup-integrity",
+                  "gap-detection-13-tasks",
+                  "journal-repair-checkpoint",
+                  "journal-verify-valid"
+                ],
                 "scope": [
                   "root"
                 ],
@@ -189,10 +211,10 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
+        "Backup: decapod data database backup to ~/.cache/pi-dktaohan/decapod-pre-journal-repair-20261110T144846Z.db (120516608 bytes, mode 0600, integrity ok, 177727 events). The #1581 detection query on it found 13 tasks with 41 unjournaled todo events from 2026-10-21T09:49:28Z to 2026-10-23T16:21:30Z. One decapod todo journal checkpoint with 13 --accept-historical-gap flags and one reviewed --reason exited 0 and wrote 13 task.journal.gap_accepted receipts (all ts 14:49:16Z). decapod todo journal verify: exit 0, journal_valid true, checkpointed_tasks 118, divergent/missing/uncheckpointed none, digest 5ae14ae2."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+      "intent_id": "intent:change_01M72YWDGK8BPPBPRTKGQGSPBM",
       "modified_files": [
         ".decapod/config.toml",
         ".decapod/managed/specs/VALIDATION.md"
@@ -204,10 +226,10 @@
         ".decapod/config.toml, .decapod/managed/specs/VALIDATION.md",
         "root"
       ],
-      "run_id": "branch_01M72VES6RE6VP04NJ420X41QK",
+      "run_id": "branch_01M72YWDM8JJS7ZREM4CBPEQAF",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m72ve6x1kep36b",
+      "task_id": "code_01m72yvj5de9jfjy",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

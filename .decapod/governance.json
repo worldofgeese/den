@@ -66,24 +66,24 @@
     }
   },
   "change": {
-    "id": "change_01M73KN0RT4EC9W6JADP4WW66Z",
+    "id": "change_01M73P9QFP7B6E59ZASCSPJ31F",
     "base_commit": "a75b7f812b0902a2c37fa7f488a88f59e0eeab7c",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "code_01m73kmbk2gz4gyh",
-      "summary": "Remove the journal repair grant; record the outcome",
-      "input_digest": "sha256:dffc2678b241172315c7ee3ef25e06908ac199030e5acc870a03c192e85c3355"
+      "id": "code_01m73p8zwtp1vtjp",
+      "summary": "Bump Decapod to 0.136.3",
+      "input_digest": "sha256:884bf6c3ccac270300f7bee473034a4e7d1b81952b528150c45abc957079ec2d"
     },
     {
-      "id": "code_01m73kmbk2gz4gyh-r2",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:e5c26a11f6dfd9a2b8e4f0fbd5129282b28c6b10ea0378dd3d18923a7703829c"
+      "id": "code_01m73p8zwtp1vtjp-r2",
+      "summary": "Rebase onto 5f3dac1; spec refresh by 0.136.3",
+      "input_digest": "sha256:cb68a83c1070718d348fc4481c37ddd90face5d042494014a09d9fc301b0271b"
     }
   ],
   "intents": {
-    "intent:change_01M73KN0RT4EC9W6JADP4WW66Z": {
+    "intent:change_01M73P9QFP7B6E59ZASCSPJ31F": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +93,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+      "id": "intent:change_01M73P9QFP7B6E59ZASCSPJ31F",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-wks: remove the journal repair grant and record the outcome (on a75b7f8)",
-      "refined_intent": "home-manager-wks: remove the journal repair grant and record the outcome (on a75b7f8)",
+      "raw_intent": "Bump Decapod to 0.136.3 (flake input decapod only; SwiftJaguar's token-chain refresh leaves it alone)",
+      "refined_intent": "Bump Decapod to 0.136.3 (flake input decapod only; SwiftJaguar's token-chain refresh leaves it alone)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,45 +110,45 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "The one-time journal repair that den #141 allowed ran on 2026-11-10 at 14:49Z (owner approval). Remove the temporary [governance.rbac] grant to pi-dktaohan, and replace the temporary text in VALIDATION.md with the outcome: 13 tasks and 41 events accepted, and decapod todo journal verify reports journal_valid true (home-manager-wks, DecapodLabs/decapod#1534). Supersedes den #143, which conflicted after #144.",
+      "intent": "Tao wants the latest versions of everything, always (and the very latest Decapod). Move only the decapod flake input to upstream bf50c58, the v0.136.3 release, and refresh the entrypoints and Dockerfile.decapod with that release, as scripts/bump-flake-inputs.sh does when Decapod moves. SwiftJaguar's token-chain refresh bumps the other inputs and leaves this one alone; its announced deployment ships this bump.",
       "phases": [],
       "proof_hooks": [
-        "decapod todo journal verify reports journal_valid true",
+        "the new release runs only in an isolated clone; the shared store stays on 0.136.2 until the deploy",
         "plain decapod validate passes",
         "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Remove the journal repair grant and record the repair's outcome",
+      "title": "Bump Decapod to 0.136.3",
       "todo_ids": [
-        "code_01m73kmbk2gz4gyh"
+        "code_01m73p8zwtp1vtjp"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794344293Z"
+      "updated_at": "1794347039Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "Only the removal of the temporary [governance.rbac] grant and the VALIDATION.md outcome text"
+        "Only the decapod node of flake.lock, the files that its release writes (entrypoints, Dockerfile.decapod), the OPERATIONS.md flake update section and the sources digest"
       ],
-      "artifact_hash": "sha256:2b2ec7fb77b54ca6a2204b70b54db71f6bf3236f882e14128f3968c3040c8520",
+      "artifact_hash": "sha256:7d9f18b6d79a619ee55e3a3d73383ea20fe0cd16daa9c38feb2ecd99310250df",
       "checks": [
         {
-          "name": "gap-detection-13-tasks",
+          "name": "build-decapod-0.136.3",
           "status": "passed"
         },
         {
-          "name": "journal-backup-integrity",
+          "name": "ghcr-image-v0.136.3-debian",
           "status": "passed"
         },
         {
-          "name": "journal-repair-checkpoint",
+          "name": "isolated-init",
           "status": "passed"
         },
         {
-          "name": "journal-verify-valid",
+          "name": "nix-flake-update-decapod",
           "status": "passed"
         }
       ],
@@ -157,20 +157,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+            "intent_id": "intent:change_01M73P9QFP7B6E59ZASCSPJ31F",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+            "intent_id": "intent:change_01M73P9QFP7B6E59ZASCSPJ31F",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M73KN0TTAXYRQ4FTVTDQKFKZ",
+            "detail": "trajectory:branch_01M73P9QJ3FSG2NRTRDSHMVAZ1",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+            "intent_id": "intent:change_01M73P9QFP7B6E59ZASCSPJ31F",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -179,24 +179,29 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M73KN0TTAXYRQ4FTVTDQKFKZ": {
+          "branch_01M73P9QJ3FSG2NRTRDSHMVAZ1": {
             "evidence_only": true,
-            "id": "branch_01M73KN0TTAXYRQ4FTVTDQKFKZ",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+            "id": "branch_01M73P9QJ3FSG2NRTRDSHMVAZ1",
+            "intent_id": "intent:change_01M73P9QFP7B6E59ZASCSPJ31F",
             "steps": [
               {
                 "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  ".decapod/config.toml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "Backup decapod-pre-journal-repair-20261110T144846Z.db via decapod data database backup (120516608 bytes, mode 0600, integrity ok, 177727 events). The #1581 detection query on it found 13 tasks with 41 unjournaled todo events from 2026-10-21T09:49:28Z to 2026-10-23T16:21:30Z. One decapod todo journal checkpoint with 13 --accept-historical-gap flags and one reviewed --reason exited 0 and wrote 13 task.journal.gap_accepted receipts (one timestamp, 14:49:16Z). decapod todo journal verify: exit 0, journal_valid true, checkpointed_tasks 118, none divergent, missing or uncheckpointed. Recreates den #143 (conflicted after #144; its completed task locked the workspace)."
+                  "flake.lock",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "nix flake update decapod: 0dbfb06 -> bf50c58 (upstream master = v0.136.3, crates.io max 0.136.3). nix build of the input's packages.default: /nix/store/mlai9353zl7n5vcgrwn3jvsp224yxhi2-decapod-0.136.3. In an isolated clone with its own .git and store, that binary ran decapod init with --all --force --no-specs --no-ci (config.toml kept); it changed only AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md (release header 0.136.3 and fingerprint) and Dockerfile.decapod (v0.136.3-debian, DECAPOD_VERSION 0.136.3). Those five files were copied into this workspace. ghcr.io/decapodlabs/decapod:v0.136.3-debian: HTTP 200. Release notes: Nix/CI only, no store migration."
                 ],
                 "proof_refs": [
-                  "journal-backup-integrity",
-                  "gap-detection-13-tasks",
-                  "journal-repair-checkpoint",
-                  "journal-verify-valid"
+                  "nix-flake-update-decapod",
+                  "build-decapod-0.136.3",
+                  "isolated-init",
+                  "ghcr-image-v0.136.3-debian"
                 ],
                 "scope": [
                   "root"
@@ -211,25 +216,30 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "Backup decapod-pre-journal-repair-20261110T144846Z.db via decapod data database backup (120516608 bytes, mode 0600, integrity ok, 177727 events). The #1581 detection query on it found 13 tasks with 41 unjournaled todo events from 2026-10-21T09:49:28Z to 2026-10-23T16:21:30Z. One decapod todo journal checkpoint with 13 --accept-historical-gap flags and one reviewed --reason exited 0 and wrote 13 task.journal.gap_accepted receipts (one timestamp, 14:49:16Z). decapod todo journal verify: exit 0, journal_valid true, checkpointed_tasks 118, none divergent, missing or uncheckpointed. Recreates den #143 (conflicted after #144; its completed task locked the workspace)."
+        "nix flake update decapod: 0dbfb06 -> bf50c58 (upstream master = v0.136.3, crates.io max 0.136.3). nix build of the input's packages.default: /nix/store/mlai9353zl7n5vcgrwn3jvsp224yxhi2-decapod-0.136.3. In an isolated clone with its own .git and store, that binary ran decapod init with --all --force --no-specs --no-ci (config.toml kept); it changed only AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md (release header 0.136.3 and fingerprint) and Dockerfile.decapod (v0.136.3-debian, DECAPOD_VERSION 0.136.3). Those five files were copied into this workspace. ghcr.io/decapodlabs/decapod:v0.136.3-debian: HTTP 200. Release notes: Nix/CI only, no store migration."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+      "intent_id": "intent:change_01M73P9QFP7B6E59ZASCSPJ31F",
       "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/managed/specs/VALIDATION.md"
+        ".decapod/managed/Dockerfile.decapod",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
+        "flake.lock"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/config.toml, .decapod/managed/specs/VALIDATION.md",
+        "flake.lock, AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
         "root"
       ],
-      "run_id": "branch_01M73KN0TTAXYRQ4FTVTDQKFKZ",
+      "run_id": "branch_01M73P9QJ3FSG2NRTRDSHMVAZ1",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m73kmbk2gz4gyh",
+      "task_id": "code_01m73p8zwtp1vtjp",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

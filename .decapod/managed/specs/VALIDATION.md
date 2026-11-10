@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it, and since 2026-11-09 it is 0.133.0. Decapod reaches
+`AGENTS.md` names it, and since 2026-11-10 it is 0.136.2. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -152,27 +152,26 @@ full local validation is part of the merge gate again, with the CI `validate`
 check, the pre-commit `just check`, and the deploy proof of each changed
 deploy target.
 
-Three upstream defects limit proof on M-02877 (2026-11-09):
-- `decapod qa verify` runs the verifying binary under the `verification_exec`
-  capability, which accepts only the file name `decapod` or `decapod*`. The
-  Nix package's `bin/decapod` is a wrapper script for `bin/.decapod-wrapped`,
-  so every verification of a done task is denied, and plain `decapod validate`
-  then fails with PROOF_HOOK_FAILED (DecapodLabs/decapod#1582). Den bead
-  home-manager-b0k installs the real binary under the file name `decapod`.
-  Until it is deployed, a symlink named `decapod` to `bin/.decapod-wrapped`
-  passes the check on macOS.
-- Even past that check, every replay of the `validate_passes` gate fails.
-  The `laya_readiness` receipt of `decapod validate --format json` has a
-  `request_id` and a `binding.evidence_digest` that change on every run, and
-  the normalizer masks only those of `vega_readiness`
-  (DecapodLabs/decapod#1583). So no done task can be verified, and
-  `decapod qa verify recover` fails at its final check. Plain
-  `decapod validate` stays at PROOF_HOOK_FAILED until both are fixed. Only
-  the owner can allow a PR in that state, per PR.
-- `decapod todo journal checkpoint --accept-historical-gap` repairs only a
-  store where one task has a historical journal gap. This store has 13 such
-  tasks from releases older than 2026-10-24, so `decapod todo journal verify`
-  fails until DecapodLabs/decapod#1581 is fixed.
+Three upstream defects limited proof on M-02877 on 2026-11-09. Decapod 0.134.2
+fixed all three, and den runs 0.136.2 since 2026-11-10 (den #135):
+- `decapod qa verify` denied the Nix wrapper's `bin/.decapod-wrapped`, because
+  its `verification_exec` capability accepts only the file name `decapod` or
+  `decapod*` (DecapodLabs/decapod#1582). The package itself is fixed, so den
+  no longer needs its own copy of the real binary.
+- The `validate_passes` gate hashed a `laya_readiness` receipt whose
+  `request_id` and `binding.evidence_digest` change on every run, so no replay
+  could pass and `decapod qa verify recover` failed at its final check
+  (DecapodLabs/decapod#1583). It is stable now, so done tasks can be verified
+  again, and plain `decapod validate` no longer stays at PROOF_HOOK_FAILED.
+- `decapod todo journal checkpoint --accept-historical-gap` repaired only a
+  store where one task has a historical gap (DecapodLabs/decapod#1581). In
+  0.136.2 the flag repeats, and its `--help` says that all gap receipts and
+  checkpoints commit atomically. Den has not run such a repair yet. Since 0.136
+  a repair also needs the `todo.journal.repair` permission: `[governance.rbac]`
+  in the main checkout's `.decapod/config.toml` must give the actor a role
+  that `journal_repair_roles` lists. Den grants no such role. So the 13
+  historical gaps (tasks from releases older than 2026-10-24) stay, and
+  `decapod todo journal verify` fails, until the owner decides on a grant.
 
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin

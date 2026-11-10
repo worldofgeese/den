@@ -123,8 +123,11 @@
     # their own account (pr-reviewer's defaults.peer_logins; sethpjacobs runs
     # a standby with a 10-minute delay since 2026-11-10). This daemon skips a
     # head that a peer reviewed, so a pr-reviewer review means one from this
-    # account or a peer's, with the review metadata that pr-reviewer writes:
-    # a person's own review from one of those accounts is not one.
+    # account or a peer's, with the review metadata that pr-reviewer writes
+    # (REVIEW_METADATA_MARKER in its src/review/policy.rs, which the daemon
+    # itself matches to find a peer's review): a person's own review from one
+    # of those accounts is not one. A peer's skip completes the review_pr
+    # task here, so the review counts mostly for a head whose task failed.
     automergeFilter = pkgs.writeText "pr-reviewer-automerge.jq" ''
       def pr_reviewer:
         (.author.login | IN("worldofgeese", $peers[]))
@@ -146,7 +149,10 @@
       | ([$p.reviews[]? | select(.state | IN("APPROVED", "CHANGES_REQUESTED", "DISMISSED"))]
         | group_by(.author.login) | map(max_by(.submittedAt))
         | map(select(.state == "CHANGES_REQUESTED"))) as $requests
-      | [$requests[] | . as $r | select(pr_reviewer)
+      # A review that lands late can be of an older commit than the request
+      # (it started before a push), so a request on the head itself is never
+      # set aside.
+      | [$requests[] | . as $r | select(pr_reviewer and .commit.oid != $p.headRefOid)
         | select(any($bot[]; .author.login != $r.author.login
             and .commit.oid != $r.commit.oid and .submittedAt > $r.submittedAt
             and (.state | IN("APPROVED", "COMMENTED"))))] as $superseded

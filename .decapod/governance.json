@@ -105,6 +105,16 @@
       "proof_refs": [
         "decapod validate: UNCOMMITTED_PUBLICATION_CONTENT for the refreshed manifest"
       ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-review-fixes",
+      "summary": "Automerge review fixes: a change request on the head is never set aside; the marker source is named; the peer spec states the required config",
+      "input_digest": "sha256:91db42a487931f8cdec65a0639480b6ec280314d3747d2aae0a81cd8067ac93d",
+      "proof_refs": [
+        "13 fixtures with a real pr-reviewer review body; built filter output equals tested output; peers [] equals v0.2.3",
+        "live data, 7 repos: 52 worldofgeese reviews carry the marker; verdicts unchanged",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/cc1yx56qp8j66lgam0np3wxzpcbwjyj1-darwin-system-26.11.ff0e21a"
+      ]
     }
   ],
   "intents": {

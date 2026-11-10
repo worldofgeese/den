@@ -210,8 +210,8 @@ behavior below are v0.2.2's and unchanged since.
 - **Peer daemon.** sethpjacobs runs a standby pr-reviewer on his Mac for five
   of the declared repos (`standby_delay_secs` 600, the same model, auto-fix
   off), so reviews go on while this Mac is off. This daemon is the primary:
-  its runtime config names `sethpjacobs` in `defaults.peer_logins` and leaves
-  `standby_delay_secs` at 0 (`pr-reviewer config set`, 2026-11-10). It skips
+  its runtime config must name `sethpjacobs` in `defaults.peer_logins` and
+  leave `standby_delay_secs` at 0 (`pr-reviewer config set`, not Nix). It skips
   a head commit or a command that the peer already handled. A fix request
   stays with this daemon: the peer, with auto-fix off, answers it with
   `repair=off`, which does not stop the repair here. Each daemon dismisses
@@ -264,10 +264,12 @@ The agent runs every 120 s. It merges a PR only when all of these hold:
   that the daemon skipped because a peer reviewed it is a completed task too.
 - No review thread is unresolved, and no review requests changes. A
   pr-reviewer change request from one trusted account is set aside once
-  another trusted account reviewed a later commit and approved or only
-  commented, because a daemon dismisses only its own change requests and
-  skips a head that its peer reviewed. The agent logs each one it sets aside.
-  A person's change request still blocks.
+  another trusted account reviewed a different commit later and approved or
+  only commented, because a daemon dismisses only its own change requests and
+  skips a head that its peer reviewed. A change request on the head itself is
+  never set aside: a review that started before a push can land later for an
+  older commit. The agent logs each one it sets aside. A person's change
+  request still blocks.
 - Every check is complete with SUCCESS, SKIPPED or NEUTRAL. A PR with no
   checks also qualifies.
 - Only the newest run of each check counts, grouped by check name and

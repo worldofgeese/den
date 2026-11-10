@@ -138,14 +138,19 @@ brings the rejection back.
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
 `worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
-`packages.default`), pinned to its v0.2.3 release (commit 651c2e2; the
+`packages.default`), pinned to its v0.2.4 release (commit 16661d7; the
 maintained home of the project since the 2026-11 move from
 `NicholaiVogel/pr-reviewer`). The input URL names the release tag and
 `flake.lock` pins the revision, so den holds no hand-maintained rev, source
 hash or `cargoHash`; the flake builds from `Cargo.lock` with the tests off,
 because the suite binds loopback sockets that the Nix sandbox refuses. The
 build carries no local patches: HTTPS Basic auth for git, review rounds and
-stacked PRs are all in the pinned release. v0.2.3 over v0.2.2: a `claude`
+stacked PRs are all in the pinned release. v0.2.4 over v0.2.3: peer daemons
+(worldofgeese/pr-reviewer#37, #38): `defaults.peer_logins` names other
+people's daemons on the same repos, whose reviews, skips and command answers
+count as done, and `defaults.standby_delay_secs` makes a standby wait; both
+are off unless set, and the database gains the nullable
+`work_queue.not_before` column at the first start. v0.2.3 over v0.2.2: a `claude`
 review session starts with `--tools <review_tools>` (default none, so no
 `Bash`, file reads or edits) and `--strict-mcp-config` (no user-level MCP
 servers); auto-fix sessions keep `Read,Grep,Glob,Edit,Write,Bash`; this
@@ -159,7 +164,7 @@ posts a commit status when a re-review finds nothing new (off unless set in
 `[defaults]` or a repo's `review_policy`; this configuration leaves it off).
 To move to a newer release, change the tag in the input URL in `flake.nix`, run
 `nix flake update pr-reviewer` and deploy; the review rounds and stacked-PR
-behavior below are v0.2.2's and unchanged in v0.2.3.
+behavior below are v0.2.2's and unchanged since.
 
 - **Review rounds.** Each posted review is one round. Round 1 is a full
   review. Rounds 2 and 3 to `max_review_cycles` (default 2) check earlier
@@ -202,6 +207,15 @@ behavior below are v0.2.2's and unchanged in v0.2.3.
   are reviewed and automerged under the same policy, and den's Codex shepherd
   labels a PR `needs-human` when its quota runs out, which the automerge
   skips.
+- **Peer daemon.** sethpjacobs runs a standby pr-reviewer on his Mac for five
+  of the declared repos (`standby_delay_secs` 600, the same model, auto-fix
+  off), so reviews go on while this Mac is off. This daemon is the primary:
+  its runtime config names `sethpjacobs` in `defaults.peer_logins` and leaves
+  `standby_delay_secs` at 0 (`pr-reviewer config set`, 2026-11-10). It skips
+  a head commit or a command that the peer already handled. A fix request
+  stays with this daemon: the peer, with auto-fix off, answers it with
+  `repair=off`, which does not stop the repair here. Each daemon dismisses
+  only its own change requests; the automerge sets a superseded one aside.
 - **PRs opened before a repo was added** are reviewed too: each poll queues
   every open PR whose head SHA has no recorded review, so the first poll after
   registration picks up the existing backlog.
@@ -243,8 +257,17 @@ The agent runs every 120 s. It merges a PR only when all of these hold:
 - The author is worldofgeese, `app/github-actions` or `app/dependabot`.
   Teammates' PRs stay manual.
 - `pr-reviewer queue list` has a completed `review_pr` task at the PR's
-  current head SHA.
-- No review thread is unresolved, and no review requests changes.
+  current head SHA, or a trusted account posted a pr-reviewer review (one
+  with pr-reviewer's review metadata) of that head. The trusted accounts are
+  worldofgeese and the daemon's `defaults.peer_logins`, read from the runtime
+  config once per pass; a list that cannot be read counts as none. A head
+  that the daemon skipped because a peer reviewed it is a completed task too.
+- No review thread is unresolved, and no review requests changes. A
+  pr-reviewer change request from one trusted account is set aside once
+  another trusted account reviewed a later commit and approved or only
+  commented, because a daemon dismisses only its own change requests and
+  skips a head that its peer reviewed. The agent logs each one it sets aside.
+  A person's change request still blocks.
 - Every check is complete with SUCCESS, SKIPPED or NEUTRAL. A PR with no
   checks also qualifies.
 - Only the newest run of each check counts, grouped by check name and

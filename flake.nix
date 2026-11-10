@@ -39,7 +39,7 @@
     # packages.default. The URL pins a release tag, so den keeps pinning
     # releases and flake.lock pins the revision and every hash.
     pr-reviewer = {
-      url = "github:worldofgeese/pr-reviewer/v0.2.3";
+      url = "github:worldofgeese/pr-reviewer/v0.2.4";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # One rust-overlay for every input that wants one. A transitive pin only

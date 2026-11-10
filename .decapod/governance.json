@@ -105,6 +105,14 @@
         "decapod validate",
         "nix eval piAgent.mcpServers (M-02877)"
       ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r5",
+      "summary": "Merge origin/main (#145) into the xmemcli/xmemory branch",
+      "input_digest": "sha256:a94255a06d67bad7d87cb4a26987e8b09f81bcb5a717e857b2ed9c1be3d9d543",
+      "proof_refs": [
+        "decapod validate"
+      ]
     }
   ],
   "intents": {

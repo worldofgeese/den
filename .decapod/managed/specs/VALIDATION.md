@@ -177,18 +177,25 @@ fixed all three, and den runs 0.136.2 since 2026-11-10 (den #135):
   again, and plain `decapod validate` no longer stays at PROOF_HOOK_FAILED.
 - `decapod todo journal checkpoint --accept-historical-gap` repaired only a
   store where one task has a historical gap (DecapodLabs/decapod#1581). In
-  0.136.2 the flag repeats, and its `--help` says that all gap receipts and
-  checkpoints commit atomically. Den has not run such a repair yet. Since 0.136
-  a repair also needs the `todo.journal.repair` permission: `[governance.rbac]`
-  in the main checkout's `.decapod/config.toml` must give the actor a role
-  that `journal_repair_roles` lists. TEMPORARY, from 2026-11-10 until the
-  follow-up PR that records the repair's outcome: by owner approval,
-  `[governance.rbac]` gives `pi-dktaohan` the `journal-repair` role, for one
-  repair of the 13 historical gaps (tasks from releases older than
-  2026-10-24). Decapod reads the grant from the main checkout. Agent labels
-  are cooperative, not authentication, so until the grant is removed anything
-  that runs as `pi-dktaohan` could repair journal gaps. The window is kept
-  short for that reason.
+  0.136.2 the flag repeats, and all gap receipts and checkpoints commit in one
+  transaction. Since 0.136 a repair also needs the `todo.journal.repair`
+  permission: `[governance.rbac]` in the main checkout's `.decapod/config.toml`
+  must give the actor a role that `journal_repair_roles` lists.
+  Den repaired its historical gaps once, on 2026-11-10 at 14:49Z, with a
+  temporary grant to `pi-dktaohan` (den #141, owner approval):
+  - The gaps were 41 todo events of 13 tasks, from 2026-10-21 to 2026-10-23
+    (releases older than 2026-10-24), that were never journaled
+    (DecapodLabs/decapod#1534).
+  - The detection query of DecapodLabs/decapod#1581 found them on a verified
+    backup taken just before the repair
+    (`decapod-pre-journal-repair-20261110T144846Z.db`, integrity ok).
+  - One `decapod todo journal checkpoint` wrote a `task.journal.gap_accepted`
+    receipt for each task, with the reviewed reason.
+  - Afterwards `decapod todo journal verify` reports `journal_valid: true`:
+    118 tasks checkpointed, none divergent, missing or uncheckpointed.
+  The grant is removed again. Decapod reads the policy from the main
+  checkout, so den grants no `todo.journal.repair` role once the main checkout
+  has that removal. A future repair needs a new grant approved by the owner.
 
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin

@@ -35,12 +35,6 @@ declared_capabilities = [
 protected_paths = []
 approval_categories = ["destructive_operations"]
 
-# TEMPORARY (owner approval, 2026-11-10; bead home-manager-wks): pi-dktaohan may
-# accept the 13 historical journal gaps once. A follow-up PR removes this table.
-[governance.rbac]
-actor_roles = { "pi-dktaohan" = ["journal-repair"] }
-journal_repair_roles = ["journal-repair"]
-
 [proof]
 validation_buildkite_preflights = false
 

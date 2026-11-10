@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "6dbe887d807e6cf3f306e6d26b428b695d1083ee",
+    "accepted_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,24 +66,24 @@
     }
   },
   "change": {
-    "id": "change_01M72PRWAKBPXPGTTCQMV42VB9",
-    "base_commit": "6dbe887d807e6cf3f306e6d26b428b695d1083ee",
+    "id": "change_01M72VES4C5A6JVKJP62M4GR8B",
+    "base_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "cicd_01m72pqzw2nm3vxr",
-      "summary": "Clear the hook's git variables in the deploy-backup test; regression check; pre-commit hardening",
-      "input_digest": "sha256:b0273209931ed9f94abe25b05ded95f6cbe7054feba5610f08e44ada040944a1"
+      "id": "code_01m72ve6x1kep36b",
+      "summary": "Temporary journal repair grant for pi-dktaohan",
+      "input_digest": "sha256:e01122181e58ff43807d99eecda46665956b0e8f1bde1428e76350a301bce693"
     },
     {
-      "id": "cicd_01m72pqzw2nm3vxr-r2",
+      "id": "code_01m72ve6x1kep36b-r2",
       "summary": "Spec manifest refresh",
-      "input_digest": "sha256:b73845a22e232e0a760f53eada0fb252ea3f7197eb9fb8570d9f2c6741d8bfc3"
+      "input_digest": "sha256:c77951174a89dd6893ad432b26408de8522d0a8b3cc7bf3b5772d0ecfce54e39"
     }
   ],
   "intents": {
-    "intent:change_01M72PRWAKBPXPGTTCQMV42VB9": {
+    "intent:change_01M72VES4C5A6JVKJP62M4GR8B": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +93,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
+      "id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-i133: keep test-decapod-deploy-backup.sh out of the hook's GIT_DIR (core.bare flips)",
-      "refined_intent": "home-manager-i133: keep test-decapod-deploy-backup.sh out of the hook's GIT_DIR (core.bare flips)",
+      "raw_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
+      "refined_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,72 +110,50 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "PureViper's watcher caught the setter of core.bare=true in den's root (home-manager-i133): scripts/test-decapod-deploy-backup.sh, run by pre-commit through just check, ran git init in a scratch dir under the hook's exported worktree GIT_DIR, which re-initialized den's repository as bare (11 flips on 2026-11-10). Clear the git variables in the test, add a regression check with a decoy linked worktree's GIT_DIR, and run just check with the variables cleared in .beads/hooks/pre-commit.",
+      "intent": "Owner Tao approved on 2026-11-10 (approved everything): Decapod 0.136 requires a todo.journal.repair role in the main checkout's [governance.rbac] for the repair of the 13 historical journal gaps (home-manager-wks). Grant journal-repair to pi-dktaohan temporarily; after the main checkout has this config, pi-dktaohan runs the repair once, and a follow-up PR removes the grant and records the outcome. Supersedes den #139.",
       "phases": [],
       "proof_hooks": [
-        "the old test flips a decoy's core.bare under a worktree GIT_DIR; the fixed test does not",
-        "just check-decapod-deploy-backup passes, and fails with the old test",
+        "the config parses and agent.init accepts it",
         "plain decapod validate passes",
         "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Keep test-decapod-deploy-backup.sh out of the hook's GIT_DIR (core.bare flips)",
+      "title": "Grant the one-time journal repair role to pi-dktaohan",
       "todo_ids": [
-        "cicd_01m72pqzw2nm3vxr"
+        "code_01m72ve6x1kep36b"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794314776Z"
+      "updated_at": "1794318543Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "Only the test, its just recipe, the pre-commit hook and the VALIDATION.md rule; no change to the deploy backup step itself"
+        "Only the temporary [governance.rbac] grant and its VALIDATION.md text"
       ],
-      "artifact_hash": "sha256:fec0c4d79fe64480de1ecc134ed5eb7fc0fcd719688c314f089b06ba46bad724",
-      "checks": [
-        {
-          "name": "fixed-test-leaves-decoy",
-          "status": "passed"
-        },
-        {
-          "name": "recipe-fails-old-test",
-          "status": "passed"
-        },
-        {
-          "name": "recipe-passes-fixed",
-          "status": "passed"
-        },
-        {
-          "name": "repro-old-test-flips-decoy",
-          "status": "passed"
-        },
-        {
-          "name": "shellcheck",
-          "status": "passed"
-        }
-      ],
+      "artifact_hash": "sha256:8135a99152a64b72c266ef3830d564d9d3cee155399f06e90e0092a3c445a2bb",
+      "checks": [],
       "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
+            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
+            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M72PRWCPMYN2HY5T5GT0K77E",
+            "detail": "trajectory:branch_01M72VES6RE6VP04NJ420X41QK",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
+            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -184,28 +162,20 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M72PRWCPMYN2HY5T5GT0K77E": {
+          "branch_01M72VES6RE6VP04NJ420X41QK": {
             "evidence_only": true,
-            "id": "branch_01M72PRWCPMYN2HY5T5GT0K77E",
-            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
+            "id": "branch_01M72VES6RE6VP04NJ420X41QK",
+            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
             "steps": [
               {
                 "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "scripts/test-decapod-deploy-backup.sh",
-                  "Justfile",
-                  ".beads/hooks/pre-commit",
+                  ".decapod/config.toml",
                   ".decapod/managed/specs/VALIDATION.md",
-                  "Watcher (PureViper): at the 11:39:06Z flip the process tree was git commit --amend -> .beads/hooks/pre-commit -> just check -> just check-decapod-deploy-backup -> bash ./scripts/test-decapod-deploy-backup.sh. Repro in /tmp: the old test under GIT_DIR=<decoy>/.git/worktrees/wt set the decoy main core.bare=true; under GIT_DIR=<decoy>/.git it did not (git init guesses bare for a gitdir that does not end in .git). The fixed test leaves it false. The recipe fails with the old test: the script under test resolved the decoy's store path through GIT_DIR, so its cases failed; in den the real store existed at that path, so the old test passed and only core.bare flipped."
+                  "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
                 ],
-                "proof_refs": [
-                  "repro-old-test-flips-decoy",
-                  "fixed-test-leaves-decoy",
-                  "recipe-passes-fixed",
-                  "recipe-fails-old-test",
-                  "shellcheck"
-                ],
+                "proof_refs": [],
                 "scope": [
                   "root"
                 ],
@@ -219,27 +189,25 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "Watcher (PureViper): at the 11:39:06Z flip the process tree was git commit --amend -> .beads/hooks/pre-commit -> just check -> just check-decapod-deploy-backup -> bash ./scripts/test-decapod-deploy-backup.sh. Repro in /tmp: the old test under GIT_DIR=<decoy>/.git/worktrees/wt set the decoy main core.bare=true; under GIT_DIR=<decoy>/.git it did not (git init guesses bare for a gitdir that does not end in .git). The fixed test leaves it false. The recipe fails with the old test: the script under test resolved the decoy's store path through GIT_DIR, so its cases failed; in den the real store existed at that path, so the old test passed and only core.bare flipped."
+        "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
+      "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
       "modified_files": [
-        ".beads/hooks/pre-commit",
-        ".decapod/managed/specs/VALIDATION.md",
-        "Justfile",
-        "scripts/test-decapod-deploy-backup.sh"
+        ".decapod/config.toml",
+        ".decapod/managed/specs/VALIDATION.md"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "root",
-        "scripts/test-decapod-deploy-backup.sh, Justfile, .beads/hooks/pre-commit, .decapod/managed/specs/VALIDATION.md"
+        ".decapod/config.toml, .decapod/managed/specs/VALIDATION.md",
+        "root"
       ],
-      "run_id": "branch_01M72PRWCPMYN2HY5T5GT0K77E",
+      "run_id": "branch_01M72VES6RE6VP04NJ420X41QK",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m72pqzw2nm3vxr",
+      "task_id": "code_01m72ve6x1kep36b",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

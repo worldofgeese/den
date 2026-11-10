@@ -1281,12 +1281,13 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-10 it changed 2 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-10 a separate Decapod-only bump changed 1 node of `flake.lock`, to the v0.136.3 release. The token-chain refresh of the other inputs left this node alone.
 
 | Node | Before | After |
 |---|---|---|
-| `devenv` | 9655d32 (2026-11-03) | 08d11dc (2026-11-10) |
-| `llm-agents` | a506e7e (2026-11-10) | b3d1786 (2026-11-10) |
+| `decapod` | 0dbfb06 (2026-11-10) | bf50c58 (2026-11-10) |
+
+The bump ran the new release only in an isolated clone with its own store. It wrote the entrypoints and managed files there, so the shared store stayed on the deployed release until the deploy, and the deploy's automatic store copy (`scripts/decapod-deploy-backup.sh`) still came first.
 
 ## Limited NAS Recovery Evidence
 

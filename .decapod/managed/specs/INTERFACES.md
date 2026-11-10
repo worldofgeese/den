@@ -203,7 +203,7 @@ configure Olivetti separately for this workflow.
 | Tool | Source | Why |
 |---|---|---|
 | `crucible-llm` | git (`jkitchin/crucible`) | PyPI 0.1.0 is stale |
-| `xmemcli` | PyPI, pinned `==1.9.3` | The xmemory CLI. xmemory's install instructions name this PyPI package. Bump the pin in a PR. |
+| `xmemcli` | PyPI, unpinned (latest on every switch) | The xmemory CLI. xmemory's install instructions name this PyPI package. Unpinned on purpose: the owner wants the latest release of every tool. |
 
 ## pi Team Integrations (M-02877)
 `modules/M-02877/agent-integrations.nix` connects pi, and the other agents on

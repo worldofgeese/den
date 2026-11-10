@@ -88,6 +88,14 @@
         "decapod validate",
         "uv tool install --python python3.13 xmemcli==1.9.3 (isolated dir)"
       ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r3",
+      "summary": "Unpin xmemcli: owner wants the latest release of every tool; record the trade-off in the comment and INTERFACES.md",
+      "input_digest": "sha256:40c7c2ee174ae6f7e0a9f855b28e826cd9133efddf15be85d6acbf600b486a71",
+      "proof_refs": [
+        "decapod validate"
+      ]
     }
   ],
   "intents": {

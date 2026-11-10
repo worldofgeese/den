@@ -158,12 +158,13 @@
             # reach xmemory anywhere. It comes from PyPI because that is where
             # xmemory's own install instructions point (`uv tool install
             # xmemcli`); PyPI shows no provenance attestation for it. It is
-            # pinned exactly, like the other supply-chain inputs here, so a new
-            # upload never runs on a switch until someone bumps this line. The
-            # wheel is pure Python (py3-none-any, requires-python >=3.12, no
+            # deliberately unpinned: the owner wants every tool on its latest
+            # release, so activation upgrades it on each switch. The trade-off
+            # is that a new PyPI upload runs on the next switch without review.
+            # The wheel is pure Python (py3-none-any, requires-python >=3.12, no
             # dependencies), so the python313 on the activation PATH works on
-            # darwin and Guix alike. prune keeps it by the leading name.
-            "xmemcli==1.9.3"
+            # darwin and Guix alike.
+            "xmemcli"
           ];
           prune = true;
         };

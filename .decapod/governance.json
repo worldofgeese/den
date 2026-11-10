@@ -65,29 +65,44 @@
     }
   },
   "change": {
-    "id": "change_01M727CD9VNQ5MGZMKNWCSBV8C",
+    "id": "change_01M72APABZHGKDG1PEEA8C74NV",
     "base_commit": "3559b846cc9530b51d5e70b7a00856d0cf93fadd",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "bugs_01m726z9hempwgsy",
-      "summary": "VALIDATION.md: the upstream proof defects are fixed; journal repair needs an RBAC grant",
-      "input_digest": "sha256:af894196b2710dc723697f0f9f7937e2fa13e79757922a1a4066a4855444f1a0"
+      "id": "drop-binary-copy",
+      "summary": "plain upstream decapod 0.136.2 package; binary-copy overlay removed",
+      "input_digest": "sha256:94f89c80cbf5c6ad36bda8e41d77c74efbb2fc1d0a3cf1cf3ba93ebe12f0eddf"
     },
     {
-      "id": "bugs_01m726z9hempwgsy-r2",
-      "summary": "Proof recovery results: five done tasks verified; plain validate passes",
-      "input_digest": "sha256:d2de72bfcb70aeb9422b6838d683abe09b3f49dd4dae49b7822db15ec3b563fe"
+      "id": "ckpt-drop-binary-copy",
+      "summary": "den: plain upstream decapod package restored; copy overlay removed; spec text updated",
+      "input_digest": "sha256:86f12e387c5b41afdbdde83a304bd131aeee19a04ff8ec2c361537672670b6ba"
     },
     {
-      "id": "bugs_01m726z9hempwgsy-r3",
-      "summary": "Rebased on 837d7cc; review fixes in VALIDATION.md",
-      "input_digest": "sha256:b08e1db652c56c57974cbdcb71ae56ab163e6d0d5b8ddb5510713ac738ec9d72"
+      "id": "ckpt-drop-binary-copy-final",
+      "summary": "den: plain upstream decapod package restored; overlay removed; specs and validation record updated",
+      "input_digest": "sha256:0317827919785aa9d867f13e6402cab8be81c3d8f549be126350bd375c799691"
+    },
+    {
+      "id": "ckpt-drop-binary-copy-spec-fix",
+      "summary": "VALIDATION.md: all three upstream defects closed; governance record reconciled",
+      "input_digest": "sha256:f14cb207539932db60544861e442b61fb86e13e14564d1ca308c91ea3609f6da"
+    },
+    {
+      "id": "ckpt-drop-binary-copy-spec-fix2",
+      "summary": "VALIDATION.md: all three upstream defects closed; manifest refreshed; governance record reconciled",
+      "input_digest": "sha256:f0f2e9afcf8e8c48cef280a72fbcba4aedf4f9a38eb964bb856958b5de77afe6"
+    },
+    {
+      "id": "ckpt-drop-binary-copy-rebased2",
+      "summary": "rebased on main b36b754: overlay removed, OPERATIONS.md updated; manifest refreshed",
+      "input_digest": "sha256:fe998018ad1c783425cc36efcce6d51bf1fa73bedbdeab9bb4fe5523aaeec6ce"
     }
   ],
   "intents": {
-    "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C": {
+    "intent:change_01M72APABZHGKDG1PEEA8C74NV": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -97,11 +112,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+      "id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-olz: Decapod 0.136.2 fixed the proof defects; repair the journal, recover proofs, update VALIDATION.md",
-      "refined_intent": "home-manager-olz: Decapod 0.136.2 fixed the proof defects; repair the journal, recover proofs, update VALIDATION.md",
+      "raw_intent": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
+      "refined_intent": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -114,86 +129,90 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Owner Tao approved the journal repair and proof recovery on 2026-11-09 (do all of the steps). Upstream fixed #1581, #1582 and #1583 (released in 0.134.2; den runs 0.136.2 since den #135). Recover verification for the done todos cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj, complete the #107 and #132 todos with --validated, and record in VALIDATION.md that the defects are fixed, that the PROOF_HOOK PR exception is no longer needed, and that journal repair now needs a todo.journal.repair RBAC grant (owner decision pending).",
+      "intent": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
       "phases": [],
       "proof_hooks": [
-        "decapod data database verify is ok",
-        "decapod qa verify recover passes for the done todos",
-        "plain decapod validate passes",
-        "just check (pre-commit)"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Decapod 0.136.2 fixed the proof defects: recover the done todos, update VALIDATION.md",
+      "title": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
       "todo_ids": [
-        "bugs_01m726z9hempwgsy"
+        "code_01m72am88cr0cjaq"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794297666Z"
+      "updated_at": "1794301856Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Shared store writes are limited to proof recovery and todo completion; the journal repair waits for an RBAC grant; the root checkout is not touched"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7fb8d6ff3f432485aa1cef11c06e02798d151a8bd769f1501c6ef8e5b71f863a",
+      "artifact_hash": "sha256:5e9d477cb7ae37d20149424044ec405fcc0e860f3dfd3151f2425e5b6c83cb5f",
       "checks": [
         {
-          "name": "db-verify-0.136.2",
+          "name": "alejandra-check",
           "status": "passed"
         },
         {
-          "name": "journal-repair-0.136.2",
+          "name": "check-drvpaths-all-hosts",
+          "status": "passed"
+        },
+        {
+          "name": "decapod-validate-394ccf1",
           "status": "failed"
         },
         {
-          "name": "plain-validate",
+          "name": "decapod-validate-b01e733",
           "status": "passed"
         },
         {
-          "name": "qa-verify-recover-done-todos",
+          "name": "just-check-394ccf1",
           "status": "passed"
         },
         {
-          "name": "todo-done-validated-107-132-prA",
+          "name": "scratch-plain-package-qa-verify",
+          "status": "passed"
+        },
+        {
+          "name": "scratch-qa-verify-plain-0.136.2-no-wrapped-rejection",
           "status": "passed"
         }
       ],
-      "current_phase": "review",
+      "current_phase": "publish",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M727CDC4Z04H8XX0MKJMHMSE",
+            "detail": "trajectory:branch_01M72APADWY8464A2A83CJD1MD",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M727CDC4Z04H8XX0MKJMHMSE",
+            "detail": "trajectory:branch_01M72APADWY8464A2A83CJD1MD",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
             "kind": "trajectory_step_recorded",
             "sequence": 5
           },
           {
-            "detail": "trajectory:branch_01M727CDC4Z04H8XX0MKJMHMSE",
+            "detail": "trajectory:branch_01M72APADWY8464A2A83CJD1MD",
             "event_id": "event:6",
-            "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
             "kind": "trajectory_step_recorded",
             "sequence": 6
           }
@@ -202,58 +221,73 @@
         "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M727CDC4Z04H8XX0MKJMHMSE": {
+          "branch_01M72APADWY8464A2A83CJD1MD": {
             "evidence_only": true,
-            "id": "branch_01M727CDC4Z04H8XX0MKJMHMSE",
-            "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+            "id": "branch_01M72APADWY8464A2A83CJD1MD",
+            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
             "steps": [
               {
-                "action": "implementation",
+                "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
+                  "modules/overlays.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
                   ".decapod/managed/specs/VALIDATION.md",
-                  "decapod data database verify (0.136.2): healthy, integrity ok. Supported backup before writes: /Users/dktaohan/.cache/pi-dktaohan/decapod-pre-journal-repair-20261110T075754Z.db (sha256 40b665b7baec8ba9). journal checkpoint with 13 --accept-historical-gap flags: RBAC_PERMISSION_DENIED (actor pi-dktaohan lacks todo.journal.repair in the main repository .decapod/config.toml); nothing committed. Root checkout core.bare=true found and fixed by PureViper before these writes."
+                  "modules/overlays.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/VALIDATION.md"
                 ],
                 "proof_refs": [
-                  "db-verify-0.136.2",
-                  "journal-repair-0.136.2"
+                  "scratch-qa-verify-plain-0.136.2-no-wrapped-rejection",
+                  "check-drvpaths-all-hosts",
+                  "alejandra-check"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "The owner decides whether and to whom to grant todo.journal.repair"
-                ]
-              },
-              {
-                "action": "validation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "qa verify recover (0.136.2): recovered cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj (snapshot = final hash e89560c6). todo done --validated for cicd_01m6g0z6xdp0kee8 (#107; .dagger/modules/ci/main.go, automerge.go), cicd_01m70d229cat1j96 (#132; scripts/decapod-deploy-backup.sh, test-decapod-deploy-backup.sh), test_01m6njzff0qn81s1 (#118; scripts/bump-flake-inputs.sh). Completing three tasks at once staled the baselines (each replay saw the others unverified); two more batch recoveries gave all five one baseline (7a22b256). Plain decapod validate: 188 pass, 0 fail."
-                ],
-                "proof_refs": [
-                  "qa-verify-recover-done-todos",
-                  "todo-done-validated-107-132-prA",
-                  "plain-validate"
-                ],
-                "scope": [
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "root"
-                ],
-                "sequence": 5,
                 "validation_findings": []
               },
               {
-                "action": "review",
+                "action": "publish-with-human-override",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "modules/overlays.nix",
+                  "modules/overlays.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "plain upstream decapod 0.136.2 in scratch repo /tmp/oh-scratch2: qa verify and todo done --validated start the validation child with no 'does not allow binary .decapod-wrapped' rejection",
+                  "just check (all host evals) passed in the pre-commit hook",
+                  "plain decapod validate on 394ccf1: the only failure is publication_readiness (DecapodLabs/decapod#1474); PROOF_HOOK_FAILED is gone"
+                ],
+                "proof_refs": [
+                  "scratch-plain-package-qa-verify",
+                  "just-check-394ccf1",
+                  "decapod-validate-394ccf1"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "PR opens while local decapod validate is not publication_ready: only publication_readiness (DecapodLabs/decapod#1474) fails; rule 3 of the task authorises this",
+                  "publication_readiness failure is solely the DecapodLabs/decapod#1474 receipt gap"
+                ]
+              },
+              {
+                "action": "publish",
                 "custody_event_id": "event:6",
                 "observations": [
                   ".decapod/managed/specs/VALIDATION.md",
-                  "Rebased on origin/main 837d7cc (#136 nightly bump; decapod unchanged at 0.136.2). pr-reviewer on #137: the #1581 sentence now cites the 0.136.2 --help text and says den has not run a repair; the #133 sentence is replaced by 'the package itself is fixed', based on WildPhoenix's scratch-repo proof for den task-46 (home-manager-9t1t): the plain upstream 0.136.2 package runs qa verify and todo done with no .decapod-wrapped rejection. The three proofs staled when I released the done tasks' claims (task revision 14); recovery repeats from this candidate."
+                  "SUPERSEDES the 394ccf1 record: plain decapod validate on b01e733 (head of PR 138 as opened) passed: pass=188 fail=0, publication_readiness included, no human override needed; done todos are verified (PROOF_HOOK clear) after BrightQuartz's batch qa verify recover",
+                  "VALIDATION.md updated: #1581, #1582 and #1583 are all closed upstream"
                 ],
-                "proof_refs": [],
+                "proof_refs": [
+                  "decapod-validate-b01e733"
+                ],
                 "scope": [
-                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/specs",
+                  "modules/overlays.nix",
                   "root"
                 ],
                 "sequence": 6,
@@ -266,29 +300,40 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "Rebased on origin/main 837d7cc (#136 nightly bump; decapod unchanged at 0.136.2). pr-reviewer on #137: the #1581 sentence now cites the 0.136.2 --help text and says den has not run a repair; the #133 sentence is replaced by 'the package itself is fixed', based on WildPhoenix's scratch-repo proof for den task-46 (home-manager-9t1t): the plain upstream 0.136.2 package runs qa verify and todo done with no .decapod-wrapped rejection. The three proofs staled when I released the done tasks' claims (task revision 14); recovery repeats from this candidate.",
-        "decapod data database verify (0.136.2): healthy, integrity ok. Supported backup before writes: /Users/dktaohan/.cache/pi-dktaohan/decapod-pre-journal-repair-20261110T075754Z.db (sha256 40b665b7baec8ba9). journal checkpoint with 13 --accept-historical-gap flags: RBAC_PERMISSION_DENIED (actor pi-dktaohan lacks todo.journal.repair in the main repository .decapod/config.toml); nothing committed. Root checkout core.bare=true found and fixed by PureViper before these writes.",
-        "qa verify recover (0.136.2): recovered cicd_01m6zpqmewery418 and code_01m6zjeywthv2cpj (snapshot = final hash e89560c6). todo done --validated for cicd_01m6g0z6xdp0kee8 (#107; .dagger/modules/ci/main.go, automerge.go), cicd_01m70d229cat1j96 (#132; scripts/decapod-deploy-backup.sh, test-decapod-deploy-backup.sh), test_01m6njzff0qn81s1 (#118; scripts/bump-flake-inputs.sh). Completing three tasks at once staled the baselines (each replay saw the others unverified); two more batch recoveries gave all five one baseline (7a22b256). Plain decapod validate: 188 pass, 0 fail."
+        "SUPERSEDES the 394ccf1 record: plain decapod validate on b01e733 (head of PR 138 as opened) passed: pass=188 fail=0, publication_readiness included, no human override needed; done todos are verified (PROOF_HOOK clear) after BrightQuartz's batch qa verify recover",
+        "VALIDATION.md updated: #1581, #1582 and #1583 are all closed upstream",
+        "just check (all host evals) passed in the pre-commit hook",
+        "plain decapod validate on 394ccf1: the only failure is publication_readiness (DecapodLabs/decapod#1474); PROOF_HOOK_FAILED is gone",
+        "plain upstream decapod 0.136.2 in scratch repo /tmp/oh-scratch2: qa verify and todo done --validated start the validation child with no 'does not allow binary .decapod-wrapped' rejection"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M727CD9VNQ5MGZMKNWCSBV8C",
+      "inspected_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "modules/overlays.nix"
+      ],
+      "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
       "modified_files": [
-        ".decapod/managed/specs/VALIDATION.md"
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "modules/overlays.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/managed/specs/VALIDATION.md",
+        ".decapod/managed/specs",
+        "modules/overlays.nix",
         "root"
       ],
-      "run_id": "branch_01M727CDC4Z04H8XX0MKJMHMSE",
+      "run_id": "branch_01M72APADWY8464A2A83CJD1MD",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [],
-      "task_id": "bugs_01m726z9hempwgsy",
+      "shortcut_risk_signals": [
+        "PR opens while local decapod validate is not publication_ready: only publication_readiness (DecapodLabs/decapod#1474) fails; rule 3 of the task authorises this"
+      ],
+      "task_id": "code_01m72am88cr0cjaq",
       "tool_calls": [],
       "unresolved_assumptions": [
-        "The owner decides whether and to whom to grant todo.journal.repair"
+        "publication_readiness failure is solely the DecapodLabs/decapod#1474 receipt gap"
       ]
     }
   },

@@ -318,9 +318,31 @@ check-pi-decapod-gate:
 
 # Tests for the store copy that `just deploy-darwin` makes when a deploy
 # changes Decapod (scripts/decapod-deploy-backup.sh). Stub `nix` and `sqlite3`
-# commands stand in for the evaluation and the store.
+# commands stand in for the evaluation and the store. The second run checks that
+# the test ignores an inherited GIT_DIR, which a git hook exports: the test once
+# re-initialized den's repository as bare from the pre-commit hook
+# (home-manager-i133). The recipe clears the hook's git variables first, so its
+# own `git init` of the decoy cannot do the same.
 check-decapod-deploy-backup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_PREFIX \
+      GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
     ./scripts/test-decapod-deploy-backup.sh
+    # The hook of a commit from a linked worktree exports that worktree's gitdir
+    # (.git/worktrees/<name>); `git init` under it marks the main repository bare.
+    test="$PWD/scripts/test-decapod-deploy-backup.sh"
+    decoy="$(mktemp -d)"
+    trap 'rm -rf -- "$decoy"' EXIT
+    git init -q "$decoy/main"
+    git -C "$decoy/main" -c user.name=decoy -c user.email=decoy@example.invalid \
+      -c commit.gpgsign=false -c core.hooksPath=/dev/null commit -q --allow-empty -m decoy
+    git -C "$decoy/main" -c core.hooksPath=/dev/null worktree add -q "$decoy/wt"
+    (cd "$decoy/wt" && GIT_DIR="$(git rev-parse --absolute-git-dir)" "$test")
+    if [ "$(git --git-dir="$decoy/main/.git" config --get core.bare)" != false ]; then
+      echo "test-decapod-deploy-backup.sh changed the repository in GIT_DIR (core.bare)" >&2
+      exit 1
+    fi
 
 # Regenerate the Decapod entrypoint projections after a Decapod upgrade.
 # `decapod init with --force` resets `external_tracker` and `[tracker] provider`

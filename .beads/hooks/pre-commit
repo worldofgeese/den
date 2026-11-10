@@ -3,7 +3,12 @@
 # Bypass with: git commit --no-verify
 
 set -e
-just check
+# git exports GIT_DIR, GIT_INDEX_FILE and more to hooks. `just check` must work
+# on the checkout itself, not on the hook's view of it: a test that runs
+# `git init` in a scratch directory once re-initialized this repository as bare
+# through the inherited GIT_DIR (home-manager-i133).
+env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_COMMON_DIR -u GIT_PREFIX \
+  -u GIT_OBJECT_DIRECTORY -u GIT_ALTERNATE_OBJECT_DIRECTORIES just check
 
 # --- BEGIN BEADS INTEGRATION v1.3.0 ---
 # This section is managed by beads. Do not remove these markers.

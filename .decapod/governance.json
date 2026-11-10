@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "a75b7f812b0902a2c37fa7f488a88f59e0eeab7c",
+    "accepted_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,24 +66,57 @@
     }
   },
   "change": {
-    "id": "change_01M73KN0RT4EC9W6JADP4WW66Z",
-    "base_commit": "a75b7f812b0902a2c37fa7f488a88f59e0eeab7c",
+    "id": "change_01M72Y50R4WKFCYBCHDKF5DH4D",
+    "base_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "code_01m73kmbk2gz4gyh",
-      "summary": "Remove the journal repair grant; record the outcome",
-      "input_digest": "sha256:dffc2678b241172315c7ee3ef25e06908ac199030e5acc870a03c192e85c3355"
+      "id": "code_01m72y44acb354gd",
+      "summary": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it; document the uv tool interface in INTERFACES.md",
+      "input_digest": "sha256:1978cf95b04ec82d2b09a2b7239d44798ff1bbd3beab07dcf35e86cc1989c7a4",
+      "proof_refs": [
+        "decapod validate",
+        "just check (pre-commit hook)"
+      ]
     },
     {
-      "id": "code_01m73kmbk2gz4gyh-r2",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:e5c26a11f6dfd9a2b8e4f0fbd5129282b28c6b10ea0378dd3d18923a7703829c"
+      "id": "code_01m72y44acb354gd-r2",
+      "summary": "Merge origin/main; pin xmemcli==1.9.3 with provenance and platform rationale; move the uv tool row into its own INTERFACES.md section (pr-reviewer threads)",
+      "input_digest": "sha256:8b611d457cf980d2a0b04b634da3e00aef2a59ff1ee55c628dea64ae09d00108",
+      "proof_refs": [
+        "decapod validate",
+        "uv tool install --python python3.13 xmemcli==1.9.3 (isolated dir)"
+      ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r3",
+      "summary": "Unpin xmemcli: owner wants the latest release of every tool; record the trade-off in the comment and INTERFACES.md",
+      "input_digest": "sha256:40c7c2ee174ae6f7e0a9f855b28e826cd9133efddf15be85d6acbf600b486a71",
+      "proof_refs": [
+        "decapod validate"
+      ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r4",
+      "summary": "Declare the xmemory DevRel Team Memory MCP server for pi on M-02877 (replaces the hand-added entry); list it in INTERFACES.md",
+      "input_digest": "sha256:07e5dca036af207287dc845eda799a06e2c1ba38366cb9e127afa1eb2e1b6eab",
+      "proof_refs": [
+        "decapod validate",
+        "nix eval piAgent.mcpServers (M-02877)"
+      ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r5",
+      "summary": "Merge origin/main (#145) into the xmemcli/xmemory branch",
+      "input_digest": "sha256:a94255a06d67bad7d87cb4a26987e8b09f81bcb5a717e857b2ed9c1be3d9d543",
+      "proof_refs": [
+        "decapod validate"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M73KN0RT4EC9W6JADP4WW66Z": {
+    "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +126,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+      "id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-wks: remove the journal repair grant and record the outcome (on a75b7f8)",
-      "refined_intent": "home-manager-wks: remove the journal repair grant and record the outcome (on a75b7f8)",
+      "raw_intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
+      "refined_intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,126 +143,65 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "The one-time journal repair that den #141 allowed ran on 2026-11-10 at 14:49Z (owner approval). Remove the temporary [governance.rbac] grant to pi-dktaohan, and replace the temporary text in VALIDATION.md with the outcome: 13 tasks and 41 events accepted, and decapod todo journal verify reports journal_valid true (home-manager-wks, DecapodLabs/decapod#1534). Supersedes den #143, which conflicted after #144.",
+      "intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
       "phases": [],
       "proof_hooks": [
-        "decapod todo journal verify reports journal_valid true",
-        "plain decapod validate passes",
-        "just check (pre-commit)"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Remove the journal repair grant and record the repair's outcome",
+      "title": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
       "todo_ids": [
-        "code_01m73kmbk2gz4gyh"
+        "code_01m72y44acb354gd"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794344293Z"
+      "updated_at": "1794321761Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Only the removal of the temporary [governance.rbac] grant and the VALIDATION.md outcome text"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:2b2ec7fb77b54ca6a2204b70b54db71f6bf3236f882e14128f3968c3040c8520",
-      "checks": [
-        {
-          "name": "gap-detection-13-tasks",
-          "status": "passed"
-        },
-        {
-          "name": "journal-backup-integrity",
-          "status": "passed"
-        },
-        {
-          "name": "journal-repair-checkpoint",
-          "status": "passed"
-        },
-        {
-          "name": "journal-verify-valid",
-          "status": "passed"
-        }
-      ],
-      "current_phase": "implementation",
+      "artifact_hash": "sha256:ae006ff196cedc65eef3ee828d59107e3f9a038e71a8e097e4d509c3c3852935",
+      "checks": [],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+            "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
+            "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:branch_01M73KN0TTAXYRQ4FTVTDQKFKZ",
-            "event_id": "event:4",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 3,
         "schema_version": "1.0.0",
-        "trajectories": {
-          "branch_01M73KN0TTAXYRQ4FTVTDQKFKZ": {
-            "evidence_only": true,
-            "id": "branch_01M73KN0TTAXYRQ4FTVTDQKFKZ",
-            "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
-            "steps": [
-              {
-                "action": "implementation",
-                "custody_event_id": "event:4",
-                "observations": [
-                  ".decapod/config.toml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "Backup decapod-pre-journal-repair-20261110T144846Z.db via decapod data database backup (120516608 bytes, mode 0600, integrity ok, 177727 events). The #1581 detection query on it found 13 tasks with 41 unjournaled todo events from 2026-10-21T09:49:28Z to 2026-10-23T16:21:30Z. One decapod todo journal checkpoint with 13 --accept-historical-gap flags and one reviewed --reason exited 0 and wrote 13 task.journal.gap_accepted receipts (one timestamp, 14:49:16Z). decapod todo journal verify: exit 0, journal_valid true, checkpointed_tasks 118, none divergent, missing or uncheckpointed. Recreates den #143 (conflicted after #144; its completed task locked the workspace)."
-                ],
-                "proof_refs": [
-                  "journal-backup-integrity",
-                  "gap-detection-13-tasks",
-                  "journal-repair-checkpoint",
-                  "journal-verify-valid"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 4,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "Backup decapod-pre-journal-repair-20261110T144846Z.db via decapod data database backup (120516608 bytes, mode 0600, integrity ok, 177727 events). The #1581 detection query on it found 13 tasks with 41 unjournaled todo events from 2026-10-21T09:49:28Z to 2026-10-23T16:21:30Z. One decapod todo journal checkpoint with 13 --accept-historical-gap flags and one reviewed --reason exited 0 and wrote 13 task.journal.gap_accepted receipts (one timestamp, 14:49:16Z). decapod todo journal verify: exit 0, journal_valid true, checkpointed_tasks 118, none divergent, missing or uncheckpointed. Recreates den #143 (conflicted after #144; its completed task locked the workspace)."
-      ],
+      "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M73KN0RT4EC9W6JADP4WW66Z",
-      "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/managed/specs/VALIDATION.md"
-      ],
+      "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
+      "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/config.toml, .decapod/managed/specs/VALIDATION.md",
         "root"
       ],
-      "run_id": "branch_01M73KN0TTAXYRQ4FTVTDQKFKZ",
+      "run_id": "branch_01M72Y50TTDMR3JBW711HG9KNX",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m73kmbk2gz4gyh",
+      "task_id": "code_01m72y44acb354gd",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

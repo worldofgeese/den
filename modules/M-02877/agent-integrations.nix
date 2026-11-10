@@ -230,6 +230,15 @@
           exposure = "direct";
           description = "GitHub Copilot Spaces, including LEGO's Technical Writer style guide";
         };
+        # xmemory "DevRel Team Memory" instance over stdio. xmemcli (declared
+        # in shared-devtools.nix) supplies the credential from ~/.xmemrc.json,
+        # so this config holds no key, and the instance id alone grants no
+        # access.
+        xmemory-bfc0e617 = {
+          command = "${home}/.local/bin/xmemcli";
+          args = ["mcp" "bfc0e617-a71c-4c51-90c3-5e825570f43d"];
+          description = "xmemory: DevRel Team Memory (Internal-only engineering knowledge)";
+        };
       };
       packages = [
         # Pinned on purpose: the Chorus client, chorus-pi and the team server

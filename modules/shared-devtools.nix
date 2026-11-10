@@ -154,7 +154,16 @@
         tool = {
           packages = [
             "crucible-llm @ git+https://github.com/jkitchin/crucible"
-            "xmemcli"
+            # xmemcli is the xmemory CLI, installed on every host so agents can
+            # reach xmemory anywhere. It comes from PyPI because that is where
+            # xmemory's own install instructions point (`uv tool install
+            # xmemcli`); PyPI shows no provenance attestation for it. It is
+            # pinned exactly, like the other supply-chain inputs here, so a new
+            # upload never runs on a switch until someone bumps this line. The
+            # wheel is pure Python (py3-none-any, requires-python >=3.12, no
+            # dependencies), so the python313 on the activation PATH works on
+            # darwin and Guix alike. prune keeps it by the leading name.
+            "xmemcli==1.9.3"
           ];
           prune = true;
         };

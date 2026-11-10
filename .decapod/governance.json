@@ -79,6 +79,15 @@
         "decapod validate",
         "just check (pre-commit hook)"
       ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r2",
+      "summary": "Merge origin/main; pin xmemcli==1.9.3 with provenance and platform rationale; move the uv tool row into its own INTERFACES.md section (pr-reviewer threads)",
+      "input_digest": "sha256:8b611d457cf980d2a0b04b634da3e00aef2a59ff1ee55c628dea64ae09d00108",
+      "proof_refs": [
+        "decapod validate",
+        "uv tool install --python python3.13 xmemcli==1.9.3 (isolated dir)"
+      ]
     }
   ],
   "intents": {

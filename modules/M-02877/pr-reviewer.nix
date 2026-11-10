@@ -118,13 +118,55 @@
     # start the deploys on main. So the merge runs here, as the gh identity.
     # The filter prints number, head SHA and the first reason not to merge;
     # an empty reason means merge, once the review threads are checked too.
+    #
+    # A peer daemon is another person's pr-reviewer on the same repos, under
+    # their own account (pr-reviewer's defaults.peer_logins; sethpjacobs runs
+    # a standby with a 10-minute delay since 2026-11-10). This daemon skips a
+    # head that a peer reviewed, so a pr-reviewer review means one from this
+    # account or a peer's, with the review metadata that pr-reviewer writes
+    # (REVIEW_METADATA_MARKER in its src/review/policy.rs, which the daemon
+    # itself matches to find a peer's review): a person's own review from one
+    # of those accounts is not one. A peer's skip completes the review_pr
+    # task here, so the review counts mostly for a head whose task failed.
     automergeFilter = pkgs.writeText "pr-reviewer-automerge.jq" ''
+      def pr_reviewer:
+        (.author.login | IN("worldofgeese", $peers[]))
+        and ((.body // "") | contains("- Reviewer: [pr-reviewer]("));
       ($reviewed
         | map(select(.task_kind == "review_pr" and .status == "completed")
           | "\(.pr_number) \(.head_sha)")) as $done
+      # Each open PR's commits, oldest first. Fetched only for a repo where
+      # GitHub reports a change request; empty otherwise.
+      | ([$commits.data?.repository?.pullRequests?.nodes[]?
+          | {key: (.number | tostring), value: [.commits.nodes[].commit.oid]}]
+        | from_entries) as $orders
       | .[]
       | . as $p
       | [$p.labels[]?.name | ascii_downcase] as $labels
+      | [$p.reviews[]? | select(pr_reviewer)] as $bot
+      | ($orders[$p.number | tostring] // []) as $order
+      # GitHub keeps each reviewer's last approval or change request until it
+      # is dismissed. A daemon dismisses only its own change requests, and it
+      # skips a head that its peer reviewed. So a pr-reviewer change request
+      # from one account is set aside once the other account reviewed a later
+      # commit and approved or only commented. As with this daemon's own
+      # reviews, which never request changes on this account's PRs, the open
+      # review threads still hold the PR.
+      | ([$p.reviews[]? | select(.state | IN("APPROVED", "CHANGES_REQUESTED", "DISMISSED"))]
+        | group_by(.author.login) | map(max_by(.submittedAt))
+        | map(select(.state == "CHANGES_REQUESTED"))) as $requests
+      # A review that lands late can be of an older commit than the request
+      # (it started before a push). So a request on the head itself is never
+      # set aside, and the answer must be of a commit after the request's in
+      # the PR's commits. A request whose commit left the PR (a force-push)
+      # goes by time.
+      | [$requests[] | . as $r | select(pr_reviewer and .commit.oid != $p.headRefOid)
+        | ($order | index($r.commit.oid)) as $at
+        | select(any($bot[]; .author.login != $r.author.login
+            and .commit.oid != $r.commit.oid and .submittedAt > $r.submittedAt
+            and (.state | IN("APPROVED", "COMMENTED"))
+            and (.commit.oid as $c | $at == null or (($order | index($c)) // -1) > $at)))]
+        as $superseded
       # A re-run of a check (same name and workflow) supersedes the older
       # entry, which a concurrency group may have left CANCELLED: judge only
       # the newest entry of each check, and report the ones set aside.
@@ -135,6 +177,10 @@
       | [$groups[] | .[:-1][]
         | "\(.name // .context) (\(.workflowName // "status")) \(.conclusion // .state // .status) at \(.completedAt // .startedAt // "?")"]
         as $stale
+      | ($stale + if $p.reviewDecision == "CHANGES_REQUESTED"
+          then [$superseded[] | "change request from \(.author.login) at \(.commit.oid[0:12])"]
+          else [] end)
+        as $aside
       | (if $p.isDraft then "draft"
         # A stacked PR targets another PR's branch: merging it here would land
         # it in that branch, and GitHub's legacy merge API cannot merge a
@@ -143,9 +189,15 @@
         elif any($labels[]; . == "hold" or . == "do-not-merge" or . == "needs-human") then "labelled hold, do-not-merge or needs-human"
         elif ($p.author.login | IN("worldofgeese", "app/github-actions", "app/dependabot") | not)
         then "author \($p.author.login) is merged by hand"
-        elif (any($done[]; . == "\($p.number) \($p.headRefOid)") | not)
+        elif ((any($done[]; . == "\($p.number) \($p.headRefOid)")
+            or any($bot[]; .commit.oid == $p.headRefOid)) | not)
         then "pr-reviewer has not reviewed head \($p.headRefOid[0:12])"
-        elif $p.reviewDecision == "CHANGES_REQUESTED" then "changes requested"
+        # GitHub's decision holds unless every change request behind it was
+        # set aside above; a decision with no change request in the reviews
+        # holds too.
+        elif $p.reviewDecision == "CHANGES_REQUESTED"
+          and (($requests | length) == 0 or ($requests | length) > ($superseded | length))
+        then "changes requested"
         elif (($p.body // "") | test("before you merge"; "i"))
         then "its description lists manual before-you-merge steps"
         else "" end) as $pre
@@ -162,8 +214,21 @@
       # were judged.
       | [($p.number | tostring), $p.headRefOid,
         (if $why == "" then "-" else $why end),
-        (if $pre != "" or ($stale | length) == 0 then "-" else ($stale | join("; ")) end)]
+        (if $pre != "" or ($aside | length) == 0 then "-" else ($aside | join("; ")) end)]
       | @tsv
+    '';
+
+    # Newest first, like `gh pr list`, so both see the same 100 PRs. Only the
+    # commit IDs: gh's own `commits` field adds authors, and with 100 PRs
+    # that exceeds GitHub's limit of 500,000 nodes per query.
+    commitsQuery = pkgs.writeText "pr-reviewer-automerge-commits.graphql" ''
+      query($o: String!, $r: String!) {
+        repository(owner: $o, name: $r) {
+          pullRequests(states: OPEN, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes { number commits(last: 100) { nodes { commit { oid } } } }
+          }
+        }
+      }
     '';
 
     threadsQuery = pkgs.writeText "pr-reviewer-automerge-threads.graphql" ''
@@ -218,6 +283,16 @@
           fi
         }
 
+        # The peer daemons, read once per pass from the runtime config, which
+        # `pr-reviewer config set defaults.peer_logins` writes. A list that
+        # cannot be read counts as none: that trusts no other account, and
+        # the reviews of this daemon still merge.
+        if ! peers="$(pr-reviewer config get defaults.peer_logins 2>&1)" \
+            || ! jq -e 'type == "array" and all(.[]; type == "string")' <<<"$peers" >/dev/null 2>&1; then
+          log "could not read pr-reviewer's defaults.peer_logins, so no peer counts: $(brief "$peers")"
+          peers='[]'
+        fi
+
         for repo in ${lib.escapeShellArgs repos}; do
           key="''${repo//\//_}"
           method=""
@@ -226,7 +301,7 @@
             continue
           fi
           if ! prs="$(gh pr list -R "$repo" --state open --limit 100 \
-              --json number,headRefOid,baseRefName,isDraft,author,labels,mergeable,statusCheckRollup,reviewDecision,body 2>&1)"; then
+              --json number,headRefOid,baseRefName,isDraft,author,labels,mergeable,statusCheckRollup,reviewDecision,reviews,body 2>&1)"; then
             log "$repo: gh pr list failed: $(brief "$prs")"
             continue
           fi
@@ -234,7 +309,15 @@
             log "$repo: pr-reviewer queue list failed: $(brief "$reviewed")"
             continue
           fi
-          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" --arg trunk "$trunk" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
+          commits='{}'
+          if jq -e 'any(.[]; .reviewDecision == "CHANGES_REQUESTED")' <<<"$prs" >/dev/null \
+              && ! commits="$(gh api graphql -f o="''${repo%%/*}" -f r="''${repo#*/}" \
+                -F query=@${commitsQuery} 2>&1)"; then
+            log "$repo: could not read the commits of its PRs: $(brief "$commits")"
+            continue
+          fi
+          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" --argjson peers "$peers" \
+              --argjson commits "$commits" --arg trunk "$trunk" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
             log "$repo: could not evaluate its PRs: $(brief "$verdicts")"
             continue
           fi
@@ -245,7 +328,7 @@
               why=""
             fi
             if [ "$stale" != - ] && [ "$(cat "$state/stale-$key-$n" 2>/dev/null || true)" != "$sha $stale" ]; then
-              log "$repo#$n: ignoring superseded checks: $stale"
+              log "$repo#$n: ignoring superseded checks or change requests: $stale"
               printf '%s\n' "$sha $stale" >"$state/stale-$key-$n"
             fi
             if [ -z "$why" ]; then

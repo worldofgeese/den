@@ -81,6 +81,14 @@
         "live data, 7 repos: new filter equals old filter with peers [] and [sethpjacobs]",
         "nix build .#darwinConfigurations.M-02877.system -> /nix/store/4w3ldlbdhiaa4a22x80h9nia41cv1rka-darwin-system-26.11.ff0e21a"
       ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-manifest-refresh",
+      "summary": "Spec manifest timestamp from the validate refresh",
+      "input_digest": "sha256:b90d93f61eedd341e6e77697d9c3ed47e7d006cf82a14b7219fc07a4118e455c",
+      "proof_refs": [
+        "decapod validate: 187 pass, 1 fail (UNCOMMITTED_PUBLICATION_CONTENT for this manifest change)"
+      ]
     }
   ],
   "intents": {

@@ -1,15 +1,15 @@
 {
   "schema_version": "1.1.0",
   "template_version": "scaffold-v4",
-  "generated_at": "1794309268Z",
+  "generated_at": "1794315314Z",
   "repo_signal_fingerprint": "d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe",
   "declared_capabilities": [
     "infrastructure-management",
     "secrets-handling"
   ],
   "capability_definition_version": "1.0.0",
-  "config_input_hash": "87ebbbbb7971c72f334aff8e8b562c317264fa99f11b9fb0c9f0434d1c0938e8",
-  "spec_input_hash": "ce65dd6643270dda55b8697139b8cc73a4c88b524e7ae60efb040ae2dc028e25",
+  "config_input_hash": "15e22b0ae2a7c0d0cb5b788b059754e162c12b4e2d5609eb4978559a37c4d5f8",
+  "spec_input_hash": "4387666ce555a80597fc7881e70aedbc36a4b9b0d71a724c46c9db75c1fb60fc",
   "decapod_release": "0.136.2",
   "entrypoints": [
     {
@@ -65,7 +65,7 @@
     {
       "path": ".decapod/managed/specs/VALIDATION.md",
       "template_hash": "c2883ed632c25ad60a8e6fceebf5394052e263e149c1d24948776aa68fc5883b",
-      "content_hash": "070be244f9a37ae4f08b90a886f41edae1d19dcdb5472fff76287297641a7c72",
+      "content_hash": "66e7d694df7caccb31fe581b66a3444f37faf4c7ab0af95295d2de4822d98928",
       "fingerprint": ""
     },
     {

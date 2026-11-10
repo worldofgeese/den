@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "3559b846cc9530b51d5e70b7a00856d0cf93fadd",
+    "accepted_commit": "6dbe887d807e6cf3f306e6d26b428b695d1083ee",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -53,6 +53,7 @@
       "trajectory:4c3a11d1469258d8": "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
       "trajectory:56b396336dfc37b6": "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here",
+      "trajectory:56f9d4f4f67c20dc": "publication_readiness failure is solely the DecapodLabs/decapod#1474 receipt gap",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
@@ -65,44 +66,24 @@
     }
   },
   "change": {
-    "id": "change_01M72APABZHGKDG1PEEA8C74NV",
-    "base_commit": "3559b846cc9530b51d5e70b7a00856d0cf93fadd",
+    "id": "change_01M72PRWAKBPXPGTTCQMV42VB9",
+    "base_commit": "6dbe887d807e6cf3f306e6d26b428b695d1083ee",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "drop-binary-copy",
-      "summary": "plain upstream decapod 0.136.2 package; binary-copy overlay removed",
-      "input_digest": "sha256:94f89c80cbf5c6ad36bda8e41d77c74efbb2fc1d0a3cf1cf3ba93ebe12f0eddf"
+      "id": "cicd_01m72pqzw2nm3vxr",
+      "summary": "Clear the hook's git variables in the deploy-backup test; regression check; pre-commit hardening",
+      "input_digest": "sha256:b0273209931ed9f94abe25b05ded95f6cbe7054feba5610f08e44ada040944a1"
     },
     {
-      "id": "ckpt-drop-binary-copy",
-      "summary": "den: plain upstream decapod package restored; copy overlay removed; spec text updated",
-      "input_digest": "sha256:86f12e387c5b41afdbdde83a304bd131aeee19a04ff8ec2c361537672670b6ba"
-    },
-    {
-      "id": "ckpt-drop-binary-copy-final",
-      "summary": "den: plain upstream decapod package restored; overlay removed; specs and validation record updated",
-      "input_digest": "sha256:0317827919785aa9d867f13e6402cab8be81c3d8f549be126350bd375c799691"
-    },
-    {
-      "id": "ckpt-drop-binary-copy-spec-fix",
-      "summary": "VALIDATION.md: all three upstream defects closed; governance record reconciled",
-      "input_digest": "sha256:f14cb207539932db60544861e442b61fb86e13e14564d1ca308c91ea3609f6da"
-    },
-    {
-      "id": "ckpt-drop-binary-copy-spec-fix2",
-      "summary": "VALIDATION.md: all three upstream defects closed; manifest refreshed; governance record reconciled",
-      "input_digest": "sha256:f0f2e9afcf8e8c48cef280a72fbcba4aedf4f9a38eb964bb856958b5de77afe6"
-    },
-    {
-      "id": "ckpt-drop-binary-copy-rebased2",
-      "summary": "rebased on main b36b754: overlay removed, OPERATIONS.md updated; manifest refreshed",
-      "input_digest": "sha256:fe998018ad1c783425cc36efcce6d51bf1fa73bedbdeab9bb4fe5523aaeec6ce"
+      "id": "cicd_01m72pqzw2nm3vxr-r2",
+      "summary": "Spec manifest refresh",
+      "input_digest": "sha256:b73845a22e232e0a760f53eada0fb252ea3f7197eb9fb8570d9f2c6741d8bfc3"
     }
   ],
   "intents": {
-    "intent:change_01M72APABZHGKDG1PEEA8C74NV": {
+    "intent:change_01M72PRWAKBPXPGTTCQMV42VB9": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,11 +93,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
+      "id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
-      "refined_intent": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
+      "raw_intent": "home-manager-i133: keep test-decapod-deploy-backup.sh out of the hook's GIT_DIR (core.bare flips)",
+      "refined_intent": "home-manager-i133: keep test-decapod-deploy-backup.sh out of the hook's GIT_DIR (core.bare flips)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -129,168 +110,106 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
+      "intent": "PureViper's watcher caught the setter of core.bare=true in den's root (home-manager-i133): scripts/test-decapod-deploy-backup.sh, run by pre-commit through just check, ran git init in a scratch dir under the hook's exported worktree GIT_DIR, which re-initialized den's repository as bare (11 flips on 2026-11-10). Clear the git variables in the test, add a regression check with a decoy linked worktree's GIT_DIR, and run just check with the variables cleared in .beads/hooks/pre-commit.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "the old test flips a decoy's core.bare under a worktree GIT_DIR; the fixed test does not",
+        "just check-decapod-deploy-backup passes, and fails with the old test",
+        "plain decapod validate passes",
+        "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "decapod: drop the #133 binary-copy overlay (home-manager-9t1t)",
+      "title": "Keep test-decapod-deploy-backup.sh out of the hook's GIT_DIR (core.bare flips)",
       "todo_ids": [
-        "code_01m72am88cr0cjaq"
+        "cicd_01m72pqzw2nm3vxr"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794301856Z"
+      "updated_at": "1794314776Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Only the test, its just recipe, the pre-commit hook and the VALIDATION.md rule; no change to the deploy backup step itself"
       ],
-      "artifact_hash": "sha256:5e9d477cb7ae37d20149424044ec405fcc0e860f3dfd3151f2425e5b6c83cb5f",
+      "artifact_hash": "sha256:fec0c4d79fe64480de1ecc134ed5eb7fc0fcd719688c314f089b06ba46bad724",
       "checks": [
         {
-          "name": "alejandra-check",
+          "name": "fixed-test-leaves-decoy",
           "status": "passed"
         },
         {
-          "name": "check-drvpaths-all-hosts",
+          "name": "recipe-fails-old-test",
           "status": "passed"
         },
         {
-          "name": "decapod-validate-394ccf1",
-          "status": "failed"
-        },
-        {
-          "name": "decapod-validate-b01e733",
+          "name": "recipe-passes-fixed",
           "status": "passed"
         },
         {
-          "name": "just-check-394ccf1",
+          "name": "repro-old-test-flips-decoy",
           "status": "passed"
         },
         {
-          "name": "scratch-plain-package-qa-verify",
-          "status": "passed"
-        },
-        {
-          "name": "scratch-qa-verify-plain-0.136.2-no-wrapped-rejection",
+          "name": "shellcheck",
           "status": "passed"
         }
       ],
-      "current_phase": "publish",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
+            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
+            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M72APADWY8464A2A83CJD1MD",
+            "detail": "trajectory:branch_01M72PRWCPMYN2HY5T5GT0K77E",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
+            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M72APADWY8464A2A83CJD1MD",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M72APADWY8464A2A83CJD1MD",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M72APADWY8464A2A83CJD1MD": {
+          "branch_01M72PRWCPMYN2HY5T5GT0K77E": {
             "evidence_only": true,
-            "id": "branch_01M72APADWY8464A2A83CJD1MD",
-            "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
+            "id": "branch_01M72PRWCPMYN2HY5T5GT0K77E",
+            "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
             "steps": [
               {
-                "action": "trajectory.record",
+                "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/overlays.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
+                  "scripts/test-decapod-deploy-backup.sh",
+                  "Justfile",
+                  ".beads/hooks/pre-commit",
                   ".decapod/managed/specs/VALIDATION.md",
-                  "modules/overlays.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/VALIDATION.md"
+                  "Watcher (PureViper): at the 11:39:06Z flip the process tree was git commit --amend -> .beads/hooks/pre-commit -> just check -> just check-decapod-deploy-backup -> bash ./scripts/test-decapod-deploy-backup.sh. Repro in /tmp: the old test under GIT_DIR=<decoy>/.git/worktrees/wt set the decoy main core.bare=true; under GIT_DIR=<decoy>/.git it did not (git init guesses bare for a gitdir that does not end in .git). The fixed test leaves it false. The recipe fails with the old test: the script under test resolved the decoy's store path through GIT_DIR, so its cases failed; in den the real store existed at that path, so the old test passed and only core.bare flipped."
                 ],
                 "proof_refs": [
-                  "scratch-qa-verify-plain-0.136.2-no-wrapped-rejection",
-                  "check-drvpaths-all-hosts",
-                  "alejandra-check"
+                  "repro-old-test-flips-decoy",
+                  "fixed-test-leaves-decoy",
+                  "recipe-passes-fixed",
+                  "recipe-fails-old-test",
+                  "shellcheck"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "publish-with-human-override",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "modules/overlays.nix",
-                  "modules/overlays.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "plain upstream decapod 0.136.2 in scratch repo /tmp/oh-scratch2: qa verify and todo done --validated start the validation child with no 'does not allow binary .decapod-wrapped' rejection",
-                  "just check (all host evals) passed in the pre-commit hook",
-                  "plain decapod validate on 394ccf1: the only failure is publication_readiness (DecapodLabs/decapod#1474); PROOF_HOOK_FAILED is gone"
-                ],
-                "proof_refs": [
-                  "scratch-plain-package-qa-verify",
-                  "just-check-394ccf1",
-                  "decapod-validate-394ccf1"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": [
-                  "PR opens while local decapod validate is not publication_ready: only publication_readiness (DecapodLabs/decapod#1474) fails; rule 3 of the task authorises this",
-                  "publication_readiness failure is solely the DecapodLabs/decapod#1474 receipt gap"
-                ]
-              },
-              {
-                "action": "publish",
-                "custody_event_id": "event:6",
-                "observations": [
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "SUPERSEDES the 394ccf1 record: plain decapod validate on b01e733 (head of PR 138 as opened) passed: pass=188 fail=0, publication_readiness included, no human override needed; done todos are verified (PROOF_HOOK clear) after BrightQuartz's batch qa verify recover",
-                  "VALIDATION.md updated: #1581, #1582 and #1583 are all closed upstream"
-                ],
-                "proof_refs": [
-                  "decapod-validate-b01e733"
-                ],
-                "scope": [
-                  ".decapod/managed/specs",
-                  "modules/overlays.nix",
-                  "root"
-                ],
-                "sequence": 6,
                 "validation_findings": []
               }
             ]
@@ -300,41 +219,29 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "SUPERSEDES the 394ccf1 record: plain decapod validate on b01e733 (head of PR 138 as opened) passed: pass=188 fail=0, publication_readiness included, no human override needed; done todos are verified (PROOF_HOOK clear) after BrightQuartz's batch qa verify recover",
-        "VALIDATION.md updated: #1581, #1582 and #1583 are all closed upstream",
-        "just check (all host evals) passed in the pre-commit hook",
-        "plain decapod validate on 394ccf1: the only failure is publication_readiness (DecapodLabs/decapod#1474); PROOF_HOOK_FAILED is gone",
-        "plain upstream decapod 0.136.2 in scratch repo /tmp/oh-scratch2: qa verify and todo done --validated start the validation child with no 'does not allow binary .decapod-wrapped' rejection"
+        "Watcher (PureViper): at the 11:39:06Z flip the process tree was git commit --amend -> .beads/hooks/pre-commit -> just check -> just check-decapod-deploy-backup -> bash ./scripts/test-decapod-deploy-backup.sh. Repro in /tmp: the old test under GIT_DIR=<decoy>/.git/worktrees/wt set the decoy main core.bare=true; under GIT_DIR=<decoy>/.git it did not (git init guesses bare for a gitdir that does not end in .git). The fixed test leaves it false. The recipe fails with the old test: the script under test resolved the decoy's store path through GIT_DIR, so its cases failed; in den the real store existed at that path, so the old test passed and only core.bare flipped."
       ],
-      "inspected_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        ".decapod/managed/specs/VALIDATION.md",
-        "modules/overlays.nix"
-      ],
-      "intent_id": "intent:change_01M72APABZHGKDG1PEEA8C74NV",
+      "inspected_files": [],
+      "intent_id": "intent:change_01M72PRWAKBPXPGTTCQMV42VB9",
       "modified_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
+        ".beads/hooks/pre-commit",
         ".decapod/managed/specs/VALIDATION.md",
-        "modules/overlays.nix"
+        "Justfile",
+        "scripts/test-decapod-deploy-backup.sh"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/managed/specs",
-        "modules/overlays.nix",
-        "root"
+        "root",
+        "scripts/test-decapod-deploy-backup.sh, Justfile, .beads/hooks/pre-commit, .decapod/managed/specs/VALIDATION.md"
       ],
-      "run_id": "branch_01M72APADWY8464A2A83CJD1MD",
+      "run_id": "branch_01M72PRWCPMYN2HY5T5GT0K77E",
       "schema_version": "1.1.0",
-      "shortcut_risk_signals": [
-        "PR opens while local decapod validate is not publication_ready: only publication_readiness (DecapodLabs/decapod#1474) fails; rule 3 of the task authorises this"
-      ],
-      "task_id": "code_01m72am88cr0cjaq",
+      "shortcut_risk_signals": [],
+      "task_id": "cicd_01m72pqzw2nm3vxr",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "publication_readiness failure is solely the DecapodLabs/decapod#1474 receipt gap"
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

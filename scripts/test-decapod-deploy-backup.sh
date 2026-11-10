@@ -6,6 +6,15 @@
 # throwaway git repository, and the copies go to a throwaway XDG_STATE_HOME.
 set -euo pipefail
 
+# A git hook exports GIT_DIR and related variables for the repository that is
+# being committed to, and GIT_DIR overrides `git -C`. Den's pre-commit hook runs
+# this test through `just check`, so the scratch `git init` below re-initialized
+# den's own repository, and git recorded core.bare=true (home-manager-i133). The
+# script under test then also resolved den's real store path. Clear the hook's
+# git variables before any git command.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_COMMON_DIR GIT_PREFIX \
+  GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+
 script="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/decapod-deploy-backup.sh"
 work="$(mktemp -d)"
 trap 'rm -rf -- "$work"' EXIT

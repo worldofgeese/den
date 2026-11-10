@@ -116,6 +116,18 @@ pre-commit hook (`just check`, with `scripts/check-drvpaths.sh`) and the deploy
 of each changed deploy target stay that proof. `dagger check` also evaluates
 the hosts (see Dagger Checks).
 
+Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
+`GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another
+repository with those variables set. On 2026-11-09 and 2026-11-10,
+`scripts/test-decapod-deploy-backup.sh` ran `git init` in a scratch directory
+under the `GIT_DIR` of a linked worktree's pre-commit hook. That re-initialized
+den's repository and set `core.bare = true`, 11 times on 2026-11-10 alone
+(home-manager-i133). Fixes:
+- The test clears those variables first.
+- `just check-decapod-deploy-backup` runs it a second time under the `GIT_DIR`
+  of a decoy repository's linked worktree, and fails if the decoy changes.
+- `.beads/hooks/pre-commit` runs `just check` with the variables cleared.
+
 `source_coverage` has one row for each workflow in `.github/workflows/`. If a
 workflow has no row, Decapod 0.132.0 stops validation with
 `REPOSITORY_CONTRACT_INVALID` (measured 2026-11-09). `decapod-validate.yml`

@@ -96,6 +96,15 @@
       "proof_refs": [
         "decapod validate"
       ]
+    },
+    {
+      "id": "code_01m72y44acb354gd-r4",
+      "summary": "Declare the xmemory DevRel Team Memory MCP server for pi on M-02877 (replaces the hand-added entry); list it in INTERFACES.md",
+      "input_digest": "sha256:07e5dca036af207287dc845eda799a06e2c1ba38366cb9e127afa1eb2e1b6eab",
+      "proof_refs": [
+        "decapod validate",
+        "nix eval piAgent.mcpServers (M-02877)"
+      ]
     }
   ],
   "intents": {

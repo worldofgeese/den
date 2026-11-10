@@ -89,6 +89,14 @@
       "proof_refs": [
         "decapod validate: 187 pass, 1 fail (UNCOMMITTED_PUBLICATION_CONTENT for this manifest change)"
       ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-sources-digest",
+      "summary": "Re-pin reviewed_sources_digest: the flake.nix and flake.lock change of the pr-reviewer v0.2.4 pin is the only inventory change",
+      "input_digest": "sha256:f800ce8a8bb149638825fdaaff6df8fec969d61b64527ecd245f41cad892962a",
+      "proof_refs": [
+        "decapod validate: PROOF_PROFILE_RECONCILIATION_REQUIRED, inventory_digest sha256:49b8dda8aefbd30935f90f52c3528025020ca4df7889c67a41adbd85c34cabf3"
+      ]
     }
   ],
   "intents": {

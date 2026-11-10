@@ -97,6 +97,14 @@
       "proof_refs": [
         "decapod validate: PROOF_PROFILE_RECONCILIATION_REQUIRED, inventory_digest sha256:49b8dda8aefbd30935f90f52c3528025020ca4df7889c67a41adbd85c34cabf3"
       ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-manifest-config-hash",
+      "summary": "Spec manifest config_input_hash after the reviewed_sources_digest re-pin",
+      "input_digest": "sha256:1a1ef03aea9563cfffba36e1ad396b46e2919378a429145915232be9eb0ad4f8",
+      "proof_refs": [
+        "decapod validate: UNCOMMITTED_PUBLICATION_CONTENT for the refreshed manifest"
+      ]
     }
   ],
   "intents": {

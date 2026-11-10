@@ -1253,17 +1253,12 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-10 it changed 7 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-10 it changed 2 nodes of `flake.lock`.
 
 | Node | Before | After |
 |---|---|---|
-| `decapod` | 15b69ce (2026-11-09) | 0dbfb06 (2026-11-10) |
-| `emacs-overlay` | 6003cc0 (2026-11-08) | 5f55562 (2026-11-09) |
-| `home-manager` | 2c0c1f0 (2026-11-06) | 82ce401 (2026-11-10) |
-| `llm-agents` | 3327b7d (2026-11-09) | a506e7e (2026-11-10) |
-| `nix-doom-emacs-unstraightened` | c583b28 (2026-11-08) | 4520f99 (2026-11-09) |
-| `nixarchy` | 3c56f88 (2026-11-08) | f11f4c5 (2026-11-10) |
-| `rust-overlay_2` | 51c6dc4 (2026-11-08) | b705383 (2026-11-09) |
+| `devenv` | 9655d32 (2026-11-03) | 08d11dc (2026-11-10) |
+| `llm-agents` | a506e7e (2026-11-10) | b3d1786 (2026-11-10) |
 
 ## Limited NAS Recovery Evidence
 

@@ -43,11 +43,13 @@ Generated interface specs should include:
 ## Data Ownership
 - Source-of-truth tables/collections: `gateway.json` is the single owner of how
   an agent reaches a model -- addresses, published ports, the secret's *name*,
-  and (since the agent-provider work) the model catalogue: slot -> id plus the
+  and the managed Claude model catalogue: slot -> id plus the
   `contextWindow` and `maxTokens` ceilings the gateway enforces. Each model also
   has a `cost` block with the registry rates (USD per million tokens, read from
   the gateway's `GET /models` on 2026-10-14). The top-level `promptCache` is
-  the provider's prompt-cache lifetime in seconds.
+  the Claude provider's prompt-cache lifetime in seconds. `paths.openai` is the
+  OpenAI API root without `/v1`; Headroom appends the versioned operation path.
+  Existing OpenAI model metadata remains in the user's Pi provider file.
 - Cross-boundary read models: two readers, one per substrate, because
   `guix/home-configuration.scm` is Scheme and cannot import Nix (ADR 0001).
   Nix reads it in `modules/gateway.nix` and republishes derived values as the
@@ -65,20 +67,26 @@ are taken from the gateway's own setup docs, published as React pages in
 | Harness | Config it reads | Provider key | How the credential arrives |
 |---|---|---|---|
 | omp | `~/.omp/agent/models.yml` (migrates `models.json` on first run) | `lego-claude` | `apiKey: "!<cmd>"` |
-| pi | `~/.pi/agent/models.json` | `lego-claude` | `apiKey: "!<cmd>"` |
+| pi | `~/.pi/agent/models.json` | `lego-claude`, optional `lego-openai`, and their direct variants | Claude uses `apiKey: "!<cmd>"`; existing OpenAI authentication is preserved |
 | Caveman Code | `~/.cave/agent/models.json` | `lego-claude` | `apiKey: "!<cmd>"` |
 | Claude Code | none; wrapper-supplied environment | n/a | `ANTHROPIC_AUTH_TOKEN` exported at process start |
 
-pi's models get `cost` and `promptCache`. pi keeps a prompt cache warm during a
-long tool run only for a model that has both, and it shows a session cost only
-when `cost` is set. omp gets no `cost`, because one unknown key disables every
-custom provider in omp. On M-02877, pi's `lego-claude` first goes to Caveman's
-`lego-claude` compat mount (`http://127.0.0.1:8787/compat/lego-claude`,
-`agentProviders.pi.baseUrl`), then to Headroom, and then to the gateway's
-`/claude` endpoint. It also sends `x-headroom-cwd` (OPERATIONS.md, "pi through
-the chain"). On every host, den also writes `lego-claude-direct`: the same
-models, straight to the gateway's `/anthropic` endpoint, for a session that
-skips the proxies. The other harnesses use Headroom as their first hop.
+Pi's managed Claude models get `cost` and `promptCache`. Cache warming needs
+both fields. OpenAI model metadata stays unchanged; its cache lifetime is not
+inferred from the Claude setting. Omp gets no `cost`, because an unknown key
+can disable all its custom providers.
+
+On M-02877, Pi names Headroom as the upstream: its root for `lego-claude`,
+and `/v1` for the existing `lego-openai` provider. Caveman's extension selects
+`/w/pi/compat/lego-claude` or `/w/pi/compat/lego-openai/v1` after its route and
+recovery checks pass. The mounts forward the bearer and `x-headroom-cwd`.
+Headroom has separate approved Anthropic and OpenAI targets. An empty
+`x-api-key` override is not used on the managed proxy route.
+
+`lego-claude-direct` and `lego-openai-direct` keep an explicit path to the
+approved gateway without local proxies. The OpenAI direct variant copies the
+existing model and authentication data, but omits the local project header.
+The other Anthropic harnesses continue to use Headroom as their first hop.
 
 The credential is never a value in this repository. It crosses as a *command*
 that prints it when an agent process starts, so it reaches neither the store nor
@@ -87,13 +95,18 @@ Claude Code has no equivalent marker, so its wrapper runs the lookup and exports
 the documented variable -- the same technique the zsh export of
 `CHORUS_API_KEY` uses (`chorus-api-key`, `modules/M-02877/agent-integrations.nix`).
 
-Ownership of these files is deliberately partial. Each harness writes its own
-picked default back (`/model`), so a store symlink would make that write fail.
-Home Manager seeds a file only when absent and never reverts it, which makes
-later drift a deliberate local edit rather than something a switch silently
-undoes. The cost is that a stale hand-edited file is *not* corrected by
-deploying; `home-manager-l23` was exactly that case and had to be replaced by
-hand.
+Ownership is partial. Pi's file stays writable. Activation replaces the two
+managed Claude blocks, changes only the existing OpenAI route and project
+header, and derives its direct variant. It preserves model catalogs,
+authentication, other headers, and unrelated providers. The merge lives in
+`modules/agent-providers/pi-providers.jq`; its regression script covers repeat
+activation, missing providers, and incompatible APIs. An incompatible OpenAI
+API keeps that provider unchanged and emits a specific warning; Claude still
+updates. Invalid JSON leaves the existing file unchanged. The merge never
+creates an incomplete OpenAI provider.
+
+Omp and Caveman Code files retain their seed-only behavior. Pi's selected
+default is in `settings.json` and is not reset by provider activation.
 
 Two asymmetries are load-bearing and easy to reintroduce:
 - omp validates its schema strictly and disables *every* custom provider on an
@@ -194,7 +207,7 @@ configure Olivetti separately for this workflow.
 | `just secretspec-age-backup` | Copies the backup key from the old Keychain item to the clipboard; cleared after 60 s | `Justfile` |
 | `~/.config/secretspec/config.toml` | Defines the `personal` alias for each host; generated, not hand-edited | `modules/shared-devtools.nix` |
 | `~/.pi/agent/mcp.json` | pi's built-in MCP config. Activation merges the declared `piAgent.mcpServers` in by name (`nixos` on every host; `chorus`, `github-spaces`, `codegraph` and `xmemory-bfc0e617` on M-02877), deletes each `piAgent.removedMcpServers` name, and keeps every other entry. M-02877 deletes `context-mode`: the context-mode pi package registers its tools through its own MCP bridge, and the entry started a second server with 11 duplicate tools (den#55). Credentials are `${VAR}` or `!command` values, never literals | `modules/pi.nix` |
-| `~/.caveman/caveman.yaml` | Caveman's proxy config, a read-only Home Manager file. It holds a safe `anthropic` upstream (the gateway's `/claude`) and pi's `lego-claude` compat mount: Headroom as `base_url`, `wire_dialect: anthropic`, `forward_headers: [x-headroom-cwd]`. The proxy also needs `CAVE_SSRF_ALLOWLIST=127.0.0.1` for that loopback upstream | `modules/M-02877/token-toolchain.nix` |
+| `~/.caveman/caveman.yaml` | Read-only Home Manager configuration. Default Anthropic and OpenAI upstreams use the approved gateway. The `lego-claude` and `lego-openai` compat mounts use Headroom and forward `x-headroom-cwd`; Claude sets `wire_dialect: anthropic`, and OpenAI sets the documented empty dialect. Loopback requires `CAVE_SSRF_ALLOWLIST=127.0.0.1` | `modules/M-02877/token-toolchain.nix` |
 | `~/.pi/agent/settings.json` `skills` | pi's skill filters. Activation adds each declared `piAgent.skills` entry that is missing, after the existing entries, and never deletes one. On M-02877 the one entry is `-~/.agents/skills/research`: see pi Team Integrations | `modules/pi.nix` |
 
 ## uv Tools
@@ -204,6 +217,32 @@ configure Olivetti separately for this workflow.
 |---|---|---|
 | `crucible-llm` | git (`jkitchin/crucible`) | PyPI 0.1.0 is stale |
 | `xmemcli` | PyPI, unpinned (latest on every switch) | The xmemory CLI. xmemory's install instructions name this PyPI package. Unpinned on purpose: the owner wants the latest release of every tool. |
+
+## Independent Reviewer Interface
+
+`reviewerAgent.md` is the repository-specific staged-change brief. Reviewer-agent's
+brief composer discovers that name at the canonical Git common root and supplies
+its content. The launcher must not append the brief a second time. The Claude
+Code adapter uses Pi's read-only Git extension. This is separate from the
+GitHub `pr-reviewer` daemon. Its source stays in a permanent external checkout.
+
+`modules/M-02877/token-toolchain.nix` supplies `~/.local/bin/reviewer-pi` for the
+adapter's `piBin` setting. The launcher loads the read-only Git extension and
+the mandatory Decapod gate, but excludes unrelated global extensions and MCP
+servers. The main coding session keeps its normal tools. A real staged-diff
+probe lost source behind recovery pointers with global compactors; the isolated
+process returned all three sentinels from the full 30,964-byte diff.
+The backend and launcher path use reviewer-agent's own state APIs. The launcher
+must be deployed and selected before this installed adapter is enabled.
+
+Installation does not enable commit review or Stop supervision. Each feature
+has an independent switch and needs the operator's risk-acceptance receipt.
+Host reload, hook trust where required, and the first real reviewed operation
+remain separate checks. Source inspection and test results cannot prove them.
+
+The Codex adapter of reviewer-agent 1.4.8 remains uninstalled: its release test
+`test_reviewer_launch_environment_remains_stable` fails with SSH commit signing
+when Git inherits a nonexistent `TMPDIR`. Signing and the test stay enabled.
 
 ## pi Team Integrations (M-02877)
 `modules/M-02877/agent-integrations.nix` connects pi, and the other agents on
@@ -230,12 +269,19 @@ unpinned.
 
 chorus-pi stays pinned. The Chorus client, chorus-pi and the team server move
 together: on 2026-10-23 they moved to 0.23.0 (`chorusVersion`), because the
-team server runs 0.23.0. The personal Signet container is pinned too, at
-`ghcr.io/signet-ai/signet:0.238.0` (`modules/M-02877/darwin.nix`), the release
-that team Signet runs. The container reads that pin only when it
-is created. To move a running container to a new pin, back up `~/.agents`,
-boot the `signet-container` agent out, run `podman rm -f signet`, and
-bootstrap the agent again.
+team server runs 0.23.0. The personal Signet image is pinned to
+`ghcr.io/signet-ai/signet:1.0.1` by digest in `modules/M-02877/darwin.nix`.
+Its image supplies both the CLI and daemon. The pin takes effect only when
+the container is recreated. Preserve the private workspace and stop the named
+job, then rename and stop the old container so the `signet` name is free.
+Keep that container until the new daemon, migration, scoped recall, and
+connector checks pass. Rollback restores the workspace backup as well as the
+old container name; the container alone is not a backup of its bind mount. This change
+does not upgrade the team server or authorize additional data sharing.
+Image-probe success is not evidence of a completed live upgrade. Release 1.0.1
+adds source, memory-scope, session-write, and cross-site protections. Run the
+supported `signet sync` after the upgrade to repair connector file modes;
+do not weaken these protections to preserve an old caller's behavior.
 
 Chorus 0.23.0 adds a pre-submit read-back gate to chorus-pi (Chorus#631).
 `CHORUS_SUBMIT_GATE=block` refuses `chorus_submit_for_verify` for a task that
@@ -384,7 +430,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

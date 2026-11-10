@@ -131,6 +131,12 @@
         headers."x-api-key" = "";
       };
     piDirectProviderJson = pkgs.writeText "pi-lego-claude-direct.json" (builtins.toJSON piDirectProvider);
+    # Route an existing OpenAI provider without putting its key or models in the store.
+    piOpenaiRouteJson = pkgs.writeText "pi-lego-openai-route.json" (builtins.toJSON (
+      if config.agentProviders.pi.openai == null
+      then null
+      else config.agentProviders.pi.openai // {directBaseUrl = "${gateway.openaiUrl}/v1";}
+    ));
     piModels = builtins.toJSON {providers.lego-claude = mkProvider piModel;};
     ompModels = builtins.toJSON {providers.lego-claude = mkProvider ompModel;};
 
@@ -169,9 +175,8 @@
         type = lib.types.str;
         default = baseUrl;
         description = ''
-          First hop for pi's `lego-claude` provider. Defaults to headroom's
-          loopback URL, like the other harnesses; a host can put a proxy
-          in front.
+          Upstream for pi's `lego-claude` provider. Defaults to Headroom.
+          The Caveman extension can select a verified proxy route to it.
         '';
       };
       headers = lib.mkOption {
@@ -179,21 +184,32 @@
         default = {};
         description = "Extra request headers for pi's `lego-claude` provider.";
       };
+      openai = lib.mkOption {
+        type = lib.types.nullOr (lib.types.submodule {
+          options = {
+            baseUrl = lib.mkOption {type = lib.types.str;};
+            headers = lib.mkOption {
+              type = lib.types.attrsOf lib.types.str;
+              default = {};
+            };
+          };
+        });
+        default = null;
+        description = "Route for an existing lego-openai provider, with a lego-openai-direct escape route. Its models and authentication stay unchanged.";
+      };
     };
 
     config.home.activation = {
       ompGatewayProvider = seedJson "omp-models.json" "${home}/.omp/agent/models.json" ompModels;
-      # pi's file is merged, not seeded: `lego-claude` and `lego-claude-direct`
-      # are den's and are replaced on every switch, and every other provider is
-      # left as it is. A seeded file never received the provider once one
-      # existed, so pi kept a hand-made provider that went straight to the
-      # gateway.
+      # Den owns the two Claude providers and the optional OpenAI routes.
+      # Keep the existing OpenAI models, authentication and extra headers.
+      # lego-openai-direct stays usable if a local proxy is unavailable.
       piGatewayProvider = lib.hm.dag.entryAfter ["writeBoundary"] ''
         models=${lib.escapeShellArg "${home}/.pi/agent/models.json"}
         current='{}'
         [ -e "$models" ] && current="$(cat "$models")"
         if merged="$(printf '%s' "$current" | ${lib.getExe pkgs.jq} --slurpfile p ${piProviderJson} --slurpfile d ${piDirectProviderJson} \
-            '.providers = ((.providers // {}) + {"lego-claude": $p[0], "lego-claude-direct": $d[0]})')"; then
+            --slurpfile r ${piOpenaiRouteJson} -f ${./agent-providers/pi-providers.jq})"; then
           if [ ! -e "$models" ] || [ "$merged" != "$(${lib.getExe pkgs.jq} . "$models")" ]; then
             run mkdir -p ${lib.escapeShellArg "${home}/.pi/agent"}
             if [ -z "''${DRY_RUN:-}" ]; then
@@ -203,7 +219,7 @@
             fi
           fi
         else
-          warnEcho "pi: $models is not valid JSON; left it unchanged"
+          warnEcho "pi: could not merge managed providers into $models; left it unchanged"
         fi
       '';
       caveGatewayProvider = seedJson "cave-models.json" "${home}/.cave/agent/models.json" piModels;

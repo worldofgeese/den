@@ -1,19 +1,21 @@
 # Intent
 
 ## Product Outcome
-- To quickly bring up my Home Manager config first install Nix then
+- Reproduce and update the host configurations through Nix, Home Manager, nix-darwin, nix-on-droid, and Guix, with explicit deployment and rollback procedures.
+- Keep coding agents on approved model routes. Reduce token cost without losing source fidelity, prompt-cache reuse, authentication, recovery, or private memory boundaries.
 - In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
 - On M-02877, pi is wired to the team services in LEGO/devrel-infra: Chorus (built-in MCP, `chorus-pi`, and a wakeable `chorus daemon --agent pi` serving `~/projects`), Beads (`pi-beads-extension` for agent context; `pi-tasks` was removed on 2026-10-08), the personal Signet for every Signet client (the memory curator publishes team-level memories to the team Signet and mirrors the team pool back, every ten minutes), and the LEGO TechWriter toolbox (toolbox-docs skills replace the hand-copied ones, plus a `techwriter` pi agent that reads the LEGO style guide from Copilot Spaces).
 - On Mahakala, use `just deploy-mahakala` to update and apply the Guix System, Guix Home, and Home Manager profiles. The boot configuration also requests the ath10k warm-only reset mode for the verified QCA6174 card.
 - On mahakala, GDM starts EWM through Home Manager's `ewm-start`. Nix supplies both Emacs and `ewm-core`, which must use compatible glibc versions.
 
 ## What This Project Is
-home-manager is a service_or_library project built using shell.
-To quickly bring up my Home Manager config first install Nix then
+Den is the configuration repository for the user's workstations, servers, and mobile deploy targets.
+`flake.nix`, `modules/`, the Guix files, and `Justfile` define their packages, services, agent integrations, and deployment procedures.
+Shared gateway facts have one owner in `gateway.json`; each host and harness adapts those facts without embedding credentials.
 
 Key operating facts:
-- **Primary languages**: shell
-- **Detected surfaces**: shell
+- **Primary languages**: Nix, Guile, and shell
+- **Supporting surfaces**: Go checks, Python helpers, and TypeScript or JavaScript agent integrations
 
 ## Product View
 ```mermaid
@@ -51,6 +53,10 @@ flowchart LR
 
 ## Acceptance Criteria (must be objectively testable)
 - [ ] Decapod validate passes, required tests pass, and promotion-relevant artifacts are present.
+- [ ] The M-02877 Claude and OpenAI routes preserve protocol shape, bearer authentication, project attribution, and direct escape routes.
+- [ ] Provider activation preserves user credentials, model catalogs, extra headers, and unrelated providers; repeated activation has the same result.
+- [ ] Token-chain changes have separate evidence for installed versions, live readiness, cache reuse, exact recovery, and private memory boundaries.
+- [ ] Reviewer installation preserves host settings and leaves risk acceptance and feature activation to the operator.
 - [ ] The Home Manager managed Doom config enables `:ui zen`, sets its writing width to 80 columns, and configures Evil escape as `jk`.
 - [ ] Doom's buffer and full-screen Zen toggles keep writing text centered at the configured width and can be toggled off.
 - [ ] Mahakala deployment recipes read Guix source files from the active Justfile directory, including an isolated worktree.
@@ -198,7 +204,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

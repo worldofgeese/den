@@ -1,5 +1,5 @@
 name = "ci"
-engineVersion = "v1.0.0-beta.21"
+engineVersion = "v1.0.0-beta.27"
 
 [runtime]
   source = "go"

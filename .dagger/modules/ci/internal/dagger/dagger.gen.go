@@ -4,15 +4,8 @@ package dagger
 
 import (
 	"context"
-	"fmt"
-	"net"
-	"net/http"
-	"os"
-	"strconv"
 
 	"github.com/Khan/genqlient/graphql"
-	telemetry "github.com/dagger/otel-go"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/dagger/querybuilder"
@@ -121,9 +114,7 @@ type ArtifactDimensionKey = core.ArtifactDimensionKey
 // A schema path and its dimensions. The path can exist even when its collections have no runtime items.
 type ArtifactPath = core.ArtifactPath
 
-type ArtifactResult = core.ArtifactResult
-
-// An immutable selection of workspace artifacts. Listed types, dimensions, and keys use OR; chained filters use AND. Empty alternatives match nothing; unknown names match nothing but module load failures. Filters never change addresses or dimension identifiers. Module keys match a module's configured or kebab-case name. A module that failed to load has no schema, so its load failure stands in for whatever it would hold: a filter keeps it when the module could hold something the filter selects, and an exclusion drops it only by its own address, such as <module>/** or ?module=<module>.
+// A selection of workspace artifacts and their immutable collection view. Collection key filters replace collection references with subsets. Static filters change only membership. Listed types, dimensions, and keys use OR; chained filters use AND. Empty alternatives match nothing; unknown names match nothing but module load failures. Filters never change addresses or dimension identifiers. Module keys match a module's configured or kebab-case name. A module that failed to load has no schema, so its load failure stands in for whatever it would hold: a filter keeps it when the module could hold something the filter selects, and an exclusion drops it only by its own address, such as <module>/** or ?module=<module>.
 type Artifacts = core.Artifacts
 
 type WithArtifactsFunc = core.WithArtifactsFunc
@@ -142,9 +133,6 @@ type ArtifactsFilterTypesOpts = core.ArtifactsFilterTypesOpts
 
 // ArtifactsPathDefinitionsOpts contains options for Artifacts.PathDefinitions
 type ArtifactsPathDefinitionsOpts = core.ArtifactsPathDefinitionsOpts
-
-// ArtifactsValuesOpts contains options for Artifacts.Values
-type ArtifactsValuesOpts = core.ArtifactsValuesOpts
 
 // A directory whose contents persist across runs.
 type CacheVolume = core.CacheVolume
@@ -270,6 +258,9 @@ type ContainerWithMountedDirectoryOpts = core.ContainerWithMountedDirectoryOpts
 // ContainerWithMountedFileOpts contains options for Container.WithMountedFile
 type ContainerWithMountedFileOpts = core.ContainerWithMountedFileOpts
 
+// ContainerWithMountedFilesOpts contains options for Container.WithMountedFiles
+type ContainerWithMountedFilesOpts = core.ContainerWithMountedFilesOpts
+
 // ContainerWithMountedSecretOpts contains options for Container.WithMountedSecret
 type ContainerWithMountedSecretOpts = core.ContainerWithMountedSecretOpts
 
@@ -339,6 +330,9 @@ type DirectoryAsModuleSourceOpts = core.DirectoryAsModuleSourceOpts
 
 // DirectoryAsWorkspaceOpts contains options for Directory.AsWorkspace
 type DirectoryAsWorkspaceOpts = core.DirectoryAsWorkspaceOpts
+
+// DirectoryDirectoryOpts contains options for Directory.Directory
+type DirectoryDirectoryOpts = core.DirectoryDirectoryOpts
 
 // DirectoryDockerBuildOpts contains options for Directory.DockerBuild
 type DirectoryDockerBuildOpts = core.DirectoryDockerBuildOpts
@@ -436,8 +430,14 @@ type FileDigestOpts = core.FileDigestOpts
 // FileExportOpts contains options for File.Export
 type FileExportOpts = core.FileExportOpts
 
+// FileExtractOpts contains options for File.Extract
+type FileExtractOpts = core.FileExtractOpts
+
 // FileSearchOpts contains options for File.Search
 type FileSearchOpts = core.FileSearchOpts
+
+// FileSyncOpts contains options for File.Sync
+type FileSyncOpts = core.FileSyncOpts
 
 // FileWithReplacedOpts contains options for File.WithReplaced
 type FileWithReplacedOpts = core.FileWithReplacedOpts
@@ -677,10 +677,27 @@ type ModuleServeOpts = core.ModuleServeOpts
 // The client generated for the module.
 type ModuleConfigClient = core.ModuleConfigClient
 
+// The names the engine gives a module's own declarations, by the naming rules of the version the module is named by.
+//
+// Every list-taking field answers in input order.
+type ModuleNaming = core.ModuleNaming
+
 // The source needed to load and run a module, along with any metadata about the source such as versions/urls/etc.
 type ModuleSource = core.ModuleSource
 
 type WithModuleSourceFunc = core.WithModuleSourceFunc
+
+// ModuleSourceClientSchemaIntrospectionJSONOpts contains options for ModuleSource.ClientSchemaIntrospectionJSON
+type ModuleSourceClientSchemaIntrospectionJSONOpts = core.ModuleSourceClientSchemaIntrospectionJSONOpts
+
+// The engine's identifier naming rules at an engine version.
+type Naming = core.Naming
+
+// NamingFormatIdentifiersOpts contains options for Naming.FormatIdentifiers
+type NamingFormatIdentifiersOpts = core.NamingFormatIdentifiersOpts
+
+// NamingModuleOpts contains options for Naming.Module
+type NamingModuleOpts = core.NamingModuleOpts
 
 // An entry in the naming dictionary.
 type NamingTerm = core.NamingTerm
@@ -712,9 +729,6 @@ type EnvFileOpts = core.EnvFileOpts
 // FileOpts contains options for Query.File
 type FileOpts = core.FileOpts
 
-// FormatIdentifiersOpts contains options for Query.FormatIdentifiers
-type FormatIdentifiersOpts = core.FormatIdentifiersOpts
-
 // GitOpts contains options for Query.Git
 type GitOpts = core.GitOpts
 
@@ -726,6 +740,9 @@ type LLMOpts = core.LLMOpts
 
 // ModuleSourceOpts contains options for Query.ModuleSource
 type ModuleSourceOpts = core.ModuleSourceOpts
+
+// NamingOpts contains options for Query.Naming
+type NamingOpts = core.NamingOpts
 
 // SecretOpts contains options for Query.Secret
 type SecretOpts = core.SecretOpts
@@ -1186,8 +1203,6 @@ const (
 type ImageLayerCompression = core.ImageLayerCompression
 
 const (
-	ImageLayerCompressionEstarGz ImageLayerCompression = core.ImageLayerCompressionEstarGz
-
 	ImageLayerCompressionEstargz ImageLayerCompression = core.ImageLayerCompressionEstargz
 
 	ImageLayerCompressionGzip ImageLayerCompression = core.ImageLayerCompressionGzip
@@ -1203,11 +1218,7 @@ type ImageMediaTypes = core.ImageMediaTypes
 const (
 	ImageMediaTypesDocker ImageMediaTypes = core.ImageMediaTypesDocker
 
-	ImageMediaTypesDockerMediaTypes ImageMediaTypes = core.ImageMediaTypesDockerMediaTypes
-
 	ImageMediaTypesOci ImageMediaTypes = core.ImageMediaTypesOci
-
-	ImageMediaTypesOcimediaTypes ImageMediaTypes = core.ImageMediaTypesOcimediaTypes
 )
 
 // The kind of content in a message block.
@@ -1484,7 +1495,7 @@ type Client struct {
 var dag *Client
 
 func init() {
-	gqlClient := getClientParams()
+	gqlClient := core.ModuleGraphQLClient()
 	dag = &Client{
 		Query:  core.NewQuery(gqlClient),
 		client: core.WrapClient(gqlClient),
@@ -1503,56 +1514,4 @@ func (c *Client) GraphQLClient() graphql.Client {
 // QueryBuilder returns the underlying query builder.
 func (c *Client) QueryBuilder() *querybuilder.Selection {
 	return c.Query.QueryBuilder()
-}
-
-func getClientParams() graphql.Client {
-	portStr, ok := os.LookupEnv("DAGGER_SESSION_PORT")
-	if !ok {
-		panic("DAGGER_SESSION_PORT is not set")
-	}
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(fmt.Errorf("DAGGER_SESSION_PORT %q is invalid: %w", portStr, err))
-	}
-
-	sessionToken := os.Getenv("DAGGER_SESSION_TOKEN")
-	if sessionToken == "" {
-		panic("DAGGER_SESSION_TOKEN is not set")
-	}
-
-	host := fmt.Sprintf("127.0.0.1:%d", port)
-
-	dialTransport := &http.Transport{
-		DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-			return net.Dial("tcp", host)
-		},
-	}
-	httpClient := &http.Client{
-		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
-			r.SetBasicAuth(sessionToken, "")
-
-			// detect $TRACEPARENT set by 'dagger run'
-			r = r.WithContext(fallbackSpanContext(r.Context()))
-
-			// propagate span context via headers (i.e. for Dagger-in-Dagger)
-			telemetry.Propagator.Inject(r.Context(), propagation.HeaderCarrier(r.Header))
-
-			return dialTransport.RoundTrip(r)
-		}),
-	}
-	return graphql.NewClient(fmt.Sprintf("http://%s/query", host), httpClient)
-}
-
-func fallbackSpanContext(ctx context.Context) context.Context {
-	if trace.SpanContextFromContext(ctx).IsValid() {
-		return ctx
-	}
-	return telemetry.Propagator.Extract(ctx, telemetry.NewEnvCarrier(true))
-}
-
-// TODO: pollutes namespace, move to non internal package in dagger.io/dagger
-type roundTripperFunc func(*http.Request) (*http.Response, error)
-
-func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return fn(req)
 }

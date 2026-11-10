@@ -38,6 +38,12 @@ func (r *Ci) WithGraphQLQuery(q *querybuilder.Selection) *Ci {
 	}
 }
 
+// withLoadedID is the Ci that q, a query of the node whose
+// ID is id, selects, knowing that ID (Loaded).
+func (r *Ci) withLoadedID(q *querybuilder.Selection, id ID) *Ci {
+	return &Ci{query: q, id: &id}
+}
+
 // Judge an open pull request by the merge rules, and say what a merge would
 // do. It merges nothing.
 func (r *Ci) AutomergeDryRun(ctx context.Context, token *Secret, pr int) (string, error) {

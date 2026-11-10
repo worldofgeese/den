@@ -169,9 +169,11 @@ fixed all three, and den runs 0.136.2 since 2026-11-10 (den #135):
   checkpoints commit atomically. Den has not run such a repair yet. Since 0.136
   a repair also needs the `todo.journal.repair` permission: `[governance.rbac]`
   in the main checkout's `.decapod/config.toml` must give the actor a role
-  that `journal_repair_roles` lists. Den grants no such role. So the 13
-  historical gaps (tasks from releases older than 2026-10-24) stay, and
-  `decapod todo journal verify` fails, until the owner decides on a grant.
+  that `journal_repair_roles` lists. On 2026-11-10 the owner approved a
+  one-time grant: `[governance.rbac]` gives `pi-dktaohan` the
+  `journal-repair` role, for the repair of the 13 historical gaps (tasks from
+  releases older than 2026-10-24). The grant takes effect when the main
+  checkout has this config, and a follow-up PR removes it after the repair.
 
 Isolation is `worktree`, not `container`. Decapod's container image is Debian
 with no Nix, so it cannot run `just check` or evaluate the Darwin

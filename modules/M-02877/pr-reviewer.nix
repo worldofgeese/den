@@ -135,10 +135,16 @@
       ($reviewed
         | map(select(.task_kind == "review_pr" and .status == "completed")
           | "\(.pr_number) \(.head_sha)")) as $done
+      # Each open PR's commits, oldest first. Fetched only for a repo where
+      # GitHub reports a change request; empty otherwise.
+      | ([$commits.data?.repository?.pullRequests?.nodes[]?
+          | {key: (.number | tostring), value: [.commits.nodes[].commit.oid]}]
+        | from_entries) as $orders
       | .[]
       | . as $p
       | [$p.labels[]?.name | ascii_downcase] as $labels
       | [$p.reviews[]? | select(pr_reviewer)] as $bot
+      | ($orders[$p.number | tostring] // []) as $order
       # GitHub keeps each reviewer's last approval or change request until it
       # is dismissed. A daemon dismisses only its own change requests, and it
       # skips a head that its peer reviewed. So a pr-reviewer change request
@@ -150,12 +156,17 @@
         | group_by(.author.login) | map(max_by(.submittedAt))
         | map(select(.state == "CHANGES_REQUESTED"))) as $requests
       # A review that lands late can be of an older commit than the request
-      # (it started before a push), so a request on the head itself is never
-      # set aside.
+      # (it started before a push). So a request on the head itself is never
+      # set aside, and the answer must be of a commit after the request's in
+      # the PR's commits. A request whose commit left the PR (a force-push)
+      # goes by time.
       | [$requests[] | . as $r | select(pr_reviewer and .commit.oid != $p.headRefOid)
+        | ($order | index($r.commit.oid)) as $at
         | select(any($bot[]; .author.login != $r.author.login
             and .commit.oid != $r.commit.oid and .submittedAt > $r.submittedAt
-            and (.state | IN("APPROVED", "COMMENTED"))))] as $superseded
+            and (.state | IN("APPROVED", "COMMENTED"))
+            and (.commit.oid as $c | $at == null or (($order | index($c)) // -1) > $at)))]
+        as $superseded
       # A re-run of a check (same name and workflow) supersedes the older
       # entry, which a concurrency group may have left CANCELLED: judge only
       # the newest entry of each check, and report the ones set aside.
@@ -166,7 +177,9 @@
       | [$groups[] | .[:-1][]
         | "\(.name // .context) (\(.workflowName // "status")) \(.conclusion // .state // .status) at \(.completedAt // .startedAt // "?")"]
         as $stale
-      | ($stale + [$superseded[] | "change request from \(.author.login) at \(.commit.oid[0:12])"])
+      | ($stale + if $p.reviewDecision == "CHANGES_REQUESTED"
+          then [$superseded[] | "change request from \(.author.login) at \(.commit.oid[0:12])"]
+          else [] end)
         as $aside
       | (if $p.isDraft then "draft"
         # A stacked PR targets another PR's branch: merging it here would land
@@ -203,6 +216,19 @@
         (if $why == "" then "-" else $why end),
         (if $pre != "" or ($aside | length) == 0 then "-" else ($aside | join("; ")) end)]
       | @tsv
+    '';
+
+    # Newest first, like `gh pr list`, so both see the same 100 PRs. Only the
+    # commit IDs: gh's own `commits` field adds authors, and with 100 PRs
+    # that exceeds GitHub's limit of 500,000 nodes per query.
+    commitsQuery = pkgs.writeText "pr-reviewer-automerge-commits.graphql" ''
+      query($o: String!, $r: String!) {
+        repository(owner: $o, name: $r) {
+          pullRequests(states: OPEN, first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes { number commits(last: 100) { nodes { commit { oid } } } }
+          }
+        }
+      }
     '';
 
     threadsQuery = pkgs.writeText "pr-reviewer-automerge-threads.graphql" ''
@@ -283,7 +309,15 @@
             log "$repo: pr-reviewer queue list failed: $(brief "$reviewed")"
             continue
           fi
-          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" --argjson peers "$peers" --arg trunk "$trunk" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
+          commits='{}'
+          if jq -e 'any(.[]; .reviewDecision == "CHANGES_REQUESTED")' <<<"$prs" >/dev/null \
+              && ! commits="$(gh api graphql -f o="''${repo%%/*}" -f r="''${repo#*/}" \
+                -F query=@${commitsQuery} 2>&1)"; then
+            log "$repo: could not read the commits of its PRs: $(brief "$commits")"
+            continue
+          fi
+          if ! verdicts="$(jq -r --argjson reviewed "$reviewed" --argjson peers "$peers" \
+              --argjson commits "$commits" --arg trunk "$trunk" -f ${automergeFilter} <<<"$prs" 2>&1)"; then
             log "$repo: could not evaluate its PRs: $(brief "$verdicts")"
             continue
           fi

@@ -264,12 +264,15 @@ The agent runs every 120 s. It merges a PR only when all of these hold:
   that the daemon skipped because a peer reviewed it is a completed task too.
 - No review thread is unresolved, and no review requests changes. A
   pr-reviewer change request from one trusted account is set aside once
-  another trusted account reviewed a different commit later and approved or
-  only commented, because a daemon dismisses only its own change requests and
-  skips a head that its peer reviewed. A change request on the head itself is
-  never set aside: a review that started before a push can land later for an
-  older commit. The agent logs each one it sets aside. A person's change
-  request still blocks.
+  another trusted account approved or only commented on a later commit of the
+  PR, because a daemon dismisses only its own change requests and skips a head
+  that its peer reviewed. "Later" is the order of the PR's commits, which the
+  agent reads with one more GraphQL query per pass, only for a repo where
+  GitHub reports a change request; a request on a commit that a force-push
+  removed goes by time. A change request on the head itself is never set
+  aside: a review that started before a push can land later for an older
+  commit. The agent logs each one it sets aside. A person's change request
+  still blocks.
 - Every check is complete with SUCCESS, SKIPPED or NEUTRAL. A PR with no
   checks also qualifies.
 - Only the newest run of each check counts, grouped by check name and

@@ -115,6 +115,17 @@
         "live data, 7 repos: 52 worldofgeese reviews carry the marker; verdicts unchanged",
         "nix build .#darwinConfigurations.M-02877.system -> /nix/store/cc1yx56qp8j66lgam0np3wxzpcbwjyj1-darwin-system-26.11.ff0e21a"
       ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-commit-order",
+      "summary": "Automerge sets a pr-reviewer change request aside only for a review of a later commit, by the PR's commit order from a dedicated GraphQL query",
+      "input_digest": "sha256:b9f350f962a3f29fbfa54ac52e2be4f3a0398c559eadec648fd879991a89ae59",
+      "proof_refs": [
+        "14 fixtures incl. the Codex out-of-order case (#15 blocks); built filter output equals tested output; peers [] equals v0.2.3",
+        "PR_AUTOMERGE_DRY_RUN=1 bash -x on the built agent with v0.2.4 and a state copy: exit 0, commits query only for LEGO/ai-daily-assistant",
+        "live data, 7 repos with the built commits query: every open PR covered, verdicts unchanged",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/gbw777crnwsi6p4al9a5iaf593dlqbzi-darwin-system-26.11.ff0e21a"
+      ]
     }
   ],
   "intents": {

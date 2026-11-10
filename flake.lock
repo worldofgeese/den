@@ -160,11 +160,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794290367,
-        "narHash": "sha256-jjS6bVElgH2JJuczUMX4YmMUqdpunLCq2Y+BmPGKHS8=",
+        "lastModified": 1794334181,
+        "narHash": "sha256-bBSwFhctEpwPdUcJIpJNMEerSyTj0chbQck3bKPwIX0=",
         "owner": "DecapodLabs",
         "repo": "decapod",
-        "rev": "0dbfb06bbc60a7bd074980ce20f2edee7e1ac290",
+        "rev": "bf50c589f6e67ea7f0ae15cb5543ded2642b9d65",
         "type": "github"
       },
       "original": {

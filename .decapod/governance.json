@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
+    "accepted_commit": "0008fa8794a586dc2b718955e4acecba2be24ccf",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,57 +66,24 @@
     }
   },
   "change": {
-    "id": "change_01M72Y50R4WKFCYBCHDKF5DH4D",
-    "base_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
+    "id": "change_01M73VK3C7QPJBFFCAA2VYWGKA",
+    "base_commit": "0008fa8794a586dc2b718955e4acecba2be24ccf",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "code_01m72y44acb354gd",
-      "summary": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it; document the uv tool interface in INTERFACES.md",
-      "input_digest": "sha256:1978cf95b04ec82d2b09a2b7239d44798ff1bbd3beab07dcf35e86cc1989c7a4",
-      "proof_refs": [
-        "decapod validate",
-        "just check (pre-commit hook)"
-      ]
+      "id": "code_01m73vj9ea0cnpy4",
+      "summary": "Bump Decapod to 0.136.3",
+      "input_digest": "sha256:1c3af5dd3cc4e7ad09524ffe9a4d2bd1da2b8e3231770e4e17a4c55722ccc373"
     },
     {
-      "id": "code_01m72y44acb354gd-r2",
-      "summary": "Merge origin/main; pin xmemcli==1.9.3 with provenance and platform rationale; move the uv tool row into its own INTERFACES.md section (pr-reviewer threads)",
-      "input_digest": "sha256:8b611d457cf980d2a0b04b634da3e00aef2a59ff1ee55c628dea64ae09d00108",
-      "proof_refs": [
-        "decapod validate",
-        "uv tool install --python python3.13 xmemcli==1.9.3 (isolated dir)"
-      ]
-    },
-    {
-      "id": "code_01m72y44acb354gd-r3",
-      "summary": "Unpin xmemcli: owner wants the latest release of every tool; record the trade-off in the comment and INTERFACES.md",
-      "input_digest": "sha256:40c7c2ee174ae6f7e0a9f855b28e826cd9133efddf15be85d6acbf600b486a71",
-      "proof_refs": [
-        "decapod validate"
-      ]
-    },
-    {
-      "id": "code_01m72y44acb354gd-r4",
-      "summary": "Declare the xmemory DevRel Team Memory MCP server for pi on M-02877 (replaces the hand-added entry); list it in INTERFACES.md",
-      "input_digest": "sha256:07e5dca036af207287dc845eda799a06e2c1ba38366cb9e127afa1eb2e1b6eab",
-      "proof_refs": [
-        "decapod validate",
-        "nix eval piAgent.mcpServers (M-02877)"
-      ]
-    },
-    {
-      "id": "code_01m72y44acb354gd-r5",
-      "summary": "Merge origin/main (#145) into the xmemcli/xmemory branch",
-      "input_digest": "sha256:a94255a06d67bad7d87cb4a26987e8b09f81bcb5a717e857b2ed9c1be3d9d543",
-      "proof_refs": [
-        "decapod validate"
-      ]
+      "id": "code_01m73vj9ea0cnpy4-r2",
+      "summary": "Spec manifest refresh",
+      "input_digest": "sha256:d59718d3b8b59f0edb1d73e5b250a4d3744ef8a4bbc55c25f0d06066751c06d4"
     }
   ],
   "intents": {
-    "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D": {
+    "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -126,11 +93,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
+      "id": "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
-      "refined_intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
+      "raw_intent": "Bump Decapod to 0.136.3 (flake input decapod only), on 0008fa8",
+      "refined_intent": "Bump Decapod to 0.136.3 (flake input decapod only), on 0008fa8",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -143,65 +110,136 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
+      "intent": "Tao wants the latest versions of everything, always (and the very latest Decapod). Move only the decapod flake input to upstream bf50c58, the v0.136.3 release, and refresh the entrypoints and Dockerfile.decapod with that release, as scripts/bump-flake-inputs.sh does when Decapod moves. SwiftJaguar's token-chain refresh bumps the other inputs and leaves this one alone; its announced deployment ships this bump. Recreates den #146 (conflicted after #142).",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "the new release changes neither the store schema nor meta",
+        "plain decapod validate passes with 0.136.3",
+        "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
+      "title": "Bump Decapod to 0.136.3",
       "todo_ids": [
-        "code_01m72y44acb354gd"
+        "code_01m73vj9ea0cnpy4"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794321761Z"
+      "updated_at": "1794352220Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Only the decapod node of flake.lock, the files that its release writes (entrypoints, Dockerfile.decapod), the OPERATIONS.md flake update section and the sources digest"
       ],
-      "artifact_hash": "sha256:ae006ff196cedc65eef3ee828d59107e3f9a038e71a8e097e4d509c3c3852935",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:2240c036652ca2adae4e809d15b0a03f8dc5d5a1beaf1cd71c1ce15835808b87",
+      "checks": [
+        {
+          "name": "build-decapod-0.136.3",
+          "status": "passed"
+        },
+        {
+          "name": "ghcr-image-v0.136.3-debian",
+          "status": "passed"
+        },
+        {
+          "name": "isolated-init",
+          "status": "passed"
+        },
+        {
+          "name": "store-schema-unchanged",
+          "status": "passed"
+        }
+      ],
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
+            "intent_id": "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
+            "intent_id": "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M73VK3E7ATEDPJ4ACG6VK37J",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M73VK3E7ATEDPJ4ACG6VK37J": {
+            "evidence_only": true,
+            "id": "branch_01M73VK3E7ATEDPJ4ACG6VK37J",
+            "intent_id": "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA",
+            "steps": [
+              {
+                "action": "implementation",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "flake.lock",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "Same bump files as den #146 head 136367d (taken with git checkout; none of them changed on main since): decapod node 0dbfb06 -> bf50c58 (= v0.136.3), entrypoint headers 0.136.3, Dockerfile.decapod v0.136.3-debian. 0.136.3 = /nix/store/mlai9353zl7n5vcgrwn3jvsp224yxhi2-decapod-0.136.3 from den's flake input; its init ran in an isolated clone. On a read-only copy of the live store, 0.136.3 ran todo list and validate: sqlite_master+user_version hash 3f118fc502c50a1f and the 8-row meta table unchanged. Backup before 0.136.3 first wrote the shared store: decapod-pre-0.136.3-validate-20261110T214949Z.db (integrity ok)."
+                ],
+                "proof_refs": [
+                  "build-decapod-0.136.3",
+                  "isolated-init",
+                  "store-schema-unchanged",
+                  "ghcr-image-v0.136.3-debian"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "Same bump files as den #146 head 136367d (taken with git checkout; none of them changed on main since): decapod node 0dbfb06 -> bf50c58 (= v0.136.3), entrypoint headers 0.136.3, Dockerfile.decapod v0.136.3-debian. 0.136.3 = /nix/store/mlai9353zl7n5vcgrwn3jvsp224yxhi2-decapod-0.136.3 from den's flake input; its init ran in an isolated clone. On a read-only copy of the live store, 0.136.3 ran todo list and validate: sqlite_master+user_version hash 3f118fc502c50a1f and the 8-row meta table unchanged. Backup before 0.136.3 first wrote the shared store: decapod-pre-0.136.3-validate-20261110T214949Z.db (integrity ok)."
+      ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
-      "modified_files": [],
+      "intent_id": "intent:change_01M73VK3C7QPJBFFCAA2VYWGKA",
+      "modified_files": [
+        ".decapod/managed/Dockerfile.decapod",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
+        "flake.lock"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
+        "flake.lock, AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
         "root"
       ],
-      "run_id": "branch_01M72Y50TTDMR3JBW711HG9KNX",
+      "run_id": "branch_01M73VK3E7ATEDPJ4ACG6VK37J",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m72y44acb354gd",
+      "task_id": "code_01m73vj9ea0cnpy4",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

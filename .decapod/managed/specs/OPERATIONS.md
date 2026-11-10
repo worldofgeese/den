@@ -119,20 +119,20 @@ cask's binary, so run `brew uninstall --formula azure-cli` once, right before
 the first deploy of this change. The Brewfile must contain `cask "azure-cli"`
 and no `brew "azure-cli"`.
 
-### Decapod binary name (workaround for DecapodLabs/decapod#1582)
+### Decapod binary name (DecapodLabs/decapod#1582, fixed)
 Upstream's `packages.default` is a `makeWrapper` script, `bin/decapod`, that
-execs `bin/.decapod-wrapped`. `decapod qa verify` and `decapod todo done
---validated` run `std::env::current_exe()` under the `verification_exec`
-capability, which allows only a file name that starts with `decapod`. So the
-Nix build failed with "capability 'verification_exec' does not allow binary
-'.decapod-wrapped'", and plain `decapod validate` reported PROOF_HOOK_FAILED
-for every done todo. `modules/overlays.nix` now wraps the upstream package:
-the real binary is a COPY at `libexec/decapod/decapod` (a symlink would not
-work, because Linux resolves `/proc/self/exe`), and `bin/decapod` is upstream's
-own wrapper script with only its exec target rewritten, so the environment
-(`LD_LIBRARY_PATH` for sqlite) is unchanged. The version, `meta` and `passthru`
-are upstream's, so `decapod capabilities` still reports the flake's release.
-Remove the override once #1582 is fixed upstream.
+execs `bin/.decapod-wrapped`. Before the fix, `decapod qa verify` and `decapod
+todo done --validated` ran `std::env::current_exe()` under the
+`verification_exec` capability, which rejected the name `.decapod-wrapped`, so
+plain `decapod validate` reported PROOF_HOOK_FAILED for every done todo. Den #133
+worked around that with an overlay that copied the real binary to
+`libexec/decapod/decapod`. #1582 is fixed in the release den runs (0.136.2), and
+a scratch Decapod repository showed that `qa verify` and `todo done --validated`
+start the validation child from the plain upstream package with no
+`.decapod-wrapped` rejection. So `modules/overlays.nix` again takes
+`inputs.decapod.packages.<system>.default` unchanged, and the version, `meta`
+and `passthru` are upstream's. Do not add the copy back unless a Decapod release
+brings the rejection back.
 
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd

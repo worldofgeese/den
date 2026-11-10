@@ -66,24 +66,23 @@
     }
   },
   "change": {
-    "id": "change_01M72VES4C5A6JVKJP62M4GR8B",
+    "id": "change_01M72Y50R4WKFCYBCHDKF5DH4D",
     "base_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "code_01m72ve6x1kep36b",
-      "summary": "Temporary journal repair grant for pi-dktaohan",
-      "input_digest": "sha256:e01122181e58ff43807d99eecda46665956b0e8f1bde1428e76350a301bce693"
-    },
-    {
-      "id": "code_01m72ve6x1kep36b-r2",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:c77951174a89dd6893ad432b26408de8522d0a8b3cc7bf3b5772d0ecfce54e39"
+      "id": "code_01m72y44acb354gd",
+      "summary": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it; document the uv tool interface in INTERFACES.md",
+      "input_digest": "sha256:1978cf95b04ec82d2b09a2b7239d44798ff1bbd3beab07dcf35e86cc1989c7a4",
+      "proof_refs": [
+        "decapod validate",
+        "just check (pre-commit hook)"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M72VES4C5A6JVKJP62M4GR8B": {
+    "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +92,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+      "id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
-      "refined_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
+      "raw_intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
+      "refined_intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,104 +109,65 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Owner Tao approved on 2026-11-10 (approved everything): Decapod 0.136 requires a todo.journal.repair role in the main checkout's [governance.rbac] for the repair of the 13 historical journal gaps (home-manager-wks). Grant journal-repair to pi-dktaohan temporarily; after the main checkout has this config, pi-dktaohan runs the repair once, and a follow-up PR removes the grant and records the outcome. Supersedes den #139.",
+      "intent": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
       "phases": [],
       "proof_hooks": [
-        "the config parses and agent.init accepts it",
-        "plain decapod validate passes",
-        "just check (pre-commit)"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Grant the one-time journal repair role to pi-dktaohan",
+      "title": "Declare xmemcli in programs.uv.tool.packages so uv tool prune keeps it",
       "todo_ids": [
-        "code_01m72ve6x1kep36b"
+        "code_01m72y44acb354gd"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794318543Z"
+      "updated_at": "1794321761Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Only the temporary [governance.rbac] grant and its VALIDATION.md text"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:8135a99152a64b72c266ef3830d564d9d3cee155399f06e90e0092a3c445a2bb",
+      "artifact_hash": "sha256:ae006ff196cedc65eef3ee828d59107e3f9a038e71a8e097e4d509c3c3852935",
       "checks": [],
-      "current_phase": "implementation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:branch_01M72VES6RE6VP04NJ420X41QK",
-            "event_id": "event:4",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 3,
         "schema_version": "1.0.0",
-        "trajectories": {
-          "branch_01M72VES6RE6VP04NJ420X41QK": {
-            "evidence_only": true,
-            "id": "branch_01M72VES6RE6VP04NJ420X41QK",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
-            "steps": [
-              {
-                "action": "implementation",
-                "custody_event_id": "event:4",
-                "observations": [
-                  ".decapod/config.toml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 4,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
-      ],
+      "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
-      "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/managed/specs/VALIDATION.md"
-      ],
+      "intent_id": "intent:change_01M72Y50R4WKFCYBCHDKF5DH4D",
+      "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/config.toml, .decapod/managed/specs/VALIDATION.md",
         "root"
       ],
-      "run_id": "branch_01M72VES6RE6VP04NJ420X41QK",
+      "run_id": "branch_01M72Y50TTDMR3JBW711HG9KNX",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m72ve6x1kep36b",
+      "task_id": "code_01m72y44acb354gd",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

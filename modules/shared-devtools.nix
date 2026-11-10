@@ -154,6 +154,7 @@
         tool = {
           packages = [
             "crucible-llm @ git+https://github.com/jkitchin/crucible"
+            "xmemcli"
           ];
           prune = true;
         };

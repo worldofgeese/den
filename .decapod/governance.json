@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
+    "accepted_commit": "09866f625ee821460663c0a4c124c41a9cce1476",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,38 +66,84 @@
     }
   },
   "change": {
-    "id": "change_01M72VES4C5A6JVKJP62M4GR8B",
-    "base_commit": "95e0030626d922c5c37f3104e3b2572d4d159d92",
+    "id": "change_01M731WQQY10TQJEX2CN3F8GB8",
+    "base_commit": "09866f625ee821460663c0a4c124c41a9cce1476",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "code_01m72ve6x1kep36b",
-      "summary": "Temporary journal repair grant for pi-dktaohan",
-      "input_digest": "sha256:e01122181e58ff43807d99eecda46665956b0e8f1bde1428e76350a301bce693"
+      "id": "code_01m731vwen3wyh70-pr-reviewer-peer",
+      "summary": "pr-reviewer v0.2.4 pin; automerge trusts the daemon's peers (defaults.peer_logins) and sets aside a superseded cross-account change request",
+      "input_digest": "sha256:56e186ca57562379395c018d7f041e80a270a350cb04c28e3f3242dbf4254d05",
+      "proof_refs": [
+        "PR_AUTOMERGE_DRY_RUN=1 built automerge with v0.2.4 on a state copy: exit 0, no errors",
+        "automerge filter fixtures: 11 cases; built filter output equals tested filter",
+        "live data, 7 repos: new filter equals old filter with peers [] and [sethpjacobs]",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/4w3ldlbdhiaa4a22x80h9nia41cv1rka-darwin-system-26.11.ff0e21a"
+      ]
     },
     {
-      "id": "code_01m72ve6x1kep36b-r2",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:c77951174a89dd6893ad432b26408de8522d0a8b3cc7bf3b5772d0ecfce54e39"
+      "id": "code_01m731vwen3wyh70-manifest-refresh",
+      "summary": "Spec manifest timestamp from the validate refresh",
+      "input_digest": "sha256:b90d93f61eedd341e6e77697d9c3ed47e7d006cf82a14b7219fc07a4118e455c",
+      "proof_refs": [
+        "decapod validate: 187 pass, 1 fail (UNCOMMITTED_PUBLICATION_CONTENT for this manifest change)"
+      ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-sources-digest",
+      "summary": "Re-pin reviewed_sources_digest: the flake.nix and flake.lock change of the pr-reviewer v0.2.4 pin is the only inventory change",
+      "input_digest": "sha256:f800ce8a8bb149638825fdaaff6df8fec969d61b64527ecd245f41cad892962a",
+      "proof_refs": [
+        "decapod validate: PROOF_PROFILE_RECONCILIATION_REQUIRED, inventory_digest sha256:49b8dda8aefbd30935f90f52c3528025020ca4df7889c67a41adbd85c34cabf3"
+      ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-manifest-config-hash",
+      "summary": "Spec manifest config_input_hash after the reviewed_sources_digest re-pin",
+      "input_digest": "sha256:1a1ef03aea9563cfffba36e1ad396b46e2919378a429145915232be9eb0ad4f8",
+      "proof_refs": [
+        "decapod validate: UNCOMMITTED_PUBLICATION_CONTENT for the refreshed manifest"
+      ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-review-fixes",
+      "summary": "Automerge review fixes: a change request on the head is never set aside; the marker source is named; the peer spec states the required config",
+      "input_digest": "sha256:91db42a487931f8cdec65a0639480b6ec280314d3747d2aae0a81cd8067ac93d",
+      "proof_refs": [
+        "13 fixtures with a real pr-reviewer review body; built filter output equals tested output; peers [] equals v0.2.3",
+        "live data, 7 repos: 52 worldofgeese reviews carry the marker; verdicts unchanged",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/cc1yx56qp8j66lgam0np3wxzpcbwjyj1-darwin-system-26.11.ff0e21a"
+      ]
+    },
+    {
+      "id": "code_01m731vwen3wyh70-commit-order",
+      "summary": "Automerge sets a pr-reviewer change request aside only for a review of a later commit, by the PR's commit order from a dedicated GraphQL query",
+      "input_digest": "sha256:b9f350f962a3f29fbfa54ac52e2be4f3a0398c559eadec648fd879991a89ae59",
+      "proof_refs": [
+        "14 fixtures incl. the Codex out-of-order case (#15 blocks); built filter output equals tested output; peers [] equals v0.2.3",
+        "PR_AUTOMERGE_DRY_RUN=1 bash -x on the built agent with v0.2.4 and a state copy: exit 0, commits query only for LEGO/ai-daily-assistant",
+        "live data, 7 repos with the built commits query: every open PR covered, verdicts unchanged",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/gbw777crnwsi6p4al9a5iaf593dlqbzi-darwin-system-26.11.ff0e21a"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M72VES4C5A6JVKJP62M4GR8B": {
+    "intent:change_01M731WQQY10TQJEX2CN3F8GB8": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "root"
+        "code"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+      "id": "intent:change_01M731WQQY10TQJEX2CN3F8GB8",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
-      "refined_intent": "home-manager-wks: grant the one-time journal repair role to pi-dktaohan (on 95e0030)",
+      "raw_intent": "pr-reviewer: run v0.2.4 and accept the peer daemon's reviews in automerge\n\nMove the pr-reviewer pin to v0.2.4 (peer daemons, worldofgeese/pr-reviewer#37 and #38). The automerge counts a pr-reviewer review of the head from a declared peer login (sethpjacobs), and does not block on a pr-reviewer change request from one login that a later review from the other login superseded. Requested by sethpjacobs (standby daemon).",
+      "refined_intent": "pr-reviewer: run v0.2.4 and accept the peer daemon's reviews in automerge\n\nMove the pr-reviewer pin to v0.2.4 (peer daemons, worldofgeese/pr-reviewer#37 and #38). The automerge counts a pr-reviewer review of the head from a declared peer login (sethpjacobs), and does not block on a pr-reviewer change request from one login that a later review from the other login superseded. Requested by sethpjacobs (standby daemon).",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,104 +156,67 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Owner Tao approved on 2026-11-10 (approved everything): Decapod 0.136 requires a todo.journal.repair role in the main checkout's [governance.rbac] for the repair of the 13 historical journal gaps (home-manager-wks). Grant journal-repair to pi-dktaohan temporarily; after the main checkout has this config, pi-dktaohan runs the repair once, and a follow-up PR removes the grant and records the outcome. Supersedes den #139.",
+      "intent": "Move den's pr-reviewer pin from v0.2.3 to v0.2.4, which adds peer daemons (worldofgeese/pr-reviewer#37, #38). Make the M-02877 automerge trust pr-reviewer reviews from the daemon's peers, read once per pass from the runtime defaults.peer_logins: a peer's pr-reviewer review of the head counts as reviewed, and a pr-reviewer change request from one trusted account is set aside once another trusted account reviewed a later commit and approved or only commented. With peer_logins empty the automerge decides as before. Setting peer_logins to [sethpjacobs] (runtime config, CLI) and the M-02877 deploy are operator steps after the merge.",
       "phases": [],
       "proof_hooks": [
-        "the config parses and agent.init accepts it",
-        "plain decapod validate passes",
-        "just check (pre-commit)"
+        "decapod validate",
+        "nix build .#darwinConfigurations.M-02877.system",
+        "automerge filter: fixtures and live data, old vs new jq"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Grant the one-time journal repair role to pi-dktaohan",
+      "title": "pr-reviewer: run v0.2.4 and accept the peer daemon's reviews in automerge",
       "todo_ids": [
-        "code_01m72ve6x1kep36b"
+        "code_01m731vwen3wyh70"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794318543Z"
+      "updated_at": "1794325955Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Only the temporary [governance.rbac] grant and its VALIDATION.md text"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:8135a99152a64b72c266ef3830d564d9d3cee155399f06e90e0092a3c445a2bb",
+      "artifact_hash": "sha256:9641fd3ab61e71a73d75835a5cb3dd7a45e24cfcbae30c602cc4e9bebf4ca914",
       "checks": [],
-      "current_phase": "implementation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M731WQQY10TQJEX2CN3F8GB8",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
+            "intent_id": "intent:change_01M731WQQY10TQJEX2CN3F8GB8",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:branch_01M72VES6RE6VP04NJ420X41QK",
-            "event_id": "event:4",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 3,
         "schema_version": "1.0.0",
-        "trajectories": {
-          "branch_01M72VES6RE6VP04NJ420X41QK": {
-            "evidence_only": true,
-            "id": "branch_01M72VES6RE6VP04NJ420X41QK",
-            "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
-            "steps": [
-              {
-                "action": "implementation",
-                "custody_event_id": "event:4",
-                "observations": [
-                  ".decapod/config.toml",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 4,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "Recreates den #139 (closed: conflicted after #138/#140, and its completed task locked the workspace). pr-reviewer notes on #139 applied: the text says the state is temporary and gives the label caveat. Decapod 0.136.2 reads the RBAC policy from <main checkout>/.decapod/config.toml (plugins/policy.rs authorize_rbac_exception)."
-      ],
+      "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M72VES4C5A6JVKJP62M4GR8B",
-      "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/managed/specs/VALIDATION.md"
-      ],
+      "intent_id": "intent:change_01M731WQQY10TQJEX2CN3F8GB8",
+      "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        ".decapod/config.toml, .decapod/managed/specs/VALIDATION.md",
-        "root"
+        "code"
       ],
-      "run_id": "branch_01M72VES6RE6VP04NJ420X41QK",
+      "run_id": "branch_01M731WQTA071QYX9MY07A50MB",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m72ve6x1kep36b",
+      "task_id": "code_01m731vwen3wyh70",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

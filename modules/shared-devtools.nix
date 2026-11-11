@@ -20,6 +20,17 @@
       ...
     }: let
       agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+      # Bridge the current input's one-release lag. Both tags have the same
+      # Cargo.lock, so retain its vendor/V8 hashes and Nix compatibility patches.
+      # Later upstream packages pass through unchanged.
+      codex =
+        if agents.codex.version == "0.167.0"
+        then
+          agents.codex.override {
+            version = "0.167.1";
+            hash = "sha256-S63Qd9OGCACz1EK/IzH6LGsZxMovk0UBkOKtv/jnQ+I=";
+          }
+        else agents.codex;
     in {
       home.packages = with pkgs;
         [
@@ -38,7 +49,7 @@
           # path collide in one profile.
           agents.claude-agent-acp
           agents.copilot-cli
-          agents.codex
+          codex
           # Secret lookups for both hosts, declared in secretspec.toml. Shared so
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.

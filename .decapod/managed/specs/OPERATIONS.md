@@ -454,26 +454,47 @@ panes had no `SIGNET_*`, and pi fell back to the personal daemon as agent
 `hm-session-vars.sh` once per `HERDR_PANE_ID`. A pi started before that keeps
 its old environment: start it again in a new pane.
 
-The personal daemon has run `ghcr.io/signet-ai/signet:0.238.0` since
-2026-10-30 (before: 0.237.9 from 2026-10-08, and 0.232.1). The
-`distrobox create` pin in darwin.nix is read only when the container is
-created; it had stayed at 0.214.27 while the container moved on. The
-in-container auto-update fails (`manifest_invalid` for linux-arm64), so to
-upgrade, first deploy the new pin. Then:
-1. Boot `com.dktaohan.signet-container` out. With the agent loaded, KeepAlive
-   would recreate a removed container from the deployed pin.
-2. Run `podman rm -f signet`. A stopped container does not stay stopped: the
-   exported `signet` command starts it through distrobox-enter, and on
-   2026-10-30 a call started it 1 s after `podman stop`. The data stays in
-   `~/.agents`.
-3. Clone `~/.agents` while no container runs:
-   `cp -cR ~/.agents ~/.local/state/agents-backup-<date>`. It is about 7 GB
-   and takes about 2 to 5 minutes. The 2026-10-30 copy is
-   `~/.local/state/agents-backup-20261030b`, and the 2026-10-08 copy is
-   `~/.agents.bak-signet-0.232.1-20261008`.
-4. Bootstrap the agent again. It creates the container from the deployed pin.
-   The first enter runs distrobox-init, and the daemon answered on 3850 after
-   160 s on 2026-10-30.
+The live personal daemon still reported 0.238.0 on 2026-11-10. The source
+now selects the digest-pinned 1.0.1 security release. A pin change alone does not update
+an existing container: `podman container exists signet` skips creation.
+The host CLI is exported from that container, so both versions move together.
+
+The 1.0.0 image passed an isolated architecture probe and a migration rehearsal
+on a private workspace copy. Readiness, SQLite integrity, tracked table counts,
+and memory content, scope, provenance, and tags were preserved. The verified
+backup remained unchanged. That rehearsal is not a completed live upgrade.
+
+Signet 1.0.1 was published later on 2026-11-10. It fixes source-import file
+access, cross-agent memory access, cross-site writes, session permissions,
+and connector file modes. A fresh rehearsal from the original private backup
+passed with 1.0.1: readiness returned 200, a foreign-origin write returned 403,
+memory content and scope stayed identical, and SQLite integrity passed. The
+backup stayed unchanged and the test container was removed. Deploy that
+security release rather than the superseded 1.0.0 candidate. Run `signet sync`
+after the live upgrade and verify the affected connector modes.
+
+For the live migration:
+1. Coordinate a quiet window for Signet clients. Record the old image, container,
+   job definition, and private workspace backup. Verify that backup first.
+2. Boot out `com.dktaohan.signet-container`. Rename the existing container to a
+   unique rollback name, for example `podman rename signet signet-before-1.0.1`.
+   Then stop that renamed container with `podman stop --time 30 signet-before-1.0.1`.
+   Renaming prevents the exported CLI from restarting the old `signet` name.
+3. With the old daemon stopped, preserve the final private workspace state.
+   Keep the original container and data backup until verification passes.
+4. Deploy the reviewed image pin. Let activation start the installed job, or
+   bootstrap it if it remains unloaded. The `signet` name is now free, so the
+   job creates the new container. Initial Distrobox setup can take several minutes.
+5. Verify the live version, workspace, readiness, scoped recall, inference,
+   connector behavior, and personal/team boundary. Refresh the Pi connector
+   only through Signet's supported command and preserve private file modes.
+
+Rollback requires more than the old container. Stop the new job and container,
+preserve the failed container and upgraded workspace for inspection, and free
+the `signet` name. Restore `~/.agents` from the verified pre-migration backup
+while clients are stopped. Rename the old container back to `signet`, then
+bootstrap the job and verify the restored version and data. Do not start the
+old binary against a database that the new release migrated.
 
 On 2026-10-30 launchd had started the agent 277 times since its last load,
 about every 10 s, and each run ended with "Another daemon instance is already
@@ -610,39 +631,52 @@ files record the usage and cost of each request.
 
 #### Caveman
 
-Caveman runs at full strength in pi, without its cloud features. We install it
-by hand:
-1. Run `npm install -g @caveman-ai/cli@4.0.1`, then `caveman setup --install`.
-2. Run `caveman setup --yes --agents none --skip routing`. This writes the
-   module state to `~/.caveman/cloud.json`.
-3. Run `caveman telemetry off`. Telemetry was on by default (opt-out) and sends
-   command and token counts to Caveman. den also sets `DO_NOT_TRACK=1` for the
-   proxy and for the hook CLI that pi starts.
-4. Run `caveman on scripts`. This installs Caveman Blocks (0.1.0-rc.5) and its
-   hooks in `~/.claude/settings.json` and `~/.codex/hooks.json`. Codex asks
-   once: open `/hooks` in Codex and approve the `caveman-blocks` hook.
-5. Replace the seven binaries in `~/.caveman/bin` with the `bin-v4.0.2`
-   release assets. CLI 4.0.1 installs `bin-v4.0.1`, whose native runtime
-   answers nothing (JuliusBrussee/caveman#1279, #1366). Check each asset
-   against `checksums.txt`, and check `checksums.txt` against the release's
-   signature, before you install it.
-6. Replace `dist/caveman-pi-extension.mjs` in the npm-installed CLI with the
-   pi extension built from JuliusBrussee/caveman#1376 (`packages/pi-extension`,
-   `npm run build`, `dist/index.mjs`). The released extension puts per-prompt
-   context in the system prompt, so the provider re-writes its prompt cache at
-   every prompt (#1364). Undo steps 5 and 6 when a CLI release ships
-   `bin-v4.0.2` and #1376.
-7. Restart the proxy with
-   `launchctl kickstart -k gui/$UID/com.dktaohan.caveman-proxy`.
+Caveman runs in Pi without its cloud features. The npm CLI owns the native
+release selection; den owns the proxy service, routes, and extension shim.
+On 2026-11-10, CLI 4.1.0 and the running `bin-v4.1.0` proxy were verified.
+The six native files matched the installer's hashes. `/health/live` returned
+200 with the expected instance identity, and the recovery-store check passed.
 
-Do not use `--agents pi`. It writes `~/.pi/agent/extensions/caveman-native.js`,
-and pi then loads the extension a second time beside den's shim.
+For an update:
+1. Preserve the existing CLI, binaries, configuration, and private SQLite stores.
+   Use SQLite's backup API for live databases. Check the copies before proceeding.
+   A standalone backup can need `PRAGMA journal_mode=DELETE` on the copy before
+   a read-only `PRAGMA quick_check`; do not change the live database's journal mode.
+2. Install the selected CLI with `npm install -g @caveman-ai/cli@4.1.0`.
+3. Run `caveman setup --install --json`. This installs only the native binaries.
+   `--agents` cannot be combined with this form. Preserve the installer result.
+4. Keep cloud routing and telemetry off. `caveman telemetry off` records that
+   choice; den also sets `DO_NOT_TRACK=1` for the proxy and hook CLI.
+   If module setup is needed, run `caveman setup --agents none` separately.
+5. Coordinate a quiet window and hold the M-02877 switch lock. Use a control
+   session whose model requests do not depend on the proxy being restarted.
+   Request `SIGTERM` through the existing `com.dktaohan.caveman-proxy` launchd job.
+   Its documented drain is five seconds, so a long request can require a retry.
+6. Verify the new PID, native version, `compress` mode, `start` ownership, MCP
+   recovery, and `/health/live`. Compare instance identities without printing them.
+   Run `caveman-proxy recovery-store check`; a version string alone is insufficient.
+
+An open pooled socket is not proof of an active model request. The first
+2026-11-10 socket-count check prevented a restart; the supported drain worked.
+The first readiness probe used an incorrect URL. Correcting it to `/health/live`
+verified the already-running proxy without another restart.
+
+The release now includes the prompt-cache fix from #1376. The old binary
+replacement and npm-bundle patch are retired. Existing Pi sessions still need
+a reload to use newly installed extension code.
+
+Do not install `caveman-native.js` beside den's shim. Blocks is a separate,
+optional component; a native-binary update does not resolve its Codex hook
+issue or add a Pi harness.
 
 The modules and pi, measured on 2026-10-15:
 - `output`, `input`, `waste-fixes` and `browse` are on.
 - `scripts` (Caveman Blocks) is on for Claude Code and Codex. Blocks has no pi
   harness yet (caveman-ai/blocks#11). Its Codex entry runs `--harness claude`,
-  which we asked about in caveman-ai/blocks#12. Blocks follows the Caveman
+  which we asked about in caveman-ai/blocks#12. The current upstream profile
+  intentionally uses that grammar for Codex; its `codex` alias selects the
+  same parser. The label alone does not establish a failure. Verify actual
+  host events rather than changing it blindly. Blocks follows the Caveman
   telemetry decision in `cloud.json`, which is off since 2026-10-23.
 - `routing` is off. Auto (`caveman-auto`) reaches only the Claude Code and
   OpenCode model pickers, not pi (JuliusBrussee/caveman#1286). It also needs a
@@ -650,7 +684,8 @@ The modules and pi, measured on 2026-10-15:
   to 128 KiB), the prompt before it and the last reply to Caveman Cloud. That
   is a cloud feature, and we do not use cloud features.
 
-What one pi session costs with Caveman, measured on 2026-10-23 (pi 1.4.0,
+Historical measurements, not a benchmark of the current release: one Pi
+session on 2026-10-23 (pi 1.4.0,
 Claude Haiku 4.5, the same 8 prompts per run, `~/.cache/chain-test/cave-max.sh`):
 
 | Run | Cache-write tokens | Cost |
@@ -661,10 +696,9 @@ Claude Haiku 4.5, the same 8 prompts per run, `~/.cache/chain-test/cave-max.sh`)
 | No extension, requests through a `bin-v4.0.2` compat mount | 40,089 | $0.112 |
 
 Caveman behaviours that shape this design:
-- Without `caveman.yaml`, Caveman sends Anthropic-format requests to
-  `api.anthropic.com`. That hands the LEGO gateway key to Anthropic (measured
-  2026-10-06). The file sets the gateway's `/claude` endpoint as the upstream.
-  No model traffic uses it.
+- Default Anthropic and OpenAI upstreams must name the approved gateway.
+  Leaving a public default can disclose the gateway credential. Named compat
+  mounts send normal model traffic through Headroom.
 - pi sends the key as the bearer and as `x-api-key`. The gateway accepts only
   the bearer. A `bin-v4.0.2` compat mount with `wire_dialect: anthropic`
   forwards the bearer and compresses Anthropic requests. It compressed a JSON
@@ -672,15 +706,13 @@ Caveman behaviours that shape this design:
   pi's markdown tool outputs, already trimmed by RTK and context-mode, come
   through unchanged. Since 2026-11-01, `lego-claude` uses the `lego-claude`
   mount (see "pi through the chain").
-- The provider's empty `x-api-key` keeps the key out of that header. Each new
-  session prints "Caveman: pass-through for lego-claude/...". That is
-  expected: the provider URL is already the proxy.
-- In the long-lived `~/.caveman`, the `bin-v4.0.2` runtime under launchd can
-  answer every `native.sock` request with an empty reply while the proxy uses
-  50% to 85% CPU. A fresh home answers. The extension then fails open: no
-  shrinking and no runtime context, and no error. We reported it on
-  JuliusBrussee/caveman#1279. To check: send `session.start` on
-  `~/.caveman/run/native.sock` and expect a JSON reply.
+- Pi must name the real upstream so the extension can prove the route.
+  Changing only that URL is insufficient: the old empty `x-api-key` override
+  also fails the header check. Removing both obsolete workarounds passed the
+  router regression; the compat mount preserves matching bearer credentials.
+- Release 4.1.0 includes the native-store fix for #1279. Keep runtime and
+  recovery checks separate from the CLI version check. Outputs below 4096
+  bytes remain unmasked, and a recovery query is explicitly an excerpt.
 - Since 4.0.1, the extension does not shrink tool output in a session that
   cannot call `caveman_retrieve` (#1211). So the den-generated `techwriter`
   agent does not name `caveman_retrieve` in its `tools:`.
@@ -688,9 +720,38 @@ Caveman behaviours that shape this design:
 The shim (`~/.pi/agent/extensions/caveman.js`) only loads the npm-installed
 extension (`dist/caveman-pi-extension.mjs`).
 
+#### Independent reviewer
+
+Reviewer-agent 1.4.8 is installed for Claude Code from the permanent checkout
+`~/.local/share/reviewer-agent`. Its project backend is Pi. The 309 Claude
+smoke tests, layering check, 55 Git-tool tests, and 8 real-Git tests passed.
+This is separate from the existing GitHub `pr-reviewer` daemon.
+
+The default Pi reviewer process inherited global compactors. In a real probe,
+its 30,964-byte staged diff became a 187-byte recovery pointer, but the reviewer
+could not call the recovery tool. It missed two of three sentinel values.
+The isolated process read the complete diff and returned all three values.
+
+Den supplies `~/.local/bin/reviewer-pi` for that role. It loads only the
+read-only Git extension and the mandatory Decapod prompt gate. Its final tool
+allowlist excludes Bash, edit, and write, even if the caller supplies a broader
+list. Main Pi sessions keep their normal extensions. After deploying the launcher, set reviewer-agent's
+relocation-aware `config_file()` `piBin` field to that absolute path and verify
+that the hooks resolve it. Preserve all other reviewer configuration.
+
+Both review switches remain off, and no risk receipt was created. A fresh
+Claude Code session must load the plugin before the operator confirms settings
+and performs any exact risk-acceptance invocation. The first real reviewed
+commit is the end-to-end gate check; installation tests are not that proof.
+
+The Codex adapter is not installed. Its 1.4.8 suite fails
+`test_reviewer_launch_environment_remains_stable`: Git inherits a nonexistent
+`TMPDIR` and cannot create a commit when SSH signing is enabled. Do not disable
+signing or skip the test to make this adapter appear ready.
+
 #### Headroom 0.41.0 fixes
 
-Headroom 0.41.0 (released 2026-10-14, `:latest` since then) carries the fixes
+Headroom 0.41.0 (released 2026-10-14) introduced the fixes
 for the two bugs that `gateway.json` worked around with 0.40.0. So the
 container runs without `HEADROOM_NO_MEMORY_TOOLS` and `HEADROOM_EXCLUDE_TOOLS`
 (den#41):
@@ -755,37 +816,92 @@ pi offers CodeGraph's one tool, `codegraph_explore`, to the model directly
 (`exposure = "direct"`). With the default `codemode` exposure, the model made
 0 calls in 60 sessions (den#63).
 
+#### Headroom storage admission
+
+The pre-rollout check found ext4 metadata errors on the live `headroom-data`
+volume, including an unreadable, unopened temporary file from the atomic
+savings writer. The canonical savings JSON is valid and all 1,587 SQLite files
+passed read-only `quick_check`; that does not make the filesystem healthy.
+Preserve the original volume and use the clean `headroom-workspace` volume as
+the configured target. The launch script rejects an unavailable or malformed
+volume inventory and refuses to replace a legacy instance until that target
+exists. It also checks image availability before stopping the old container.
+The target's existence is not proof of a complete restore. Restore and verify
+into `headroom-workspace` first; quiesce Headroom writers, refresh the final
+copy, and only then switch. Use `lego-claude-direct` or a control terminal that
+does not depend on Headroom during this work. A new host with no legacy volume
+keeps normal initialization.
+
+A blocked guard logs its reason to `/tmp/headroom.err`; launchd KeepAlive retries
+it. If it blocks after a switch, finish the verified restore or roll back to the
+previous generation, which still mounts `headroom-data`. That restores the old
+availability path, not filesystem health; retain the damaged volume and backup.
+
+A private restore rehearsal verified 1,641 workspace files, started Headroom
+0.44.0 on a fresh native volume, and compared 1,586 non-empty SQLite databases
+across 6,866 ordinary tables without a removed or changed existing row. The
+empty legacy database file was also preserved. Temporary resources were removed.
+The online backup is a recovery point, not a global snapshot of later writes;
+quiesce writers and refresh mutable state at cutover. Keep the original volume
+and private backup afterward. Do not run filesystem repair on a mounted volume.
+Offline repair is a separate owner decision after the backup.
+
+#### Dagger engine version and rollback
+
+`Justfile` pins the Dagger engine to beta.27 by digest. A new CLI does not
+upgrade `den-dagger-engine`, and `just dagger-check` deliberately preserves an
+existing container. Query the running engine separately with `dagger query
+--no-load-module` and a `{ version }` request before claiming a version update.
+
+Use the shared switch lock for the live replacement. Check for active clients,
+stop the engine cleanly, and export the `dagger-engine-den` volume through
+Podman before changing its image. Keep the old container under a rollback
+name and retain the volume archive privately: engine caches can contain source
+code. Verify the new engine and a synthetic workload before dropping rollback
+material. If the new engine changes persisted state and must be reverted, stop
+it and restore the volume as well as the old container. An old image alone is
+not a complete data rollback. For source rollback, restore both the module's
+`engineVersion` and `dagger_engine_image` to beta.21, with engine digest
+`sha256:3444c48e871bedaa95f5b1e57b8c41de929d9e061dd75e9ac6f6deb1f0a74bc3`.
+
 #### pi through the chain
 
-pi's `lego-claude` provider (`agentProviders.pi` in
-`modules/M-02877/token-toolchain.nix`) is set up like this:
-- `baseUrl` is `http://127.0.0.1:8787/compat/lego-claude`, a compat mount of
-  Caveman's proxy.
-- The mount (`~/.caveman/caveman.yaml`) sends requests to Headroom
-  (`base_url: http://127.0.0.1:18787`) with `wire_dialect: anthropic`. A compat
-  mount keeps the inbound bearer, which is the only credential the gateway
-  accepts (caveman#1215).
-- Caveman's SSRF guard blocks loopback upstreams, so the proxy runs with
-  `CAVE_SSRF_ALLOWLIST=127.0.0.1` (caveman#841). Without it, every request gets
-  a bare 502 `cave_upstream_unavailable`, and the log has no line for it
-  (caveman#1440).
-- The provider sends `x-headroom-cwd: ${PWD}`, which pi expands per request.
-  Headroom does not find pi's working directory itself (headroom#4442), and
-  without a project it still adds its memory tools (9,838 bytes) to each
-  request. The mount forwards only standard headers, so its
-  `forward_headers` names this one.
-- The Caveman extension sees that the provider URL is the proxy itself and
-  does not route the provider again. Each new session prints "Caveman:
-  pass-through for lego-claude/... points at the Caveman proxy itself". That
-  is expected. Tool-output shrinking and `caveman_retrieve` still work.
+An isolated 2026-11-10 probe used Caveman 4.1.0 and Headroom 0.44.0 with real
+Haiku Messages and GPT-6 Luna Responses requests. All six requests succeeded
+and preserved three synthetic sentinel values. The final Claude request read
+13,180 cached input tokens without a cache write; OpenAI read 11,625 cached
+tokens and wrote 14. Temporary services were removed. This proves the tested
+protocol, authentication, fidelity sample, and cache boundaries, not a net
+cost saving or a completed live rollout.
 
-Both hops are now in pi's model path. If Caveman or Headroom is down, pi's
-requests fail with a 502 `cave_upstream_unavailable`, and there is no fallback
-to direct. launchd restarts Caveman, and `com.headroom.watchdog` recovers
-Headroom. Restart either one from a plain terminal, never from a pi session.
-To skip the proxies, use `lego-claude-direct`. den writes it next to
-`lego-claude` in `~/.pi/agent/models.json` on every host: the same models, sent
-straight to the gateway's `/anthropic` endpoint.
+Normal Pi sessions still have an end-to-end recovery limit with context-mode
+2.1.7: it can replace a Caveman recovery response with another search pointer.
+The stored bytes remain available, but the recovery tool does not return them
+intact to the caller. No per-tool exemption is exposed. This needs an upstream
+fix; native recovery-store integrity alone does not prove end-to-end recovery.
+The isolated reviewer avoids that combined compaction path.
+
+The configured Pi routes are defined by `agentProviders.pi` and its optional
+`openai` route in `modules/M-02877/token-toolchain.nix`:
+- Pi names Headroom directly: its root for Claude, and `/v1` for OpenAI.
+- Caveman selects `/w/pi/compat/lego-claude` or
+  `/w/pi/compat/lego-openai/v1` only after route and recovery checks pass.
+- Both mounts forward the bearer and `x-headroom-cwd`. The Claude mount uses
+  `wire_dialect: anthropic`; the OpenAI mount preserves Responses API shape.
+- `CAVE_SSRF_ALLOWLIST=127.0.0.1` permits only the required loopback upstream.
+  Caveman 4.1 reports a refused upstream as `cave_upstream_blocked`.
+- Headroom receives explicit Anthropic and OpenAI gateway targets. The OpenAI
+  API root in `gateway.json` excludes `/v1`, which Headroom appends itself.
+
+A provider URL that already names Caveman defeats the extension's route proof.
+An empty `x-api-key` override also fails. Neither workaround belongs in the
+managed proxy route. When routing is not established, Pi uses its configured
+Headroom upstream; transparent failover of an in-flight request is not promised.
+
+Keep a control path outside any proxy being restarted. A plain terminal is one
+option. `lego-claude-direct` and `lego-openai-direct` preserve the selected
+model catalog and authentication while reaching the approved gateway directly.
+Provider activation keeps the user's saved default and unrelated providers.
 
 | To change | Direct | Through the proxies |
 |---|---|---|
@@ -1311,7 +1427,7 @@ The checkpoint caller passes offline tests for stale receipts, changed bindings,
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

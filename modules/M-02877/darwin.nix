@@ -390,6 +390,25 @@
                 $C system start >/dev/null 2>&1 || true
                 until $C system status >/dev/null 2>&1; do sleep 2; done
                 $C network create proxy-chain 2>/dev/null || true
+                # The legacy volume has ext4 errors. Never replace existing
+                # state with an empty workspace: restore and verify it first.
+                # A new host with neither volume may use normal initialization.
+                JQ=${pkgs.jq}/bin/jq
+                if ! volume_state="$($C volume list --format json)"; then
+                  echo "headroom: cannot inspect volumes; refusing replacement" >&2
+                  exit 1
+                fi
+                if ! printf '%s' "$volume_state" | "$JQ" -e '
+                  if type == "array" and all(.[]; type == "object" and (.id | type == "string")) then
+                    map(.id) as $ids |
+                    (($ids | index("headroom-data")) == null or
+                     ($ids | index("headroom-workspace")) != null)
+                  else false end
+                ' >/dev/null; then
+                  echo "headroom: verify the volume inventory and restore legacy data to headroom-workspace; see OPERATIONS.md" >&2
+                  exit 1
+                fi
+                ${pullOrCached gateway.headroom.image}
                 $C stop headroom 2>/dev/null || true
                 $C rm headroom 2>/dev/null || true
                 # HEADROOM_MODE (not HEADROOM_DEFAULT_MODE, which does not exist) --
@@ -443,8 +462,7 @@
                 # interrupted download resumes.
                 # HF_HUB_DISABLE_XET: that day the xet transfer stayed at 0 bytes
                 # while plain HTTPS downloads moved.
-                ${pullOrCached gateway.headroom.image}
-                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-data:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e HEADROOM_WORKSPACE_DIR=${gateway.headroom.workspaceDir} -e HEADROOM_MEMORY_DB_PATH=${gateway.headroom.workspaceDir}/memory.db -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} -e HF_HOME=${gateway.headroom.workspaceDir}/huggingface -e HF_HUB_DISABLE_XET=1 ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
+                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-workspace:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e OPENAI_TARGET_API_URL=${gateway.openaiUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e HEADROOM_WORKSPACE_DIR=${gateway.headroom.workspaceDir} -e HEADROOM_MEMORY_DB_PATH=${gateway.headroom.workspaceDir}/memory.db -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} -e HF_HOME=${gateway.headroom.workspaceDir}/huggingface -e HF_HUB_DISABLE_XET=1 ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;
@@ -620,14 +638,15 @@
                   tries=0
                 done
 
-                # The image is read only when the container is created, and
-                # the in-container auto-update fails (manifest_invalid for
-                # linux-arm64). To move to a new release: back up ~/.agents,
-                # boot this agent out, `podman rm -f signet`, bootstrap it.
+                # The image owns both the CLI and daemon version. A pin change
+                # does not replace an existing container. Back up ~/.agents,
+                # stop this job, then rename and stop the old container before
+                # restarting this job. Keep it until verification passes.
+                # Rollback restores both the old container name and workspace data.
                 podman container exists signet ||
                   DBX_CONTAINER_MANAGER=podman "$bin/distrobox" create --yes --no-entry --unshare-netns \
                     --name signet \
-                    --image ghcr.io/signet-ai/signet:0.238.0 \
+                    --image ghcr.io/signet-ai/signet:1.0.1@sha256:947db6870de086227ae968ac72d7b2246466435e1a87052c74fad0a9fe06a292 \
                     --volume "$home/.agents:/data/agents" \
                     --volume /var/folders:/var/folders \
                     --additional-flags "--publish 127.0.0.1:3850:3850 --env SIGNET_DAEMON_ENTRYPOINT=0 --env SIGNET_PATH=/data/agents --env SIGNET_BIND=0.0.0.0 --env SIGNET_PORT=3850"

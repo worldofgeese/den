@@ -68,6 +68,9 @@ in {
     # (LEGO/ai-model-gateway-client, src/features/docs/pages/PiPage.tsx).
     anthropicUrl = facts.baseUrl + facts.paths.anthropic;
 
+    # Headroom appends /v1 to this OpenAI API root.
+    openaiUrl = facts.baseUrl + facts.paths.openai;
+
     # Model ids and their ceilings, one owner for every harness. The leading
     # `_`-prefixed keys in gateway.json are prose for humans; strip them so a
     # consumer can serialise a slot straight into a config file.

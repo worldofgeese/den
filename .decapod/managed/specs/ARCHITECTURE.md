@@ -4,8 +4,8 @@
 Composable repository architecture with explicit boundaries and proof-backed delivery invariants.
 
 ## What This Project Is
-home-manager is a service_or_library project built using shell.
-Composable repository architecture with explicit boundaries and proof-backed delivery invariants.
+Den defines host and agent configurations across Nix and Guix. Host modules adapt shared facts to each platform.
+The Justfile owns operational entrypoints. Decapod owns work isolation, governance, and publication proof.
 
 Architectural principles:
 - **Simplicity**: Keep components focused and reusable.
@@ -13,9 +13,9 @@ Architectural principles:
 - **Reliability**: Graceful failure handling and thorough verification.
 
 ## Current Facts
-- Runtime/languages: shell
-- Detected surfaces/framework hints: shell
-- Product type: service_or_library
+- Primary configuration languages: Nix, Guile, and shell.
+- Supporting code: Go checks, Python helpers, and TypeScript or JavaScript agent integrations.
+- Product: reproducible host configurations and their operational contracts.
 
 ## Architecture Map
 This project's architecture consists of the following key layers/directories:
@@ -183,6 +183,28 @@ sequenceDiagram
 - Core execution + persistence:
 - Verification and artifact emission:
 
+## Token-saving Model Path
+
+`gateway.json` owns the approved Anthropic and OpenAI API roots. `modules/gateway.nix` derives their full URLs.
+On M-02877, `modules/M-02877/token-toolchain.nix` declares separate Caveman compat mounts for the two protocols.
+Pi names Headroom as its upstream. The Caveman extension selects a verified route only when its recovery gate permits it.
+Headroom receives explicit Anthropic and OpenAI targets from `modules/M-02877/darwin.nix`; neither route relies on a public API default.
+
+`modules/agent-providers.nix` owns provider activation. Its `pi-providers.jq` filter replaces the two managed Claude providers.
+For an existing OpenAI provider, it changes only the route and project header, then supplies a direct escape provider.
+The user retains the OpenAI model catalog and authentication configuration. `scripts/test-pi-gateway-provider.sh` tests this boundary and repeated activation.
+
+The direct providers preserve a control path when a local proxy is unavailable. They do not change the selected model family or gateway account.
+The proxy chain preserves bearer authentication, `x-headroom-cwd`, protocol shape, and source recovery.
+Prompt-cache reuse has priority over a smaller payload that rewrites the cached prefix.
+
+The personal Signet container owns both its CLI and daemon version. Its private workspace remains on the host bind mount.
+The team endpoint and curator remain separate. A personal upgrade must preserve that boundary and prove client compatibility.
+Image version probes are preparation evidence, not proof that the live service or its data migration succeeded.
+
+`reviewerAgent.md` supplies a separate staged-change review brief. Review installation is distinct from operator risk acceptance and feature activation.
+An adapter that fails its own installation tests remains uninstalled rather than weakening signing, checks, or isolation.
+
 ## Concurrency and Runtime Model
 - Execution model:
 - Isolation boundaries:
@@ -243,9 +265,13 @@ The M-02877 Darwin system owns macOS applications and privileged networking
 integration. Tailscale is installed as the `tailscale-app` Homebrew cask so its
 GUI login, system extension, and network service remain under nix-darwin.
 Home Manager owns user-space tools; Pi is sourced from the flake's
-`llm-agents.packages` set. Tailscale enrollment and runtime route choices stay
-manual because they are user credentials and network policy, not reproducible
-package state.
+`llm-agents.packages` set. `modules/shared-devtools.nix` bridges Codex 0.167.0
+to the published 0.167.1 source while the input catches up. It changes only the
+version and verified source hash: both tags have identical `Cargo.lock` blobs,
+so the existing vendor/V8 inputs and Nix compatibility patches remain in use.
+The bridge applies only to that verified base; later input versions pass through.
+Tailscale enrollment and runtime route choices stay manual because they are
+user credentials and network policy, not reproducible package state.
 
 ### Durable App Signing Identity on M-02877
 macOS privacy grants (App Management, Full Disk Access) for Home Manager's
@@ -563,7 +589,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

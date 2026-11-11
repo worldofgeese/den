@@ -1,4 +1,8 @@
-{gateway, ...}: {
+{
+  gateway,
+  inputs,
+  ...
+}: {
   # pi on the token-saving toolchain, after LEGO/agentic-engineering-community
   # docs/guides/setup-token-saving-toolchain.md. That guide targets Claude
   # Code; every tool also ships a pi integration, which this wires:
@@ -9,9 +13,8 @@
   #   5 context-mode pi package (it brings its own MCP bridge)
   #   6 CodeGraph   MCP server
   #
-  # A pi request takes the guide's proxy chain, with Caveman's proxy in front
-  # (see agentProviders.pi): pi -> Caveman (127.0.0.1:8787, compat mount
-  # lego-claude) -> Headroom (darwin.nix) -> the gateway's /claude endpoint.
+  # Pi routes Claude and OpenAI requests through Caveman, then Headroom.
+  # Each protocol has a named compat mount and its own gateway endpoint.
   # The same Caveman proxy serves the pi extension's tool-output recovery.
   # local-model-proxy and Phoenix are gone (OPERATIONS.md).
   den.aspects.dktaohan.homeManager = {
@@ -32,10 +35,9 @@
 
     # The Caveman CLI and its native binaries come from npm
     # (@caveman-ai/cli, `caveman setup --install`), not Nix: ~/.caveman/bin.
-    # Caveman 4 also has `caveman setup` modules (~/.caveman/cloud.json). Run it
-    # with `--agents none`: `--agents pi` writes
-    # ~/.pi/agent/extensions/caveman-native.js, which loads the extension a
-    # second time beside the shim below.
+    # `caveman setup --install` updates only the signed native binaries.
+    # For module setup, use `caveman setup --agents none` separately.
+    # `--agents pi` installs a second extension beside the shim below.
     cavemanCli = "${home}/.local/bin/caveman";
     cavemanExtension = "${home}/.local/lib/node_modules/@caveman-ai/cli/dist/caveman-pi-extension.mjs";
 
@@ -66,41 +68,36 @@
         # telemetry off` records the choice in ~/.caveman/cloud.json, and
         # DO_NOT_TRACK keeps it off if that file is ever reset.
         export DO_NOT_TRACK=1
-        # The lego-claude mount's upstream is Headroom on loopback. Caveman's
-        # SSRF guard blocks loopback upstreams unless they are listed
-        # (caveman#841), and a blocked request only gets a bare 502
-        # cave_upstream_unavailable (caveman#1440).
+        # Both compat mounts use Headroom on loopback. Allow only this host.
+        # Caveman 4.1 reports a refused upstream as cave_upstream_blocked.
         export CAVE_SSRF_ALLOWLIST=127.0.0.1
         exec "$bin" serve
       '';
     };
 
-    # Without this file the proxy's anthropic upstream is api.anthropic.com,
-    # which would send the LEGO gateway key to Anthropic's public API. No model
-    # traffic uses that upstream; it must only be safe. The /claude endpoint
-    # is the one that Claude Code uses.
-    #
-    # pi's model traffic uses the lego-claude compat mount. A compat mount
-    # keeps the inbound bearer (caveman#1215), which is the only credential
-    # the gateway accepts. It forwards only standard headers, so it names
-    # x-headroom-cwd (see agentProviders.pi).
+    # Keep default upstreams on the approved gateway, not the public APIs.
+    # Named compat mounts carry model traffic through Headroom. They preserve
+    # the bearer and explicitly forward the project header.
     cavemanConfig = ''
       # Managed by den (modules/M-02877/token-toolchain.nix).
       providers:
         anthropic:
           base_url: ${gateway.claudeUrl}
+        openai:
+          base_url: ${gateway.openaiUrl}
       compat:
         lego-claude:
           base_url: ${headroomUrl}
           wire_dialect: anthropic
           forward_headers: [x-headroom-cwd]
+        lego-openai:
+          base_url: ${headroomUrl}
+          wire_dialect: ""
+          forward_headers: [x-headroom-cwd]
     '';
 
-    # Loads the npm-installed extension, and degrades to nothing when it is
-    # not installed. Caveman 1.x re-registered the provider to route it,
-    # which dropped authHeader (401), and this shim used to no-op that; 2.x and
-    # 4.0.1 route with pi.setModel instead, and do not route lego-claude at all
-    # (see agentProviders.pi). 4.0.1 still ships dist/caveman-pi-extension.mjs.
+    # Load the npm extension once. It selects verified routes with pi.setModel
+    # and preserves authentication and the selected thinking level.
     cavemanShim = ''
       // Managed by den (modules/M-02877/token-toolchain.nix). Edits are overwritten.
       import { existsSync } from "node:fs";
@@ -129,33 +126,47 @@
       cp "$HOME/.pi/agent/extensions/rtk.ts" "$out"
     '';
 
+    # A read-only reviewer cannot recover output hidden by global compactors.
+    # Load only its Git tool and the mandatory prompt gate. Main Pi is unchanged.
+    reviewerPi = pkgs.writeShellApplication {
+      name = "reviewer-pi";
+      runtimeInputs = [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        pkgs.git
+        pkgs.decapod
+        pkgs.secretspec
+        pkgs.age
+      ];
+      text = ''
+        git_extension=${lib.escapeShellArg "${home}/.pi/agent/extensions/git-read-only/index.ts"}
+        gate_extension=${lib.escapeShellArg "${home}/.pi/agent/extensions/decapod-gate.ts"}
+        for extension in "$git_extension" "$gate_extension"; do
+          if [ ! -r "$extension" ]; then
+            echo "reviewer-pi: required extension is missing: $extension" >&2
+            exit 1
+          fi
+        done
+        exec pi --no-extensions --no-mcp --no-skills --no-prompt-templates --no-themes \
+          --extension "$git_extension" --extension "$gate_extension" "$@" \
+          --tools read,grep,find,ls,git_read,git_grep
+      '';
+    };
+
     cavemanSkills = ["caveman" "caveman-commit" "caveman-compress" "caveman-help" "caveman-review" "caveman-stats"];
   in {
     agentProviders.pi = {
-      # Through the chain: Caveman's lego-claude compat mount, then Headroom,
-      # then the gateway. From 2026-10-14 to 2026-11-01 pi went straight to
-      # the gateway, for two reasons that are now fixed:
-      # - Headroom 0.40.0 re-wrote the prompt cache at each prompt, up to 274k
-      #   tokens for one (headroom#4213). 0.41.0 and 0.42.0 keep the cache.
-      # - Caveman's built-in anthropic upstream forwarded x-api-key, not the
-      #   bearer, so the gateway answered 401 (caveman#1215). A compat mount
-      #   keeps the bearer.
-      # Measured 2026-11-01 with Headroom 0.42.0 and the bin-v4.0.2 proxy
-      # (OPERATIONS.md, "pi through the chain"): the cache holds through both
-      # hops, Opus thinking works, and cost is within run-to-run noise of
-      # direct.
-      #
-      # The extension sees that this URL is the proxy itself, so it does not
-      # route the provider again ("pass-through ... points at the Caveman
-      # proxy itself" at each session start).
-      baseUrl = "http://${cavemanListen}/compat/lego-claude";
+      # Name the real upstream. The extension owns the Caveman route.
+      # A proxy URL fails its route proof. An empty x-api-key also fails.
+      # Compat mounts preserve the bearer when both credentials match (#1215).
+      baseUrl = headroomUrl;
       headers = {
-        # pi sends the key as the bearer and as x-api-key. The empty value
-        # keeps the key out of x-api-key; the gateway reads only the bearer.
-        "x-api-key" = "";
-        # Headroom files memories per project and does not find pi's working
-        # directory itself (headroom#4442). pi expands ${PWD} per request.
+        # Headroom needs an explicit project path for Pi (#4442).
         "x-headroom-cwd" = "\${PWD}";
+      };
+      openai = {
+        # Responses clients append /responses to this versioned base URL.
+        baseUrl = "${headroomUrl}/v1";
+        headers."x-headroom-cwd" = "\${PWD}";
       };
     };
 
@@ -181,8 +192,8 @@
           # the model is never offered it: 0 calls in 60 sessions (den#63).
           exposure = "direct";
         };
-        # No Headroom server: pi requests do not pass Headroom, so pi has no
-        # Headroom hashes to retrieve.
+        # Headroom handles its injected recovery tools inside the proxy.
+        # Do not register a second set of those tools in Pi.
       };
     };
 
@@ -190,6 +201,7 @@
       ".caveman/caveman.yaml".text = cavemanConfig;
       ".pi/agent/extensions/caveman.js".text = cavemanShim;
       ".pi/agent/extensions/rtk.ts".source = rtkPiExtension;
+      ".local/bin/reviewer-pi".source = "${reviewerPi}/bin/reviewer-pi";
     };
 
     home.activation = {

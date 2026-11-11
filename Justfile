@@ -292,6 +292,8 @@ check: install-hooks
     just check-shellcheck
     just check-decapod-overrides
     just check-pi-decapod-gate
+    just check-pi-gateway-provider
+    just check-headroom-storage
     just check-decapod-deploy-backup
 
 # Prove the project overrides in .decapod/OVERRIDE.md are actually loaded.
@@ -315,6 +317,14 @@ check-decapod-overrides:
 # has it.
 check-pi-decapod-gate:
     nix run --inputs-from . nixpkgs#nodejs -- --test scripts/test-pi-decapod-gate.mjs
+
+# Keep user authentication and model data intact when Pi routes change.
+check-pi-gateway-provider:
+    nix shell --inputs-from . nixpkgs#bash nixpkgs#jq --command bash scripts/test-pi-gateway-provider.sh
+
+# Exercise the rendered startup guard without touching live containers.
+check-headroom-storage:
+    nix shell --inputs-from . nixpkgs#python3 nixpkgs#jq --command python3 scripts/test-headroom-storage.py
 
 # Tests for the store copy that `just deploy-darwin` makes when a deploy
 # changes Decapod (scripts/decapod-deploy-backup.sh). Stub `nix` and `sqlite3`
@@ -663,8 +673,8 @@ check-shellcheck:
 
 # The engine of the Dagger checks on a Mac: the release of
 # .dagger/modules/ci/dagger-module.toml (engineVersion), pinned by digest.
-# Move it with the Dagger CLI.
-dagger_engine_image := "registry.dagger.io/engine:v1.0.0-beta.21@sha256:3444c48e871bedaa95f5b1e57b8c41de929d9e061dd75e9ac6f6deb1f0a74bc3"
+# Update that engineVersion requirement, then run `dagger generate`.
+dagger_engine_image := "registry.dagger.io/engine:v1.0.0-beta.27@sha256:ad121f720ed9bfb8e740f99dd783fa8472965a5e262fc64ff3ef2634cea1e6dd"
 
 # Run the Dagger checks (`dagger check`) on a local engine in podman.
 #

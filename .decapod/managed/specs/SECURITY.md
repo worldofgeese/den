@@ -126,12 +126,13 @@ A prior violation of this invariant -- a `vk_...` key pasted into an untracked
 `~/.cave/agent/models.json` -- is recorded as `home-manager-l23`; note that it
 persisted precisely because the file was unmanaged, so no deploy could correct it.
 
-On 2026-10-30 the team Signet key was readable by every local account. `signet
-connect pi` writes the key into `signet-pi.js` with mode 0644, under
-`~/.pi/agent/extensions/` at 0755, while `~/.config/signet/token` holds it at
-0600. The file is outside git and the Nix store, so the invariant above holds.
-Activation now sets the file to 0600 at each switch, because a Signet sync can
-write it again.
+On 2026-10-30 the team Signet key was readable by every local account. The
+older `signet connect pi` wrote it into `signet-pi.js` with mode 0644, under
+`~/.pi/agent/extensions/` at 0755, while `~/.config/signet/token` held it at
+0600. These files stay outside git and the Nix store. Signet 1.0.1 fixes
+credential-bearing connector files to owner-only permissions; run `signet sync`
+after upgrading to repair existing files. Activation retains its 0600 check
+as a separate safeguard, without changing token roles or agent scopes.
 
 ## Security Testing
 | Test Type | Cadence | Tooling |
@@ -150,7 +151,7 @@ write it again.
 | paphos initrd -> Tang on mother (disk unlock) | paphos' clevis JWE (`/etc/secrets/initrd/root.jwe`, in the initrd), sealed to the Tang signing key on `192.168.99.200:7500` | Tang answers a key-exchange request. It never receives the LUKS passphrase. Unlocking needs both the JWE (on paphos) and a reachable Tang (on the home LAN). | The JWE pins the Tang signing-key thumbprint (`thp`). The enrollment script tests the round trip before it keeps the file. | paphos boot journal; Tang container on mother | Tang unreachable or a key mismatch leaves the root locked. The initrd waits for the passphrase over SSH (`root@paphos:2222`). |
 | paphos, mahakala -> LVFS (firmware) | fwupd metadata and firmware from `cdn.fwupd.org`, applied unattended by `paphos-firmware-update` and mahakala's `fwupd-auto-apply` mcron job | fwupd writes device firmware and UEFI capsules that the platform installs at the next boot | fwupd verifies the signed LVFS metadata (jcat) and each payload's checksum against it; UEFI capsules must also carry the vendor signature the firmware accepts | fwupd history (`fwupdmgr get-history`), journal for the service or mcron job | a failed refresh or update installs nothing; the running firmware stays |
 | paphos -> oracle (upgrade-state probe) | paphos' SSH host key (`modules/_host-keys.nix`), used by the root `paphos-oracle-relay-check` | `upgrade-status@oracle` can only run the forced command `systemctl is-failed nixos-upgrade.service` (`restrict`: no pty, no forwarding) | oracle's host key is pinned in paphos' `known_hosts`; `StrictHostKeyChecking=yes`, user known_hosts ignored | paphos journal for `paphos-oracle-relay-check`, Telegram alert | any other output alerts `oracle-nixos-upgrade-status-unavailable` |
-| pi (M-02877) -> Caveman proxy -> Headroom (model path) | every pi model request, with the gateway bearer, passes two local proxies: Caveman's `lego-claude` compat mount (`127.0.0.1:8787`, launchd) and Headroom (`127.0.0.1:18787`, container) | both read and rewrite (compress) the request and send it on to the gateway's `/claude` endpoint; with `x-headroom-cwd`, Headroom's memory tools file pi memories per project on the `headroom-data` volume | both listen on loopback only; Caveman's SSRF allowlist admits only `127.0.0.1` (`CAVE_SSRF_ALLOWLIST`); the mount keeps the bearer, drops `x-api-key` and other non-standard headers, and forwards only `x-headroom-cwd`; Caveman telemetry is off (`DO_NOT_TRACK=1`) | `~/.local/state/caveman-proxy.log`, `/tmp/headroom.log`, the gateway's `/logs` | a hop that is down fails pi's requests, with no fallback to direct; launchd restarts Caveman, and `com.headroom.watchdog` recovers Headroom |
+| Managed Pi routes (M-02877) -> Caveman -> Headroom | managed Claude and OpenAI requests, including their configured authentication, pass the `lego-claude` or `lego-openai` compatibility mount and Headroom | the proxies can inspect and compress the request, then use the approved gateway's `/claude` or `/openai` root; forwarded `x-headroom-cwd` supplies project attribution in Headroom's configured workspace | host-facing ports are loopback-only; the container's internal bind is separate. Caveman's private-network exception is `127.0.0.1`, authentication is preserved, and both protocol targets are explicit so a corporate credential cannot reach a public default. Telemetry stays off | `~/.local/state/caveman-proxy.log`, `/tmp/headroom.log`, the gateway's `/logs` | proxy failures are not an automatic direct fallback. Direct providers are explicit control routes; launchd and the watchdog retain their existing recovery duties. Cache and end-to-end recovery require separate proof, including the context-mode limitation recorded in OPERATIONS |
 | paphos -> mother (Forgejo backup) | The agenix key `paphos-mother-backup-ssh-key`, used by the root `paphos-forgejo-backup` over the LAN (`192.168.99.200:2235`). mother's host key is pinned in `modules/_host-keys.nix` | mother's `authorized_keys` accepts the key only from paphos' addresses (`from=`, since 2026-10-31). A changed host key stops the backup |
 
 ## Agent and Automation Safety
@@ -204,7 +205,7 @@ Describe the security primitives and security controls implemented in this repos
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `d6943255a8c93659fff8992fce432782b6ece219f273cd0d0ae4e6b5679ce9fe`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (8 files), `terraform/` (1 files)
+- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -4,7 +4,8 @@
   "baseUrl": "https://api.genai.thelegogroup.com",
   "paths": {
     "claude": "/claude",
-    "anthropic": "/anthropic"
+    "anthropic": "/anthropic",
+    "openai": "/openai"
   },
 
   "secret": {
@@ -45,7 +46,7 @@
   "promptCache": {"short": 300},
 
   "headroom": {
-    "image": "ghcr.io/headroomlabs-ai/headroom:latest",
+    "image": "ghcr.io/headroomlabs-ai/headroom:0.44.0@sha256:10ef5f71c4cae3a02ca28107dfcf379aa73314ff26544c1f9988140e71f732f4",
     "containerPort": 8787,
     "mode": "cache",
     "http2": "off",

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "c0dfd02ff264c1933a6abcc44c5ce52a194fcf18",
+    "accepted_commit": "fb70ac36009e67c62cac1f5422a754e793b0f086",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,30 +66,29 @@
     }
   },
   "change": {
-    "id": "change_01M74YYA7JSGRJMAGS51V3YT2Y",
-    "base_commit": "c0dfd02ff264c1933a6abcc44c5ce52a194fcf18",
+    "id": "change_01M75357RFG5GSXJXPBJNE6AV2",
+    "base_commit": "fb70ac36009e67c62cac1f5422a754e793b0f086",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "pin-pr-reviewer-v0-2-6",
-      "summary": "Pin pr-reviewer v0.2.6; OPERATIONS.md states the claim lifecycle and stale-claim release",
-      "input_digest": "sha256:a85c7cf86ffe66126d3461694fa467366f2a30e1371851de498499c061999e45",
-      "proof_refs": [
-        "nix build github:worldofgeese/pr-reviewer/v0.2.6 -> pr-reviewer 0.2.6"
-      ]
+      "id": "bend_01m7533w3ge7qwzh",
+      "summary": "Chorus 0.24.0 for CLI and chorus-pi",
+      "input_digest": "sha256:68c6871810b2ee09fa4363c049f0b7eb87960441b36e27002ecc9ee34fc0a28d"
     },
     {
-      "id": "manifest-refresh-2",
-      "summary": "Commit the specs manifest refresh that validation applied",
-      "input_digest": "sha256:bff0ce005b7bfae470fea823ee5a43b6b93bbd1542a255ebc03f88a21991af7a",
-      "proof_refs": [
-        "decapod validate repair"
-      ]
+      "id": "bend_01m7533w3ge7qwzh-r2",
+      "summary": "Spec manifest refresh",
+      "input_digest": "sha256:a52fb2fbf84267d8321539aadc1987e53ea6a04878406fa67e8c78e004c3b788"
+    },
+    {
+      "id": "bend_01m7533w3ge7qwzh-r3",
+      "summary": "Rebase onto 7a5ea63 (#150)",
+      "input_digest": "sha256:b586bf54e4a1437c77662221d508b4b02c55a8f8219e386c58adc52b94539fec"
     }
   ],
   "intents": {
-    "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y": {
+    "intent:change_01M75357RFG5GSXJXPBJNE6AV2": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -99,11 +98,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
+      "id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Pin pr-reviewer v0.2.6 (stale claim release); answer #151 thread in OPERATIONS.md",
-      "refined_intent": "Pin pr-reviewer v0.2.6 (stale claim release); answer #151 thread in OPERATIONS.md",
+      "raw_intent": "Move den's Chorus CLI and chorus-pi to 0.24.0 with the team server (LEGO/devrel-infra#711)",
+      "refined_intent": "Move den's Chorus CLI and chorus-pi to 0.24.0 with the team server (LEGO/devrel-infra#711)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -112,122 +111,156 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": [
-          "modules/"
-        ]
+        "forbidden_paths": []
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Pin den's pr-reviewer flake input to v0.2.6 and answer den#151's thread in OPERATIONS.md: the head claim is pending during a review cycle, released as success, and stale claims are released. Do not deploy.",
+      "intent": "Tao: DevRel owns the team Chorus server, and he wants the latest versions. The server moved to Chorus v0.24.0 in LEGO/devrel-infra#711 (merged 10:21Z, deployed and verified live by CI at 10:35Z). Den's agent-integrations.nix couples the Chorus CLI, chorus-pi and the team server through chorusVersion, so move it from 0.23.0 to 0.24.0, and update INTERFACES.md and OPERATIONS.md with the release, its migrations, its rollback and the tunnel reconnect after a deploy.",
       "phases": [],
       "proof_hooks": [
-        "nix build github:worldofgeese/pr-reviewer/v0.2.6"
+        "npm publishes @chorus-aidlc/chorus and chorus-pi 0.24.0",
+        "the team server answers healthy with its database connected through chorus-team-tunnel",
+        "plain decapod validate passes with 0.137.2",
+        "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Pin pr-reviewer v0.2.6 (stale claim release); answer #151 thread in OPERATIONS.md",
+      "title": "Move den's Chorus CLI and chorus-pi to 0.24.0 with the team server",
       "todo_ids": [
-        "code_01m74yxpw1qdk6qh"
+        "bend_01m7533w3ge7qwzh"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794389365Z"
+      "updated_at": "1794393775Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Only chorusVersion and the Chorus spec text"
       ],
-      "artifact_hash": "sha256:edc21c046ea643cde48dc965285bea0e74ef7f5b92658df3727f191f13ffe944",
+      "artifact_hash": "sha256:1c7bd0d17d7d623841f6c82e92c006840817d3f4c91ff56d5968363246ef4dba",
       "checks": [
         {
-          "name": "pr-reviewer v0.2.6 tag resolves to f37546e",
+          "name": "npm-0.24.0-published",
+          "status": "passed"
+        },
+        {
+          "name": "rebase-onto-7a5ea63",
+          "status": "passed"
+        },
+        {
+          "name": "server-0.24.0-deployed-live",
+          "status": "passed"
+        },
+        {
+          "name": "tunnel-health-db-connected",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
+            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
+            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M74YYA9G7J795BSX2GBE66FG",
+            "detail": "trajectory:branch_01M75357X1N1K4PD2MM3K1GFRH",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
+            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M75357X1N1K4PD2MM3K1GFRH",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M74YYA9G7J795BSX2GBE66FG": {
+          "branch_01M75357X1N1K4PD2MM3K1GFRH": {
             "evidence_only": true,
-            "id": "branch_01M74YYA9G7J795BSX2GBE66FG",
-            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
+            "id": "branch_01M75357X1N1K4PD2MM3K1GFRH",
+            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
             "steps": [
               {
-                "action": "trajectory.record",
-                "command": "nix flake update pr-reviewer",
+                "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
+                  "modules/M-02877/agent-integrations.nix",
+                  ".decapod/managed/specs/INTERFACES.md",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "flake.nix",
-                  "flake.nix",
-                  "flake.lock",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/config.toml"
+                  "LEGO/devrel-infra#711 (Chorus v0.24.0 image digest, signed) merged 2026-11-11T10:21:25Z as 3f7638a after resolving pr-reviewer's two blocking threads (#590/#591 fixed upstream in v0.21.0; no container-file change; 4 additive migrations plus one DaemonExecution unique-index swap, rollback SQL documented; additive API only). CI/CD run 43002933880 deploy (aws-chorus) success 10:29:53-10:35:27Z: 'deployed production and verified it live'. Through chorus-team-tunnel: /api/health {status ok, database connected} at 10:42Z. npm: @chorus-aidlc/chorus and @chorus-aidlc/chorus-pi 0.24.0 published (latest)."
                 ],
                 "proof_refs": [
-                  "pr-reviewer v0.2.6 tag resolves to f37546e"
+                  "npm-0.24.0-published",
+                  "server-0.24.0-deployed-live",
+                  "tunnel-health-db-connected"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "implementation",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "Rebased onto 7a5ea63 (#150: Decapod 0.137.4 and the nightly inputs). Only .manifest.json conflicted (took main's). chorusVersion stays 0.24.0. Validation now uses Decapod 0.137.4 (lya0ybyc…, from decapod.cachix.org), whose copy test left the migrated schema unchanged. Claim renewed under a fresh session after /tmp/dec.env was overwritten and deleted by another agent (session file now in ~/.cache/pi-dktaohan/dec.env)."
+                ],
+                "proof_refs": [
+                  "rebase-onto-7a5ea63"
+                ],
+                "scope": [
+                  "modules/M-02877/agent-integrations.nix, .decapod/managed/specs/INTERFACES.md, .decapod/managed/specs/OPERATIONS.md",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [
-        "nix flake update pr-reviewer"
-      ],
+      "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "flake.nix"
+      "evidence": [
+        "LEGO/devrel-infra#711 (Chorus v0.24.0 image digest, signed) merged 2026-11-11T10:21:25Z as 3f7638a after resolving pr-reviewer's two blocking threads (#590/#591 fixed upstream in v0.21.0; no container-file change; 4 additive migrations plus one DaemonExecution unique-index swap, rollback SQL documented; additive API only). CI/CD run 43002933880 deploy (aws-chorus) success 10:29:53-10:35:27Z: 'deployed production and verified it live'. Through chorus-team-tunnel: /api/health {status ok, database connected} at 10:42Z. npm: @chorus-aidlc/chorus and @chorus-aidlc/chorus-pi 0.24.0 published (latest).",
+        "Rebased onto 7a5ea63 (#150: Decapod 0.137.4 and the nightly inputs). Only .manifest.json conflicted (took main's). chorusVersion stays 0.24.0. Validation now uses Decapod 0.137.4 (lya0ybyc…, from decapod.cachix.org), whose copy test left the migrated schema unchanged. Claim renewed under a fresh session after /tmp/dec.env was overwritten and deleted by another agent (session file now in ~/.cache/pi-dktaohan/dec.env)."
       ],
-      "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
+      "inspected_files": [],
+      "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
       "modified_files": [
-        ".decapod/config.toml",
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        "flake.lock",
-        "flake.nix"
+        "modules/M-02877/agent-integrations.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
+        "modules/M-02877/agent-integrations.nix, .decapod/managed/specs/INTERFACES.md, .decapod/managed/specs/OPERATIONS.md",
         "root"
       ],
-      "run_id": "branch_01M74YYA9G7J795BSX2GBE66FG",
+      "run_id": "branch_01M75357X1N1K4PD2MM3K1GFRH",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m74yxpw1qdk6qh",
+      "task_id": "bend_01m7533w3ge7qwzh",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

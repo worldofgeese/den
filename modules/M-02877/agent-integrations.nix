@@ -39,12 +39,12 @@
     # chorus-team-tunnel launchd agent (darwin.nix) on 3870. Since
     # devrel-infra#280 it has no load balancer or DNS name; its NEXTAUTH_URL is
     # http://127.0.0.1:3870, so the web login works only on this port. Server,
-    # client and chorus-pi are all Chorus 0.23.0 (server since devrel-infra#483,
-    # 2026-10-22). 0.21.1 was the first release with pi's built-in MCP (Chorus
+    # client and chorus-pi are all Chorus 0.24.0 (server since devrel-infra#711,
+    # 2026-11-11). 0.21.1 was the first release with pi's built-in MCP (Chorus
     # #597, #598). devrel-infra's nightly release job proposes server upgrades;
     # move chorusVersion with them.
     chorusUrl = "http://127.0.0.1:3870";
-    chorusVersion = "0.23.0";
+    chorusVersion = "0.24.0";
     # The environment of every Chorus client here: interactive pi, chorus-pi
     # and the Chorus pi daemon. CHORUS_SUBMIT_GATE is chorus-pi's pre-submit
     # read-back gate (Chorus#631, in 0.23.0). `block` refuses a Chorus submit

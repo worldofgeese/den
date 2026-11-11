@@ -87,6 +87,14 @@
       "proof_refs": [
         "nix build github:worldofgeese/pr-reviewer/v0.2.5 -> pr-reviewer 0.2.5"
       ]
+    },
+    {
+      "id": "pr-reviewer-v0-2-5-approve",
+      "summary": "Approve the plan; validate refreshed the specs manifest",
+      "input_digest": "sha256:d9291e1362aff8eb658c92676b724f85655b7678fb3967bb73702c452249e6dd",
+      "proof_refs": [
+        "decapod validate repair applied the manifest refresh"
+      ]
     }
   ],
   "intents": {
@@ -126,7 +134,7 @@
         "nix flake metadata shows pr-reviewer locked to ec8afdd (the v0.2.5 tag)"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
       "stop_conditions": [],
       "title": "Move den's pr-reviewer flake input to v0.2.5 (head claim, issue #36 option 3)",
       "todo_ids": [
@@ -134,7 +142,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794383586Z"
+      "updated_at": "1794384141Z"
     },
     "trajectory": {
       "active_boundaries": [

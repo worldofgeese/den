@@ -465,7 +465,7 @@ same 54k-file nixpkgs tree 12x faster). Fetching one nixpkgs revision took 8.5
 minutes. The repository therefore minimises trees Nix must touch there:
 topgrade's "Flake inputs" step runs `just update-darwin`, which skips the
 Linux-only root inputs in `darwin-skip-inputs` (nixarchy brings a third nixpkgs
-and ~15 inputs); one root `rust-overlay` is followed by decapod and devenv; and `just cachix-push /run/current-system` pushes the path
+and ~15 inputs); one root `rust-overlay` is followed by devenv (decapod keeps upstream's own inputs, so that its package is the one in upstream's cache; its nixpkgs pin is now the same revision as decapod-g5's, so it adds only one rust-overlay tree; when upstream moves that pin, M-02877 fetches the new tree once to evaluate decapod); and `just cachix-push /run/current-system` pushes the path
 darwin-rebuild just built instead of evaluating the system again. The durable
 fix is a Defender exclusion for Lix's `nix`/`nix-daemon` or `/nix/store`, which
 only device management can grant.
@@ -484,8 +484,24 @@ any process running as the user can read these without a dialog.
 ### Binary Cache Declarations
 `flake.nix` carries no `nixConfig`: a declined flake config warns on every nix
 command. M-02877 declares its caches in `modules/M-02877/darwin.nix`;
-mahakala's Home Manager switch passes the numtide, nixarchy and Hyprland caches
-with their keys through `NIX_CONFIG` in `deploy-mahakala-hm-only`.
+mahakala's Home Manager switch passes the numtide, nixarchy, Hyprland and
+Decapod caches with their keys through `NIX_CONFIG` in `deploy-mahakala-hm-only`.
+
+`decapod.cachix.org` is upstream Decapod's cache (DecapodLabs/decapod#1600, set
+up by its maintainer on 2026-11-10). Upstream CI publishes `packages.default`
+there on release merges, for aarch64-darwin and x86_64-linux, signed with
+`decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng=`. A cache
+entry matches only upstream's exact derivation, so `flake.nix` takes the
+`decapod` input without `follows`. With `follows`, den's 0.136.3 build was a
+different store path that the cache did not have, so every bump compiled
+Decapod for minutes. Trust: the Linux build is reproducible
+(DecapodLabs/decapod#1176), so anyone can rebuild and compare it. The macOS
+build still differed in its Mach-O UUID on standard Nix, so on M-02877 the
+cache means trusting upstream's CI and signing key. That trust is host-wide:
+Nix cannot scope a key to one package, so M-02877's daemon accepts any store
+path signed by `decapod.cachix.org-1`, for any build, not only decapod.
+mahakala trusts the same cache and key.
+pixel-fold (aarch64-linux) has no published build and keeps compiling.
 
 ## Change Propagation Checklist
 - [ ] Component ownership remains singular and explicit.

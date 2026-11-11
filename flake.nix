@@ -20,13 +20,16 @@
     };
     # Upstream ships packages.default since DecapodLabs/decapod#1169, so the
     # version and hashes come from flake.lock instead of being re-derived by
-    # scripts/update-rust-tools.sh on every release. rust-overlay follows the
-    # root nixpkgs so this does not pull a second nixpkgs copy into the lock.
-    decapod = {
-      url = "github:DecapodLabs/decapod";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.rust-overlay.follows = "rust-overlay";
-    };
+    # scripts/update-rust-tools.sh on every release. Since 0.136.3, upstream CI
+    # also publishes that package to decapod.cachix.org on release merges
+    # (DecapodLabs/decapod#1600; modules/M-02877/darwin.nix trusts the cache).
+    # Deliberately WITHOUT `follows`: den's nixpkgs or rust-overlay would make a
+    # different derivation from the cached one, and every bump would compile
+    # Decapod again (measured on 2026-11-10 with 0.136.3). Upstream's nixpkgs
+    # pin is now the same revision as decapod-g5's below, so it adds no fetch.
+    # When upstream moves that pin, M-02877 fetches the new tree once to
+    # evaluate the package (about 8.5 minutes under Defender; ARCHITECTURE.md).
+    decapod.url = "github:DecapodLabs/decapod";
     # The evaluator of the Decapod cutover PAUSE route (G5): the only Decapod
     # that the pi prompt-gate extension may run while the PAUSE marker exists
     # (modules/M-02877/agent-integrations.nix). Pinned by full revision (0.121.2)

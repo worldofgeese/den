@@ -103,6 +103,14 @@
       "proof_refs": [
         "decapod rpc --op agent.init inventory_digest"
       ]
+    },
+    {
+      "id": "pr-reviewer-v0-2-5-manifest",
+      "summary": "Commit the specs manifest refresh that validate applied",
+      "input_digest": "sha256:6fe08eb6a50478eea4619c6b733fc625063e88f56124695493146a27d90cdefe",
+      "proof_refs": [
+        "decapod validate repair"
+      ]
     }
   ],
   "intents": {

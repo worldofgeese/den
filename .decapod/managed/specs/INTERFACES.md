@@ -251,7 +251,7 @@ installed on the personal hosts.
 
 | Service | Endpoint | Credential | Consumers |
 |---|---|---|---|
-| Chorus (`projects/aws-chorus`, server v0.23.0) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from `chorus-api-key`: secretspec, else the last-known-good cache `~/.local/state/chorus-api-key.cache`; agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.23.0`; the `chorus-pi-daemon` launchd agent. Both get `CHORUS_URL` and `CHORUS_SUBMIT_GATE=block` from `chorusEnv` |
+| Chorus (`projects/aws-chorus`, server v0.24.0) | `http://127.0.0.1:3870/api/mcp`, through the `chorus-team-tunnel` launchd agent | `CHORUS_API_KEY` from `chorus-api-key`: secretspec, else the last-known-good cache `~/.local/state/chorus-api-key.cache`; agent "Tao's Key" | interactive pi through `mcp.json` and `@chorus-aidlc/chorus-pi@0.23.0`; the `chorus-pi-daemon` launchd agent. Both get `CHORUS_URL` and `CHORUS_SUBMIT_GATE=block` from `chorusEnv` |
 | Team Signet (`projects/aws-signet`) | `http://127.0.0.1:3860` through `signet-team-tunnel` | `~/.config/signet/token`, scoped to agent `tao.hansen` | the `signet-auto-curator` launchd agent (`SIGNET_TEAM_URL`; the curator reads the token file itself), and a shell with `SIGNET_STORE=team`, where the `_signet_store` precmd hook exports `SIGNET_DAEMON_URL=http://127.0.0.1:3860` and `SIGNET_API_KEY` |
 | Personal Signet (container) | `http://127.0.0.1:3850` | none: the daemon binds loopback only | every Signet client, whatever the repository: `SIGNET_DAEMON_URL`, `SIGNET_TEAM_URL` and `SIGNET_AGENT_ID` in the session environment (`home.sessionVariables`) and in the Chorus pi daemon's. No shell exports the team key unless `SIGNET_STORE=team`. |
 | Gateway auth shim (`signet-gateway-shim`) | `http://127.0.0.1:3851` to the LEGO gateway (`gateway.claudeUrl`) | `LEGO_GATEWAY_API_KEY`: secretspec, else the cache `~/.local/state/gateway-key.cache`, through `gateway.keyCommand` (`SHIM_TOKEN_COMMAND`), the same source as pi | the personal Signet's dreaming and other non-acpx executors |
@@ -268,8 +268,12 @@ packages on its own. ponytail, context-mode and pi-beads-extension are
 unpinned.
 
 chorus-pi stays pinned. The Chorus client, chorus-pi and the team server move
-together: on 2026-10-23 they moved to 0.23.0 (`chorusVersion`), because the
-team server runs 0.23.0. The personal Signet image is pinned to
+together: on 2026-11-11 they moved to 0.24.0 (`chorusVersion`), because the
+team server runs 0.24.0 since LEGO/devrel-infra#711. Chorus 0.24.0 adds Agent
+Teams, the `chorus_request_review` tool, a `review` role and an optional
+`proposalUuid` for `chorus_recommend_team_agent`, and an optional `ideaUuid` on
+tasks. All of them are additive, so 0.23.0 clients kept working against the
+0.24.0 server until den moved. The personal Signet image is pinned to
 `ghcr.io/signet-ai/signet:1.0.1` by digest in `modules/M-02877/darwin.nix`.
 Its image supplies both the CLI and daemon. The pin takes effect only when
 the container is recreated. Preserve the private workspace and stop the named

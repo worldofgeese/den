@@ -420,9 +420,17 @@ which is why the served set is one directory. Log:
   `~/.local/state/chorus-api-key.cache` (0600) after each good read and uses
   the cache when secretspec fails, as the gateway `keyCommand` already does.
   The first start must happen while the Mac is unlocked.
-- Versions. Server, client and `chorus-pi` are all 0.23.0. The server moved
-  to it in LEGO/devrel-infra#483 (2026-10-22), and devrel-infra pins it in
-  `projects/aws-chorus/sst.config.ts`. v0.21.0 added private projects with a
+- Versions. Server, client and `chorus-pi` are all 0.24.0. The server moved
+  to it in LEGO/devrel-infra#711 (deployed 2026-11-11 at 10:35Z; CI's deploy
+  job reported "deployed production and verified it live"), and devrel-infra
+  pins it in `projects/aws-chorus/sst.config.ts`. 0.24.0 has four migrations:
+  three new tables, two new columns (`DaemonExecution.sessionId` with a
+  default, `Task.ideaUuid` nullable), and one unique-index swap on
+  `DaemonExecution`. An image rollback to 0.23.0 keeps the new schema and
+  needs the old key back: `CREATE UNIQUE INDEX
+  "DaemonExecution_connectionUuid_entityType_entityUuid_key" ON
+  "DaemonExecution"("connectionUuid","entityType","entityUuid");`. Otherwise
+  use Aurora point-in-time recovery to before the deploy. v0.21.0 added private projects with a
   schema migration. devrel-infra's nightly release job opens a PR for each
   new server release. Keep `chorusVersion` in step with it: 0.21.1 is the
   first client release with pi's built-in MCP, so never downgrade the client
@@ -430,6 +438,11 @@ which is why the served set is one directory. Log:
   Chorus tools again (Chorus#608) and makes the daemon retry a failed wake
   delivery (Chorus#609). 0.23.0 adds the submit gate (`CHORUS_SUBMIT_GATE`,
   INTERFACES.md).
+- A server deploy replaces the ECS task, which ends the `chorus-team-tunnel`
+  SSM session. The tunnel then waits for valid AWS credentials
+  (`aws sts get-caller-identity`) before it reconnects, so after a deploy with
+  expired credentials, local Chorus is down until `saml2aws login` succeeds.
+  That happened after the 0.24.0 deploy on 2026-11-11.
 - The Chorus CLI is an npm global (`~/.local/bin/chorus`), installed and pinned
   by activation because the package is the whole Chorus server app. The CLI is
   a `#!/usr/bin/env node` script and the activation PATH has no Node, so the

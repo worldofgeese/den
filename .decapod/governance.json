@@ -78,6 +78,14 @@
       "proof_refs": [
         "nix build github:worldofgeese/pr-reviewer/v0.2.6 -> pr-reviewer 0.2.6"
       ]
+    },
+    {
+      "id": "manifest-refresh-2",
+      "summary": "Commit the specs manifest refresh that validation applied",
+      "input_digest": "sha256:bff0ce005b7bfae470fea823ee5a43b6b93bbd1542a255ebc03f88a21991af7a",
+      "proof_refs": [
+        "decapod validate repair"
+      ]
     }
   ],
   "intents": {

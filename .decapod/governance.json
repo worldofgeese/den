@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "1eb9c1356a8bbdcedb7793489a1f2ef5beb30b76",
+    "accepted_commit": "c0dfd02ff264c1933a6abcc44c5ce52a194fcf18",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,49 +66,30 @@
     }
   },
   "change": {
-    "id": "change_01M74PRFT3JPSR07PT43AS7V8F",
-    "base_commit": "1eb9c1356a8bbdcedb7793489a1f2ef5beb30b76",
+    "id": "change_01M74YYA7JSGRJMAGS51V3YT2Y",
+    "base_commit": "c0dfd02ff264c1933a6abcc44c5ce52a194fcf18",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "bugs_01m74pqphqkkayvs",
-      "summary": "Use upstream's decapod.cachix.org; fix the #147 findings",
-      "input_digest": "sha256:00f14c8a2f16d99a971e9a731aedb93d45857409323b4e69b8a15dcd5a4b9526"
+      "id": "pin-pr-reviewer-v0-2-6",
+      "summary": "Pin pr-reviewer v0.2.6; OPERATIONS.md states the claim lifecycle and stale-claim release",
+      "input_digest": "sha256:a85c7cf86ffe66126d3461694fa467366f2a30e1371851de498499c061999e45",
+      "proof_refs": [
+        "nix build github:worldofgeese/pr-reviewer/v0.2.6 -> pr-reviewer 0.2.6"
+      ]
     },
     {
-      "id": "bugs_01m74pqphqkkayvs-r2",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:f34fb1379cad1a53adf31a0b612c37c3a4c10e573d59b37cfd9d9bd45e7fedf2"
-    },
-    {
-      "id": "bugs_01m74pqphqkkayvs-r3",
-      "summary": "Rebase onto d59d2ac; decapod lock re-applied",
-      "input_digest": "sha256:112f6be80936e7a18926e40019ad2e5cef7e8e5a6f5d1129e227d098f8fb19d3"
-    },
-    {
-      "id": "bugs_01m74pqphqkkayvs-r5",
-      "summary": "Address the #149 review notes",
-      "input_digest": "sha256:9221a8ffb6844f73a5443fa765f239d1bfebc8d7b99b39cda8b8bf7b818b4c14"
-    },
-    {
-      "id": "bugs_01m74pqphqkkayvs-r6",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:eeb03b379e499ff29f2be48badad12031d1ce3b71689697ae878a4b39394cbc6"
-    },
-    {
-      "id": "bugs_01m74pqphqkkayvs-r7",
-      "summary": "Reconcile the source inventory after the review edits",
-      "input_digest": "sha256:5baf229a74e2284f0961c9095837d86a1452fd423be82359e7e7e1d760b52ce5"
-    },
-    {
-      "id": "bugs_01m74pqphqkkayvs-r9",
-      "summary": "Move to Decapod 0.137.2; reconcile sources; mahakala trust wording",
-      "input_digest": "sha256:c75c9246eb29b822d94352d891f80532b609935e7a5ab8815205a7bf888a73e6"
+      "id": "manifest-refresh-2",
+      "summary": "Commit the specs manifest refresh that validation applied",
+      "input_digest": "sha256:bff0ce005b7bfae470fea823ee5a43b6b93bbd1542a255ebc03f88a21991af7a",
+      "proof_refs": [
+        "decapod validate repair"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M74PRFT3JPSR07PT43AS7V8F": {
+    "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -118,11 +99,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
+      "id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Use upstream's decapod.cachix.org: drop the decapod input's follows, trust the cache on M-02877; fix the #147 OPERATIONS.md findings (DecapodLabs/decapod#1177)",
-      "refined_intent": "Use upstream's decapod.cachix.org: drop the decapod input's follows, trust the cache on M-02877; fix the #147 OPERATIONS.md findings (DecapodLabs/decapod#1177)",
+      "raw_intent": "Pin pr-reviewer v0.2.6 (stale claim release); answer #151 thread in OPERATIONS.md",
+      "refined_intent": "Pin pr-reviewer v0.2.6 (stale claim release); answer #151 thread in OPERATIONS.md",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -131,283 +112,122 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": []
+        "forbidden_paths": [
+          "modules/"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao approved (2026-11-11, this session) trusting upstream Decapod's public cache decapod.cachix.org on his machines, the same trust on mahakala as anywhere, and prefers unpinned, latest versions wherever possible. Drop the decapod input's follows so den's package is upstream's exact cached derivation; trust the cache and its key on M-02877 and in mahakala's Home Manager NIX_CONFIG; move decapod to the latest release (0.137.2, upstream 53a5574) with its entrypoints and Dockerfile.decapod; fix the review findings on den #147.",
+      "intent": "Pin den's pr-reviewer flake input to v0.2.6 and answer den#151's thread in OPERATIONS.md: the head claim is pending during a review cycle, released as success, and stale claims are released. Do not deploy.",
       "phases": [],
       "proof_hooks": [
-        "den's decapod evaluates to upstream's cached path, and nix fetches it from decapod.cachix.org with its signature",
-        "0.136.x still reads and writes a store migrated by 0.137.2 (copy test), and a supported backup precedes the first 0.137.2 write",
-        "plain decapod validate passes with 0.137.2",
-        "just check (pre-commit)"
+        "nix build github:worldofgeese/pr-reviewer/v0.2.6"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Fetch Decapod from upstream's binary cache; move to the latest release, 0.137.2",
+      "title": "Pin pr-reviewer v0.2.6 (stale claim release); answer #151 thread in OPERATIONS.md",
       "todo_ids": [
-        "bugs_01m74pqphqkkayvs"
+        "code_01m74yxpw1qdk6qh"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794385549Z"
+      "updated_at": "1794389365Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Only the decapod input (follows, lock), the cache declarations for M-02877 and mahakala, and the spec text about them and about den #147"
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:70df78870212c5340b7fba259cbac06e93fa8ab938956dc6742784f2055c4f10",
+      "artifact_hash": "sha256:edc21c046ea643cde48dc965285bea0e74ef7f5b92658df3727f191f13ffe944",
       "checks": [
         {
-          "name": "backup-before-0.137.2",
-          "status": "passed"
-        },
-        {
-          "name": "cache-fetch-signed",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-0.137.2-cached",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-outpath-equals-upstream-cached",
-          "status": "passed"
-        },
-        {
-          "name": "nightly-update-takes-upstream-lock",
-          "status": "passed"
-        },
-        {
-          "name": "rebase-onto-d59d2ac",
-          "status": "passed"
-        },
-        {
-          "name": "review-149-notes-addressed",
-          "status": "passed"
-        },
-        {
-          "name": "root-inputs-unchanged",
-          "status": "passed"
-        },
-        {
-          "name": "source-inventory-reconciled",
-          "status": "passed"
-        },
-        {
-          "name": "store-migration-backward-compatible",
+          "name": "pr-reviewer v0.2.6 tag resolves to f37546e",
           "status": "passed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
+            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
+            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M74PRFW9NQXB4AW3JWQV8BX2",
+            "detail": "trajectory:branch_01M74YYA9G7J795BSX2GBE66FG",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
+            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M74PRFW9NQXB4AW3JWQV8BX2",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M74PRFW9NQXB4AW3JWQV8BX2",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
-          },
-          {
-            "detail": "trajectory:branch_01M74PRFW9NQXB4AW3JWQV8BX2",
-            "event_id": "event:7",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
-            "kind": "trajectory_step_recorded",
-            "sequence": 7
-          },
-          {
-            "detail": "trajectory:branch_01M74PRFW9NQXB4AW3JWQV8BX2",
-            "event_id": "event:8",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
-            "kind": "trajectory_step_recorded",
-            "sequence": 8
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 8,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M74PRFW9NQXB4AW3JWQV8BX2": {
+          "branch_01M74YYA9G7J795BSX2GBE66FG": {
             "evidence_only": true,
-            "id": "branch_01M74PRFW9NQXB4AW3JWQV8BX2",
-            "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
+            "id": "branch_01M74YYA9G7J795BSX2GBE66FG",
+            "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
             "steps": [
               {
-                "action": "implementation",
+                "action": "trajectory.record",
+                "command": "nix flake update pr-reviewer",
                 "custody_event_id": "event:4",
                 "observations": [
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "flake.nix",
                   "flake.nix",
                   "flake.lock",
-                  "modules/M-02877/darwin.nix",
-                  "Justfile",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "decapod.cachix.org (public, key decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng=) has v0.136.3 for aarch64-darwin (w6s05i2…) and x86_64-linux (k0nxbq78…); not aarch64-linux. Den's follows build mlai9353… was not in it. After dropping follows, nix flake lock set decapod/rust-overlay to the newest 89750a2; set to upstream's locked 32346a8 by hand, nix flake lock then a no-op; no root input's locked source changed. Den's decapod (alone and in M-02877 home.packages) = /nix/store/w6s05i2hl1nfjhv7yj7a9xakpn6fw671-decapod-0.136.3; nix build fetched it from https://decapod.cachix.org in 2 s (10.06 MiB), sig decapod.cachix.org-1:W39x…, binary reports 0.136.3. Probe: nix flake update decapod -> 57a05bb (0.137.1) with decapod/rust-overlay 32346a8 = upstream's lock. 0.137.0 notes list guarded storage migrations, so 0.137.x is a separate cutover. workspace ensure with PATH 0.136.2 had rewritten the entrypoints to 0.136.2; restored from main."
+                  ".decapod/config.toml"
                 ],
                 "proof_refs": [
-                  "decapod-outpath-equals-upstream-cached",
-                  "cache-fetch-signed",
-                  "nightly-update-takes-upstream-lock",
-                  "root-inputs-unchanged"
+                  "pr-reviewer v0.2.6 tag resolves to f37546e"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
                 "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "Rebased onto d59d2ac (#148). Conflicts in config.toml, governance.json, .manifest.json and flake.lock resolved by the den precedent (main's config/manifest/lock, this branch's governance). nix flake lock re-added decapod's own nixpkgs and rust-overlay; rust-overlay set to upstream's 32346a8 again; no root input's locked source changed vs main. Den's decapod = /nix/store/w6s05i2hl1nfjhv7yj7a9xakpn6fw671-decapod-0.136.3 (upstream cached)."
-                ],
-                "proof_refs": [
-                  "rebase-onto-d59d2ac",
-                  "decapod-outpath-equals-upstream-cached"
-                ],
-                "scope": [
-                  "flake.nix, flake.lock, modules/M-02877/darwin.nix, Justfile, .decapod/managed/specs/ARCHITECTURE.md, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:6",
-                "observations": [
-                  "flake.nix",
-                  "modules/M-02877/darwin.nix",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "pr-reviewer on #149 (3 non-blocking notes) addressed in text: (1) OPERATIONS.md says nothing checks the decapod/rust-overlay pin, how to re-pin and how to check (reviewer's documented alternative to a guard; a wrong pin costs only a local build, and nix flake update decapod re-pins by itself); (2) darwin.nix and ARCHITECTURE.md say the key is trusted host-wide, while mahakala's is per invocation; (3) flake.nix and ARCHITECTURE.md qualify the nixpkgs cost: decapod/nixpkgs and decapod-g5/nixpkgs are both b6018f8 (one tree), and upstream's lock at 57a05bb (0.137.1) also pins b6018f8 and rust-overlay 32346a8."
-                ],
-                "proof_refs": [
-                  "review-149-notes-addressed"
-                ],
-                "scope": [
-                  "flake.nix, flake.lock, modules/M-02877/darwin.nix, Justfile, .decapod/managed/specs/ARCHITECTURE.md, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
-                  "root"
-                ],
-                "sequence": 6,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:7",
-                "observations": [
-                  ".decapod/config.toml",
-                  "Reconciliation after the #149 review edits: of 47 discovered sources only Justfile (mahakala cache variables), flake.lock (decapod nodes) and flake.nix (decapod input and comment) differ from main; no workflow changed; command contract digest 5d333049 unchanged; config.toml differs from main only in reviewed_sources_digest, renewed to agent.init's inventory digest d9e1b80c."
-                ],
-                "proof_refs": [
-                  "source-inventory-reconciled"
-                ],
-                "scope": [
-                  "flake.nix, flake.lock, modules/M-02877/darwin.nix, Justfile, .decapod/managed/specs/ARCHITECTURE.md, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
-                  "root"
-                ],
-                "sequence": 7,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:8",
-                "observations": [
-                  "flake.lock",
-                  "AGENTS.md",
-                  "CLAUDE.md",
-                  "CODEX.md",
-                  "GEMINI.md",
-                  ".decapod/managed/Dockerfile.decapod",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "Tao: no narrowed trust (mahakala same as any host) and latest wherever possible. nix flake update decapod -> 53a5574 (v0.137.2) with nixpkgs b6018f8, rust-overlay 32346a8, flake-utils 11707dc = upstream's lock (no hand pin); outPath /nix/store/w7h10arrygsb7l2pif1v78nnkcphsawz-decapod-0.137.2 is in decapod.cachix.org and nix fetched it with the decapod.cachix.org-1 signature. Copy test of the live store: 0.137.2 migrated it (110 -> 104 objects, integrity ok, schema_version 18 unchanged); 0.136.2 then read 105 tasks and wrote (session acquire, todo add, todo claim); 0.137.2 reopened with no error; older releases re-create 4 indexes. Same test passed with 0.137.1. Isolated init with 0.137.2 changed only the 4 entrypoints and Dockerfile.decapod. Backup decapod-pre-0.137.2-20261111T082519Z.db (132100096 bytes, mode 0600, integrity ok, 110 objects) before 0.137.2 first opened the shared store. ghcr v0.137.2-debian pending (upstream Release run in progress)."
-                ],
-                "proof_refs": [
-                  "decapod-0.137.2-cached",
-                  "store-migration-backward-compatible",
-                  "backup-before-0.137.2"
-                ],
-                "scope": [
-                  "flake.nix, flake.lock, modules/M-02877/darwin.nix, Justfile, .decapod/managed/specs/ARCHITECTURE.md, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
-                  "root"
-                ],
-                "sequence": 8,
-                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [],
-      "destination": "pull request",
-      "evidence": [
-        "Rebased onto d59d2ac (#148). Conflicts in config.toml, governance.json, .manifest.json and flake.lock resolved by the den precedent (main's config/manifest/lock, this branch's governance). nix flake lock re-added decapod's own nixpkgs and rust-overlay; rust-overlay set to upstream's 32346a8 again; no root input's locked source changed vs main. Den's decapod = /nix/store/w6s05i2hl1nfjhv7yj7a9xakpn6fw671-decapod-0.136.3 (upstream cached).",
-        "Reconciliation after the #149 review edits: of 47 discovered sources only Justfile (mahakala cache variables), flake.lock (decapod nodes) and flake.nix (decapod input and comment) differ from main; no workflow changed; command contract digest 5d333049 unchanged; config.toml differs from main only in reviewed_sources_digest, renewed to agent.init's inventory digest d9e1b80c.",
-        "Tao: no narrowed trust (mahakala same as any host) and latest wherever possible. nix flake update decapod -> 53a5574 (v0.137.2) with nixpkgs b6018f8, rust-overlay 32346a8, flake-utils 11707dc = upstream's lock (no hand pin); outPath /nix/store/w7h10arrygsb7l2pif1v78nnkcphsawz-decapod-0.137.2 is in decapod.cachix.org and nix fetched it with the decapod.cachix.org-1 signature. Copy test of the live store: 0.137.2 migrated it (110 -> 104 objects, integrity ok, schema_version 18 unchanged); 0.136.2 then read 105 tasks and wrote (session acquire, todo add, todo claim); 0.137.2 reopened with no error; older releases re-create 4 indexes. Same test passed with 0.137.1. Isolated init with 0.137.2 changed only the 4 entrypoints and Dockerfile.decapod. Backup decapod-pre-0.137.2-20261111T082519Z.db (132100096 bytes, mode 0600, integrity ok, 110 objects) before 0.137.2 first opened the shared store. ghcr v0.137.2-debian pending (upstream Release run in progress).",
-        "decapod.cachix.org (public, key decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng=) has v0.136.3 for aarch64-darwin (w6s05i2…) and x86_64-linux (k0nxbq78…); not aarch64-linux. Den's follows build mlai9353… was not in it. After dropping follows, nix flake lock set decapod/rust-overlay to the newest 89750a2; set to upstream's locked 32346a8 by hand, nix flake lock then a no-op; no root input's locked source changed. Den's decapod (alone and in M-02877 home.packages) = /nix/store/w6s05i2hl1nfjhv7yj7a9xakpn6fw671-decapod-0.136.3; nix build fetched it from https://decapod.cachix.org in 2 s (10.06 MiB), sig decapod.cachix.org-1:W39x…, binary reports 0.136.3. Probe: nix flake update decapod -> 57a05bb (0.137.1) with decapod/rust-overlay 32346a8 = upstream's lock. 0.137.0 notes list guarded storage migrations, so 0.137.x is a separate cutover. workspace ensure with PATH 0.136.2 had rewritten the entrypoints to 0.136.2; restored from main.",
-        "pr-reviewer on #149 (3 non-blocking notes) addressed in text: (1) OPERATIONS.md says nothing checks the decapod/rust-overlay pin, how to re-pin and how to check (reviewer's documented alternative to a guard; a wrong pin costs only a local build, and nix flake update decapod re-pins by itself); (2) darwin.nix and ARCHITECTURE.md say the key is trusted host-wide, while mahakala's is per invocation; (3) flake.nix and ARCHITECTURE.md qualify the nixpkgs cost: decapod/nixpkgs and decapod-g5/nixpkgs are both b6018f8 (one tree), and upstream's lock at 57a05bb (0.137.1) also pins b6018f8 and rust-overlay 32346a8."
+      "declared_commands": [
+        "nix flake update pr-reviewer"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M74PRFT3JPSR07PT43AS7V8F",
+      "destination": "pull request",
+      "evidence": [],
+      "inspected_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "flake.nix"
+      ],
+      "intent_id": "intent:change_01M74YYA7JSGRJMAGS51V3YT2Y",
       "modified_files": [
         ".decapod/config.toml",
-        ".decapod/managed/Dockerfile.decapod",
-        ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        ".decapod/managed/specs/VALIDATION.md",
-        "AGENTS.md",
-        "CLAUDE.md",
-        "CODEX.md",
-        "GEMINI.md",
-        "Justfile",
         "flake.lock",
-        "flake.nix",
-        "modules/M-02877/darwin.nix"
+        "flake.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "flake.nix, flake.lock, modules/M-02877/darwin.nix, Justfile, .decapod/managed/specs/ARCHITECTURE.md, .decapod/managed/specs/OPERATIONS.md, .decapod/config.toml",
         "root"
       ],
-      "run_id": "branch_01M74PRFW9NQXB4AW3JWQV8BX2",
+      "run_id": "branch_01M74YYA9G7J795BSX2GBE66FG",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bugs_01m74pqphqkkayvs",
+      "task_id": "code_01m74yxpw1qdk6qh",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -1,4 +1,4 @@
-{inputs, ...}: {
+{...}: {
   # Team integrations for the agents on this work Mac: Chorus, Beads, Signet
   # (personal daemon, team pool through the curator) and the LEGO TechWriter
   # docs toolbox. M-02877 only; the personal machines keep their own Signet
@@ -10,30 +10,6 @@
     ...
   }: let
     home = config.home.homeDirectory;
-
-    # Decapod cutover PAUSE route (G5). While the marker file exists, the pi
-    # prompt gate (pi-decapod-gate.ts) runs only this runner: the Decapod 0.121.2
-    # evaluator pinned by full revision in flake.nix (`decapod-g5`, no follows),
-    # from an empty temporary directory, with a minimal environment and a
-    # sandbox that denies all access to this repository and all writes under the
-    # home directory. Every tool is called by absolute path, with no PATH lookup.
-    # The runner stays in the home-manager closure, so its evaluator is rooted
-    # through migration and rollback. It is the immutable form of the reviewed
-    # ~/.cache/pi-dktaohan/decapod-gate.sh. BrightQuartz creates the marker at
-    # PAUSE and removes it at RESUME; the path is baked in, never read from the
-    # environment, because an environment override would be a bypass.
-    decapodPauseMarker = "${home}/.local/state/den/decapod-pause";
-    decapodG5Evaluator = inputs.decapod-g5.packages.${pkgs.stdenv.hostPlatform.system}.default;
-    decapodG5Runner = pkgs.writeShellScript "decapod-gate-g5" ''
-      set -euo pipefail
-      profile='(version 1)(allow default)(deny file-read* file-write* (subpath "${home}/.config/home-manager"))(deny file-write* (subpath "${home}"))'
-      t="$(${pkgs.coreutils}/bin/mktemp -d /tmp/den-gate.XXXXXX)"
-      trap '${pkgs.coreutils}/bin/rm -rf "$t"' EXIT
-      ${pkgs.coreutils}/bin/mkdir -p "$t/home" "$t/cwd"
-      cd "$t/cwd"
-      /usr/bin/env -i PATH=/usr/bin:/bin HOME="$t/home" TMPDIR="$t" \
-        /usr/bin/sandbox-exec -p "$profile" ${decapodG5Evaluator}/bin/decapod eval --stdin --format json
-    '';
 
     # Team Chorus: LEGO/devrel-infra projects/aws-chorus, reached through the
     # chorus-team-tunnel launchd agent (darwin.nix) on 3870. Since
@@ -264,10 +240,7 @@
 
     # Runs the Decapod prompt safety gate before tool calls in Decapod
     # projects, so the agent need not run it by hand. Only pi has extensions.
-    # The PAUSE marker and runner paths are baked into the installed file.
     home.file.".pi/agent/extensions/decapod-gate.ts".source = pkgs.replaceVars ./pi-decapod-gate.ts {
-      pauseMarker = decapodPauseMarker;
-      pauseRunner = "${decapodG5Runner}";
       # The installed file itself: the extension hashes it at session start.
       extensionFile = "${home}/.pi/agent/extensions/decapod-gate.ts";
     };

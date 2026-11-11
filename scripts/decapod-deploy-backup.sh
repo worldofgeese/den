@@ -17,8 +17,7 @@
 # The copy uses SQLite's online backup and opens the store read-only, so the
 # copy is consistent while agents write. The copy must pass
 # `PRAGMA integrity_check` and have pages. The newest 5 copies stay in
-# ~/.local/state/den-decapod-backups. Not in ~/.local/state/den: that directory
-# holds only the Decapod PAUSE marker, and its G5 test must create it itself.
+# ~/.local/state/den-decapod-backups.
 #
 # The deploy stops when the evaluation fails or takes more than 30 minutes,
 # when it finds no decapod package or more than one, and when the copy or its

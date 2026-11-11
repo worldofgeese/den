@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "fb70ac36009e67c62cac1f5422a754e793b0f086",
+    "accepted_commit": "79b8f8b5e08071a91c52a428a96d4810aa224eca",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,29 +66,29 @@
     }
   },
   "change": {
-    "id": "change_01M75357RFG5GSXJXPBJNE6AV2",
-    "base_commit": "fb70ac36009e67c62cac1f5422a754e793b0f086",
+    "id": "change_01M763CWCDNKP05H6399NE1F0E",
+    "base_commit": "79b8f8b5e08071a91c52a428a96d4810aa224eca",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "bend_01m7533w3ge7qwzh",
-      "summary": "Chorus 0.24.0 for CLI and chorus-pi",
-      "input_digest": "sha256:68c6871810b2ee09fa4363c049f0b7eb87960441b36e27002ecc9ee34fc0a28d"
+      "id": "code_01m763bwgcr8547j",
+      "summary": "Remove decapod-g5 and the PAUSE route",
+      "input_digest": "sha256:19c621ae393bc55d03e4951f026b369b9fbca718ce7337ef2a6979adc63e6070"
     },
     {
-      "id": "bend_01m7533w3ge7qwzh-r2",
+      "id": "code_01m763bwgcr8547j-r2",
       "summary": "Spec manifest refresh",
-      "input_digest": "sha256:a52fb2fbf84267d8321539aadc1987e53ea6a04878406fa67e8c78e004c3b788"
+      "input_digest": "sha256:9539999259135e4c967161b5bbf67eb137f4ee2afc2336b8b66f913c1751e612"
     },
     {
-      "id": "bend_01m7533w3ge7qwzh-r3",
-      "summary": "Rebase onto 7a5ea63 (#150)",
-      "input_digest": "sha256:b586bf54e4a1437c77662221d508b4b02c55a8f8219e386c58adc52b94539fec"
+      "id": "code_01m763bwgcr8547j-r3",
+      "summary": "Spec reviews for the gate change",
+      "input_digest": "sha256:2c30522c2f71facdaf33548929263c118afd01e18a626614dcc7e6c2bc7d74ff"
     }
   ],
   "intents": {
-    "intent:change_01M75357RFG5GSXJXPBJNE6AV2": {
+    "intent:change_01M763CWCDNKP05H6399NE1F0E": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -98,11 +98,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+      "id": "intent:change_01M763CWCDNKP05H6399NE1F0E",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Move den's Chorus CLI and chorus-pi to 0.24.0 with the team server (LEGO/devrel-infra#711)",
-      "refined_intent": "Move den's Chorus CLI and chorus-pi to 0.24.0 with the team server (LEGO/devrel-infra#711)",
+      "raw_intent": "Remove the pinned decapod-g5 (0.121.2) input and the obsolete Decapod cutover PAUSE route from the pi prompt gate",
+      "refined_intent": "Remove the pinned decapod-g5 (0.121.2) input and the obsolete Decapod cutover PAUSE route from the pi prompt gate",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -115,46 +115,69 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao: DevRel owns the team Chorus server, and he wants the latest versions. The server moved to Chorus v0.24.0 in LEGO/devrel-infra#711 (merged 10:21Z, deployed and verified live by CI at 10:35Z). Den's agent-integrations.nix couples the Chorus CLI, chorus-pi and the team server through chorusVersion, so move it from 0.23.0 to 0.24.0, and update INTERFACES.md and OPERATIONS.md with the release, its migrations, its rollback and the tunnel reconnect after a deploy.",
+      "intent": "Tao (2026-11-11): get rid of the old Decapod completely. The flake input decapod-g5 pinned Decapod 0.121.2 by full revision only to serve as the evaluator of the pi prompt gate's cutover PAUSE route (marker ~/.local/state/den/decapod-pause, runner decapod-gate-g5). Decapod now moves with den's flake input in normal PRs and the deploy copies the store first (scripts/decapod-deploy-backup.sh), so the route is obsolete. Remove the input, the runner, the marker, the PAUSE code in pi-decapod-gate.ts and its tests, and the spec text; keep the normal gate, its tool-call drain, pending records and the status tool unchanged in behaviour.",
       "phases": [],
       "proof_hooks": [
-        "npm publishes @chorus-aidlc/chorus and chorus-pi 0.24.0",
-        "the team server answers healthy with its database connected through chorus-team-tunnel",
-        "plain decapod validate passes with 0.137.2",
+        "the gate test suite passes, including the built, installed file; mutants of the allow, exit-code and block checks fail it",
+        "flake.lock loses only the decapod-g5 nodes",
+        "plain decapod validate passes",
         "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "The pi prompt gate section drops the Decapod cutover PAUSE route (marker, G5 runner, decapod-g5 input) and records when and why it went; the normal gate, drain, pending records and status tool are described as they now behave; the flake update cost note no longer refers to decapod-g5.",
+          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
+          "spec_material_hash": "723083e7bd0439c44a8276bf50fbcee862c5bc585f97bffe5eec82a924680dd3"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "Reviewed: INTERFACES.md names no PAUSE marker, G5 runner, decapod-g5 input or decapod_gate_status field, so removing the route changes no interface it documents.",
+          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
+          "spec_material_hash": "ef88b397639e80c822c8b74149f4e30dbbdb2b73fa3cb8b0e9c84f9ed6f17857"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "Reviewed: SECURITY.md does not describe the prompt gate or its PAUSE route. The change removes an alternate evaluator path; the normal fail-closed gate is unchanged, so no control documented there weakens.",
+          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
+          "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Move den's Chorus CLI and chorus-pi to 0.24.0 with the team server",
+      "title": "Remove the pinned decapod-g5 (0.121.2) input and the Decapod cutover PAUSE route",
       "todo_ids": [
-        "bend_01m7533w3ge7qwzh"
+        "code_01m763bwgcr8547j"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794393775Z"
+      "updated_at": "1794428677Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "Only chorusVersion and the Chorus spec text"
+        "Only the PAUSE route, its pinned evaluator input, and the text that describes them"
       ],
-      "artifact_hash": "sha256:1c7bd0d17d7d623841f6c82e92c006840817d3f4c91ff56d5968363246ef4dba",
+      "artifact_hash": "sha256:fff781ea6fa7d3b7d105a56d129889b9fb7e6ad0dcb41a517d06b43b060ae881",
       "checks": [
         {
-          "name": "npm-0.24.0-published",
+          "name": "gate-mutants-killed",
           "status": "passed"
         },
         {
-          "name": "rebase-onto-7a5ea63",
+          "name": "gate-tests",
           "status": "passed"
         },
         {
-          "name": "server-0.24.0-deployed-live",
+          "name": "gate-tests-on-built-file",
           "status": "passed"
         },
         {
-          "name": "tunnel-health-db-connected",
+          "name": "lock-only-g5-removed",
           "status": "passed"
         }
       ],
@@ -163,74 +186,57 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+            "intent_id": "intent:change_01M763CWCDNKP05H6399NE1F0E",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+            "intent_id": "intent:change_01M763CWCDNKP05H6399NE1F0E",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M75357X1N1K4PD2MM3K1GFRH",
+            "detail": "trajectory:branch_01M763CWEJM8S5TY8MW2F6HZ01",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+            "intent_id": "intent:change_01M763CWCDNKP05H6399NE1F0E",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M75357X1N1K4PD2MM3K1GFRH",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M75357X1N1K4PD2MM3K1GFRH": {
+          "branch_01M763CWEJM8S5TY8MW2F6HZ01": {
             "evidence_only": true,
-            "id": "branch_01M75357X1N1K4PD2MM3K1GFRH",
-            "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+            "id": "branch_01M763CWEJM8S5TY8MW2F6HZ01",
+            "intent_id": "intent:change_01M763CWCDNKP05H6399NE1F0E",
             "steps": [
               {
                 "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
+                  "flake.nix",
+                  "flake.lock",
                   "modules/M-02877/agent-integrations.nix",
-                  ".decapod/managed/specs/INTERFACES.md",
+                  "modules/M-02877/pi-decapod-gate.ts",
+                  "scripts/test-pi-decapod-gate.mjs",
+                  "scripts/decapod-deploy-backup.sh",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "LEGO/devrel-infra#711 (Chorus v0.24.0 image digest, signed) merged 2026-11-11T10:21:25Z as 3f7638a after resolving pr-reviewer's two blocking threads (#590/#591 fixed upstream in v0.21.0; no container-file change; 4 additive migrations plus one DaemonExecution unique-index swap, rollback SQL documented; additive API only). CI/CD run 43002933880 deploy (aws-chorus) success 10:29:53-10:35:27Z: 'deployed production and verified it live'. Through chorus-team-tunnel: /api/health {status ok, database connected} at 10:42Z. npm: @chorus-aidlc/chorus and @chorus-aidlc/chorus-pi 0.24.0 published (latest)."
+                  "pi-decapod-gate.ts 372 -> 309 lines: removed the marker inspection, route choice, G5 runner spawn and the marker/G5 fields of decapod_gate_status (status now reports revision {extensionSha256}, pending {count,startedAt}, lastEvaluation); the normal route, fail-closed parsing, tool-call drain, pending-before-spawn record and status-tool exemption are unchanged. Tests: 33 -> 24 (11 PAUSE/marker/transition tests removed; 2 normal-route tests added for coverage the PAUSE tests had carried: block with exit 0, non-zero exit with allow output). All 24 pass on the source and on the Nix-built installed file (dy0kb8wd…, no unsubstituted @var@). Mutants killed: allow-on-any-status (1 fail), ignore-exit-code (2), never-block-tools (16). nix flake lock: removed decapod-g5 and its 5 sub-nodes (122 -> 117 nodes); no root input's locked source changed."
                 ],
                 "proof_refs": [
-                  "npm-0.24.0-published",
-                  "server-0.24.0-deployed-live",
-                  "tunnel-health-db-connected"
+                  "gate-tests",
+                  "gate-tests-on-built-file",
+                  "gate-mutants-killed",
+                  "lock-only-g5-removed"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "Rebased onto 7a5ea63 (#150: Decapod 0.137.4 and the nightly inputs). Only .manifest.json conflicted (took main's). chorusVersion stays 0.24.0. Validation now uses Decapod 0.137.4 (lya0ybyc…, from decapod.cachix.org), whose copy test left the migrated schema unchanged. Claim renewed under a fresh session after /tmp/dec.env was overwritten and deleted by another agent (session file now in ~/.cache/pi-dktaohan/dec.env)."
-                ],
-                "proof_refs": [
-                  "rebase-onto-7a5ea63"
-                ],
-                "scope": [
-                  "modules/M-02877/agent-integrations.nix, .decapod/managed/specs/INTERFACES.md, .decapod/managed/specs/OPERATIONS.md",
-                  "root"
-                ],
-                "sequence": 5,
                 "validation_findings": []
               }
             ]
@@ -240,27 +246,31 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "LEGO/devrel-infra#711 (Chorus v0.24.0 image digest, signed) merged 2026-11-11T10:21:25Z as 3f7638a after resolving pr-reviewer's two blocking threads (#590/#591 fixed upstream in v0.21.0; no container-file change; 4 additive migrations plus one DaemonExecution unique-index swap, rollback SQL documented; additive API only). CI/CD run 43002933880 deploy (aws-chorus) success 10:29:53-10:35:27Z: 'deployed production and verified it live'. Through chorus-team-tunnel: /api/health {status ok, database connected} at 10:42Z. npm: @chorus-aidlc/chorus and @chorus-aidlc/chorus-pi 0.24.0 published (latest).",
-        "Rebased onto 7a5ea63 (#150: Decapod 0.137.4 and the nightly inputs). Only .manifest.json conflicted (took main's). chorusVersion stays 0.24.0. Validation now uses Decapod 0.137.4 (lya0ybyc…, from decapod.cachix.org), whose copy test left the migrated schema unchanged. Claim renewed under a fresh session after /tmp/dec.env was overwritten and deleted by another agent (session file now in ~/.cache/pi-dktaohan/dec.env)."
+        "pi-decapod-gate.ts 372 -> 309 lines: removed the marker inspection, route choice, G5 runner spawn and the marker/G5 fields of decapod_gate_status (status now reports revision {extensionSha256}, pending {count,startedAt}, lastEvaluation); the normal route, fail-closed parsing, tool-call drain, pending-before-spawn record and status-tool exemption are unchanged. Tests: 33 -> 24 (11 PAUSE/marker/transition tests removed; 2 normal-route tests added for coverage the PAUSE tests had carried: block with exit 0, non-zero exit with allow output). All 24 pass on the source and on the Nix-built installed file (dy0kb8wd…, no unsubstituted @var@). Mutants killed: allow-on-any-status (1 fail), ignore-exit-code (2), never-block-tools (16). nix flake lock: removed decapod-g5 and its 5 sub-nodes (122 -> 117 nodes); no root input's locked source changed."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M75357RFG5GSXJXPBJNE6AV2",
+      "intent_id": "intent:change_01M763CWCDNKP05H6399NE1F0E",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/agent-integrations.nix"
+        "flake.lock",
+        "flake.nix",
+        "modules/M-02877/agent-integrations.nix",
+        "modules/M-02877/pi-decapod-gate.ts",
+        "scripts/decapod-deploy-backup.sh",
+        "scripts/test-pi-decapod-gate.mjs"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "modules/M-02877/agent-integrations.nix, .decapod/managed/specs/INTERFACES.md, .decapod/managed/specs/OPERATIONS.md",
+        "flake.nix, flake.lock, modules/M-02877/agent-integrations.nix, modules/M-02877/pi-decapod-gate.ts, scripts/test-pi-decapod-gate.mjs, scripts/decapod-deploy-backup.sh, .decapod/managed/specs/ARCHITECTURE.md, .decapod/managed/specs/OPERATIONS.md",
         "root"
       ],
-      "run_id": "branch_01M75357X1N1K4PD2MM3K1GFRH",
+      "run_id": "branch_01M763CWEJM8S5TY8MW2F6HZ01",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bend_01m7533w3ge7qwzh",
+      "task_id": "code_01m763bwgcr8547j",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

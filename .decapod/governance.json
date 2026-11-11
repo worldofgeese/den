@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "993eadb57083d5977d2ce573d042e03d2b1cc9c0",
+    "accepted_commit": "d59d2ace7423b0f2ca2226493f4386be6beb62a6",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -12,6 +12,14 @@
       "review_policy": "Reviewers must check that every claim remains falsifiable, evidence status is bounded by observed evidence, proof references resolve, and schema compatibility is preserved."
     },
     "unresolved": {
+      "claim:live-rollout": {
+        "falsifier": "Publication authority, committed-candidate validation, source merge, deployment or live post-deployment checks are absent.",
+        "proof_refs": [
+          ".decapod/governance.json"
+        ],
+        "statement": "The current candidate is published, deployed and verified as the live token-saving chain.",
+        "status": "blocked"
+      },
       "claim:paphos-firmware-cycle": {
         "falsifier": "After deploy, a staged kernel or pending capsule is not booted within a day, or the journal shows 'Outside of configured reboot window, skipping.' at a 05:00 run.",
         "statement": "paphos applies LVFS firmware at 04:30 and reboots for a pending capsule at 06:00 inside its window, and its upgrade reboots land inside 05:00-06:30.",
@@ -53,6 +61,7 @@
       "trajectory:4c3a11d1469258d8": "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
       "trajectory:4d464afab9dab176": "Deploy happens from a plain terminal with sudo (just deploy-darwin); not run by the agent",
       "trajectory:56b396336dfc37b6": "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here",
+      "trajectory:59a92c3af44e675c": "Current user delegates routine remediation choices, but this does not accept reviewer-agent risks, authorize new data sharing, or waive repository publication policy.",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
@@ -66,102 +75,22 @@
     }
   },
   "change": {
-    "id": "change_01M72N4NKHAW5G7HHVWKJNKNSM",
-    "base_commit": "993eadb57083d5977d2ce573d042e03d2b1cc9c0",
+    "id": "change_01M74SD5VRWQM3SPCTWBR84CF5",
+    "base_commit": "d59d2ace7423b0f2ca2226493f4386be6beb62a6",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "codex-reviewer-fit": {
-      "statement": "The unmodified reviewer-agent 1.4.8 Codex adapter passes its installation suite in the current SSH-signing environment.",
-      "falsifier": "test_reviewer_launch_environment_remains_stable fails when Git inherits a nonexistent TMPDIR.",
-      "status": "refuted",
-      "proof_refs": [
-        "/var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/codex-suite.log"
-      ]
-    },
-    "live-rollout": {
-      "statement": "The current candidate is published, deployed and verified as the live token-saving chain.",
-      "falsifier": "Publication authority, committed-candidate validation, source merge, deployment or live post-deployment checks are absent.",
-      "status": "blocked",
-      "proof_refs": [
-        ".decapod/governance.json"
-      ]
-    },
-    "protocol-chain": {
-      "statement": "The isolated Caveman 4.1.0 and Headroom 0.44.0 chain accepts both approved model protocols, preserves the synthetic source sample, and permits provider cache reuse.",
-      "falsifier": "Any of the six protocol requests fails, loses a sentinel, targets a public default, or fails the recorded cache reuse check.",
-      "status": "supported",
-      "proof_refs": [
-        "/var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/live-protocol-probe-results-v2.json"
-      ]
-    },
-    "provider-preservation": {
-      "statement": "The managed provider merge preserves OpenAI authentication, model metadata and direct escape routing, while an incompatible OpenAI API does not block Claude updates.",
-      "falsifier": "The provider regression fails, a direct route disappears, or any preserved field changes.",
-      "status": "supported",
-      "proof_refs": [
-        "/var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/just-pi-provider-check.json",
-        "scripts/test-pi-gateway-provider.sh"
-      ]
-    },
-    "reviewer-readonly": {
-      "statement": "The isolated reviewer command retains the required Decapod gate and gives a fixed read-only tool set without hiding staged source behind unusable recovery pointers.",
-      "falsifier": "The sentinel probe misses source, or the final tool allowlist permits successful Bash/edit/write operations.",
-      "status": "supported",
-      "proof_refs": [
-        "/var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/reviewer-pi-isolated-proof.json",
-        "/var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/reviewer-tool-boundary-proof.json",
-        "modules/M-02877/token-toolchain.nix"
-      ]
-    },
-    "signet-migration": {
-      "statement": "A fresh private copy of the original workspace migrates directly to Signet 1.0.1 with readiness, unchanged memory content/scope, intact backup, and a refused cross-site write.",
-      "falsifier": "Readiness fails, the compared memory fields change, the backup changes, the test container remains, or the foreign-origin write is not refused.",
-      "status": "supported",
-      "proof_refs": [
-        "/var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/signet-1.0.1-rehearsal.json"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "token-chain-pre-rebase-20261110",
-      "summary": "Approved source and guide publication. Stage the tested token-chain candidate and latest-version deltas before aligning with accepted main; retain the current journal and all private proof references.",
-      "input_digest": "sha256:53068341f162161936c958e406bff47654111eb321b3b4821517d52e4930802d"
-    },
-    {
-      "id": "token-chain-approved-source",
-      "summary": "Checkpoint the approved, accepted-main-aligned source candidate: two-protocol auth/cache preservation, read-only reviewer isolation, current image pins, bounded Codex patch update, tested backups and authored living specs. Runtime rollout remains a separate unproven phase.",
-      "input_digest": "sha256:6bf588a0ac9c584b1c818d63cfb746e4859afce73bd09e1f3968ed225db52a54"
-    },
-    {
-      "id": "token-chain-plan-convergence",
-      "summary": "Reaffirm the directly approved, unchanged intent after removing the answered inventory placeholder. Safety stops, proof hooks and live-rollout requirements remain intact.",
-      "input_digest": "sha256:1de763c9669169c925c89f1251fc347705f20c5c2ea953fd9664b24fb0c7a6a1"
-    },
-    {
-      "id": "token-chain-reviewed-beta27",
-      "summary": "Checkpoint the reviewed beta.27 candidate and all CLI-refreshed spec projections. Preserve the successful private SDK-generation proof and the separately pending upstream recovery fix.",
-      "input_digest": "sha256:c7c84480ad9532c0bbf10815d785bd53bcedac7d6e5f06ae087e098bbb43c1ef"
-    },
-    {
-      "id": "token-chain-main142-alignment",
-      "summary": "Align the reviewed candidate with accepted #142, preserving both interface contracts and its original journal. Include all supported refreshed spec projections and prior successful SDK/protocol/migration proof.",
-      "input_digest": "sha256:fdfae3bc50644914ca21ea83345003239b7d7edc4f390979881b3034c14fb513"
-    },
-    {
-      "id": "token-chain-final-reviewed",
-      "summary": "Checkpoint the source-grounded 0.136.3 candidate with canonical spec reviews, the verified clean-volume Headroom guard and restore proof, updated agent/engine versions, and explicit unresolved upstream/channel limits.",
-      "input_digest": "sha256:9c148539e6f6915f29e415611d3b9d5d829ae9805bd7492d5341806bba7fb617"
-    },
-    {
-      "id": "token-chain-proof-profile-reviewed",
-      "summary": "Checkpoint the fully reviewed source inventory and strengthened native ShellCheck declaration, retaining the same profile and explicit hosted-CI limitations.",
-      "input_digest": "sha256:a52c7c42284a6bdb635baa5893b76f47fe65ec67e5981627a8b247201de15faa"
+      "id": "pr-reviewer-v0-2-5-bump",
+      "summary": "Move the pr-reviewer flake input to v0.2.5 and document the head claim in OPERATIONS.md",
+      "input_digest": "sha256:9279c196021f8c394d5c297fd2ec5a94f5963e1eac1cf98fc901c52d7d5e4a9c",
+      "proof_refs": [
+        "nix build github:worldofgeese/pr-reviewer/v0.2.5 -> pr-reviewer 0.2.5"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM": {
+    "intent:change_01M74SD5VRWQM3SPCTWBR84CF5": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -171,11 +100,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
+      "id": "intent:change_01M74SD5VRWQM3SPCTWBR84CF5",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Install reviewer-agent and resolve Pi warnings\n\nDiagnose all Caveman issues by worldofgeese; preserve bearer auth, cache behavior, x-headroom-cwd, and cloud opt-out. Confirm reviewer host before installation. Repair only the proven identical skill duplicate and test the smallest Caveman route correction. No commit, push, deployment, feature enablement or risk acceptance without authority.",
-      "refined_intent": "Install reviewer-agent and resolve Pi warnings\n\nDiagnose all Caveman issues by worldofgeese; preserve bearer auth, cache behavior, x-headroom-cwd, and cloud opt-out. Confirm reviewer host before installation. Repair only the proven identical skill duplicate and test the smallest Caveman route correction. No commit, push, deployment, feature enablement or risk acceptance without authority.",
+      "raw_intent": "Move den's pr-reviewer flake input to v0.2.5 (head claim, issue #36 option 3)",
+      "refined_intent": "Move den's pr-reviewer flake input to v0.2.5 (head claim, issue #36 option 3)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -183,517 +112,96 @@
   "sections": {
     "plan": {
       "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
+        "file_touch_budget": 6,
+        "forbidden_paths": [
+          "modules/"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Use the pinned LEGO guide inventory as the coverage boundary. Audit releases, installed versions and every worldofgeese issue for all referenced projects. Update and integrate the active M-02877 chain, repair the Pi skill duplicate and provider routing, and prepare reviewer-agent on supported installed hosts. Verify authentication, project attribution, cache reuse, recovery, privacy, restart/rollback safety and real token/cost behavior. Do not install historical or illustrative components as runtime dependencies.",
+      "intent": "Move den's pr-reviewer flake input from the v0.2.4 tag to the v0.2.5 tag (head claim, worldofgeese/pr-reviewer#36 option 3), relock only that input, and describe the release in OPERATIONS.md. Do not deploy.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "decapod validate",
+        "nix flake metadata shows pr-reviewer locked to ec8afdd (the v0.2.5 tag)"
       ],
       "schema_version": "1.1.0",
-      "spec_reviews": [
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Reviewed unchanged architecture content after the source-proof declaration reconciliation. Runtime source/CI ownership, package bridge and storage admission remain the reviewed implementation; no profile downgrade or new architecture is introduced.",
-          "reviewed_code_fingerprint": "1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404",
-          "spec_material_hash": "6b07ff1f287c16f2629db71707941d48a359714406b93fb6208a7a0128b8ae2f"
-        },
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Reviewed the current caller and migration contracts against the final source and rendered-script tests. The declaration reconciliation adds only required ShellCheck coverage and review pins; protocol, reviewer, xmemory and uv interfaces remain the reviewed contracts.",
-          "reviewed_code_fingerprint": "1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404",
-          "spec_material_hash": "3bd28b00fba6a3f573e16ba2f05c234b066e8131c613888893c926ce8a21b28d"
-        },
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "Reviewed current security content after the declaration update. Required checks were strengthened, not removed; fixed executables, CI-only limitations, credential scopes, loopback exposure and guarded data recovery remain unchanged. No trust receipt, role grant or filesystem repair is inferred.",
-          "reviewed_code_fingerprint": "1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404",
-          "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
-        }
-      ],
-      "state": "APPROVED",
-      "stop_conditions": [
-        "Do not fabricate human-only risk acceptance, alter trust, weaken proof, overwrite unrelated work, or expose credentials. Stop on an access denial or unsupported migration."
-      ],
-      "title": "Audit and remediate the token-saving chain",
+      "state": "DRAFT",
+      "stop_conditions": [],
+      "title": "Move den's pr-reviewer flake input to v0.2.5 (head claim, issue #36 option 3)",
       "todo_ids": [
-        "code_01m72hxtdv0vwx07"
+        "bugs_01m74scc2nxvb0jd"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794359978Z"
+      "updated_at": "1794383586Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Use only SwiftJaguar and the verified workspace. Preserve root changes, privacy choices, credentials and human-only feature approval."
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:93698f158b18062526e6e5ac33ac362283ba2679297787a76b87202c385fd0af",
+      "artifact_hash": "sha256:8b631ae51638b972ace3b174a25ddb9ede09de6d6fcbb167aa98aaccdb33374f",
       "checks": [
         {
-          "name": "caveman-recovery-store",
+          "name": "nix build github:worldofgeese/pr-reviewer/v0.2.5 builds pr-reviewer 0.2.5",
           "status": "passed"
         },
         {
-          "name": "caveman-runtime-4.1.0",
-          "status": "passed"
-        },
-        {
-          "name": "changed-source-style",
-          "status": "passed"
-        },
-        {
-          "name": "chorus-package-upgrade",
-          "status": "passed"
-        },
-        {
-          "name": "chorus-real-host-load",
-          "status": "passed"
-        },
-        {
-          "name": "dagger-beta26-client-compatibility",
-          "status": "passed"
-        },
-        {
-          "name": "dagger-beta27-generation",
-          "status": "passed"
-        },
-        {
-          "name": "decapod-validate-46e8702",
-          "status": "failed"
-        },
-        {
-          "name": "decapod-validate-c13913f",
-          "status": "failed"
-        },
-        {
-          "name": "full-publication-validation",
-          "status": "unavailable"
-        },
-        {
-          "name": "governed-workspace",
-          "status": "passed"
-        },
-        {
-          "name": "guide-corrections",
-          "status": "passed"
-        },
-        {
-          "name": "guide-inventory",
-          "status": "passed"
-        },
-        {
-          "name": "headroom-clean-restore",
-          "status": "passed"
-        },
-        {
-          "name": "headroom-image-version",
-          "status": "passed"
-        },
-        {
-          "name": "headroom-logical-backup",
-          "status": "passed"
-        },
-        {
-          "name": "headroom-rendered-storage-guard",
-          "status": "passed"
-        },
-        {
-          "name": "home-manager-agent-versions",
-          "status": "passed"
-        },
-        {
-          "name": "live-headroom-signet-rollout",
-          "status": "unavailable"
-        },
-        {
-          "name": "provider-merge-regression",
-          "status": "passed"
-        },
-        {
-          "name": "reviewer-claude-smoke",
-          "status": "passed"
-        },
-        {
-          "name": "reviewer-codex-release-suite",
-          "status": "failed"
-        },
-        {
-          "name": "reviewer-default-pi-source-visibility",
-          "status": "failed"
-        },
-        {
-          "name": "reviewer-isolated-pi-source-visibility",
-          "status": "passed"
-        },
-        {
-          "name": "reviewer-pi-unit-and-git",
-          "status": "passed"
-        },
-        {
-          "name": "reviewer-test-shellcheck",
-          "status": "passed"
-        },
-        {
-          "name": "signet-1.0.1-security-rehearsal",
-          "status": "passed"
-        },
-        {
-          "name": "signet-isolated-migration-and-content",
-          "status": "passed"
-        },
-        {
-          "name": "signet-private-backup",
-          "status": "passed"
-        },
-        {
-          "name": "two-protocol-staging",
+          "name": "nix flake update pr-reviewer moved only the pr-reviewer lock entry to ec8afdd",
           "status": "passed"
         }
       ],
-      "current_phase": "proof-profile-reconciliation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
+            "intent_id": "intent:change_01M74SD5VRWQM3SPCTWBR84CF5",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
+            "intent_id": "intent:change_01M74SD5VRWQM3SPCTWBR84CF5",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
+            "detail": "trajectory:branch_01M74SD5YAASK6JDWR6KNM5R2M",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
+            "intent_id": "intent:change_01M74SD5VRWQM3SPCTWBR84CF5",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:7",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 7
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:8",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 8
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:9",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 9
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:10",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 10
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:11",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 11
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:12",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 12
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:13",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 13
-          },
-          {
-            "detail": "trajectory:branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "event_id": "event:14",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-            "kind": "trajectory_step_recorded",
-            "sequence": 14
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 14,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M72N4NNWF1MTGEPRH0EDBFWZ": {
+          "branch_01M74SD5YAASK6JDWR6KNM5R2M": {
             "evidence_only": true,
-            "id": "branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
-            "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
+            "id": "branch_01M74SD5YAASK6JDWR6KNM5R2M",
+            "intent_id": "intent:change_01M74SD5VRWQM3SPCTWBR84CF5",
             "steps": [
               {
-                "action": "discovery",
+                "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "Native todo.fleet confirmed lease generation 1 expired; ordinary basic-trust claim reclaimed the same unit as SwiftJaguar generation 2; workspace.ensure returned can_work=true. No handoff, global approval, trust change or duplicate unit.",
-                  "Pinned guide inventory: LEGO/agentic-engineering-community@6b26a73f5b372c4d89394f4049c811f268a6b15c, seven guides plus docs/reference/token-toolchain.md, 255930 bytes, 17 directly linked GitHub projects."
+                  "flake.nix",
+                  "flake.lock",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "flake.nix",
+                  "flake.lock",
+                  ".decapod/managed/specs/OPERATIONS.md"
                 ],
                 "proof_refs": [
-                  "governed-workspace",
-                  "guide-inventory"
+                  "nix build github:worldofgeese/pr-reviewer/v0.2.5 builds pr-reviewer 0.2.5",
+                  "nix flake update pr-reviewer moved only the pr-reviewer lock entry to ec8afdd"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": [
-                  "Current user delegates routine remediation choices, but this does not accept reviewer-agent risks, authorize new data sharing, or waive repository publication policy."
-                ]
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "gateway.json",
-                  "flake.lock",
-                  "modules/gateway.nix",
-                  "modules/agent-providers.nix",
-                  "modules/agent-providers/pi-providers.jq",
-                  "modules/M-02877/token-toolchain.nix",
-                  "modules/M-02877/darwin.nix",
-                  "scripts/test-pi-gateway-provider.sh",
-                  "reviewerAgent.md",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "Private evidence root: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg. Runtime, installer, image and migration proof JSON plus logs are there; private contents are not copied into this public repository.",
-                  "Caveman CLI/native 4.1.0 installed with old CLI/binary/config backups and checked SQLite copies. Source-documented /health/live verified the new launchd PID and instance; all six native hashes match installer output. A wrong readiness URL caused an earlier false failure, not a failed restart.",
-                  "Claude reviewer 1.4.8 installed with per-project Pi backend and read-only Git extension: 309 smoke tests, layering, 55 unit and 8 live-Git tests passed. Review/Stop switches remain off, no risk receipt created. Codex adapter not installed after signed-commit TMPDIR regression failed.",
-                  "Actual Pi read-only source test failed with a 187-byte opaque pointer. Native isolation retaining Git tool and mandatory Decapod gate returned the full 30964-byte diff and all three sentinels. The declared reviewer-pi launcher must be deployed and selected before activation.",
-                  "Signet 1.0.0 image and isolated private-workspace migration passed readiness and SQLite checks. 1559 memory records retained identical content, agent, visibility, provenance and tags; other tracked table counts match. The original backup hash is unchanged and temporary container removal was checked. Live personal Signet remains 0.238.0.",
-                  "Team Signet initially timed out; the existing tunnel watchdog reconnected it. Authorized health then returned 200, version 1.0.0. No shared server or tunnel configuration was changed.",
-                  "Guide repository is separate and private at /Users/dktaohan/.cache/swiftjaguar/aec-token-chain. The bounded TechWriter was cancelled after five minutes and left only a partial Pi-guide diff; it is not claimed complete.",
-                  "Publication permission was requested for the scoped source/docs changes; no source commit, push, PR or system switch has occurred. The unrelated xmemcli edit was moved by its owner into a separate branch."
-                ],
-                "proof_refs": [
-                  "provider-merge-regression",
-                  "changed-source-style",
-                  "reviewer-test-shellcheck",
-                  "caveman-runtime-4.1.0",
-                  "caveman-recovery-store",
-                  "reviewer-claude-smoke",
-                  "reviewer-pi-unit-and-git",
-                  "reviewer-codex-release-suite",
-                  "reviewer-default-pi-source-visibility",
-                  "reviewer-isolated-pi-source-visibility",
-                  "signet-private-backup",
-                  "signet-isolated-migration-and-content",
-                  "headroom-image-version",
-                  "guide-corrections",
-                  "live-headroom-signet-rollout",
-                  "full-publication-validation"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
-              },
-              {
-                "action": "publication-blocked",
-                "custody_event_id": "event:6",
-                "observations": [
-                  "Resumed without reopening unchanged installer docs. The first shadow proxy failed because the Apple disk volume could not be attached twice. A private directory copy of cached model assets fixed test isolation. Six real model requests through Caveman 4.1.0 and Headroom 0.44.0 passed, preserved all sentinels and reused provider cache; all temporary services were removed.",
-                  "Signet 1.0.1 superseded the 1.0.0 candidate after its security release. A fresh original-backup rehearsal passed readiness 200, runtime 1.0.1, cross-site write 403, memory content/scope equality, SQLite integrity, unchanged backup and cleanup. The source image pin and guide warnings were updated. Live personal Signet remains 0.238.0.",
-                  "Dagger beta.26 official archive matched its SHA-256. The configured always-restart runner was stopped; it was started without loading a project module. The new client queried the existing beta.21 engine successfully. The live client was replaced atomically with backup; the engine image was not changed.",
-                  "Blocks Codex label was not modified: the current upstream profile intentionally selects the Claude-compatible dialect and both names use the same parser. Earlier label-only bug language was corrected.",
-                  "Four private guide files pass their pinned Prettier and diff checks; approved new-version facts are distinct from unchanged historical measurements. Private tracker details remain only in the protected local audit report.",
-                  "Independent review fixes: explicit Signet rename/data rollback, enforced final read-only tool list with positive/negative test, OpenAI-only skip/warning preserving Claude updates, Justfile regression wiring, documented empty OpenAI wire dialect, named brief consumer, and whole llm-agents closure disclosure."
-                ],
-                "proof_refs": [
-                  "two-protocol-staging",
-                  "signet-1.0.1-security-rehearsal",
-                  "dagger-beta26-client-compatibility",
-                  "guide-corrections"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 6,
-                "validation_findings": []
-              },
-              {
-                "action": "publication-authorized",
-                "custody_event_id": "event:7",
-                "observations": [
-                  "Direct user authorization: Approve scoped publication; I want the latest versions of everything by the way. Always. This admits commits, pushes and PRs for the prepared den and four guide changes. Publication and deployment validation gates remain required. Reviewer risk acceptance and shared-team endpoint changes are not included.",
-                  "The user preference was saved privately to the personal Signet workspace. Version checks refreshed after approval: Claude Code 2.1.322, Codex 0.167.1 and Chorus Pi 0.24.0 are newly available. BrightQuartz owns a separate Decapod 0.136.3 bump; the final merged-main rollout must include its SHA. Dagger engine beta.26 will replace the retained beta.21 only with backup, isolation and compatibility proof.",
-                  "Source publication precedes live rollout by policy. The live-rollout claim remains unproven until post-merge runtime verification; source CI passing will not be represented as live completion."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 7,
-                "validation_findings": []
-              },
-              {
-                "action": "candidate-checkpoint",
-                "custody_event_id": "event:8",
-                "observations": [
-                  "modules/shared-devtools.nix",
-                  "Justfile",
-                  "The owned candidate was preserved in stash 7623de8cc68cbec2997b2ea931349127d5e2fb96 and rebased onto accepted main 5f3dac1. Product code merged cleanly. The exact original journal was restored, the accepted manifest selected, and specs.refresh regenerated supported projections. No root branch mutation or hook bypass.",
-                  "The latest upstream Codex release is rust-v0.167.1. Both .0 and .1 Cargo.lock Git blobs are 2eae72dab578ac844d15ae8585f47ef2d1019607. Source prefetch hash is sha256-S63Qd9OGCACz1EK/IzH6LGsZxMovk0UBkOKtv/jnQ+I=. A conditional override applies only to the verified .0 package. Actual M-02877 Home Manager selection evaluates to Codex 0.167.1 and Pi 1.5.2. Full package build remains the configured validation/CI proof, not claimed from evaluation."
-                ],
-                "proof_refs": [
-                  "home-manager-agent-versions"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 8,
-                "validation_findings": []
-              },
-              {
-                "action": "validation-recovery",
-                "custody_event_id": "event:9",
-                "observations": [
-                  "Plain validation of c13913f reported 186 pass and one NEEDS_HUMAN_INPUT gate: the initial research placeholder about live inventory/upstream findings and authority was still in plan.unknowns. There are no human_questions or unresolved_contradictions. The inventory/audit and refreshed release set now answer that research item. Direct user publication approval and latest-version preference are recorded; shared-team changes, data-sharing opt-ins and reviewer risk acceptance remain excluded. Resolve only that answered placeholder, retaining all proof hooks and stop conditions.",
-                  "Failure proof: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/den-validate-c13913f.log. Existing live-rollout evidence is still incomplete and is not being marked supported."
-                ],
-                "proof_refs": [
-                  "decapod-validate-c13913f"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 9,
-                "validation_findings": []
-              },
-              {
-                "action": "review-revisions",
-                "custody_event_id": "event:10",
-                "observations": [
-                  "Resolve the sole trajectory blocker quoted by validation: scoped commit/push/PR authority absent. The user directly supplied that approval, the candidate is committed, and existing evidence records the approval. Removing this resolved authorization blocker does not mark live rollout complete or grant reviewer risk acceptance, team-service access, or data-sharing opt-ins.",
-                  "Validation of 46e8702 had 187 pass and only READINESS_BLOCKED from that stale authorization blocker. Detailed report: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/den-validate-46e8702-detail.json. The supported --clear-blockers action resolves that exact answered condition. Independent review accepted prior code fixes and identified the Dagger module-version alignment and explicit pin rollback, which are being repaired before publication."
-                ],
-                "proof_refs": [
-                  "decapod-validate-46e8702"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 10,
-                "validation_findings": []
-              },
-              {
-                "action": "reviewed-candidate",
-                "custody_event_id": "event:11",
-                "observations": [
-                  "Independent review confirmed the earlier auth, dialect, tool-boundary, regression and Codex fixes. The module/engine mismatch is now repaired for the latest published Dagger beta.27, not beta.26: native version v1.0.0-beta.27+400b82d6, matched digest, Dagger-owned config export and required Go SDK generation passed on a fresh private engine. All seven generated module/SDK files are retained. The temporary engine and volume were removed. Proof: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/dagger-beta27-generation.json.",
-                  "Chorus Pi is installed at 0.24.0 through the Pi package manager, with one updated source entry and other settings unchanged. Backups are private. Ignored install-script approvals were not changed; esbuild, sharp and fsevents bindings passed smoke checks. A standalone Bun import cannot resolve the Pi-provided peer and is not a host integration proof; normal updated-Pi startup remains a rollout check.",
-                  "A new exact-recovery limitation is confirmed: context-mode 2.1.7 re-compacts Caveman recovery results, has no supported per-tool exemption, and returns a search pointer instead of complete text. The live bytes remain stored. This is disclosed in OPERATIONS and the private guide; upstream-fix publication authority was requested separately. No global-threshold or content-shape workaround was applied. Proof: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/context-mode-recovery-proof.json."
-                ],
-                "proof_refs": [
-                  "dagger-beta27-generation",
-                  "chorus-package-upgrade"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 11,
-                "validation_findings": []
-              },
-              {
-                "action": "accepted-target-recovery",
-                "custody_event_id": "event:12",
-                "observations": [
-                  "The 240-second signed-commit window expired near the final prompt-gate suite, not on a failed assertion. An unchanged retry with all hooks/signing enabled passed and produced 37ad5cc. Independent runs confirmed that suite passes 33/33 in about seven seconds.",
-                  "Plain validation of 37ad5cc failed ENTRYPOINT_COMMIT_DISCIPLINE because accepted main advanced to xmemcli merge 0008fa8794a586dc2b718955e4acecba2be24ccf. The candidate was rebased without discarding either contract: preserve accepted xmemory MCP/uv tooling, retain the two-protocol Caveman and independent-reviewer interfaces, keep the exact original journal, and refresh from the accepted manifest.",
-                  "Companion guide candidate 5048bcc02b99876a06523e13e6e3cff5b09018d0 is committed and pushed to its authorized private branch. It includes the confirmed context-mode recovery limitation. Upstream-fix publication authority remains separately requested; this does not authorize a workaround or imply complete live recovery."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 12,
-                "validation_findings": []
-              },
-              {
-                "action": "final-publication-candidate",
-                "custody_event_id": "event:13",
-                "observations": [
-                  "Rebased onto accepted Decapod 0.136.3 merge 1eb9c1356a8bbdcedb7793489a1f2ef5beb30b76, inherited release files, ingested the new corpus and used only the matched binary. AUTHORING_BINDING_STALE was resolved by inspecting unchanged task ownership/checkout/lease and using native workspace ensure; the original journal remained intact.",
-                  "Headroom live ext4 metadata errors require storage recovery, not an image-only restart. A private logical backup verified 1645 files/links including 1586 SQLite snapshots and the unchanged empty placeholder. Only one classified unopened atomic-write temp entry was unreadable; the original volume remains untouched. A clean native-volume restore verified 1641 workspace files, reached 0.44.0 readiness, and preserved existing rows across 1586 DBs / 6866 ordinary tables. All temporary resources were removed. Proofs: headroom-logical-backup-proof.json and headroom-restore-rehearsal.json in the private audit directory.",
-                  "The new Headroom startup admission uses authoritative typed volume inventory, refuses an unprepared legacy migration, and checks pull-or-cached image availability before stop/rm. The actual Nix-rendered script passed 11 mock-backend cases; no real containers are touched by the test. Independent review confirmed the design; explicit cutover order, guard log location and safe availability escape are documented. Live migration remains unperformed.",
-                  "Chorus 0.24.0 successfully loaded through Pi 1.5.1 RPC with no model prompt, no credentials, no import error and a clean process shutdown. Its earlier standalone Bun probe was outside the required Pi peer-resolution context, not a host regression. No install-script trust approvals were changed.",
-                  "Current Podman is 6.1.4 client / 6.0.2 guest. Upstream 6.2.0 exists but Homebrew still publishes 6.1.4; the native guest dry-run offers the 6.1 track. No VM upgrade/restart or ad-hoc replacement was performed. This channel lag is explicit, not represented as latest upstream."
-                ],
-                "proof_refs": [
-                  "headroom-logical-backup",
-                  "headroom-clean-restore",
-                  "headroom-rendered-storage-guard",
-                  "chorus-real-host-load"
-                ],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 13,
-                "validation_findings": []
-              },
-              {
-                "action": "proof-profile-reconciliation",
-                "custody_event_id": "event:14",
-                "observations": [
-                  "The 0.136.3 repository-local profile reported PROOF_PROFILE_RECONCILIATION_REQUIRED. Its documented manual maintainer path treats .decapod/config.toml as the live user-authored declaration; there is no mutation RPC. All 47 discovered source hashes were independently checked. Relative to accepted 1eb9c13, only Justfile/flake.lock changed and the two new test helpers were added; all five workflow sources and coverage mappings are unchanged.",
-                  "Strengthened the required ShellCheck args from 12 to 13 by including scripts/test-pi-gateway-provider.sh. No command was removed; the profile ID, fixed executable/toolchain paths, environment, timeouts and four explicit CI-only limitations are unchanged. Entered only the source/command review pins reported by agent.init after reviewing the declaration. A final read-only report is proof_pending with REQUIRED_PROOF_NOT_RUN only, not needs_reconciliation. BrightQuartz independently reviewed the delta.",
-                  "Hosted den/dagger-check remains required for this PR before merge. The local repository profile does not prove the generated Go SDK or hosted platform matrix. The normal pre-commit just check separately executes both new regressions. reviewerAgent.md is intentional repository policy at its documented canonical-root consumer path; root synchronization after merge is coordinated with BrightQuartz."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
-                  "root"
-                ],
-                "sequence": 14,
                 "validation_findings": []
               }
             ]
@@ -702,81 +210,30 @@
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "A new exact-recovery limitation is confirmed: context-mode 2.1.7 re-compacts Caveman recovery results, has no supported per-tool exemption, and returns a search pointer instead of complete text. The live bytes remain stored. This is disclosed in OPERATIONS and the private guide; upstream-fix publication authority was requested separately. No global-threshold or content-shape workaround was applied. Proof: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/context-mode-recovery-proof.json.",
-        "Actual Pi read-only source test failed with a 187-byte opaque pointer. Native isolation retaining Git tool and mandatory Decapod gate returned the full 30964-byte diff and all three sentinels. The declared reviewer-pi launcher must be deployed and selected before activation.",
-        "Blocks Codex label was not modified: the current upstream profile intentionally selects the Claude-compatible dialect and both names use the same parser. Earlier label-only bug language was corrected.",
-        "Caveman CLI/native 4.1.0 installed with old CLI/binary/config backups and checked SQLite copies. Source-documented /health/live verified the new launchd PID and instance; all six native hashes match installer output. A wrong readiness URL caused an earlier false failure, not a failed restart.",
-        "Chorus 0.24.0 successfully loaded through Pi 1.5.1 RPC with no model prompt, no credentials, no import error and a clean process shutdown. Its earlier standalone Bun probe was outside the required Pi peer-resolution context, not a host regression. No install-script trust approvals were changed.",
-        "Chorus Pi is installed at 0.24.0 through the Pi package manager, with one updated source entry and other settings unchanged. Backups are private. Ignored install-script approvals were not changed; esbuild, sharp and fsevents bindings passed smoke checks. A standalone Bun import cannot resolve the Pi-provided peer and is not a host integration proof; normal updated-Pi startup remains a rollout check.",
-        "Claude reviewer 1.4.8 installed with per-project Pi backend and read-only Git extension: 309 smoke tests, layering, 55 unit and 8 live-Git tests passed. Review/Stop switches remain off, no risk receipt created. Codex adapter not installed after signed-commit TMPDIR regression failed.",
-        "Companion guide candidate 5048bcc02b99876a06523e13e6e3cff5b09018d0 is committed and pushed to its authorized private branch. It includes the confirmed context-mode recovery limitation. Upstream-fix publication authority remains separately requested; this does not authorize a workaround or imply complete live recovery.",
-        "Current Podman is 6.1.4 client / 6.0.2 guest. Upstream 6.2.0 exists but Homebrew still publishes 6.1.4; the native guest dry-run offers the 6.1 track. No VM upgrade/restart or ad-hoc replacement was performed. This channel lag is explicit, not represented as latest upstream.",
-        "Dagger beta.26 official archive matched its SHA-256. The configured always-restart runner was stopped; it was started without loading a project module. The new client queried the existing beta.21 engine successfully. The live client was replaced atomically with backup; the engine image was not changed.",
-        "Direct user authorization: Approve scoped publication; I want the latest versions of everything by the way. Always. This admits commits, pushes and PRs for the prepared den and four guide changes. Publication and deployment validation gates remain required. Reviewer risk acceptance and shared-team endpoint changes are not included.",
-        "Failure proof: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/den-validate-c13913f.log. Existing live-rollout evidence is still incomplete and is not being marked supported.",
-        "Four private guide files pass their pinned Prettier and diff checks; approved new-version facts are distinct from unchanged historical measurements. Private tracker details remain only in the protected local audit report.",
-        "Guide repository is separate and private at /Users/dktaohan/.cache/swiftjaguar/aec-token-chain. The bounded TechWriter was cancelled after five minutes and left only a partial Pi-guide diff; it is not claimed complete.",
-        "Headroom live ext4 metadata errors require storage recovery, not an image-only restart. A private logical backup verified 1645 files/links including 1586 SQLite snapshots and the unchanged empty placeholder. Only one classified unopened atomic-write temp entry was unreadable; the original volume remains untouched. A clean native-volume restore verified 1641 workspace files, reached 0.44.0 readiness, and preserved existing rows across 1586 DBs / 6866 ordinary tables. All temporary resources were removed. Proofs: headroom-logical-backup-proof.json and headroom-restore-rehearsal.json in the private audit directory.",
-        "Hosted den/dagger-check remains required for this PR before merge. The local repository profile does not prove the generated Go SDK or hosted platform matrix. The normal pre-commit just check separately executes both new regressions. reviewerAgent.md is intentional repository policy at its documented canonical-root consumer path; root synchronization after merge is coordinated with BrightQuartz.",
-        "Independent review confirmed the earlier auth, dialect, tool-boundary, regression and Codex fixes. The module/engine mismatch is now repaired for the latest published Dagger beta.27, not beta.26: native version v1.0.0-beta.27+400b82d6, matched digest, Dagger-owned config export and required Go SDK generation passed on a fresh private engine. All seven generated module/SDK files are retained. The temporary engine and volume were removed. Proof: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/dagger-beta27-generation.json.",
-        "Independent review fixes: explicit Signet rename/data rollback, enforced final read-only tool list with positive/negative test, OpenAI-only skip/warning preserving Claude updates, Justfile regression wiring, documented empty OpenAI wire dialect, named brief consumer, and whole llm-agents closure disclosure.",
-        "Native todo.fleet confirmed lease generation 1 expired; ordinary basic-trust claim reclaimed the same unit as SwiftJaguar generation 2; workspace.ensure returned can_work=true. No handoff, global approval, trust change or duplicate unit.",
-        "Pinned guide inventory: LEGO/agentic-engineering-community@6b26a73f5b372c4d89394f4049c811f268a6b15c, seven guides plus docs/reference/token-toolchain.md, 255930 bytes, 17 directly linked GitHub projects.",
-        "Plain validation of 37ad5cc failed ENTRYPOINT_COMMIT_DISCIPLINE because accepted main advanced to xmemcli merge 0008fa8794a586dc2b718955e4acecba2be24ccf. The candidate was rebased without discarding either contract: preserve accepted xmemory MCP/uv tooling, retain the two-protocol Caveman and independent-reviewer interfaces, keep the exact original journal, and refresh from the accepted manifest.",
-        "Plain validation of c13913f reported 186 pass and one NEEDS_HUMAN_INPUT gate: the initial research placeholder about live inventory/upstream findings and authority was still in plan.unknowns. There are no human_questions or unresolved_contradictions. The inventory/audit and refreshed release set now answer that research item. Direct user publication approval and latest-version preference are recorded; shared-team changes, data-sharing opt-ins and reviewer risk acceptance remain excluded. Resolve only that answered placeholder, retaining all proof hooks and stop conditions.",
-        "Private evidence root: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg. Runtime, installer, image and migration proof JSON plus logs are there; private contents are not copied into this public repository.",
-        "Publication permission was requested for the scoped source/docs changes; no source commit, push, PR or system switch has occurred. The unrelated xmemcli edit was moved by its owner into a separate branch.",
-        "Rebased onto accepted Decapod 0.136.3 merge 1eb9c1356a8bbdcedb7793489a1f2ef5beb30b76, inherited release files, ingested the new corpus and used only the matched binary. AUTHORING_BINDING_STALE was resolved by inspecting unchanged task ownership/checkout/lease and using native workspace ensure; the original journal remained intact.",
-        "Resolve the sole trajectory blocker quoted by validation: scoped commit/push/PR authority absent. The user directly supplied that approval, the candidate is committed, and existing evidence records the approval. Removing this resolved authorization blocker does not mark live rollout complete or grant reviewer risk acceptance, team-service access, or data-sharing opt-ins.",
-        "Resumed without reopening unchanged installer docs. The first shadow proxy failed because the Apple disk volume could not be attached twice. A private directory copy of cached model assets fixed test isolation. Six real model requests through Caveman 4.1.0 and Headroom 0.44.0 passed, preserved all sentinels and reused provider cache; all temporary services were removed.",
-        "Signet 1.0.0 image and isolated private-workspace migration passed readiness and SQLite checks. 1559 memory records retained identical content, agent, visibility, provenance and tags; other tracked table counts match. The original backup hash is unchanged and temporary container removal was checked. Live personal Signet remains 0.238.0.",
-        "Signet 1.0.1 superseded the 1.0.0 candidate after its security release. A fresh original-backup rehearsal passed readiness 200, runtime 1.0.1, cross-site write 403, memory content/scope equality, SQLite integrity, unchanged backup and cleanup. The source image pin and guide warnings were updated. Live personal Signet remains 0.238.0.",
-        "Source publication precedes live rollout by policy. The live-rollout claim remains unproven until post-merge runtime verification; source CI passing will not be represented as live completion.",
-        "Strengthened the required ShellCheck args from 12 to 13 by including scripts/test-pi-gateway-provider.sh. No command was removed; the profile ID, fixed executable/toolchain paths, environment, timeouts and four explicit CI-only limitations are unchanged. Entered only the source/command review pins reported by agent.init after reviewing the declaration. A final read-only report is proof_pending with REQUIRED_PROOF_NOT_RUN only, not needs_reconciliation. BrightQuartz independently reviewed the delta.",
-        "Team Signet initially timed out; the existing tunnel watchdog reconnected it. Authorized health then returned 200, version 1.0.0. No shared server or tunnel configuration was changed.",
-        "The 0.136.3 repository-local profile reported PROOF_PROFILE_RECONCILIATION_REQUIRED. Its documented manual maintainer path treats .decapod/config.toml as the live user-authored declaration; there is no mutation RPC. All 47 discovered source hashes were independently checked. Relative to accepted 1eb9c13, only Justfile/flake.lock changed and the two new test helpers were added; all five workflow sources and coverage mappings are unchanged.",
-        "The 240-second signed-commit window expired near the final prompt-gate suite, not on a failed assertion. An unchanged retry with all hooks/signing enabled passed and produced 37ad5cc. Independent runs confirmed that suite passes 33/33 in about seven seconds.",
-        "The latest upstream Codex release is rust-v0.167.1. Both .0 and .1 Cargo.lock Git blobs are 2eae72dab578ac844d15ae8585f47ef2d1019607. Source prefetch hash is sha256-S63Qd9OGCACz1EK/IzH6LGsZxMovk0UBkOKtv/jnQ+I=. A conditional override applies only to the verified .0 package. Actual M-02877 Home Manager selection evaluates to Codex 0.167.1 and Pi 1.5.2. Full package build remains the configured validation/CI proof, not claimed from evaluation.",
-        "The new Headroom startup admission uses authoritative typed volume inventory, refuses an unprepared legacy migration, and checks pull-or-cached image availability before stop/rm. The actual Nix-rendered script passed 11 mock-backend cases; no real containers are touched by the test. Independent review confirmed the design; explicit cutover order, guard log location and safe availability escape are documented. Live migration remains unperformed.",
-        "The owned candidate was preserved in stash 7623de8cc68cbec2997b2ea931349127d5e2fb96 and rebased onto accepted main 5f3dac1. Product code merged cleanly. The exact original journal was restored, the accepted manifest selected, and specs.refresh regenerated supported projections. No root branch mutation or hook bypass.",
-        "The user preference was saved privately to the personal Signet workspace. Version checks refreshed after approval: Claude Code 2.1.322, Codex 0.167.1 and Chorus Pi 0.24.0 are newly available. BrightQuartz owns a separate Decapod 0.136.3 bump; the final merged-main rollout must include its SHA. Dagger engine beta.26 will replace the retained beta.21 only with backup, isolation and compatibility proof.",
-        "Validation of 46e8702 had 187 pass and only READINESS_BLOCKED from that stale authorization blocker. Detailed report: /var/folders/0f/5l7wb39j0894nh3wb7tmh9_40000gp/T/token-chain-guide-audit-75z8rwzg/den-validate-46e8702-detail.json. The supported --clear-blockers action resolves that exact answered condition. Independent review accepted prior code fixes and identified the Dagger module-version alignment and explicit pin rollback, which are being repaired before publication."
-      ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M72N4NKHAW5G7HHVWKJNKNSM",
-      "modified_files": [
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
-        ".decapod/managed/specs/INTERFACES.md",
+      "evidence": [],
+      "inspected_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "Justfile",
         "flake.lock",
-        "gateway.json",
-        "modules/M-02877/darwin.nix",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/agent-providers.nix",
-        "modules/agent-providers/pi-providers.jq",
-        "modules/gateway.nix",
-        "modules/shared-devtools.nix",
-        "reviewerAgent.md",
-        "scripts/test-pi-gateway-provider.sh"
+        "flake.nix"
+      ],
+      "intent_id": "intent:change_01M74SD5VRWQM3SPCTWBR84CF5",
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "flake.lock",
+        "flake.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "Seven LEGO guides and token-toolchain reference; active M-02877 integrations, supported reviewer hosts, related authored specs and measured guide corrections.",
         "root"
       ],
-      "run_id": "branch_01M72N4NNWF1MTGEPRH0EDBFWZ",
+      "run_id": "branch_01M74SD5YAASK6JDWR6KNM5R2M",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m72hxtdv0vwx07",
+      "task_id": "bugs_01m74scc2nxvb0jd",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "Current user delegates routine remediation choices, but this does not accept reviewer-agent risks, authorize new data sharing, or waive repository publication policy."
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

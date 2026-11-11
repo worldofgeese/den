@@ -138,14 +138,26 @@ brings the rejection back.
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
 `worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
-`packages.default`), pinned to its v0.2.4 release (commit 16661d7; the
+`packages.default`), pinned to its v0.2.5 release (commit ec8afdd; the
 maintained home of the project since the 2026-11 move from
 `NicholaiVogel/pr-reviewer`). The input URL names the release tag and
 `flake.lock` pins the revision, so den holds no hand-maintained rev, source
 hash or `cargoHash`; the flake builds from `Cargo.lock` with the tests off,
 because the suite binds loopback sockets that the Nix sandbox refuses. The
 build carries no local patches: HTTPS Basic auth for git, review rounds and
-stacked PRs are all in the pinned release. v0.2.4 over v0.2.3: peer daemons
+stacked PRs are all in the pinned release. v0.2.5 over v0.2.4: a head claim
+(worldofgeese/pr-reviewer#40, issue #36 option 3) keeps two hosts off one head
+commit. Before a review cycle the daemon sets a `pending` commit status with
+the context `pr-reviewer/claim` and the description `claimed by <host> at
+<UTC time>` on the head, and skips a head while another host's claim is under
+15 minutes old (it checks again after 2 minutes). It reads its claim back,
+backs off when a peer's fresh claim is the latest, and posts a `success`
+status `released by <host>` when the cycle ends or fails. It needs no setting
+and no database change. The claim works only if the daemon's token can write
+commit statuses; without that the daemon logs `could not set the head claim`
+and reviews as v0.2.4 did. The status shows the machine's host name to anyone
+who can see the pull request, and the claim is a best-effort guard, not a
+lock. v0.2.4 over v0.2.3: peer daemons
 (worldofgeese/pr-reviewer#37, #38): `defaults.peer_logins` names other
 people's daemons on the same repos, whose reviews, skips and command answers
 count as done, and `defaults.standby_delay_secs` makes a standby wait; both

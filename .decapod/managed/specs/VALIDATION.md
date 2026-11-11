@@ -165,7 +165,7 @@ check, the pre-commit `just check`, and the deploy proof of each changed
 deploy target.
 
 Three upstream defects limited proof on M-02877 on 2026-11-09. Decapod 0.134.2
-fixed all three, and den runs 0.136.2 since 2026-11-10 (den #135):
+fixed all three, and den runs a release with all three fixes (0.134.2 or later):
 - `decapod qa verify` denied the Nix wrapper's `bin/.decapod-wrapped`, because
   its `verification_exec` capability accepts only the file name `decapod` or
   `decapod*` (DecapodLabs/decapod#1582). The package itself is fixed, so den

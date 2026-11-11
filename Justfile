@@ -52,8 +52,11 @@ deploy-mahakala-hm:
 # accept-flake-config; they are declared here instead, pinned to their keys, so
 # no other host sees them and no future input can add a substituter. worldofgeese
 # is a trusted user in guix/system.scm, so the daemon honours them.
-mahakala-hm-caches := "https://cache.numtide.com https://nixarchy.cachix.org https://hyprland.cachix.org"
-mahakala-hm-keys := "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM= hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE="
+# decapod.cachix.org is upstream Decapod's cache (DecapodLabs/decapod#1600); it
+# serves the decapod package of shared-devtools, because flake.nix takes that
+# input without `follows`. Its Linux build is reproducible (decapod#1176).
+mahakala-hm-caches := "https://cache.numtide.com https://nixarchy.cachix.org https://hyprland.cachix.org https://decapod.cachix.org"
+mahakala-hm-keys := "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM= hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE= decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng="
 deploy-mahakala-hm-only:
     NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\nextra-substituters = %s\nextra-trusted-public-keys = %s' '{{ mahakala-hm-caches }}' '{{ mahakala-hm-keys }}')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"
     update-desktop-database ~/.local/share/applications

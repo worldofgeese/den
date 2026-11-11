@@ -339,10 +339,19 @@
         extra-deprecated-features = ["or-as-identifier"];
         trusted-users = ["root" "dktaohan"];
         # Fetch whatever this host has already pushed with `just cachix-push`
-        # instead of recompiling it. Upstream publishes no cache, so every
-        # decapod bump otherwise costs a local Rust build. Note the cache cannot
-        # be populated from mahakala: entries are per system and this host is
-        # aarch64-darwin.
+        # instead of recompiling it. Note the cache cannot be populated from
+        # mahakala: entries are per system and this host is aarch64-darwin.
+        #
+        # decapod.cachix.org is upstream Decapod's cache. Its CI publishes
+        # packages.default there on release merges (DecapodLabs/decapod#1600),
+        # signed with the key below. flake.nix takes the decapod input without
+        # `follows`, so this host's decapod is that exact derivation and a bump
+        # no longer costs a local Rust build. Trust: the Linux build is
+        # reproducible (DecapodLabs/decapod#1176), so anyone can rebuild and
+        # compare it. The macOS build still differed in its Mach-O UUID on
+        # standard Nix, so here the cache means trusting upstream's CI and key.
+        # Nix cannot scope a key to one package: the daemon accepts any store
+        # path signed by decapod.cachix.org-1, for any build on this host.
         #
         # cache.numtide.com serves llm-agents (pi, claude-code, omp). Hosts
         # declare their own caches; flake.nix has no nixConfig. A flake's
@@ -351,10 +360,12 @@
         extra-substituters = [
           "https://worldofgeese.cachix.org"
           "https://cache.numtide.com"
+          "https://decapod.cachix.org"
         ];
         extra-trusted-public-keys = [
           "worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs="
           "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+          "decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng="
         ];
         # Should an input's flake ever carry nixConfig again, decline it
         # outright instead of per user: root (which runs darwin-rebuild) keeps

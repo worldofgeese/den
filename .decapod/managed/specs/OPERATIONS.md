@@ -126,7 +126,7 @@ todo done --validated` ran `std::env::current_exe()` under the
 `verification_exec` capability, which rejected the name `.decapod-wrapped`, so
 plain `decapod validate` reported PROOF_HOOK_FAILED for every done todo. Den #133
 worked around that with an overlay that copied the real binary to
-`libexec/decapod/decapod`. #1582 is fixed in the release den runs (0.136.2), and
+`libexec/decapod/decapod`. #1582 is fixed since Decapod 0.134.2, and
 a scratch Decapod repository showed that `qa verify` and `todo done --validated`
 start the validation child from the plain upstream package with no
 `.decapod-wrapped` rejection. So `modules/overlays.nix` again takes
@@ -1397,13 +1397,21 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-10 a separate Decapod-only bump changed 1 node of `flake.lock`, to the v0.136.3 release. The token-chain refresh of the other inputs left this node alone.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. Its last run, on 2026-11-10, changed `devenv` (9655d32 to 08d11dc) and `llm-agents` (a506e7e to b3d1786). Two changes outside the nightly bump followed. The token-chain refresh (den #148) moves other inputs and leaves `decapod` alone.
 
-| Node | Before | After |
-|---|---|---|
-| `decapod` | 0dbfb06 (2026-11-10) | bf50c58 (2026-11-10) |
+| Node | Before | After | Change |
+|---|---|---|---|
+| `decapod` | 0dbfb06 (2026-11-10) | bf50c58 (2026-11-10) | den #147: the v0.136.3 release |
+| `decapod` | bf50c58 (2026-11-10) | 53a5574 (2026-11-11) | den #149: the v0.137.2 release |
+| `decapod/rust-overlay` | follows the root `rust-overlay` | 32346a8, the revision in upstream's own `flake.lock` | `decapod` takes no `follows`, so that `decapod.cachix.org` serves it |
 
-The bump ran the new release only in an isolated clone with its own store. It wrote the entrypoints and managed files there, so the shared store stayed on the deployed release until the deploy, and the deploy's automatic store copy (`scripts/decapod-deploy-backup.sh`) still came first.
+Den #147 ran `decapod init` with 0.136.3 only in an isolated clone with its own store. Its validation then ran 0.136.3 against the shared store, because an older release rewrites the entrypoints to its own version. A manual backup (`decapod-pre-0.136.3-validate-20261110T214949Z.db`, integrity ok) came first. Before that, on a read-only copy of the live store, 0.136.3 had run `todo list` and `validate` and left the schema (`sqlite_master` and `user_version`) and the `meta` table unchanged, and 0.136.3 reported "Applied migrations: none". The deploy's automatic store copy (`scripts/decapod-deploy-backup.sh`) still runs before the switch.
+
+`nix flake lock` alone resolved the new `decapod/rust-overlay` node to the newest rust-overlay (89750a2), not to upstream's locked revision, so the change set it to upstream's 32346a8. `nix flake update decapod`, which the nightly bump runs, takes that node from upstream's lock: a probe on 2026-11-11 moved `decapod` to 57a05bb and got upstream's 32346a8. Proof of the cache on 2026-11-11: den's `decapod` evaluates to `/nix/store/w6s05i2hl1nfjhv7yj7a9xakpn6fw671-decapod-0.136.3`, both alone and in M-02877's home packages. That path is in `decapod.cachix.org`, and `nix build` fetched it from there in 2 seconds (10 MiB), with the `decapod.cachix.org-1` signature. The build with `follows` (`mlai9353…`) was not in the cache.
+
+Nothing in `just check` or CI checks the `decapod/rust-overlay` pin. A wrong pin shows only as a local Decapod build, so anyone who re-resolves that node by hand (for example after adding and removing `follows`, or after deleting `flake.lock`) must set it to the revision in the decapod input's own `flake.lock` again. `nix flake update decapod` does that by itself. Check: `nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.decapod.packages.aarch64-darwin.default.outPath'` must equal `nix eval --raw github:DecapodLabs/decapod/<locked rev>#packages.aarch64-darwin.default.outPath`. Upstream's lock at 53a5574 (0.137.2) pins the same nixpkgs (b6018f8) and rust-overlay (32346a8), so the move to 0.137.2 added no nixpkgs tree, and `nix flake update decapod` took both nodes from upstream's lock with no hand edit. Den's 0.137.2 is `/nix/store/w7h10arrygsb7l2pif1v78nnkcphsawz-decapod-0.137.2`, which `decapod.cachix.org` serves.
+
+0.137.0 brought guarded storage migrations: it compacts redundant SQLite indexes and collapses composite primary key btrees. Den checked them on a read-only copy of the live store before 0.137.2 first touched the shared store. 0.137.2 migrated the copy (110 to 104 schema objects, integrity ok, `meta` `schema_version` unchanged at 18). Then the deployed 0.136.2 and 0.136.3 still read the copy (the same 105 tasks) and wrote it (session acquire, `todo add`, `todo claim`), and 0.137.2 reopened it with no error. The only side effect is that an older release re-creates 4 of the dropped indexes when it opens the store. So agents that still run 0.136.2 keep working after the migration and before the deploy. A supported backup (`decapod data database backup`) came before 0.137.2 first wrote the shared store, and the deploy's automatic store copy (`scripts/decapod-deploy-backup.sh`) still runs before the switch.
 
 ## Limited NAS Recovery Evidence
 

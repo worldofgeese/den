@@ -95,6 +95,14 @@
       "proof_refs": [
         "decapod validate repair applied the manifest refresh"
       ]
+    },
+    {
+      "id": "pr-reviewer-v0-2-5-inventory",
+      "summary": "Pin the reviewed source inventory: only flake.nix and flake.lock differ from main",
+      "input_digest": "sha256:6780959e79fcf9b63bb71d821461489581bd9f6ace5ebbbfbce89c918a653397",
+      "proof_refs": [
+        "decapod rpc --op agent.init inventory_digest"
+      ]
     }
   ],
   "intents": {

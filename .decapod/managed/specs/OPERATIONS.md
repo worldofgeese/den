@@ -138,14 +138,44 @@ brings the rejection back.
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
 `worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
-`packages.default`), pinned to its v0.2.4 release (commit 16661d7; the
+`packages.default`), pinned to its v0.2.6 release (commit f37546e; the
 maintained home of the project since the 2026-11 move from
 `NicholaiVogel/pr-reviewer`). The input URL names the release tag and
 `flake.lock` pins the revision, so den holds no hand-maintained rev, source
 hash or `cargoHash`; the flake builds from `Cargo.lock` with the tests off,
 because the suite binds loopback sockets that the Nix sandbox refuses. The
 build carries no local patches: HTTPS Basic auth for git, review rounds and
-stacked PRs are all in the pinned release. v0.2.4 over v0.2.3: peer daemons
+stacked PRs are all in the pinned release. v0.2.6 over v0.2.5: a head claim
+that a killed daemon left behind no longer blocks a merge (worldofgeese/pr-reviewer#42;
+this answers the review thread on den#151). v0.2.5 over v0.2.4: a head claim
+(worldofgeese/pr-reviewer#40, issue #36 option 3) keeps two hosts off one head
+commit. Before a review cycle the daemon sets a `pending` commit status with
+the context `pr-reviewer/claim` and the description `claimed by <host> at
+<UTC time>` on the head, and skips a head while another host's claim is under
+15 minutes old (it checks again after 2 minutes). It reads its claim back,
+backs off when a peer's fresh claim is the latest, and posts a `success`
+status `released by <host>` when the cycle ends or fails. So the claim is
+`pending` only while a review cycle runs, and a reviewed head ends in
+`success`. GitHub statuses never expire, so a daemon that dies inside a cycle
+(a kill, a restart, a sleeping machine) would leave a `pending` claim, and the
+automerge rule below (every check complete) would wait on it for good. v0.2.6
+releases such a claim with the same `success` status: at start, before any
+review cycle, it releases a `pending` claim that its own host made, on every
+open PR of the declared repos; while it runs, it releases a `pending` claim of
+any host older than 15 minutes on a head it already reviewed (it looks at
+each reviewed PR about every 15 minutes), and the review engine does the same
+when it skips an already-reviewed head. It never touches a peer's claim under
+15 minutes old, and with `defaults.dry_run` on it releases nothing. To clear a
+stuck claim by hand: `gh api repos/OWNER/REPO/statuses/HEAD_SHA -f state=success
+-f context=pr-reviewer/claim -f description="released by hand"`. The claim
+needs no setting and no database change. It works only if the daemon's token
+can write commit statuses (a peer daemon needs v0.2.5 or later and such a
+token for its claims to count); without that the daemon logs `could not set the
+head claim` and reviews as v0.2.4 did. The status shows the machine's host name
+to anyone who can see the pull request, and the claim is a best-effort guard,
+not a lock. Two daemons on one machine would share a host name, and v0.2.6
+would then release the other's claims at start, so run one daemon per machine.
+v0.2.4 over v0.2.3: peer daemons
 (worldofgeese/pr-reviewer#37, #38): `defaults.peer_logins` names other
 people's daemons on the same repos, whose reviews, skips and command answers
 count as done, and `defaults.standby_delay_secs` makes a standby wait; both
@@ -274,7 +304,10 @@ The agent runs every 120 s. It merges a PR only when all of these hold:
   commit. The agent logs each one it sets aside. A person's change request
   still blocks.
 - Every check is complete with SUCCESS, SKIPPED or NEUTRAL. A PR with no
-  checks also qualifies.
+  checks also qualifies. The `pr-reviewer/claim` status counts like any other
+  check: it is `pending` during a review cycle, `success` once released, and
+  v0.2.6 releases a stale one (see the pr-reviewer section). The agent does
+  not special-case it.
 - Only the newest run of each check counts, grouped by check name and
   workflow. So a run that a concurrency group cancelled does not block once a
   newer run of the same check has superseded it, and the agent logs the

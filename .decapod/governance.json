@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "79b8f8b5e08071a91c52a428a96d4810aa224eca",
+    "accepted_commit": "6dd8bde3e9bf943a326f6b1018bb4b796c1e773b",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,58 +66,53 @@
     }
   },
   "change": {
-    "id": "change_01M763CWCDNKP05H6399NE1F0E",
-    "base_commit": "79b8f8b5e08071a91c52a428a96d4810aa224eca",
+    "id": "change_01M77NSJTZB30CAKWZW47Z942J",
+    "base_commit": "6dd8bde3e9bf943a326f6b1018bb4b796c1e773b",
     "target_base": "origin/main"
   },
   "claims": {
-    "caveman-port-owner": {
-      "statement": "After a hook-started proxy takes 8787, the launchd job stops it and serves with the loopback allowlist; hook-started proxies also carry the allowlist",
-      "falsifier": "Isolated serve test leaves an owner=wrap proxy running, stops a non-Caveman PID, or fails on a malformed run file",
+    "pr-reviewer-027-builds": {
+      "statement": "den with pr-reviewer v0.2.7 builds the full M-02877 system under the bumped nixpkgs",
+      "falsifier": "nix build .#darwinConfigurations.M-02877.system fails",
       "status": "supported",
       "proof_refs": [
-        "isolated serve-script test 2026-11-12: 4/4 cases"
+        "/nix/store/8s4pihmy9ww95mr4847cg3lj6afir1sr-darwin-system-26.11.ff0e21a"
       ]
     }
   },
   "checkpoints": [
     {
-      "id": "code_01m763bwgcr8547j",
-      "summary": "Remove decapod-g5 and the PAUSE route",
-      "input_digest": "sha256:19c621ae393bc55d03e4951f026b369b9fbca718ce7337ef2a6979adc63e6070"
+      "id": "pr-reviewer-027",
+      "summary": "Pin pr-reviewer v0.2.7; document private dashboard source restore",
+      "input_digest": "sha256:eb36a716c134351b217b3caba223dcfeca4330537541421915777ec8163054c8"
     },
     {
-      "id": "code_01m763bwgcr8547j-r2",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:9539999259135e4c967161b5bbf67eb137f4ee2afc2336b8b66f913c1751e612"
+      "id": "pr-reviewer-027-reconciled",
+      "summary": "Pin pr-reviewer v0.2.7; reconcile reviewed source inventory (flake.lock pr-reviewer node only); document dashboard source restore",
+      "input_digest": "sha256:9744102f24b35e763a96e01ef30b3ac6194de6eae0e0dd94b5e9b2dd7b8c0854"
     },
     {
-      "id": "code_01m763bwgcr8547j-r3",
-      "summary": "Spec reviews for the gate change",
-      "input_digest": "sha256:2c30522c2f71facdaf33548929263c118afd01e18a626614dcc7e6c2bc7d74ff"
-    },
-    {
-      "id": "caveman-port-owner-v2",
-      "summary": "Caveman launchd job reclaims 8787 from hook-started proxies; shim exports loopback allowlist; specs updated",
-      "input_digest": "sha256:297c9258dc1d6e7530c17c1e1c7caeec2a44dd58cce0fcaee3d112830a0033a5"
+      "id": "pr-reviewer-027-final",
+      "summary": "Pin pr-reviewer v0.2.7; reconcile reviewed source inventory and spec manifest; document dashboard source restore",
+      "input_digest": "sha256:bd83a9a2fe25afefd27cf9a1795c111a84a13db353b1cae8d49308d9a24fc9d9"
     }
   ],
   "intents": {
-    "intent:caveman-port-owner-v2": {
+    "intent:change_01M77NSJTZB30CAKWZW47Z942J": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "modules/M-02877/token-toolchain.nix and living specs"
+        "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "caveman-proxy-serve, pi shim"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:caveman-port-owner-v2",
+      "id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Tao: new Pi sessions fail with 502 cave_upstream_blocked; investigate and remediate fully; nothing should fail on our side",
-      "refined_intent": "Keep the declared Caveman proxy authoritative on 8787 and make hook-started proxies reach loopback Headroom",
+      "raw_intent": "Pin pr-reviewer v0.2.7 so M-02877 builds with current nixpkgs (system sqlite)",
+      "refined_intent": "Pin pr-reviewer v0.2.7 so M-02877 builds with current nixpkgs (system sqlite)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -130,88 +125,76 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao: new Pi sessions fail with 502 cave_upstream_blocked; remediate fully. Fix: caveman-proxy-serve stops a hook-started (owner wrap) proxy holding 8787, and the pi shim exports CAVE_SSRF_ALLOWLIST=127.0.0.1 to hook children.",
+      "intent": "Tao: remediate fully, nothing failing on our side. den main 6dd8bde no longer builds M-02877: pr-reviewer v0.2.6 fails to link sqlite under new nixpkgs. Pin v0.2.7 (worldofgeese/pr-reviewer#44) and document the private agent-token-dashboard source restore.",
       "phases": [],
       "proof_hooks": [
-        "the gate test suite passes, including the built, installed file; mutants of the allow, exit-code and block checks fail it",
-        "flake.lock loses only the decapod-g5 nodes",
-        "plain decapod validate passes",
-        "just check (pre-commit)"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "spec_reviews": [
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Component structure unchanged; same launchd job and shim",
+          "reason": "Same pr-reviewer flake input and module; only the release pin moves",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "723083e7bd0439c44a8276bf50fbcee862c5bc585f97bffe5eec82a924680dd3"
         },
         {
-          "disposition": "updated",
+          "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Documents Caveman port ownership and the hook-proxy allowlist",
+          "reason": "pr-reviewer CLI and launchd interface unchanged between v0.2.6 and v0.2.7",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "6dc312430698fa4e302e985562189c537d12ee7ad19cb544d7044858504b114f"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "Allowlist stays 127.0.0.1 only; the stop targets only the run-file PID whose executable is the Caveman proxy",
+          "reason": "Links nixpkgs sqlite instead of a bundled copy; no trust-boundary change",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
         }
       ],
       "state": "APPROVED",
-      "stop_conditions": [
-        "Stop if the kill guard could target a non-Caveman process",
-        "Stop if the allowlist would widen beyond 127.0.0.1"
-      ],
-      "title": "Keep the launchd Caveman proxy on 8787",
+      "stop_conditions": [],
+      "title": "Pin pr-reviewer v0.2.7",
       "todo_ids": [
-        "code_01m77aa41c3dy6sm"
+        "fend_01m77nqyhttw9epm"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794473681Z"
+      "updated_at": "1794481248Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "modules/M-02877/token-toolchain.nix and living specs"
+        "Current claimed task and isolated work branch",
+        "flake.nix pr-reviewer pin, flake.lock, OPERATIONS"
       ],
-      "artifact_hash": "sha256:9bab49d71724e35959eea0b15006d973ab10aa6bafb0c043d68cc84d2883b673",
+      "artifact_hash": "sha256:3b882100b0ec35fe9cda15077d8f48b645065f5e07457498c3d08ee10b94f488",
       "checks": [
         {
-          "name": "den-ci-8-checks-pre-rebase",
-          "status": "passed"
-        },
-        {
-          "name": "live-remediation-fresh-pi-p",
-          "status": "passed"
-        },
-        {
-          "name": "serve-script-isolated-4-cases",
+          "name": "staged-M-02877-system-build",
           "status": "passed"
         }
       ],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:caveman-port-owner-v2",
+            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:caveman-port-owner-v2",
+            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:caveman-port-owner-v2",
+            "detail": "trajectory:branch_01M77NSK25PRZ449VMQ7BC5HME",
             "event_id": "event:4",
-            "intent_id": "intent:caveman-port-owner-v2",
+            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -220,28 +203,26 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "caveman-port-owner-v2": {
+          "branch_01M77NSK25PRZ449VMQ7BC5HME": {
             "evidence_only": true,
-            "id": "caveman-port-owner-v2",
-            "intent_id": "intent:caveman-port-owner-v2",
+            "id": "branch_01M77NSK25PRZ449VMQ7BC5HME",
+            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
             "steps": [
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/M-02877/token-toolchain.nix",
+                  "flake.nix",
+                  "flake.lock",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "Stray owner=wrap pid 58085 since 2026-11-11 14:24 lacked CAVE_SSRF_ALLOWLIST; 4648 bind errors; after stop, launchd owner=start; pi -p answered",
-                  "Isolated test: wrap stopped, start kept, unrelated PID kept, malformed run file tolerated"
+                  "nix build .#darwinConfigurations.M-02877.system -> /nix/store/8s4pihmy9ww95mr4847cg3lj6afir1sr (13m, no errors) after pinning v0.2.7",
+                  "6dd8bde build failed: pr-reviewer ld -lsqlite3 (LIBSQLITE3_SYS_USE_PKG_CONFIG=1 from cargo-setup-hook)"
                 ],
                 "proof_refs": [
-                  "live-remediation-fresh-pi-p",
-                  "serve-script-isolated-4-cases",
-                  "den-ci-8-checks-pre-rebase"
+                  "staged-M-02877-system-build"
                 ],
                 "scope": [
-                  "caveman-proxy-serve, pi shim"
+                  "root"
                 ],
                 "sequence": 4,
                 "validation_findings": []
@@ -251,24 +232,29 @@
         }
       },
       "declared_commands": [],
+      "destination": "pull request",
       "evidence": [
-        "Isolated test: wrap stopped, start kept, unrelated PID kept, malformed run file tolerated",
-        "Stray owner=wrap pid 58085 since 2026-11-11 14:24 lacked CAVE_SSRF_ALLOWLIST; 4648 bind errors; after stop, launchd owner=start; pi -p answered"
+        "6dd8bde build failed: pr-reviewer ld -lsqlite3 (LIBSQLITE3_SYS_USE_PKG_CONFIG=1 from cargo-setup-hook)",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/8s4pihmy9ww95mr4847cg3lj6afir1sr (13m, no errors) after pinning v0.2.7"
       ],
       "inspected_files": [],
-      "intent_id": "intent:caveman-port-owner-v2",
+      "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
       "modified_files": [
-        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/token-toolchain.nix"
+        "flake.lock",
+        "flake.nix"
+      ],
+      "next_transitions": [
+        "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "caveman-proxy-serve, pi shim"
+        "pr-reviewer input",
+        "root"
       ],
-      "run_id": "caveman-port-owner-v2",
+      "run_id": "branch_01M77NSK25PRZ449VMQ7BC5HME",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m77aa41c3dy6sm",
+      "task_id": "fend_01m77nqyhttw9epm",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

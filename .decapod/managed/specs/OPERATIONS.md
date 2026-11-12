@@ -1490,20 +1490,16 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-12 it changed 10 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-12 it changed 6 nodes of `flake.lock`.
 
 | Node | Before | After |
 |---|---|---|
-| `decapod` | 2f6daf8 (2026-11-11) | d3358e1 (2026-11-12) |
-| `den` | 1ebb7de (2026-11-11) | a66a778 (2026-11-11) |
-| `devenv` | 622870a (2026-11-11) | 215e857 (2026-11-11) |
-| `emacs-overlay` | 4b57c40 (2026-11-10) | d6b7a17 (2026-11-11) |
-| `ewm` | 8719dd6 (2026-11-10) | 57394a2 (2026-11-11) |
-| `llm-agents` | b1794bc (2026-11-11) | a4ef5bd (2026-11-12) |
-| `nix-doom-emacs-unstraightened` | c2103e4 (2026-11-10) | 1d5c120 (2026-11-11) |
-| `nixarchy` | 07323b9 (2026-11-11) | 9bc89ff (2026-11-12) |
-| `nixpkgs_4` | f4a03c0 (2026-11-07) | 177d054 (2026-11-09) |
-| `nixpkgs_5` | 4fe25e1 (2026-11-06) | f6bf105 (2026-11-08) |
+| `decapod` | d3358e1 (2026-11-12) | fc1e2b9 (2026-11-12) |
+| `llm-agents` | a4ef5bd (2026-11-12) | 1156328 (2026-11-12) |
+| `nixarchy` | 9bc89ff (2026-11-12) | a4757e4 (2026-11-12) |
+| `nixpkgs_5` | f6bf105 (2026-11-08) | 9397dcb (2026-11-11) |
+| `rust-overlay_2` | 0070500 (2026-11-11) | d1e30fd (2026-11-12) |
+| `zen-browser` | a7cac93 (2026-11-11) | 7ae4b41 (2026-11-12) |
 
 ## Limited NAS Recovery Evidence
 

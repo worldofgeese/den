@@ -844,7 +844,16 @@ container runs without `HEADROOM_NO_MEMORY_TOOLS` and `HEADROOM_EXCLUDE_TOOLS`
 We checked both on 2026-10-23 in the running 0.41.0 image: the two sets in
 `headroom.config`, and the guard in `headroom/proxy/handlers/anthropic.py`.
 Kompress still deletes keywords from a fenced code block inside a mixed tool
-result (headroomlabs-ai/headroom#4214). A change to Headroom's settings
+result (headroomlabs-ai/headroom#4214). It still does so in 0.44.0. On
+2026-11-12 the real model on the 0.44.0 router cut the #4214 fence from 1,324
+to 1,144 characters, and the result no longer parsed. That happened both with
+and without code-aware routing. With `enable_kompress=False` the fence stayed
+intact. The launch command therefore sets `HEADROOM_DISABLE_KOMPRESS=1`,
+which the proxy maps to `enable_kompress=False` for the Anthropic and OpenAI
+routers. It logs `Kompress: DISABLED` at start. JSON, log, diff and code
+compression still run. Remove the variable when a release contains
+headroomlabs-ai/headroom#4787. The team guide (LEGO/agentic-engineering-community#148)
+gives the same setting. A change to Headroom's settings
 restarts the Headroom container, which is in the model path of the other
 harnesses. Apply it from a plain terminal.
 

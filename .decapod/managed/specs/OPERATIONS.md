@@ -107,6 +107,19 @@ The two fixes from that update, both no-ops once upstream changes:
 - atuin 18.23.0: its PTY end-to-end suites time out in the Darwin build
   sandbox. `modules/overlays.nix` skips checks on Darwin only.
 
+### agent-token-dashboard source is private (M-02877)
+
+`modules/overlays.nix` fetches `LEGO/agent-token-dashboard` with
+`fetchFromGitHub`. The builder downloads it without credentials, so GitHub
+answers 404. That fetch succeeds only while the source is still in the store.
+After a garbage collection, any rebuild of the package, such as after a
+nixpkgs bump, fails. CI only evaluates, so it does not notice. To restore
+the source, download the pinned revision with `gh api
+repos/LEGO/agent-token-dashboard/tarball/<rev>` and unpack it to a
+directory named `source`. Then run `nix-store --add-fixed --recursive
+sha256 source`. The printed path must equal the fixed-output path of the
+source derivation. This was done on 2026-11-12.
+
 ### azure-cli is a Homebrew cask (M-02877)
 On 2026-11-09 Homebrew removed the `azure-cli` formula and shipped it as a
 cask. `brew bundle` in activation then failed with 'No available formula with
@@ -136,14 +149,20 @@ brings the rejection back.
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
 `worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
-`packages.default`), pinned to its v0.2.6 release (commit f37546e; the
+`packages.default`), pinned to its v0.2.7 release (commit ff1f984; the
 maintained home of the project since the 2026-11 move from
 `NicholaiVogel/pr-reviewer`). The input URL names the release tag and
 `flake.lock` pins the revision, so den holds no hand-maintained rev, source
 hash or `cargoHash`; the flake builds from `Cargo.lock` with the tests off,
 because the suite binds loopback sockets that the Nix sandbox refuses. The
 build carries no local patches: HTTPS Basic auth for git, review rounds and
-stacked PRs are all in the pinned release. v0.2.6 over v0.2.5: a head claim
+stacked PRs are all in the pinned release. v0.2.7 over v0.2.6: the Nix
+build links nixpkgs' sqlite (worldofgeese/pr-reviewer#44). Since the
+2026-11-12 nixpkgs bump, nixpkgs' cargo setup hook exports
+`LIBSQLITE3_SYS_USE_PKG_CONFIG=1`, which overrides rusqlite's `bundled`
+feature. v0.2.6 then failed to link with `library not found for -lsqlite3`.
+CI evaluation cannot catch such a build failure, so the local staged
+build before activation is the check. v0.2.6 over v0.2.5: a head claim
 that a killed daemon left behind no longer blocks a merge (worldofgeese/pr-reviewer#42;
 this answers the review thread on den#151). v0.2.5 over v0.2.4: a head claim
 (worldofgeese/pr-reviewer#40, issue #36 option 3) keeps two hosts off one head

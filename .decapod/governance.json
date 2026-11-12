@@ -85,6 +85,11 @@
       "id": "cm-exclude-tools",
       "summary": "piAgent.settings merge; contextMode.excludeTools for Caveman recovery tools; specs updated",
       "input_digest": "sha256:dae7b013a3943af97f529a5c9e665fc01aa4c189767338d65208ed3592a809d4"
+    },
+    {
+      "id": "cm-exclude-tools-signet-hooks",
+      "summary": "Document signet sync hook damage and repair",
+      "input_digest": "sha256:9eed56b807d4bf2e315534cf2ebbe35746a9234f6b79406f2e5b53f7f2d1fffb"
     }
   ],
   "intents": {
@@ -159,10 +164,14 @@
         "Current claimed task and isolated work branch",
         "modules/pi.nix, token-toolchain.nix, specs"
       ],
-      "artifact_hash": "sha256:34a51c0c83911675f51d5015270556072e5f173c24859d239518dbea5192db87",
+      "artifact_hash": "sha256:0448c2086a95e839741afbf6870cd045534d0290b4925293dd8299841b1f72f4",
       "checks": [
         {
           "name": "context-mode-2.1.9-exclude-tools-harness",
+          "status": "passed"
+        },
+        {
+          "name": "harness-hooks-restored",
           "status": "passed"
         },
         {
@@ -191,10 +200,17 @@
             "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M77XSMDZD3GRVC4H49YBJG34",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M77XSMDZD3GRVC4H49YBJG34": {
@@ -220,6 +236,23 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "signet sync 1.0.1 dropped 6 Claude hook groups and wrote /app/bin/signet; restored from 2026-11-10 backup; Claude and Codex session-start hooks exit 0 under launchd-like PATH; filed signetai#2220"
+                ],
+                "proof_refs": [
+                  "harness-hooks-restored"
+                ],
+                "scope": [
+                  "pi settings merge, context-mode excludeTools",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -229,11 +262,13 @@
       "destination": "pull request",
       "evidence": [
         "Generated piSettings fragment: merges and keeps other keys, mode 600, no rewrite when unchanged, invalid JSON left unchanged, creates missing file",
-        "Installed context-mode 2.1.9 with getSettings: caveman_retrieve/headroom_retrieve/mcp__caveman__retrieve 6828B exact; search_retrieve 155B pointer"
+        "Installed context-mode 2.1.9 with getSettings: caveman_retrieve/headroom_retrieve/mcp__caveman__retrieve 6828B exact; search_retrieve 155B pointer",
+        "signet sync 1.0.1 dropped 6 Claude hook groups and wrote /app/bin/signet; restored from 2026-11-10 backup; Claude and Codex session-start hooks exit 0 under launchd-like PATH; filed signetai#2220"
       ],
       "inspected_files": [],
       "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
       "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
         "modules/M-02877/token-toolchain.nix",
         "modules/pi.nix"
       ],

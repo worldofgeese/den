@@ -536,6 +536,19 @@ backup stayed unchanged and the test container was removed. Deploy that
 security release rather than the superseded 1.0.0 candidate. Run `signet sync`
 after the live upgrade and verify the affected connector modes.
 
+`signet sync` 1.0.1 also rewrites other harness files (signetai#2220).
+On 2026-11-11 it removed six hook groups from `~/.claude/settings.json`:
+the RTK and Caveman `Bash` hooks, Adrafinil, and the herdr session hook. It
+wrote a bare `signet` into the Claude hooks. A Claude Code started by
+launchd, such as pr-reviewer's harness, then printed `signet: command not
+found` into its review output. In `~/.codex/hooks.json` and the Gemini MCP
+entry, it wrote the container path `/app/bin/signet` and an inline
+`SIGNET_API_KEY`. On 2026-11-12 these were repaired from the 2026-11-10
+backup. Each `signet` command now runs `PATH="/opt/homebrew/bin:$PATH"
+~/.local/bin/signet`, the exported Distrobox wrapper, and the inline keys
+are gone. Before any later `signet sync`, back up those three files.
+Afterwards, compare each file with its backup.
+
 For the live migration:
 1. Coordinate a quiet window for Signet clients. Record the old image, container,
    job definition, and private workspace backup. Verify that backup first.

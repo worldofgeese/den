@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "6dd8bde3e9bf943a326f6b1018bb4b796c1e773b",
+    "accepted_commit": "fe595923be4d19fb2dce16b52920e04c02019b51",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,39 +66,39 @@
     }
   },
   "change": {
-    "id": "change_01M77NSJTZB30CAKWZW47Z942J",
-    "base_commit": "6dd8bde3e9bf943a326f6b1018bb4b796c1e773b",
+    "id": "change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+    "base_commit": "fe595923be4d19fb2dce16b52920e04c02019b51",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "pr-reviewer-027-builds": {
-      "statement": "den with pr-reviewer v0.2.7 builds the full M-02877 system under the bumped nixpkgs",
-      "falsifier": "nix build .#darwinConfigurations.M-02877.system fails",
-      "status": "supported",
-      "proof_refs": [
-        "/nix/store/8s4pihmy9ww95mr4847cg3lj6afir1sr-darwin-system-26.11.ff0e21a"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "pr-reviewer-027",
-      "summary": "Pin pr-reviewer v0.2.7; document private dashboard source restore",
-      "input_digest": "sha256:eb36a716c134351b217b3caba223dcfeca4330537541421915777ec8163054c8"
+      "id": "test_01m77ckw7nq7zzrt",
+      "summary": "Assert the persisted pending record",
+      "input_digest": "sha256:6e13e1694259535b98e1f6a4f7648f8263f4419d44db83c8c6215138a0e622f1"
     },
     {
-      "id": "pr-reviewer-027-reconciled",
-      "summary": "Pin pr-reviewer v0.2.7; reconcile reviewed source inventory (flake.lock pr-reviewer node only); document dashboard source restore",
-      "input_digest": "sha256:9744102f24b35e763a96e01ef30b3ac6194de6eae0e0dd94b5e9b2dd7b8c0854"
+      "id": "test_01m77ckw7nq7zzrt-r2",
+      "summary": "Spec sentence for the new assertion",
+      "input_digest": "sha256:f39728e039329c98ffa441b6343590271bb09177bfc069ae21dbda0a4dfb2ebd"
     },
     {
-      "id": "pr-reviewer-027-final",
-      "summary": "Pin pr-reviewer v0.2.7; reconcile reviewed source inventory and spec manifest; document dashboard source restore",
-      "input_digest": "sha256:bd83a9a2fe25afefd27cf9a1795c111a84a13db353b1cae8d49308d9a24fc9d9"
+      "id": "test_01m77ckw7nq7zzrt-r3",
+      "summary": "Spec manifest refresh",
+      "input_digest": "sha256:38d79ec6e9fe3c1a7981c409a55ddd46e29e080475e9fa62988734802ec0d39e"
+    },
+    {
+      "id": "test_01m77ckw7nq7zzrt-r4",
+      "summary": "Rebase onto 0c6d2c4 (#156)",
+      "input_digest": "sha256:d3d8f3ae4bb9a0d1ace08e4daf3edf1850b04030ded2ce6b0163cae272ceb8d1"
+    },
+    {
+      "id": "test_01m77ckw7nq7zzrt-r5",
+      "summary": "Rebase onto 550f025",
+      "input_digest": "sha256:ca94ea8ec7027f1ea28c6befbdc3761491b84c5593b27131cccd48da638d2352"
     }
   ],
   "intents": {
-    "intent:change_01M77NSJTZB30CAKWZW47Z942J": {
+    "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -108,11 +108,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
+      "id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Pin pr-reviewer v0.2.7 so M-02877 builds with current nixpkgs (system sqlite)",
-      "refined_intent": "Pin pr-reviewer v0.2.7 so M-02877 builds with current nixpkgs (system sqlite)",
+      "raw_intent": "Assert the gate's persisted pending record in its tests (pr-reviewer note on den #154)",
+      "refined_intent": "Assert the gate's persisted pending record in its tests (pr-reviewer note on den #154)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -125,106 +125,137 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao: remediate fully, nothing failing on our side. den main 6dd8bde no longer builds M-02877: pr-reviewer v0.2.6 fails to link sqlite under new nixpkgs. Pin v0.2.7 (worldofgeese/pr-reviewer#44) and document the private agent-token-dashboard source restore.",
+      "intent": "pr-reviewer's note on den #154: with the PAUSE transition test removed, no test asserted that the pi prompt gate persists its pending record before the spawn. Add that assertion to the not-yet-spawned test: entries are revision, pending before the spawn and revision, pending, result after it, and the result names the pending evaluation's id. Test-only; no deployed file changes.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "the gate test suite passes; a mutant that drops the pending persist fails it",
+        "plain decapod validate passes",
+        "just check (pre-commit)"
       ],
       "schema_version": "1.1.0",
       "spec_reviews": [
         {
-          "disposition": "unchanged_with_reason",
+          "disposition": "updated",
           "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Same pr-reviewer flake input and module; only the release pin moves",
+          "reason": "The prompt gate section now states that its unit test asserts the persisted revision, pending and result entries in order.",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "723083e7bd0439c44a8276bf50fbcee862c5bc585f97bffe5eec82a924680dd3"
+          "spec_material_hash": "9ec0f7ec4c8c42c0a54adeb67f2e1343e5ea8004209b614a7799ec4512732378"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "pr-reviewer CLI and launchd interface unchanged between v0.2.6 and v0.2.7",
+          "reason": "Test-only change; no interface changes.",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "6dc312430698fa4e302e985562189c537d12ee7ad19cb544d7044858504b114f"
+          "spec_material_hash": "ef88b397639e80c822c8b74149f4e30dbbdb2b73fa3cb8b0e9c84f9ed6f17857"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "Links nixpkgs sqlite instead of a bundled copy; no trust-boundary change",
+          "reason": "Test-only change; it adds coverage of the gate's pending record and weakens nothing.",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
         }
       ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Pin pr-reviewer v0.2.7",
+      "title": "Assert the gate's persisted pending record in its tests",
       "todo_ids": [
-        "fend_01m77nqyhttw9epm"
+        "test_01m77ckw7nq7zzrt"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794481248Z"
+      "updated_at": "1794470855Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "flake.nix pr-reviewer pin, flake.lock, OPERATIONS"
+        "Only scripts/test-pi-decapod-gate.mjs"
       ],
-      "artifact_hash": "sha256:3b882100b0ec35fe9cda15077d8f48b645065f5e07457498c3d08ee10b94f488",
+      "artifact_hash": "sha256:8977d987a253d28d541b514df6788da778dd6eb2528278a8e534558060ac0a91",
       "checks": [
         {
-          "name": "staged-M-02877-system-build",
+          "name": "gate-tests",
+          "status": "passed"
+        },
+        {
+          "name": "pending-persist-mutant-killed",
+          "status": "passed"
+        },
+        {
+          "name": "rebase-onto-550f025",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
+            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
+            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M77NSK25PRZ449VMQ7BC5HME",
+            "detail": "trajectory:branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
+            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M77NSK25PRZ449VMQ7BC5HME": {
+          "branch_01M77CMTVQAMJCQJKK0KMJ8DQC": {
             "evidence_only": true,
-            "id": "branch_01M77NSK25PRZ449VMQ7BC5HME",
-            "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
+            "id": "branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
+            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
             "steps": [
               {
-                "action": "trajectory.record",
+                "action": "implementation",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "flake.nix",
-                  "flake.lock",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "nix build .#darwinConfigurations.M-02877.system -> /nix/store/8s4pihmy9ww95mr4847cg3lj6afir1sr (13m, no errors) after pinning v0.2.7",
-                  "6dd8bde build failed: pr-reviewer ld -lsqlite3 (LIBSQLITE3_SYS_USE_PKG_CONFIG=1 from cargo-setup-hook)"
+                  "scripts/test-pi-decapod-gate.mjs",
+                  "24/24 gate tests pass on fe59592 plus this change. A mutant that removes persist({ kind: pending }) from pi-decapod-gate.ts fails 1 test (measured before #154 merged, same extension code)."
                 ],
                 "proof_refs": [
-                  "staged-M-02877-system-build"
+                  "gate-tests",
+                  "pending-persist-mutant-killed"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
+                "validation_findings": []
+              },
+              {
+                "action": "implementation",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "Rebased onto 550f025 (#155 Caveman, #158 pr-reviewer v0.2.7). Conflicts only in config.toml, governance.json and .manifest.json (den precedent). Decapod 0.138.3 is now deployed on PATH."
+                ],
+                "proof_refs": [
+                  "rebase-onto-550f025"
+                ],
+                "scope": [
+                  "root",
+                  "scripts/test-pi-decapod-gate.mjs"
+                ],
+                "sequence": 5,
                 "validation_findings": []
               }
             ]
@@ -234,27 +265,25 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "6dd8bde build failed: pr-reviewer ld -lsqlite3 (LIBSQLITE3_SYS_USE_PKG_CONFIG=1 from cargo-setup-hook)",
-        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/8s4pihmy9ww95mr4847cg3lj6afir1sr (13m, no errors) after pinning v0.2.7"
+        "24/24 gate tests pass on fe59592 plus this change. A mutant that removes persist({ kind: pending }) from pi-decapod-gate.ts fails 1 test (measured before #154 merged, same extension code).",
+        "Rebased onto 550f025 (#155 Caveman, #158 pr-reviewer v0.2.7). Conflicts only in config.toml, governance.json and .manifest.json (den precedent). Decapod 0.138.3 is now deployed on PATH."
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M77NSJTZB30CAKWZW47Z942J",
+      "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
       "modified_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "flake.lock",
-        "flake.nix"
+        "scripts/test-pi-decapod-gate.mjs"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "pr-reviewer input",
-        "root"
+        "root",
+        "scripts/test-pi-decapod-gate.mjs"
       ],
-      "run_id": "branch_01M77NSK25PRZ449VMQ7BC5HME",
+      "run_id": "branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "fend_01m77nqyhttw9epm",
+      "task_id": "test_01m77ckw7nq7zzrt",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

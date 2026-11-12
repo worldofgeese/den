@@ -103,7 +103,9 @@ This project's architecture consists of the following key layers/directories:
   contract's intended behaviour and the gate is not weakened. The Crew task
   specs under `.pi/messenger/crew/tasks` were reworded, and `task-38.md` and
   `task-25.md` now evaluate to `allow`. The unit test runs in `just check`
-  (`check-pi-decapod-gate`).
+  (`check-pi-decapod-gate`). It also asserts the persisted entries of one
+  evaluation, in order: `revision`, then `pending` before the spawn, then a
+  `result` with the same `id`.
 - `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
   `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
   module together. The launcher clears Guix's Emacs load-path variables.

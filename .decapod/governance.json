@@ -75,6 +75,11 @@
       "id": "mahakala-travel-pr",
       "summary": "mahakala travel prep",
       "input_digest": "sha256:aec30b6922eaf8d1af9e606ac90ca8b51388ed8540f90fd9090a10eb77b76135"
+    },
+    {
+      "id": "mahakala-travel-entrypoints",
+      "summary": "Refresh entrypoints for Decapod 0.140.1",
+      "input_digest": "sha256:2dcb5389315686b4b8dda94aafd5cd710bee692c7af70c103603d1e9a0341132"
     }
   ],
   "intents": {

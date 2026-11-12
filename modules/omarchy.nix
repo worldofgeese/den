@@ -330,8 +330,15 @@
                 fi
                 install -Dm755 ${launchShell} "$target"
 
-                substituteInPlace "$out/share/omarchy/shell/Commons/InputMethodState.qml" \
-                  --replace-fail '"/usr/bin/python3"' '"${inputMethodIndicator}"'
+                # nixarchy now rewrites /usr/bin/python3 here itself (a Python
+                # with pygobject3, but no GI_TYPELIB_PATH), so match whichever
+                # python3 is in the command and fail if none is.
+                qml="$out/share/omarchy/shell/Commons/InputMethodState.qml"
+                sed -i -E 's#command: \["[^"]*/python3"#command: ["${inputMethodIndicator}"#' "$qml"
+                grep -qF '${inputMethodIndicator}' "$qml" || {
+                  echo "InputMethodState.qml no longer runs python3; update modules/omarchy.nix" >&2
+                  exit 1
+                }
                 substituteInPlace "$out/share/omarchy/default/omarchy/omarchy-menu.jsonc" \
                   --replace-fail '"action":"systemctl suspend"' \
                     '"action":"/run/current-system/profile/bin/loginctl suspend"' \
@@ -559,6 +566,14 @@
                   echo "and shutdown override in modules/omarchy.nix is stale." >&2
                   exit 1
                 fi
+                # nixarchy's 1659-system-authorise-first.patch schedules reboot
+                # and shutdown through logind first (`systemctl ... --when=+5s`)
+                # and then runs the command only for logout. elogind has no
+                # scheduled shutdown, so the schedule becomes a no-op and every
+                # action runs its command at the end, as before that patch;
+                # loginctl still checks authorisation. The patch also splits the
+                # systemd-run call over lines and adds a timeout notification
+                # (ExecStopPost); setsid has neither, so both lines go.
                 substituteInPlace "$system" \
                   --replace-fail \
                     'logout) command=(uwsm stop) ;;' \
@@ -570,11 +585,20 @@
                     'shutdown) command=(systemctl poweroff --no-wall) ;;' \
                     'shutdown) command=(/run/current-system/profile/bin/loginctl poweroff) ;;' \
                   --replace-fail \
+                    'systemctl "''${command[1]}" --no-wall --when=+5s || return $?' \
+                    ':' \
+                  --replace-fail \
+                    '  if [[ $action == "logout" ]]; then' \
+                    '  if :; then' \
+                  --replace-fail \
                     'systemd-inhibit --what=' \
                     '/run/current-system/profile/bin/elogind-inhibit --what=' \
                   --replace-fail \
-                    'systemd-run --user --collect --quiet --property=Type=exec --property=RuntimeMaxSec=30s' \
-                    'setsid --fork' \
+                    'systemd-run --user --collect --quiet --property=Type=exec \' \
+                    'setsid --fork \' \
+                  --replace-fail \
+                    '--property=RuntimeMaxSec=''${OMARCHY_SYSTEM_TIMEOUT:-30s} "''${stop_post[@]}" \' \
+                    '\' \
                   --replace-fail \
                     '--setenv=PATH --setenv=HYPRLAND_INSTANCE_SIGNATURE --setenv=OMARCHY_PATH' \
                     '--'

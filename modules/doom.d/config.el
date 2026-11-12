@@ -13,6 +13,26 @@
 (after! writeroom-mode
   (setq writeroom-width 80))
 
+;;; Neomacs (mahakala). Both settings are no-ops in GNU Emacs.
+(when (boundp 'neomacs-effect-cursor-color-cycle)
+  ;; Its cursor colour cycle is on by default and redraws the frame 24 times a
+  ;; second, even when idle (~10% of a core plus Hyprland compositing,
+  ;; measured 2026-11-12; 0% without it). The defcustom's setter pushes the
+  ;; change to the renderer, so plain setq would not do.
+  (customize-set-variable
+   'neomacs-effect-cursor-color-cycle
+   (plist-put (copy-sequence neomacs-effect-cursor-color-cycle) :enabled nil))
+  ;; Its Nix wrapper puts its own libraries (ncurses, gnutls, libva, ...) on
+  ;; LD_LIBRARY_PATH, and every subprocess inherited them: Guix's bash then
+  ;; failed on "GLIBC_2.42 not found", so shell commands and agent-shell broke.
+  ;; Neomacs has loaded them by now and the session sets none, so drop it.
+  (setenv "LD_LIBRARY_PATH" nil))
+
+;;; howm rewrites .howm-keys behind Emacs, so undo-fu-session's saved undo
+;;; history never matches and it logs "discarding: file length mismatch".
+(after! undo-fu-session
+  (add-to-list 'undo-fu-session-incompatible-files "/\\.howm-keys\\'"))
+
 ;;; --------------------------------------------------------------------------
 ;;; howm — personal wiki / LLM-wiki substrate
 ;;; --------------------------------------------------------------------------

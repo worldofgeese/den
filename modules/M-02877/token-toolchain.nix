@@ -203,6 +203,11 @@
       # each ctx_* tool twice: once as a tool, once as mcp__context_mode__*
       # (den#55). The package's bash routing hook needs no MCP entry.
       removedMcpServers = ["context-mode"];
+      # context-mode replaces a large tool result with a ctx_search pointer.
+      # A recovery tool's result is the recovered text itself, so a pointer
+      # would only send the model to recover again (context-mode#1367).
+      # context-mode 2.1.8+ reads this list through pi.getSettings().
+      settings.contextMode.excludeTools = ["caveman_retrieve" "headroom_retrieve" "mcp__caveman__retrieve"];
       mcpServers = {
         codegraph = {
           command = "/opt/homebrew/bin/codegraph";

@@ -18,6 +18,9 @@
   #   - skills: each declared resource filter is added to settings.json's
   #     `skills` array when it is missing. Other entries, such as `pi config`
   #     toggles, stay. Activation never deletes an entry.
+  #   - settings: other declared settings.json keys are merged in
+  #     recursively at each switch. A declared value wins; keys that are not
+  #     declared stay as they are.
   # A failed install (no network) warns and leaves the rest of activation to
   # run; the next switch retries.
   #
@@ -66,6 +69,17 @@
         type = lib.types.listOf lib.types.str;
         default = [];
         description = "pi packages to remove, by source without a version (`npm:name`).";
+      };
+      settings = lib.mkOption {
+        type = lib.types.attrsOf lib.types.anything;
+        default = {};
+        example = {contextMode.excludeTools = ["caveman_retrieve"];};
+        description = ''
+          Other keys for ~/.pi/agent/settings.json, merged in recursively at
+          each switch (jq `*`): a declared value replaces the one in the
+          file, and undeclared keys stay. Use `packages` and `skills` for
+          those two keys. Never put a credential here.
+        '';
       };
       skills = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -141,9 +155,29 @@
       '';
 
       # After piPackages, because `pi install` and `pi remove` rewrite
+      # settings.json.
+      piSettings = lib.mkIf (cfg.settings != {}) (lib.hm.dag.entryAfter ["writeBoundary" "piPackages"] ''
+        settings=${lib.escapeShellArg "${agentDir}/settings.json"}
+        current='{}'
+        [ -e "$settings" ] && current="$(cat "$settings")"
+        if merged="$(printf '%s' "$current" | ${jq} --argjson d ${lib.escapeShellArg (builtins.toJSON cfg.settings)} '. * $d')"; then
+          if [ ! -e "$settings" ] || [ "$merged" != "$(${jq} . "$settings")" ]; then
+            run mkdir -p ${lib.escapeShellArg agentDir}
+            if [ -z "''${DRY_RUN:-}" ]; then
+              (umask 077 && printf '%s\n' "$merged" >"$settings.hm-tmp") && mv "$settings.hm-tmp" "$settings"
+            else
+              echo "would write $settings"
+            fi
+          fi
+        else
+          warnEcho "pi: $settings is not valid JSON; left it unchanged"
+        fi
+      '');
+
+      # After piPackages, because `pi install` and `pi remove` rewrite
       # settings.json. The declared entries go after the existing ones, in
       # declared order.
-      piSkills = lib.mkIf (cfg.skills != []) (lib.hm.dag.entryAfter ["writeBoundary" "piPackages"] ''
+      piSkills = lib.mkIf (cfg.skills != []) (lib.hm.dag.entryAfter ["writeBoundary" "piPackages" "piSettings"] ''
         settings=${lib.escapeShellArg "${agentDir}/settings.json"}
         current='{}'
         [ -e "$settings" ] && current="$(cat "$settings")"

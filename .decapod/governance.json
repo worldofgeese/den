@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "e9eff7453024911deca63006022e2c4c0b74a500",
+    "accepted_commit": "86ddb8c730e9c094f4aacf6905e5565bb1164c3c",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,24 +66,19 @@
     }
   },
   "change": {
-    "id": "mahakala-tuneup",
-    "base_commit": "e9eff7453024911deca63006022e2c4c0b74a500",
+    "id": "mahakala-uv-initrd",
+    "base_commit": "86ddb8c730e9c094f4aacf6905e5565bb1164c3c",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "mahakala-tuneup",
-      "summary": "Drop pcie_port_pm=off, L1 substates on battery, Dell quiet, wireless-regdb",
-      "input_digest": "sha256:2657a429311ad22ae7b47d84b1a061548942fcb1bc726da2551727267ebb6060"
-    },
-    {
-      "id": "mahakala-tuneup-boot",
-      "summary": "Shorter USB descriptor timeout; desktop 30s -> 11s after kernel",
-      "input_digest": "sha256:aebb8913880065a9dec4cbbdfe713ca631ea63732ad218fac953a81134e03ddb"
+      "id": "mahakala-uv-initrd",
+      "summary": "Undervolt -90, trimmed microcode, no GRUB image",
+      "input_digest": "sha256:a756804547e286b62cc410fb87a6b444bcab448ae295d6b19380b4498e2d2502"
     }
   ],
   "intents": {
-    "intent:mahakala-tuneup-pr": {
+    "intent:mahakala-uv-initrd-pr": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -93,11 +88,11 @@
         "guix/system.scm specs"
       ],
       "created_sequence": 1,
-      "id": "intent:mahakala-tuneup-pr",
+      "id": "intent:mahakala-uv-initrd-pr",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Agent reboot mahakala to desktop, test battery drainers, check logs, tune further",
-      "refined_intent": "Remove pcie_port_pm=off, enable PCIe L1 substates on battery, fix Dell platform profile on battery, add wireless-regdb",
+      "raw_intent": "Undervolt further in steps; smaller initrd",
+      "refined_intent": "core/cache -90 mV; only this CPU's microcode in the initrd; no GRUB background image",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -110,47 +105,43 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "User-directed: agent reboot, check logs, find battery drainers, tune further: drop pcie_port_pm=off (PC3 cap), PCIe L1 substates on battery, Dell quiet profile on battery, wireless-regdb",
+      "intent": "User-directed: undervolt further in tested steps; smaller initrd and faster boot",
       "phases": [],
       "proof_hooks": [
-        "package C-state residency and RAPL package power at idle",
-        "WiFi probes after agent reboots without pcie_port_pm=off"
+        "stress-ng --verify per 10 mV step on AC and battery, plug/unplug under load",
+        "FPDT GRUB time per agent reboot"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "mahakala battery tune-up",
+      "title": "mahakala undervolt -90 and faster GRUB",
       "todo_ids": [
-        "cicd_01m78frmbm19f4km"
+        "code_01m78qspe6h1fg9m"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794509582Z"
+      "updated_at": "1794516870Z"
     },
     "trajectory": {
       "active_boundaries": [
         "guix/system.scm only"
       ],
-      "artifact_hash": "sha256:d3ffa89f4c31e32ba948555fd997622a798b4ee9f75f7d5634c57231e7bb8dd7",
+      "artifact_hash": "sha256:d54ef85030b40e90346f02bf74e4afb340c403e0d3321906c83376dfd919d0b8",
       "checks": [
         {
-          "name": "agent-reboot-wifi-without-pcie-port-pm",
+          "name": "grub-10.7s-agent-boot",
           "status": "passed"
         },
         {
-          "name": "boot-webcam-timeout-desktop-11s",
+          "name": "initrd-17mb-microcode-loaded",
           "status": "passed"
         },
         {
-          "name": "idle-pc10-residency",
+          "name": "undervolt-ac-transition",
           "status": "passed"
         },
         {
-          "name": "platform-profile-quiet-no-perf-loss",
-          "status": "passed"
-        },
-        {
-          "name": "regulatory-db-loaded",
+          "name": "undervolt-stepped-stress",
           "status": "passed"
         }
       ],
@@ -158,39 +149,32 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:mahakala-tuneup-pr",
+            "intent_id": "intent:mahakala-uv-initrd-pr",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:mahakala-tuneup-pr",
+            "intent_id": "intent:mahakala-uv-initrd-pr",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:mahakala-tuneup-pr",
+            "detail": "trajectory:mahakala-uv-initrd-pr",
             "event_id": "event:4",
-            "intent_id": "intent:mahakala-tuneup-pr",
+            "intent_id": "intent:mahakala-uv-initrd-pr",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:mahakala-tuneup-pr",
-            "event_id": "event:5",
-            "intent_id": "intent:mahakala-tuneup-pr",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "mahakala-tuneup-pr": {
+          "mahakala-uv-initrd-pr": {
             "evidence_only": true,
-            "id": "mahakala-tuneup-pr",
-            "intent_id": "intent:mahakala-tuneup-pr",
+            "id": "mahakala-uv-initrd-pr",
+            "intent_id": "intent:mahakala-uv-initrd-pr",
             "steps": [
               {
                 "action": "trajectory.record",
@@ -199,28 +183,15 @@
                   "guix/system.scm"
                 ],
                 "proof_refs": [
-                  "agent-reboot-wifi-without-pcie-port-pm",
-                  "idle-pc10-residency",
-                  "regulatory-db-loaded",
-                  "platform-profile-quiet-no-perf-loss"
+                  "undervolt-stepped-stress",
+                  "undervolt-ac-transition",
+                  "initrd-17mb-microcode-loaded",
+                  "grub-10.7s-agent-boot"
                 ],
                 "scope": [
                   "guix/system.scm specs"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [],
-                "proof_refs": [
-                  "boot-webcam-timeout-desktop-11s"
-                ],
-                "scope": [
-                  "guix/system.scm specs"
-                ],
-                "sequence": 5,
                 "validation_findings": []
               }
             ]
@@ -232,15 +203,15 @@
       "inspected_files": [
         "guix/system.scm"
       ],
-      "intent_id": "intent:mahakala-tuneup-pr",
+      "intent_id": "intent:mahakala-uv-initrd-pr",
       "modified_files": [],
       "repo_scope": [
         "guix/system.scm specs"
       ],
-      "run_id": "mahakala-tuneup-pr",
+      "run_id": "mahakala-uv-initrd-pr",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m78frmbm19f4km",
+      "task_id": "code_01m78qspe6h1fg9m",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

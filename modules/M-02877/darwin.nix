@@ -473,7 +473,11 @@
                 # interrupted download resumes.
                 # HF_HUB_DISABLE_XET: that day the xet transfer stayed at 0 bytes
                 # while plain HTTPS downloads moved.
-                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-workspace:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e OPENAI_TARGET_API_URL=${gateway.openaiUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e HEADROOM_WORKSPACE_DIR=${gateway.headroom.workspaceDir} -e HEADROOM_MEMORY_DB_PATH=${gateway.headroom.workspaceDir}/memory.db -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} -e HF_HOME=${gateway.headroom.workspaceDir}/huggingface -e HF_HUB_DISABLE_XET=1 ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
+                # HEADROOM_DISABLE_KOMPRESS: in 0.44.0 Kompress removes keywords
+                # from a fenced code block inside a prose tool result, so the code
+                # no longer parses (headroom#4214). The structural compressors still
+                # run. Remove it when a release has headroom#4787.
+                exec $C run --rm --name headroom -m ${gateway.headroom.memory} --network proxy-chain -p ${gateway.headroom.publishSpec entity} -v headroom-workspace:/data -e ANTHROPIC_TARGET_API_URL=${gateway.claudeUrl} -e OPENAI_TARGET_API_URL=${gateway.openaiUrl} -e HEADROOM_HOST=0.0.0.0 -e HEADROOM_DISABLE_KOMPRESS=1 -e HEADROOM_ALLOW_UNAUTHENTICATED_BIND=${gateway.headroom.allowUnauthenticatedBind} -e HEADROOM_MODE=${gateway.headroom.mode} -e HEADROOM_HTTP2=${gateway.headroom.http2} -e HEADROOM_WORKSPACE_DIR=${gateway.headroom.workspaceDir} -e HEADROOM_MEMORY_DB_PATH=${gateway.headroom.workspaceDir}/memory.db -e HEADROOM_TELEMETRY=${gateway.headroom.telemetry} -e HF_HOME=${gateway.headroom.workspaceDir}/huggingface -e HF_HUB_DISABLE_XET=1 ${gateway.headroom.image} --host 0.0.0.0 --port ${toString gateway.headroom.containerPort} --memory --learn
               ''
             ];
             RunAtLoad = true;

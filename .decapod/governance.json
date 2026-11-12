@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "544da95867ea48ffe5402da3b41bda4df307973f",
+    "accepted_commit": "5b4033100ac8d216d1a1201a27093063ddd59c73",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,34 +66,29 @@
     }
   },
   "change": {
-    "id": "change_01M77XSMBQWT1A1136SS809334",
-    "base_commit": "544da95867ea48ffe5402da3b41bda4df307973f",
+    "id": "change_01M785Z202K6YFT7XWM847W6FC",
+    "base_commit": "5b4033100ac8d216d1a1201a27093063ddd59c73",
     "target_base": "origin/main"
   },
   "claims": {
-    "cm-exclude-tools": {
-      "statement": "After a switch, context-mode returns Caveman recovery results whole in pi while other large results still get a pointer",
-      "falsifier": "Harness with the declared list returns a pointer for caveman_retrieve, or returns search_retrieve whole",
+    "headroom-kompress-off": {
+      "statement": "With HEADROOM_DISABLE_KOMPRESS=1, Headroom 0.44.0 leaves the #4214 fence intact while other compressors run",
+      "falsifier": "The 0.44.0 router with enable_kompress=False still alters the fence",
       "status": "supported",
       "proof_refs": [
-        "harness 2026-11-12: 3 listed exact, unlisted pointer"
+        "real-model router test 2026-11-12"
       ]
     }
   },
   "checkpoints": [
     {
-      "id": "cm-exclude-tools",
-      "summary": "piAgent.settings merge; contextMode.excludeTools for Caveman recovery tools; specs updated",
-      "input_digest": "sha256:dae7b013a3943af97f529a5c9e665fc01aa4c189767338d65208ed3592a809d4"
-    },
-    {
-      "id": "cm-exclude-tools-signet-hooks",
-      "summary": "Document signet sync hook damage and repair",
-      "input_digest": "sha256:9eed56b807d4bf2e315534cf2ebbe35746a9234f6b79406f2e5b53f7f2d1fffb"
+      "id": "headroom-kompress-off",
+      "summary": "HEADROOM_DISABLE_KOMPRESS=1 on M-02877 until #4214 releases",
+      "input_digest": "sha256:fd27c6f4af91a983a717efbd39e5f58a4b0b02270d16729364396bed2d250ba4"
     }
   ],
   "intents": {
-    "intent:change_01M77XSMBQWT1A1136SS809334": {
+    "intent:change_01M785Z202K6YFT7XWM847W6FC": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -103,11 +98,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M77XSMBQWT1A1136SS809334",
+      "id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Declare contextMode.excludeTools for pi so Caveman recovery results stay whole (context-mode 2.1.9)",
-      "refined_intent": "Declare contextMode.excludeTools for pi so Caveman recovery results stay whole (context-mode 2.1.9)",
+      "raw_intent": "Turn off Headroom Kompress on M-02877 until headroom#4214 is released",
+      "refined_intent": "Turn off Headroom Kompress on M-02877 until headroom#4214 is released",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -120,7 +115,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao: use the context-mode#1367 setting for us and update our guides. Add piAgent.settings (recursive merge into ~/.pi/agent/settings.json) and declare contextMode.excludeTools for the recovery tools.",
+      "intent": "Tao: add the #4214 workaround to the guide and apply it to our own setup. Set HEADROOM_DISABLE_KOMPRESS=1 in the M-02877 Headroom launch command.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -130,52 +125,44 @@
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Same pi module and activation structure; one more merge step",
+          "reason": "Same Headroom container and chain; one environment variable",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "9ec0f7ec4c8c42c0a54adeb67f2e1343e5ea8004209b614a7799ec4512732378"
         },
         {
-          "disposition": "updated",
+          "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Documents the new piAgent.settings option and its merge rule",
+          "reason": "Ports, routes and mounts unchanged; only a compression stage is off",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "c15efb54884795c383e5c343111e79d534dc0afedf38f6d1c12336dbdef89d35"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "No credential or trust-boundary change; settings.json stays mode 600 and the option forbids credentials",
+          "reason": "No auth, credential or trust-boundary change; improves fidelity of forwarded content",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
         }
       ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Keep Caveman recovery results whole in pi",
+      "title": "Turn off Headroom Kompress until #4214 is released",
       "todo_ids": [
-        "code_01m77xrth1k72jxd"
+        "code_01m785y8wvmwvnse"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794488827Z"
+      "updated_at": "1794497348Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "modules/pi.nix, token-toolchain.nix, specs"
+        "darwin.nix Headroom launch env; OPERATIONS"
       ],
-      "artifact_hash": "sha256:0448c2086a95e839741afbf6870cd045534d0290b4925293dd8299841b1f72f4",
+      "artifact_hash": "sha256:d8c828a7990addcc234184b429fc38d97087aad9cf848c1026241a257f02b783",
       "checks": [
         {
-          "name": "context-mode-2.1.9-exclude-tools-harness",
-          "status": "passed"
-        },
-        {
-          "name": "harness-hooks-restored",
-          "status": "passed"
-        },
-        {
-          "name": "piSettings-fragment-4-cases",
+          "name": "router-0.44.0-real-model-fence",
           "status": "passed"
         }
       ],
@@ -184,74 +171,48 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
+            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
+            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M77XSMDZD3GRVC4H49YBJG34",
+            "detail": "trajectory:branch_01M785Z2247JNSHFCN6Z0PGM6R",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
+            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M77XSMDZD3GRVC4H49YBJG34",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M77XSMDZD3GRVC4H49YBJG34": {
+          "branch_01M785Z2247JNSHFCN6Z0PGM6R": {
             "evidence_only": true,
-            "id": "branch_01M77XSMDZD3GRVC4H49YBJG34",
-            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
+            "id": "branch_01M785Z2247JNSHFCN6Z0PGM6R",
+            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
             "steps": [
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/pi.nix",
-                  "modules/M-02877/token-toolchain.nix",
-                  "Installed context-mode 2.1.9 with getSettings: caveman_retrieve/headroom_retrieve/mcp__caveman__retrieve 6828B exact; search_retrieve 155B pointer",
-                  "Generated piSettings fragment: merges and keeps other keys, mode 600, no rewrite when unchanged, invalid JSON left unchanged, creates missing file"
+                  "modules/M-02877/darwin.nix",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "0.44.0 router + kompress-v2-base: default and code-aware cut the fence 1324->1144 and it fails to parse; enable_kompress=False keeps it intact"
                 ],
                 "proof_refs": [
-                  "context-mode-2.1.9-exclude-tools-harness",
-                  "piSettings-fragment-4-cases"
+                  "router-0.44.0-real-model-fence"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "signet sync 1.0.1 dropped 6 Claude hook groups and wrote /app/bin/signet; restored from 2026-11-10 backup; Claude and Codex session-start hooks exit 0 under launchd-like PATH; filed signetai#2220"
-                ],
-                "proof_refs": [
-                  "harness-hooks-restored"
-                ],
-                "scope": [
-                  "pi settings merge, context-mode excludeTools",
-                  "root"
-                ],
-                "sequence": 5,
                 "validation_findings": []
               }
             ]
@@ -261,28 +222,25 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "Generated piSettings fragment: merges and keeps other keys, mode 600, no rewrite when unchanged, invalid JSON left unchanged, creates missing file",
-        "Installed context-mode 2.1.9 with getSettings: caveman_retrieve/headroom_retrieve/mcp__caveman__retrieve 6828B exact; search_retrieve 155B pointer",
-        "signet sync 1.0.1 dropped 6 Claude hook groups and wrote /app/bin/signet; restored from 2026-11-10 backup; Claude and Codex session-start hooks exit 0 under launchd-like PATH; filed signetai#2220"
+        "0.44.0 router + kompress-v2-base: default and code-aware cut the fence 1324->1144 and it fails to parse; enable_kompress=False keeps it intact"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
+      "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
       "modified_files": [
         ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/token-toolchain.nix",
-        "modules/pi.nix"
+        "modules/M-02877/darwin.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "pi settings merge, context-mode excludeTools",
+        "Headroom Kompress",
         "root"
       ],
-      "run_id": "branch_01M77XSMDZD3GRVC4H49YBJG34",
+      "run_id": "branch_01M785Z2247JNSHFCN6Z0PGM6R",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m77xrth1k72jxd",
+      "task_id": "code_01m785y8wvmwvnse",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

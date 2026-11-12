@@ -75,46 +75,28 @@ This project's architecture consists of the following key layers/directories:
   swallows an extension input, a later human prompt is treated as extension-sent
   and cannot clear a block. Before each tool call the extension drains the gate
   queue until no newer message is waiting.
-  Decapod cutover PAUSE: while the marker file
-  `/Users/dktaohan/.local/state/den/decapod-pause` exists, every evaluation runs
-  only the G5 runner and never the `decapod` on PATH. The marker is checked on
-  each evaluation, so RESUME (removing it) takes effect at once. Only ENOENT
-  means the normal route and an existing marker means only G5; any other error
-  while inspecting it (EACCES, EIO, ELOOP, ENOTDIR) BLOCKS that evaluation with a
-  status naming the error and selects neither route. Each evaluation is
-  recorded as pending with its route (normal, g5 or blocked) at the moment the
-  route is chosen, before any spawn, and as settled when it ends, including a
-  timeout or spawn error, and only after its process has exited (a timeout kills the
-  child and the evaluation stays pending until the exit is seen); both persist as `decapod-gate` entries (`pending`,
-  `result`). Session start appends a `revision` entry (the runner store path
-  plus the SHA-256 of the installed extension file, baked in as
-  `extensionFile`). The hash is taken once, when the code loads, so a session
-  started later in the same process after a deploy still names the code that is
-  running. The read-only tool `decapod_gate_status` returns the same
-  revision, the marker state (absent, present, error), the pending normal-route
-  evaluations (count and start times), the latest evaluation and whether a
-  G5-route evaluation settled since the session first saw the marker. That is
-  the drain barrier the PAUSE acknowledgement quotes: the revision, one settled
-  G5 evaluation after the marker, and 0 pending normal-route evaluations. The
-  pending map is per pi process, so the barrier covers only the process that
-  answers; it says nothing about other pi processes in the same project. The
-  status tool is exempt from the `tool_call` drain and block, so it answers
-  while an evaluation is pending or the gate is blocked. The
-  runner is the Nix-built
-  `decapod-gate-g5` script, the immutable form of BrightQuartz's reviewed
-  `~/.cache/pi-dktaohan/decapod-gate.sh`. It calls `/usr/bin/sandbox-exec`,
-  `/usr/bin/env` and coreutils by absolute path and runs the Decapod 0.121.2
-  evaluator from the flake input `decapod-g5` (pinned by full revision, no
-  `follows`, so neither the cutover nor `nix flake update` moves it) in an empty
-  temporary directory with a minimal environment and a sandbox that denies the
-  den repository and all writes under the home directory. The extension is
-  installed through `pkgs.replaceVars`, which bakes the marker and runner store
-  paths and the installed file's own path in; no environment variable can
-  redirect them. A missing runner, a
-  failure, a non-zero exit, invalid output or a timeout blocks. Tests inject
-  the paths, and a `spawn` function and `timeoutMs` to delay the spawn and shorten
-  the wait, as arguments of the exported
-  `gate(pi, { pauseMarker, pauseRunner, extensionFile, spawn, timeoutMs })`.
+  Each evaluation is recorded as pending before any spawn, and as settled when
+  it ends, including a timeout or spawn error, and only after its process has
+  exited (a timeout kills the child and the evaluation stays pending until the
+  exit is seen); both persist as `decapod-gate` entries (`pending`, `result`).
+  Session start appends a `revision` entry, the SHA-256 of the installed
+  extension file (baked in as `extensionFile` through `pkgs.replaceVars`). The
+  hash is taken once, when the code loads, so a session started later in the
+  same process after a deploy still names the code that is running. The
+  read-only tool `decapod_gate_status` returns the same revision, the pending
+  evaluations (count and start times) and the latest evaluation. The pending
+  map is per pi process. The status tool is exempt from the `tool_call` drain
+  and block, so it answers while an evaluation is pending or the gate is
+  blocked. A failure, a non-zero exit, invalid output or a timeout blocks.
+  Tests inject the path, and a `spawn` function and `timeoutMs` to delay the
+  spawn and shorten the wait, as arguments of the exported
+  `gate(pi, { extensionFile, spawn, timeoutMs })`.
+  Until 2026-11-11 the extension also had a Decapod cutover PAUSE route: while
+  a marker file existed, it ran only a Decapod 0.121.2 evaluator pinned in the
+  flake input `decapod-g5`. Den removed the route and the input. Decapod moves
+  with den's flake input in normal PRs, and `scripts/decapod-deploy-backup.sh`
+  copies the store before each deploy that changes Decapod, so the copy, not a
+  pinned evaluator, is the rollback point.
   Known gap: `decapod eval` flags benign `sudo <word>` phrasing as unsafe
   execution (`prompt_injection.unsafe_execution`), so a message that contains
   it stops tool calls until an allowed human prompt clears it. This is the
@@ -465,7 +447,7 @@ same 54k-file nixpkgs tree 12x faster). Fetching one nixpkgs revision took 8.5
 minutes. The repository therefore minimises trees Nix must touch there:
 topgrade's "Flake inputs" step runs `just update-darwin`, which skips the
 Linux-only root inputs in `darwin-skip-inputs` (nixarchy brings a third nixpkgs
-and ~15 inputs); one root `rust-overlay` is followed by devenv (decapod keeps upstream's own inputs, so that its package is the one in upstream's cache; its nixpkgs pin is now the same revision as decapod-g5's, so it adds only one rust-overlay tree; when upstream moves that pin, M-02877 fetches the new tree once to evaluate decapod); and `just cachix-push /run/current-system` pushes the path
+and ~15 inputs); one root `rust-overlay` is followed by devenv (decapod keeps upstream's own inputs, so that its package is the one in upstream's cache; so its own nixpkgs and rust-overlay pins are extra trees in the lock; when upstream moves its nixpkgs pin, M-02877 fetches the new tree once to evaluate decapod); and `just cachix-push /run/current-system` pushes the path
 darwin-rebuild just built instead of evaluating the system again. The durable
 fix is a Defender exclusion for Lix's `nix`/`nix-daemon` or `/nix/store`, which
 only device management can grant.
@@ -605,7 +587,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

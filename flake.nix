@@ -25,19 +25,11 @@
     # (DecapodLabs/decapod#1600; modules/M-02877/darwin.nix trusts the cache).
     # Deliberately WITHOUT `follows`: den's nixpkgs or rust-overlay would make a
     # different derivation from the cached one, and every bump would compile
-    # Decapod again (measured on 2026-11-10 with 0.136.3). Upstream's nixpkgs
-    # pin is now the same revision as decapod-g5's below, so it adds no fetch.
-    # When upstream moves that pin, M-02877 fetches the new tree once to
-    # evaluate the package (about 8.5 minutes under Defender; ARCHITECTURE.md).
+    # Decapod again (measured on 2026-11-10 with 0.136.3). So upstream's
+    # nixpkgs pin is a second nixpkgs tree in the lock. When upstream moves
+    # that pin, M-02877 fetches the new tree once to evaluate the package
+    # (about 8.5 minutes under Defender; ARCHITECTURE.md).
     decapod.url = "github:DecapodLabs/decapod";
-    # The evaluator of the Decapod cutover PAUSE route (G5): the only Decapod
-    # that the pi prompt-gate extension may run while the PAUSE marker exists
-    # (modules/M-02877/agent-integrations.nix). Pinned by full revision (0.121.2)
-    # and deliberately WITHOUT `follows`: the cutover moves the `decapod` input
-    # and the nightly `nix flake update` moves every floating input, and neither
-    # may change this one. Its own nixpkgs and rust-overlay lock nodes stay put.
-    # Changing it is a separate, checked transition.
-    decapod-g5.url = "github:DecapodLabs/decapod/3216d7170b80a350c5a8417c38dda9c5c4d8bb23";
     # The daemon that reviews our pull requests; its flake exposes
     # packages.default. The URL pins a release tag, so den keeps pinning
     # releases and flake.lock pins the revision and every hash.

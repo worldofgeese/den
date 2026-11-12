@@ -62,9 +62,7 @@ the decapod package (Home Manager's package for dktaohan is not on the symlink
 path of the installed `decapod`), the script copies the store with SQLite's
 online backup. The store opens read-only, so agents can write during the copy.
 The copy goes, readable only by the user (umask 077), to
-`~/.local/state/den-decapod-backups/<UTC time>-<old>-to-<new>.db`, not into
-`~/.local/state/den`: that directory holds only the Decapod PAUSE marker, and
-the G5 marker test runs only when it creates the directory itself. It must
+`~/.local/state/den-decapod-backups/<UTC time>-<old>-to-<new>.db`. It must
 pass `PRAGMA integrity_check` and have pages, and the newest 5 copies stay.
 The deploy stops, and a failed copy is removed, when the evaluation fails or
 takes more than 30 minutes (it can fetch the new flake inputs of a bump over
@@ -1482,7 +1480,7 @@ The checkpoint caller passes offline tests for stale receipts, changed bindings,
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `1f0e237bebd028d6cce308b8d565edab214343d8e3160673040e1cdaf6af1404`
+- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

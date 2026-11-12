@@ -15,34 +15,21 @@
 // the last clear was not allowed. An allowed human prompt clears the block: it
 // is the human review that the contract asks for.
 //
-// Decapod cutover PAUSE: while the marker file exists, the evaluation runs ONLY
-// the pinned, isolated G5 runner, by its absolute store path, with an empty
-// environment (no PATH) and not in the project root. There is no fallback to
-// the `decapod` on PATH. Marker and runner are baked in at build time
-// (modules/M-02877/agent-integrations.nix); no runtime environment variable
-// can redirect them, because that would be a bypass. A marker that cannot be
-// read, or a runner that is missing, fails closed: an error other than "no such
-// file" while inspecting the marker BLOCKS that evaluation. It selects neither
-// the PATH decapod nor the G5 runner.
-//
-// Drain barrier for the cutover: every evaluation is recorded as pending, with
-// its route, at the moment the route is chosen and before anything is spawned,
-// and recorded as settled when it ends (also on timeout or spawn error), which
-// is after its process has exited. The
-// read-only tool `decapod_gate_status` reports the extension revision, the
-// marker state, the pending normal-route evaluations and whether a G5-route
-// evaluation settled since this session first saw the marker. The revision
-// (runner store path plus SHA-256 of the installed extension file) is also
-// appended as a `decapod-gate` entry at session start; it is fixed when the
-// code loads, so it names the code that is running, not the file on disk now.
-// The status tool is exempt from the tool_call drain and block, so it answers
-// while an evaluation is pending or the gate is blocked.
+// Every evaluation is recorded as pending before anything is spawned, and
+// recorded as settled when it ends (also on timeout or spawn error), which is
+// after its process has exited. The read-only tool `decapod_gate_status`
+// reports the extension revision, the pending evaluations and the most recent
+// one. The revision (SHA-256 of the installed extension file) is also appended
+// as a `decapod-gate` entry at session start; it is fixed when the code loads,
+// so it names the code that is running, not the file on disk now. The status
+// tool is exempt from the tool_call drain and block, so it answers while an
+// evaluation is pending or the gate is blocked.
 //
 
 // Plain JavaScript on purpose, so node can run the test without a build step.
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, lstatSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 
@@ -62,34 +49,19 @@ function decapodRoot(cwd) {
 
 // Substituted by agent-integrations.nix. Tests call `gate` with their own values.
 const BAKED = {
-  pauseMarker: "@pauseMarker@",
-  pauseRunner: "@pauseRunner@",
   extensionFile: "@extensionFile@",
 };
 
-// Only a missing marker means "not paused" (absent). An existing marker is
-// "present". Any other failure to look (permissions, I/O, a loop in the path)
-// is "error": the caller must block, not guess.
-function inspectMarker(marker) {
-  try {
-    lstatSync(marker);
-    return { state: "present" };
-  } catch (error) {
-    if (error?.code === "ENOENT") return { state: "absent" };
-    return { state: "error", error: String(error?.code ?? error?.message ?? error) };
-  }
-}
-
-// The revision that answers for this process: which runner it pins and which
-// extension bytes were installed when the session started.
-function readRevision(pauseRunner, extensionFile) {
+// The revision that answers for this process: the extension bytes that were
+// installed when the code loaded.
+function readRevision(extensionFile) {
   let extensionSha256;
   try {
     extensionSha256 = createHash("sha256").update(readFileSync(extensionFile)).digest("hex");
   } catch (error) {
     extensionSha256 = `unreadable (${error?.code ?? error?.message ?? error})`;
   }
-  return { runner: pauseRunner, extensionSha256 };
+  return { extensionSha256 };
 }
 
 function textOf(content) {
@@ -107,7 +79,7 @@ function textOf(content) {
 //
 // The promise settles only once the child is gone (or never existed), also after a
 // timeout: the caller drops the evaluation from "pending" when this resolves, and
-// the drain barrier must not report 0 pending while a normal-route process is alive.
+// the status tool must not report 0 pending while a decapod process is alive.
 function evaluate(run, text, spawnFn, timeoutMs) {
   return new Promise((resolve) => {
     let out = "";
@@ -185,10 +157,7 @@ export default function (pi) {
   return gate(pi, BAKED);
 }
 
-export function gate(
-  pi,
-  { pauseMarker, pauseRunner, extensionFile, spawn: spawnFn = spawn, timeoutMs = GATE_TIMEOUT_MS },
-) {
+export function gate(pi, { extensionFile, spawn: spawnFn = spawn, timeoutMs = GATE_TIMEOUT_MS }) {
   // The latest message that was not allowed since the last clear.
   let blocked;
   // Keys of messages that already have a persisted result.
@@ -204,26 +173,16 @@ export function gate(
   let queue = Promise.resolve();
   // Bumped on session_start; a gate that settles after a session switch is dropped.
   let generation = 0;
-  // Evaluations between choosing a route and settling. Process-wide on purpose:
+  // Evaluations between being recorded and settling. Process-wide on purpose:
   // an evaluation that outlives a session switch still counts until it ends.
   const pending = new Map();
   let nextEvaluationId = 0;
   // Fixed when this code is loaded: pi can start further sessions (/new, /resume,
   // fork) in the same process after a deploy replaced the file, and those still
   // run THIS code, so they must report this hash.
-  const revision = readRevision(pauseRunner, extensionFile);
+  const revision = readRevision(extensionFile);
   // Per session (reset on session_start).
   let lastEvaluation;
-  let markerFirstSeenAt;
-  let lastG5SettledAt;
-
-  // Every look at the marker goes through here, so "first saw it" is exact.
-  const inspect = () => {
-    const marker = inspectMarker(pauseMarker);
-    if (marker.state === "present") markerFirstSeenAt ??= Date.now();
-    else if (marker.state === "absent") markerFirstSeenAt = undefined;
-    return marker;
-  };
 
   const persist = (data) => {
     try {
@@ -234,14 +193,11 @@ export function gate(
   };
 
   const gateStatus = () => {
-    const normal = [...pending.values()].filter((entry) => entry.route === "normal");
+    const open = [...pending.values()];
     return {
       revision,
-      marker: inspect(),
-      pendingNormal: { count: normal.length, startedAt: normal.map((entry) => entry.startedAt) },
+      pending: { count: open.length, startedAt: open.map((entry) => entry.startedAt) },
       lastEvaluation: lastEvaluation ?? null,
-      g5SettledSinceMarkerSeen:
-        markerFirstSeenAt !== undefined && lastG5SettledAt !== undefined && lastG5SettledAt >= markerFirstSeenAt,
     };
   };
 
@@ -249,7 +205,7 @@ export function gate(
     name: STATUS_TOOL,
     label: "Decapod gate status",
     description:
-      "Read-only. Reports the Decapod prompt gate extension revision, the PAUSE marker state, the pending normal-route evaluations, the most recent evaluation, and whether a G5-route evaluation settled since this session first saw the marker.",
+      "Read-only. Reports the Decapod prompt gate extension revision, the pending evaluations and the most recent evaluation.",
     parameters: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async execute() {
@@ -274,8 +230,6 @@ export function gate(
     queue = Promise.resolve();
     pendingExtensionInputs = 0;
     lastEvaluation = undefined;
-    markerFirstSeenAt = undefined;
-    lastG5SettledAt = undefined;
     persist({ kind: "revision", ...revision, at: new Date().toISOString() });
     for (const entry of ctx.sessionManager.getBranch()) {
       if (entry.type === "custom" && entry.customType === ENTRY_TYPE && entry.data?.key) record(entry.data);
@@ -305,33 +259,17 @@ export function gate(
     const mine = generation;
     queue = queue.then(async () => {
       if (mine !== generation || gated.has(key)) return;
-      let route;
       let result;
       let id;
       try {
-        // Checked on every evaluation, so RESUME takes effect at once. Marker
-        // check, route choice and the pending record happen with no await
-        // between them, so no evaluation can be in flight unrecorded.
-        const marker = inspect();
-        if (marker.state === "error") {
-          route = "blocked";
-          result = { allowed: false, status: `PAUSE marker cannot be inspected (${marker.error})` };
-        } else {
-          route = marker.state === "present" ? "g5" : "normal";
-          const run =
-            route === "g5"
-              ? { command: pauseRunner, args: [], options: { cwd: "/", env: {} } }
-              : {
-                  command: "decapod",
-                  args: ["eval", "--stdin", "--format", "json"],
-                  options: { cwd: root },
-                };
-          id = ++nextEvaluationId;
-          const startedAt = new Date().toISOString();
-          pending.set(id, { route, startedAt });
-          if (mine === generation) persist({ kind: "pending", id, route, at: startedAt });
-          result = await evaluate(run, text, spawnFn, timeoutMs);
-        }
+        // The pending record comes before the spawn, with no await between
+        // them, so no evaluation can be in flight unrecorded.
+        const run = { command: "decapod", args: ["eval", "--stdin", "--format", "json"], options: { cwd: root } };
+        id = ++nextEvaluationId;
+        const startedAt = new Date().toISOString();
+        pending.set(id, { startedAt });
+        if (mine === generation) persist({ kind: "pending", id, at: startedAt });
+        result = await evaluate(run, text, spawnFn, timeoutMs);
       } catch (error) {
         result = { allowed: false, status: `gate failed (${error?.message ?? error})` };
       } finally {
@@ -340,9 +278,8 @@ export function gate(
       if (mine !== generation) return;
       const { allowed, status } = result;
       const at = new Date();
-      lastEvaluation = { route, at: at.toISOString(), allowed, status };
-      if (route === "g5") lastG5SettledAt = at.getTime();
-      const data = { kind: "result", key, sender, human, allowed, status, route, id: id ?? null, at: at.toISOString() };
+      lastEvaluation = { at: at.toISOString(), allowed, status };
+      const data = { kind: "result", key, sender, human, allowed, status, id: id ?? null, at: at.toISOString() };
       record(data);
       persist(data);
       try {

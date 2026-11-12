@@ -12,6 +12,7 @@
   :commands (agent-shell
              agent-shell-anthropic-start-claude-code
              agent-shell-github-start-copilot
+             agent-shell-openai-start-codex
              agent-shell-omp-start)
   :config
   ;; Evil keybindings: RET always submits, M-j inserts newline.
@@ -113,6 +114,11 @@ With REFRESH non-nil, discard the cached value first.  Signals a
   (setq agent-shell-preferred-agent-config
         (agent-shell-anthropic-make-claude-code-config))
 
+  ;; --- Codex ---
+  ;; agent-shell's built-in Codex config runs `codex-acp` (llm-agents.nix,
+  ;; shared-devtools) with its default login auth, i.e. the ChatGPT session
+  ;; `codex login` stored in ~/.codex/auth.json. No gateway wiring here.
+
   ;; OMP is supplied by the shared llm-agents.nix package set.
   (defcustom agent-shell-omp-acp-command '("omp" "acp")
     "Command and parameters for the Oh My Pi ACP server."
@@ -144,6 +150,11 @@ With REFRESH non-nil, discard the cached value first.  Signals a
                        :new-shell t))
 
   ;; --- Shared agent-shell settings ---
+  ;; mahakala's elogind answers the sleep-inhibitor request with "Interactive
+  ;; authentication required", so every session logged three *Warnings* and
+  ;; blocked nothing. Linux skips the inhibitor; macOS keeps it.
+  (when (eq system-type 'gnu/linux)
+    (setq agent-shell-inhibit-system-sleep nil))
   (setq agent-shell-session-strategy 'new)
   (setq agent-shell-show-welcome-message nil)
   (setq agent-shell-permission-responder-function

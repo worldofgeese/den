@@ -189,6 +189,20 @@
         port = 3860;
         probePath = "/health/ready";
       };
+      # launchd environment for the Systems Manager tunnels below.
+      ssmTunnelEnv = {
+        # Any profile whose credential_process is the LEGO CLI works; that
+        # is the one path that rotates without re-prompting for a second
+        # factor every hour.
+        AWS_PROFILE = "bts-devrel";
+        AWS_REGION = "eu-west-1";
+        HOME = config.users.users.dktaohan.home;
+        # The LEGO CLI renews through Azure CLI credentials and looks `az` up on
+        # PATH. launchd's default PATH lacks /opt/homebrew/bin, so once the
+        # CLI's one-hour credential cache expired a restarted tunnel never
+        # reconnected ("AzureCLICredential: executable not found on path").
+        PATH = "/opt/homebrew/bin:/usr/bin:/bin";
+      };
       # Chorus's NEXTAUTH_URL is http://127.0.0.1:3870, so the web login only
       # works on this port.
       chorusTeamTunnel = mkSsmTunnel {
@@ -768,14 +782,7 @@
           serviceConfig = {
             Label = "com.dktaohan.signet-team-tunnel";
             ProgramArguments = ["${signetTeamTunnel}/bin/signet-team-tunnel"];
-            EnvironmentVariables = {
-              # Any profile whose credential_process is the LEGO CLI works; that
-              # is the one path that rotates without re-prompting for a second
-              # factor every hour.
-              AWS_PROFILE = "bts-devrel";
-              AWS_REGION = "eu-west-1";
-              HOME = config.users.users.dktaohan.home;
-            };
+            EnvironmentVariables = ssmTunnelEnv;
             RunAtLoad = true;
             KeepAlive = true;
             ThrottleInterval = 30;
@@ -792,14 +799,7 @@
           serviceConfig = {
             Label = "com.dktaohan.chorus-team-tunnel";
             ProgramArguments = ["${chorusTeamTunnel}/bin/chorus-team-tunnel"];
-            EnvironmentVariables = {
-              # Any profile whose credential_process is the LEGO CLI works; that
-              # is the one path that rotates without re-prompting for a second
-              # factor every hour.
-              AWS_PROFILE = "bts-devrel";
-              AWS_REGION = "eu-west-1";
-              HOME = config.users.users.dktaohan.home;
-            };
+            EnvironmentVariables = ssmTunnelEnv;
             RunAtLoad = true;
             KeepAlive = true;
             ThrottleInterval = 30;
@@ -813,14 +813,7 @@
           serviceConfig = {
             Label = "com.dktaohan.tfh-tunnel";
             ProgramArguments = ["${tfhTunnel}/bin/tfh-tunnel"];
-            EnvironmentVariables = {
-              # Any profile whose credential_process is the LEGO CLI works; that
-              # is the one path that rotates without re-prompting for a second
-              # factor every hour.
-              AWS_PROFILE = "bts-devrel";
-              AWS_REGION = "eu-west-1";
-              HOME = config.users.users.dktaohan.home;
-            };
+            EnvironmentVariables = ssmTunnelEnv;
             RunAtLoad = true;
             KeepAlive = true;
             ThrottleInterval = 30;

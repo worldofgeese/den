@@ -50,6 +50,8 @@
           agents.claude-agent-acp
           agents.copilot-cli
           codex
+          # ACP adapter agent-shell's Codex sessions run (agent-shell-openai).
+          agents.codex-acp
           # Secret lookups for both hosts, declared in secretspec.toml. Shared so
           # mahakala and M-02877 resolve gateway/API credentials the same way
           # rather than mahakala falling back to gopass for the same secret.

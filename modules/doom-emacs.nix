@@ -27,6 +27,50 @@
         sonnet = "eu.anthropic.claude-sonnet-5-5";
         haiku = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
       };
+      # Neomacs (reports emacs-version 31.1) on Linux. Pinned to v0.0.20, the
+      # newest build in eval-exec.cachix.org (it publishes release tags only).
+      # Two v0.0.20 gaps are papered over here without touching the cached
+      # derivation: it ships no meta.platforms, which nixpkgs' Emacs wrapper
+      # reads, and under --script it leaves -Q in command-line-args-left and
+      # then fails on it ("Unknown option -Q"). Doom-unstraightened runs
+      # `emacs -Q --batch --script` for every package, so the wrapper drops -Q
+      # when --script is present (--script already implies batch, no init).
+      neomacsRaw = inputs.neomacs.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      dropQUnderScript = bin:
+        pkgs.writeShellScript "neomacs-${bin}" ''
+          for a in "$@"; do
+            case "$a" in
+              -script | --script)
+                args=()
+                for b in "$@"; do [ "$b" = -Q ] || args+=("$b"); done
+                exec ${neomacsRaw}/bin/${bin} "''${args[@]}"
+                ;;
+            esac
+          done
+          exec ${neomacsRaw}/bin/${bin} "$@"
+        '';
+      neomacs = pkgs.symlinkJoin {
+        pname = "neomacs";
+        # src: the Emacs wrapper reads emacs.src (C-source lookup); unused here.
+        inherit (neomacsRaw) version src;
+        paths = [neomacsRaw];
+        # v0.0.20 has no setup hook (later Neomacs copies nixpkgs'), so install
+        # GNU Emacs's: it puts each dependency's site-lisp on EMACSLOADPATH while
+        # elisp packages byte-compile, else they cannot load their deps.
+        # symlinkJoin skips fixupPhase, so a setupHook attribute would be lost.
+        postBuild = ''
+          install -Dm644 ${pkgs.emacs.setupHook} $out/nix-support/setup-hook
+          rm $out/bin/neomacs $out/bin/emacs
+          ln -s ${dropQUnderScript "neomacs"} $out/bin/neomacs
+          ln -s neomacs $out/bin/emacs
+          # GNU installs bin/emacs-VERSION and Doom-unstraightened's wrapper
+          # deletes `emacs-*`, failing on an empty match; 31.1 is the
+          # emacs-version Neomacs reports.
+          ln -s neomacs $out/bin/emacs-31.1
+        '';
+        passthru = neomacsRaw.passthru or {};
+        meta = neomacsRaw.meta // {platforms = lib.platforms.linux;};
+      };
     in {
       imports = [inputs.nix-doom-emacs-unstraightened.homeModule];
 
@@ -36,16 +80,25 @@
         # gateway's address and a key-lookup command, and neither may be a
         # literal in tracked elisp. --replace-fail makes a renamed or dropped
         # placeholder a build error instead of a silent miss.
-        doomDir = pkgs.runCommandLocal "doom-dir" {} ''
-          cp -r ${./doom.d} $out
-          chmod -R u+w $out
-          substituteInPlace $out/modules/tools/agent-shell/config.el \
-            --replace-fail '@GATEWAY_BASE_URL@' ${lib.escapeShellArg gatewayBaseUrl} \
-            --replace-fail '@GATEWAY_KEY_COMMAND@' ${lib.escapeShellArg gatewayKeyCommand} \
-            --replace-fail '@GATEWAY_OPUS_MODEL@' ${lib.escapeShellArg slots.opus} \
-            --replace-fail '@GATEWAY_SONNET_MODEL@' ${lib.escapeShellArg slots.sonnet} \
-            --replace-fail '@GATEWAY_HAIKU_MODEL@' ${lib.escapeShellArg slots.haiku}
-        '';
+        doomDir = pkgs.runCommandLocal "doom-dir" {} (''
+            cp -r ${./doom.d} $out
+            chmod -R u+w $out
+            substituteInPlace $out/modules/tools/agent-shell/config.el \
+              --replace-fail '@GATEWAY_BASE_URL@' ${lib.escapeShellArg gatewayBaseUrl} \
+              --replace-fail '@GATEWAY_KEY_COMMAND@' ${lib.escapeShellArg gatewayKeyCommand} \
+              --replace-fail '@GATEWAY_OPUS_MODEL@' ${lib.escapeShellArg slots.opus} \
+              --replace-fail '@GATEWAY_SONNET_MODEL@' ${lib.escapeShellArg slots.sonnet} \
+              --replace-fail '@GATEWAY_HAIKU_MODEL@' ${lib.escapeShellArg slots.haiku}
+          ''
+          # Neomacs keeps its own nixpkgs pin (for its cache), so it runs on an
+          # older glibc than den's packages. reader's render-core.so links den's
+          # mupdf, which needs GLIBC_2.43, so module-load fails ("dlopen
+          # failed"); vterm's module needs nothing that new and loads. Linux
+          # disables reader, and Doom's use-package! skips its config.
+          + lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+            substituteInPlace $out/packages.el \
+              --replace-fail '(package! reader' '(package! reader :disable t'
+          '');
         # Doom's generated profile init is version-stamped
         # (profile/nix/0/init.MAJOR.MINOR.el) and only loaded when the file name
         # matches the running Emacs, so this must track the Emacs the launcher
@@ -54,7 +107,7 @@
         emacs =
           if pkgs.stdenv.hostPlatform.isDarwin
           then pkgs.emacs31
-          else pkgs.emacs-pgtk;
+          else neomacs;
         provideEmacs = false;
         extraBinPackages =
           (with pkgs; [
@@ -140,6 +193,15 @@
           Categories=Development;TextEditor;
           StartupNotify=true
           StartupWMClass=Emacs
+        '';
+        # Neomacs v0.0.20's daemon cannot open GUI client frames, so Emacs runs
+        # as a single GUI instance. Hide Guix's "Emacs (Client)" entry, whose
+        # `emacsclient -a ""` would start a daemon and fail on a TTY frame.
+        ".local/share/applications/emacsclient.desktop".text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=Emacs (Client)
+          Hidden=true
         '';
       };
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "5b4033100ac8d216d1a1201a27093063ddd59c73",
+    "accepted_commit": "9f5b95e7eb26b67dd684054e0c03be9194822f9b",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,43 +66,33 @@
     }
   },
   "change": {
-    "id": "change_01M785Z202K6YFT7XWM847W6FC",
-    "base_commit": "5b4033100ac8d216d1a1201a27093063ddd59c73",
+    "id": "mahakala-travel",
+    "base_commit": "9f5b95e7eb26b67dd684054e0c03be9194822f9b",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "headroom-kompress-off": {
-      "statement": "With HEADROOM_DISABLE_KOMPRESS=1, Headroom 0.44.0 leaves the #4214 fence intact while other compressors run",
-      "falsifier": "The 0.44.0 router with enable_kompress=False still alters the fence",
-      "status": "supported",
-      "proof_refs": [
-        "real-model router test 2026-11-12"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "headroom-kompress-off",
-      "summary": "HEADROOM_DISABLE_KOMPRESS=1 on M-02877 until #4214 releases",
-      "input_digest": "sha256:fd27c6f4af91a983a717efbd39e5f58a4b0b02270d16729364396bed2d250ba4"
+      "id": "mahakala-travel-pr",
+      "summary": "mahakala travel prep",
+      "input_digest": "sha256:aec30b6922eaf8d1af9e606ac90ca8b51388ed8540f90fd9090a10eb77b76135"
     }
   ],
   "intents": {
-    "intent:change_01M785Z202K6YFT7XWM847W6FC": {
+    "intent:mahakala-travel-pr": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "Current claimed task and isolated work branch"
+        "mahakala Guix System/Home Manager config; M-02877 cache and launchd tunnel env"
       ],
       "constraints": [
-        "root"
+        "guix-packages guix Justfile flake.nix flake.lock modules specs"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
+      "id": "intent:mahakala-travel-pr",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Turn off Headroom Kompress on M-02877 until headroom#4214 is released",
-      "refined_intent": "Turn off Headroom Kompress on M-02877 until headroom#4214 is released",
+      "raw_intent": "Prepare mahakala for travel: kernel, battery, Neomacs with Doom, Codex in agent-shell",
+      "refined_intent": "linux-omarchy for Guix, PSR, Doom on Neomacs v0.0.20 with workarounds, Codex agent-shell, Signet off, tunnel PATH, Omarchy 4.5 fixes",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -115,76 +105,77 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao: add the #4214 workaround to the guide and apply it to our own setup. Set HEADROOM_DISABLE_KOMPRESS=1 in the M-02877 Headroom launch command.",
+      "intent": "User-directed: linux-omarchy kernel on Guix, PSR re-enabled, Doom on single-instance Neomacs v0.0.20 with workarounds and caches, Codex in agent-shell, Signet off at login, SSM tunnel PATH fix, Omarchy 4.5 overrides",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "guix build -S linux-omarchy applies 188 patches; system generation 292 boots linux-omarchy",
+        "mahakala Home Manager generation builds and activates",
+        "Neomacs live: clean *Messages*/*Warnings*, Codex round trip, 0% idle"
       ],
       "schema_version": "1.1.0",
-      "spec_reviews": [
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Same Headroom container and chain; one environment variable",
-          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "9ec0f7ec4c8c42c0a54adeb67f2e1343e5ea8004209b614a7799ec4512732378"
-        },
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Ports, routes and mounts unchanged; only a compression stage is off",
-          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "c15efb54884795c383e5c343111e79d534dc0afedf38f6d1c12336dbdef89d35"
-        },
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "No auth, credential or trust-boundary change; improves fidelity of forwarded content",
-          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
-        }
-      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Turn off Headroom Kompress until #4214 is released",
+      "title": "mahakala travel prep",
       "todo_ids": [
-        "code_01m785y8wvmwvnse"
+        "arch_01m77cd1ew7s5k10"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794497348Z"
+      "updated_at": "1794503412Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "darwin.nix Headroom launch env; OPERATIONS"
+        "mahakala Guix System/Home Manager config; M-02877 cache and launchd tunnel env"
       ],
-      "artifact_hash": "sha256:d8c828a7990addcc234184b429fc38d97087aad9cf848c1026241a257f02b783",
+      "artifact_hash": "sha256:fd53d100e34eaf99ed3b36af83297f3f806c3cfe9c67fde44cdbf8f2f8cf671c",
       "checks": [
         {
-          "name": "router-0.44.0-real-model-fence",
+          "name": "codex-agent-shell-roundtrip",
+          "status": "passed"
+        },
+        {
+          "name": "darwin-tunnel-env-eval",
+          "status": "passed"
+        },
+        {
+          "name": "mahakala-hm-build-activate",
+          "status": "passed"
+        },
+        {
+          "name": "neomacs-idle-0pct",
+          "status": "passed"
+        },
+        {
+          "name": "neomacs-live-journal-messages-clean",
+          "status": "passed"
+        },
+        {
+          "name": "omarchy-kernel-build",
+          "status": "passed"
+        },
+        {
+          "name": "omarchy-source-patches",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
+            "intent_id": "intent:mahakala-travel-pr",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
+            "intent_id": "intent:mahakala-travel-pr",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M785Z2247JNSHFCN6Z0PGM6R",
+            "detail": "trajectory:mahakala-travel-pr",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
+            "intent_id": "intent:mahakala-travel-pr",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -193,24 +184,32 @@
         "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M785Z2247JNSHFCN6Z0PGM6R": {
+          "mahakala-travel-pr": {
             "evidence_only": true,
-            "id": "branch_01M785Z2247JNSHFCN6Z0PGM6R",
-            "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
+            "id": "mahakala-travel-pr",
+            "intent_id": "intent:mahakala-travel-pr",
             "steps": [
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
+                  "guix-packages/linux-omarchy.scm",
+                  "modules/doom-emacs.nix",
+                  "modules/omarchy.nix",
                   "modules/M-02877/darwin.nix",
-                  ".decapod/managed/specs/OPERATIONS.md",
-                  "0.44.0 router + kompress-v2-base: default and code-aware cut the fence 1324->1144 and it fails to parse; enable_kompress=False keeps it intact"
+                  ".decapod/config.toml"
                 ],
                 "proof_refs": [
-                  "router-0.44.0-real-model-fence"
+                  "omarchy-source-patches",
+                  "omarchy-kernel-build",
+                  "mahakala-hm-build-activate",
+                  "neomacs-live-journal-messages-clean",
+                  "codex-agent-shell-roundtrip",
+                  "neomacs-idle-0pct",
+                  "darwin-tunnel-env-eval"
                 ],
                 "scope": [
-                  "root"
+                  "guix-packages guix Justfile flake.nix flake.lock modules specs"
                 ],
                 "sequence": 4,
                 "validation_findings": []
@@ -220,27 +219,23 @@
         }
       },
       "declared_commands": [],
-      "destination": "pull request",
-      "evidence": [
-        "0.44.0 router + kompress-v2-base: default and code-aware cut the fence 1324->1144 and it fails to parse; enable_kompress=False keeps it intact"
+      "evidence": [],
+      "inspected_files": [
+        ".decapod/config.toml",
+        "guix-packages/linux-omarchy.scm",
+        "modules/M-02877/darwin.nix",
+        "modules/doom-emacs.nix",
+        "modules/omarchy.nix"
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M785Z202K6YFT7XWM847W6FC",
-      "modified_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        "modules/M-02877/darwin.nix"
-      ],
-      "next_transitions": [
-        "Refine plan and declare falsifiable checks"
-      ],
+      "intent_id": "intent:mahakala-travel-pr",
+      "modified_files": [],
       "repo_scope": [
-        "Headroom Kompress",
-        "root"
+        "guix-packages guix Justfile flake.nix flake.lock modules specs"
       ],
-      "run_id": "branch_01M785Z2247JNSHFCN6Z0PGM6R",
+      "run_id": "mahakala-travel-pr",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m785y8wvmwvnse",
+      "task_id": "arch_01m77cd1ew7s5k10",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -462,7 +462,10 @@ mv \"$tmp\" \"$target\""))
                         ;; replacement for them.
                         (requirement '(signet-lock-clean))
                         (respawn? #t)
-                        (auto-start? #t)
+                        ;; Off for battery while travelling (2026-11-12): a login
+                        ;; or `guix home reconfigure` would otherwise start it
+                        ;; again. Start it by hand with `herd start signet`.
+                        (auto-start? #f)
                         (log-file
                          (string-append (getenv "HOME")
                                         "/.local/state/signet.log")))))))
@@ -740,11 +743,13 @@ download-buffer-size = 536870912
                       ("FONTCONFIG_FILE" . "$HOME/.config/fontconfig/fonts.conf")
                       ;; Fix blurry small text in Chromium/Electron apps on dark backgrounds
                       ("FREETYPE_PROPERTIES" . "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0")
-                      ("VISUAL" . "emacsclient")
+                      ;; Plain emacs, not emacsclient: Doom runs on Neomacs, whose v0.0.20
+                      ;; daemon cannot open GUI client frames (modules/doom-emacs.nix).
+                      ("VISUAL" . "emacs")
                       ("BROWSER" . "flatpak run app.zen_browser.zen")
                       ("_JAVA_AWT_WM_NONREPARENTING" . "1")
                       ("MOZ_USE_XINPUT2" . "1")
                       ("npm_config_prefix" . "$HOME/.local")
-                      ("EDITOR" . "emacsclient")
+                      ("EDITOR" . "emacs")
                       ;; Force Qt apps to use native Wayland — fixes Telegram EGL mismatch
                       ("QT_QPA_PLATFORM" . "wayland")))))))

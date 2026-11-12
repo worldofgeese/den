@@ -30,7 +30,7 @@
              (guix build-system trivial)
              ((guix licenses) #:prefix license:)
              (srfi srfi-1)
-             (linux-cachyos))
+             (linux-omarchy))
 (use-service-modules desktop networking xorg dbus nix pm)
 (use-package-modules package-management security-token)
 
@@ -312,10 +312,14 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
     (license license:expat)))
 
 (operating-system
-  ;; BORE scheduler active; keep ananicy-cpp disabled (conflicts with BORE).
-  (kernel linux-cachyos-bore)
+  ;; Omarchy kernel (BORE scheduler); keep ananicy-cpp disabled (conflicts with
+  ;; BORE). Rollback: (linux-cachyos) linux-cachyos-bore is still packaged.
+  (kernel linux-omarchy)
   (initrd microcode-initrd)
-  ;; PSR disabled -- causes GNOME Shell compositor to spin at 15% CPU on this panel.
+  ;; PSR (panel self-refresh) re-enabled for battery: it was disabled only because
+  ;; GNOME Shell's compositor spun at 15% CPU with it; the session is now
+  ;; Hyprland, and linux-omarchy carries i915 PSR fixes. If the panel flickers or
+  ;; freezes until input, add i915.enable_psr=0 back here (or at the GRUB prompt).
   ;; ASPM stays enabled because it did not cause the QCA6174 failures; note that
   ;; pcie_port_pm below is a different knob -- it controls PCIe PORT runtime PM,
   ;; not the ASPM link policy.
@@ -341,7 +345,7 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
   ;; mem_sleep_default=deep: S3 instead of s2idle. Measured overnight on
   ;; this XPS 13 9380, deep drained ~98 mAh/h; s2idle does not reach package
   ;; C10 here and drains far faster.
-  (kernel-arguments (cons "i915.enable_psr=0 ath10k_core.skip_otp=y pcie_port_pm=off snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
+  (kernel-arguments (cons "ath10k_core.skip_otp=y pcie_port_pm=off snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
   (firmware (list linux-firmware))
   (locale "en_US.utf8")
   (timezone "Europe/Copenhagen")
@@ -498,10 +502,11 @@ root ALL=(ALL) ALL
                      "extra-trusted-substituters = https://cache.floxdev.com https://devenv.cachix.org https://nixpkgs-python.cachix.org https://cache.numtide.com\n"
                      ;; The entries above are only *permitted*, not enabled: a
                      ;; trusted substituter still has to be requested per build.
-                     ;; This one is enabled outright so decapod and anything else
-                     ;; pushed by `just cachix-push` is fetched instead of rebuilt.
-                     "extra-substituters = https://worldofgeese.cachix.org\n"
-                     "extra-trusted-public-keys = flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=\n"
+                     ;; These are enabled outright: worldofgeese so decapod and anything else
+                     ;; pushed by `just cachix-push` is fetched instead of rebuilt; the other three
+                     ;; serve Doom (unstraightened) and Neomacs with its WPE WebKit.
+                     "extra-substituters = https://worldofgeese.cachix.org https://doom-emacs-unstraightened.cachix.org https://eval-exec.cachix.org https://nix-wpe-webkit.cachix.org\n"
+                     "extra-trusted-public-keys = doom-emacs-unstraightened.cachix.org-1:O5oOlRPnmQEvVaFyuMTmthCEooHbrg54WgSLR07tmg4= eval-exec.cachix.org-1:xvopUI7X7+Vt1gaSsWJ0PQFPP66vs8v5iIaz6boxf64= nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE= flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=\n"
                      "experimental-features = nix-command flakes\n"))))
     (service tailscale-service-type)
     (simple-service 'msr-module kernel-module-loader-service-type '("msr"))

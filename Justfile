@@ -4,9 +4,11 @@
 # Passing --substitute-urls overrides daemon config until reconfigure applies new settings.
 guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.moe https://guix.tobias.gr/substitutes/ https://bordeaux.guix.gnu.org https://ci.guix.gnu.org"
 
-# GC root for the built CachyOS kernel. Keeps a kernel alive between
+# Guix System kernel: package (and module) name under guix-packages/.
+kernel := "linux-omarchy"
+# GC root for the built kernel. Keeps a kernel alive between
 # `just kernel-build` and the `guix system reconfigure` that adopts it.
-kernel-gc-root := "/var/guix/gcroots/cachyos-bore-kernel"
+kernel-gc-root := "/var/guix/gcroots/" + kernel + "-kernel"
 repo-dir := justfile_directory()
 
 # Closure `just cachix-push` uploads by default. Cache entries are per system,
@@ -55,8 +57,8 @@ deploy-mahakala-hm:
 # decapod.cachix.org is upstream Decapod's cache (DecapodLabs/decapod#1600); it
 # serves the decapod package of shared-devtools, because flake.nix takes that
 # input without `follows`. Its Linux build is reproducible (decapod#1176).
-mahakala-hm-caches := "https://cache.numtide.com https://nixarchy.cachix.org https://hyprland.cachix.org https://decapod.cachix.org"
-mahakala-hm-keys := "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM= hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE= decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng="
+mahakala-hm-caches := "https://cache.numtide.com https://nixarchy.cachix.org https://hyprland.cachix.org https://decapod.cachix.org https://doom-emacs-unstraightened.cachix.org https://eval-exec.cachix.org https://nix-wpe-webkit.cachix.org"
+mahakala-hm-keys := "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM= hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE= decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng= doom-emacs-unstraightened.cachix.org-1:O5oOlRPnmQEvVaFyuMTmthCEooHbrg54WgSLR07tmg4= eval-exec.cachix.org-1:xvopUI7X7+Vt1gaSsWJ0PQFPP66vs8v5iIaz6boxf64= nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE="
 deploy-mahakala-hm-only:
     NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\nextra-substituters = %s\nextra-trusted-public-keys = %s' '{{ mahakala-hm-caches }}' '{{ mahakala-hm-keys }}')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"
     update-desktop-database ~/.local/share/applications
@@ -93,7 +95,7 @@ deploy-mahakala-guix-only:
 
 # Split out from reconfigure because a pull can bump nonguix's kernel base config
 # (e.g. 7.0-x86_64.conf -> 7.1-x86_64.conf), which changes the
-# linux-cachyos-bore derivation hash and silently orphans an already-built
+# kernel derivation hash and silently orphans an already-built
 # kernel. Pull deliberately, then check, then reconfigure.
 
 # Pull root's Guix channels only (no reconfigure)
@@ -126,13 +128,13 @@ kernel-status:
     # -n as well as -d: a bare `guix build -d` blocks on the build lock whenever a
     # kernel build is already running, and a status probe must never hang.
     # -n prints prose rather than a bare path, so scrape the .drv out of it.
-    drv=$(sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build -n -d -L "{{ repo-dir }}/guix-packages" -e "(@ (linux-cachyos) linux-cachyos-bore)"' 2>&1 \
-        | grep -ao '/gnu/store/[a-z0-9]\{32\}-linux-cachyos-bore-[0-9.]*\.drv' | head -1)
+    drv=$(sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build -n -d -L "{{ repo-dir }}/guix-packages" -e "(@ ({{ kernel }}) {{ kernel }})"' 2>&1 \
+        | grep -ao '/gnu/store/[a-z0-9]\{32\}-{{ kernel }}-[0-9.]*\.drv' | head -1)
     if [[ -z "$drv" || ! -e "$drv" ]]; then
         echo "kernel-status: could not evaluate kernel derivation" >&2
         exit 1
     fi
-    out=$(grep -ao '/gnu/store/[a-z0-9]\{32\}-linux-cachyos-bore-[0-9.]*' "$drv" | head -1)
+    out=$(grep -ao '/gnu/store/[a-z0-9]\{32\}-{{ kernel }}-[0-9.]*' "$drv" | head -1)
     echo "derivation: $drv"
     echo "output:     $out"
     if [[ -n "$out" && -e "$out" ]]; then
@@ -169,7 +171,7 @@ kernel-build:
         echo "kernel-build: current kernel is already built and pinned; skipping"
         exit 0
     fi
-    log="/tmp/cachyos-bore-build-$(date +%Y%m%d-%H%M%S).log"
+    log="/tmp/{{ kernel }}-build-$(date +%Y%m%d-%H%M%S).log"
     echo "kernel-build: logging to $log"
     echo "kernel-build: follow with  tail -f $log"
     # `guix build --root` does not replace a root that exists ("File exists"),
@@ -180,7 +182,7 @@ kernel-build:
     # old link points to. The rm removes a new root that an interrupted run
     # left; the old root stays.
     sudo rm -f {{ kernel-gc-root }}.new
-    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{ guix-substitute-urls }}" --fallback --root={{ kernel-gc-root }}.new -L "{{ repo-dir }}/guix-packages" -e "(@ (linux-cachyos) linux-cachyos-bore)"' >"$log" 2>&1
+    sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{ guix-substitute-urls }}" --fallback --root={{ kernel-gc-root }}.new -L "{{ repo-dir }}/guix-packages" -e "(@ ({{ kernel }}) {{ kernel }})"' >"$log" 2>&1
     sudo mv -fT {{ kernel-gc-root }}.new {{ kernel-gc-root }}
     echo "kernel-build: done -> $(readlink -f {{ kernel-gc-root }})"
 
@@ -396,7 +398,7 @@ check-guix:
         echo "check-guix: guix not found, skipping"
         exit 0
     fi
-    for scm in guix/system.scm guix/home-configuration.scm guix-packages/linux-cachyos.scm; do
+    for scm in guix/system.scm guix/home-configuration.scm guix-packages/linux-cachyos.scm guix-packages/linux-omarchy.scm; do
         echo "check-guix: loading $scm"
         "$guix_bin" repl -L guix-packages "$scm" >/dev/null
     done
@@ -650,7 +652,8 @@ app-permissions-status:
 update-input input:
     timeout -s KILL 900 nix flake update --no-warn-dirty {{ input }}
 
-# Bump the pinned CachyOS kernel version/hashes in guix-packages/linux-cachyos.scm.
+# Bump the pinned CachyOS (rollback) kernel in guix-packages/linux-cachyos.scm.
+# linux-omarchy is bumped by hand; see the header of guix-packages/linux-omarchy.scm.
 # Edits the file only -- builds nothing. Follow with `just kernel-build`.
 upgrade-kernel:
     ./scripts/upgrade-cachyos-kernel.sh

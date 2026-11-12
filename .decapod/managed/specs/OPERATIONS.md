@@ -934,6 +934,17 @@ The configured Pi routes are defined by `agentProviders.pi` and its optional
   `wire_dialect: anthropic`; the OpenAI mount preserves Responses API shape.
 - `CAVE_SSRF_ALLOWLIST=127.0.0.1` permits only the required loopback upstream.
   Caveman 4.1 reports a refused upstream as `cave_upstream_blocked`.
+- The launchd job owns `127.0.0.1:8787`. If that listener is absent, for
+  example while a switch restarts it, a Pi hook can start its own proxy
+  (`owner: wrap` in `~/.caveman/run/8787.json`). That proxy keeps the port.
+  On 2026-11-11 such a proxy started without the allowlist, so new Pi
+  sessions received 502 `cave_upstream_blocked` while the job looped on
+  "address already in use". Two measures now prevent this. The pi shim
+  exports the same allowlist to hook children. `caveman-proxy-serve` stops a
+  `wrap` proxy before starting, but only when the run file names it and that
+  PID's executable is `~/.caveman/bin/caveman-proxy`. An in-flight request
+  on the replaced proxy can fail once. Check: `jq .owner ~/.caveman/run/8787.json`
+  should print `start`.
 - Headroom receives explicit Anthropic and OpenAI gateway targets. The OpenAI
   API root in `gateway.json` excludes `/v1`, which Headroom appends itself.
 

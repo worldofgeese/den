@@ -23,6 +23,7 @@
              ;;   unbound-variable: no binding `tailscale' in module
              ;;   (gnu packages networking)
              ((gnu packages networking) #:select (blueman))
+             ((gnu packages linux) #:select (wireless-regdb))
              (nongnu system linux-initrd)
              (rosenthal services networking)
              (gnu packages gnome)
@@ -321,20 +322,24 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
   ;; Hyprland, and linux-omarchy carries i915 PSR fixes. If the panel flickers or
   ;; freezes until input, add i915.enable_psr=0 back here (or at the GRUB prompt).
   ;; ASPM stays enabled because it did not cause the QCA6174 failures; note that
-  ;; pcie_port_pm below is a different knob -- it controls PCIe PORT runtime PM,
+  ;; pcie_port_pm (below, no longer set) is a different knob: PCIe PORT runtime PM,
   ;; not the ASPM link policy.
   ;;
-  ;; Runtime-PM rules keep the card out of D3cold while the system runs; the
+  ;; Runtime-PM rules keep the card out of D3cold while the system runs: the
   ;; card's udev rule is verified live (power/control=on, runtime_status=active,
-  ;; power_state=D0) and the parent port is covered by pcie_port_pm=off.
+  ;; power_state=D0). That also keeps its parent port 00:1c.6 at D0, since a
+  ;; port cannot runtime-suspend while a child is active (verified 2026-11-12
+  ;; without pcie_port_pm=off: 00:1c.6 active/D0, the Thunderbolt ports D3cold).
   ;;
-  ;; pcie_port_pm=off is the current trial for the BOOT-TIME failure: on
+  ;; pcie_port_pm=off was the earlier trial for the BOOT-TIME failure (on
   ;; 2026-10-13 20:03:32 the card was already in D3cold when the kernel probed
-  ;; it and probe failed with error -5. A card-only udev rule cannot prevent
-  ;; that, because it runs at ACTION=="add", after probe. Port runtime PM is
-  ;; what parks the link in D3cold, so disabling it for ports is the targeted
-  ;; way to keep the parent bridge (00:1c.6) at D0 and stop a warm reboot from
-  ;; inheriting D3cold. Unproven -- verify over the next boots.
+  ;; it and probe failed with error -5). It held for every boot from 2026-11-02
+  ;; on, but it was global: no PCIe port could suspend, so the Thunderbolt 3
+  ;; controller's root port 00:1d.0 stayed in D0 with its link in L0 (that link
+  ;; has no ASPM). Measured on 2026-11-12 under linux-omarchy at idle with PSR2
+  ;; in deep sleep: package C-states stopped at PC3 (82.5%), with 0% in PC6
+  ;; through PC10. Removed: package power at idle fell from 2.5 W to 0.83 W.
+  ;; If the card goes missing at boot again, put pcie_port_pm=off back.
   ;;
   ;; ath10k_pci.reset_mode=1 (warm-only reset) was that trial's companion and is
   ;; refuted: it was active in the 2026-10-13 20:03:32 boot that failed with
@@ -345,8 +350,11 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
   ;; mem_sleep_default=deep: S3 instead of s2idle. Measured overnight on
   ;; this XPS 13 9380, deep drained ~98 mAh/h; s2idle does not reach package
   ;; C10 here and drains far faster.
-  (kernel-arguments (cons "ath10k_core.skip_otp=y pcie_port_pm=off snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
-  (firmware (list linux-firmware))
+  (kernel-arguments (cons "ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
+  ;; wireless-regdb: linux-omarchy requires a signed regulatory.db
+  ;; (CFG80211_REQUIRE_SIGNED_REGDB); without it cfg80211 logs "failed to load
+  ;; regulatory.db" at every boot and stays on the restrictive world domain.
+  (firmware (list linux-firmware wireless-regdb))
   (locale "en_US.utf8")
   (timezone "Europe/Copenhagen")
   (keyboard-layout (keyboard-layout "us" "altgr-intl"))
@@ -530,7 +538,11 @@ root ALL=(ALL) ALL
               (stop-charge-thresh-bat0 85)
               (energy-perf-policy-on-bat "power")
               (pcie-aspm-on-ac "powersave")
-              (pcie-aspm-on-bat "powersave")
+              ;; powersupersave adds the L1.1/L1.2 substates (NVMe, WiFi, the
+              ;; PCH ports). Measured 2026-11-12 at idle: package C10 went from
+              ;; 0% to 58% and package power from 0.83 W to 0.73 W, WiFi
+              ;; unaffected (0% loss). AC keeps powersave.
+              (pcie-aspm-on-bat "powersupersave")
               (wifi-pwr-on-ac? #f)
               (wifi-pwr-on-bat? #t)
               (sound-power-save-on-ac 1)
@@ -566,16 +578,21 @@ root ALL=(ALL) ALL
               ;; subsequent warm reboot then inherits. If failures continue
               ;; after a cold power-off, the remaining suspect is firmware
               ;; leaving it powered down. The warm-only reset trial has since
-              ;; been refuted on the 2026-10-13 20:03:32 boot and reverted; the
-              ;; current trial is pcie_port_pm=off. See the kernel-arguments
-              ;; comment in the operating-system record.
+              ;; been refuted on the 2026-10-13 20:03:32 boot and reverted;
+              ;; pcie_port_pm=off followed and was removed once the card rule
+              ;; proved to keep the port awake. See the kernel-arguments comment
+              ;; in the operating-system record.
               (runtime-pm-driver-blacklist '("radeon" "nouveau" "ath10k_pci"))
               (sata-linkpwr-on-ac "med_power_with_dipm")
               (sata-linkpwr-on-bat "med_power_with_dipm")))
+    ;; Dell's platform_profile offers cool, quiet, balanced and performance;
+    ;; there is no low-power, so the earlier PLATFORM_PROFILE_ON_BAT=low-power
+    ;; was never applied and battery stayed on balanced. quiet is the Dell
+    ;; equivalent power-profiles-daemon uses for power-saver.
     (simple-service 'tlp-platform-profile etc-service-type
       (list `("tlp.d/01-platform-profile.conf"
               ,(plain-file "01-platform-profile.conf"
-                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=low-power\n"))))
+                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=quiet\n"))))
 
     (simple-service 'flatpak-hicolor-icon-index activation-service-type
                     #~(begin

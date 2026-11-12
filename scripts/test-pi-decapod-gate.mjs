@@ -311,7 +311,6 @@ test("allow, block and invalid output keep the contract", async () => {
 
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
-
 test("an evaluation that has not spawned yet is already pending", async () => {
   useFakeDecapod();
   let release;
@@ -328,6 +327,8 @@ test("an evaluation that has not spawned yet is already pending", async () => {
   await tick();
   const status = await s.status();
   assert.equal(status.pending.count, 1);
+  // The pending record is persisted before the spawn, not only counted.
+  assert.deepEqual(s.entries.map((entry) => entry.data.kind), ["revision", "pending"]);
   assert.deepEqual(spawned, [], "nothing has spawned yet");
   assert.equal(calls().length, beforeNormal);
   release();
@@ -335,6 +336,10 @@ test("an evaluation that has not spawned yet is already pending", async () => {
   assert.deepEqual(spawned, ["decapod"]);
   assert.equal(calls().length, beforeNormal + 1);
   assert.equal((await s.status()).pending.count, 0);
+  const kinds = s.entries.map((entry) => entry.data.kind);
+  assert.deepEqual(kinds, ["revision", "pending", "result"]);
+  const [pendingEntry, resultEntry] = s.entries.slice(1).map((entry) => entry.data);
+  assert.equal(resultEntry.id, pendingEntry.id, "the result names the pending evaluation it settles");
 });
 
 test("the status tool call is not held back by the drain or blocked by the gate", async () => {

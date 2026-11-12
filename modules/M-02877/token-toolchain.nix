@@ -43,6 +43,7 @@
 
     cavemanProxy = pkgs.writeShellApplication {
       name = "caveman-proxy-serve";
+      runtimeInputs = [pkgs.jq];
       text = ''
         bin=${lib.escapeShellArg "${home}/.caveman/bin/caveman-proxy"}
         if [ ! -x "$bin" ]; then
@@ -71,6 +72,22 @@
         # Both compat mounts use Headroom on loopback. Allow only this host.
         # Caveman 4.1 reports a refused upstream as cave_upstream_blocked.
         export CAVE_SSRF_ALLOWLIST=127.0.0.1
+        # If the listener is missing, for example during a switch, a pi hook
+        # can start its own proxy (owner `wrap`) on the same port. It keeps
+        # the port, and this job then loops on "address already in use".
+        # This job owns the port, so stop that proxy before starting.
+        run=${lib.escapeShellArg "${home}/.caveman/run/8787.json"}
+        if [ -r "$run" ] && [ "$(jq -r '.owner // empty' "$run" 2>/dev/null)" = wrap ]; then
+          pid=$(jq -r '.pid // empty' "$run")
+          if [ -n "$pid" ] && [ "$(/bin/ps -o comm= -p "$pid" 2>/dev/null)" = "$bin" ]; then
+            echo "caveman-proxy-serve: stopping hook-started proxy $pid on ${cavemanListen}" >&2
+            kill -TERM "$pid" || true
+            for _ in 1 2 3 4 5 6 7 8 9 10; do
+              kill -0 "$pid" 2>/dev/null || break
+              sleep 1
+            done
+          fi
+        fi
         exec "$bin" serve
       '';
     };
@@ -107,6 +124,9 @@
       process.env.CAVEMAN_PI_HOOK_CMD ??= JSON.stringify([${builtins.toJSON cavemanCli}]);
       // The hook CLI runs as a child of pi: no Caveman telemetry (no cloud features).
       process.env.DO_NOT_TRACK ??= "1";
+      // A proxy that the hook starts must reach Headroom on loopback too,
+      // or it answers 502 cave_upstream_blocked (see caveman-proxy-serve).
+      process.env.CAVE_SSRF_ALLOWLIST ??= "127.0.0.1";
 
       export default async function (pi) {
         if (!existsSync(upstream)) {

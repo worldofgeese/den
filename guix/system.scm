@@ -312,11 +312,32 @@ Manager profile at run time.")
 agent can reboot mahakala to a locked desktop without the disk passphrase.")
     (license license:expat)))
 
+(define mahakala-intel-microcode
+  ;; Shaped like intel-microcode (lib/firmware/intel-ucode) so nonguix's
+  ;; microcode-initrd consumes it unchanged.
+  (computed-file
+   "intel-microcode-06-8e-0b"
+   (with-imported-modules '((guix build utils))
+     #~(begin
+         (use-modules (guix build utils))
+         (let ((dir (string-append #$output "/lib/firmware/intel-ucode")))
+           (mkdir-p dir)
+           (copy-file #$(file-append intel-microcode
+                                     "/lib/firmware/intel-ucode/06-8e-0b")
+                      (string-append dir "/06-8e-0b")))))))
+
 (operating-system
   ;; Omarchy kernel (BORE scheduler); keep ananicy-cpp disabled (conflicts with
   ;; BORE). Rollback: (linux-cachyos) linux-cachyos-bore is still packaged.
   (kernel linux-omarchy)
-  (initrd microcode-initrd)
+  ;; Only this CPU's microcode (i7-8565U: family 6, model 0x8e, stepping 0xb).
+  ;; The default bundles every Intel and AMD blob, 15.4 MB that GRUB had to
+  ;; read and decrypt in software AES on every boot. A different CPU would boot
+  ;; without an early microcode update; widen the list if the board changes.
+  (initrd (lambda (file-systems . rest)
+            (apply microcode-initrd file-systems
+                   #:microcode-packages (list mahakala-intel-microcode)
+                   rest)))
   ;; PSR (panel self-refresh) re-enabled for battery: it was disabled only because
   ;; GNOME Shell's compositor spun at 15% CPU with it; the session is now
   ;; Hyprland, and linux-omarchy carries i915 PSR fixes. If the panel flickers or
@@ -760,7 +781,12 @@ COMMIT
                                 (string-append
                                  "for i in 1 2 3 4 5 6 7 8 9 10; do [ -e /dev/cpu/0/msr ] && break; sleep 1; done && "
                                  #$(file-append (specification->package "undervolt") "/bin/undervolt")
-                                 " --core -80 --cache -80 --gpu -50 --analogio 0 --uncore 0")))
+                                 ;; Core and cache move together on this CPU. Stepped
+                                 ;; search 2026-11-12 (stress-ng --verify, turbo on, on AC
+                                 ;; and on battery): -90 and -100 passed, -110 hung under
+                                 ;; single-core turbo. -90 keeps 20 mV of margin and
+                                 ;; survived repeated AC plug/unplug under load.
+                                 " --core -90 --cache -90 --gpu -50 --analogio 0 --uncore 0")))
                       (stop #~(const #f)))))
     ;; Single-use guarantee for agent-unlock (see its package above): kill
     ;; LUKS slot 7 and wipe the ESP key on every boot, and record whether this
@@ -878,6 +904,12 @@ COMMIT
   (bootloader (bootloader-configuration
                (bootloader grub-efi-hidden-menu-bootloader)
                (targets (list "/boot/efi"))
+               ;; No background image: with it, GRUB also searched the store
+               ;; for the image, loaded a font and switched to gfxterm, all for
+               ;; a menu that is hidden. Each store lookup scans the 30 MB
+               ;; /gnu/store directory through GRUB's software AES, which is
+               ;; most of GRUB's ~12 s at boot.
+               (theme (grub-theme (inherit (grub-theme)) (image #f)))
                (timeout 0)
                (keyboard-layout keyboard-layout)))
   (mapped-devices (list (mapped-device

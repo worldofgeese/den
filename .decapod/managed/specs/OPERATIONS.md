@@ -937,12 +937,18 @@ tokens and wrote 14. Temporary services were removed. This proves the tested
 protocol, authentication, fidelity sample, and cache boundaries, not a net
 cost saving or a completed live rollout.
 
-Normal Pi sessions still have an end-to-end recovery limit with context-mode
-2.1.7: it can replace a Caveman recovery response with another search pointer.
-The stored bytes remain available, but the recovery tool does not return them
-intact to the caller. No per-tool exemption is exposed. This needs an upstream
-fix; native recovery-store integrity alone does not prove end-to-end recovery.
-The isolated reviewer avoids that combined compaction path.
+context-mode replaces a large tool result with a short selection and a
+`ctx_search` pointer. Up to 2.1.7 it also did this to a Caveman recovery
+result, so the model got another pointer instead of the recovered text.
+context-mode 2.1.8 added `contextMode.excludeTools` (context-mode#1367): a
+listed tool's result stays whole. den declares `caveman_retrieve`,
+`headroom_retrieve` and `mcp__caveman__retrieve` through
+`piAgent.settings` in `modules/M-02877/token-toolchain.nix`. context-mode
+reads the list through `pi.getSettings()`, so a running session needs
+`/reload`. Check: run a 6,828-byte synthetic result through the installed
+extension's `tool_result` handler. A listed tool returns it exactly, and
+an unlisted tool (`search_retrieve`) still gets the pointer. The local
+patched build from 2026-11-11 is no longer configured.
 
 The configured Pi routes are defined by `agentProviders.pi` and its optional
 `openai` route in `modules/M-02877/token-toolchain.nix`:

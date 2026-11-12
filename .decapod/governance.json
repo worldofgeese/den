@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "fe595923be4d19fb2dce16b52920e04c02019b51",
+    "accepted_commit": "544da95867ea48ffe5402da3b41bda4df307973f",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,39 +66,29 @@
     }
   },
   "change": {
-    "id": "change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
-    "base_commit": "fe595923be4d19fb2dce16b52920e04c02019b51",
+    "id": "change_01M77XSMBQWT1A1136SS809334",
+    "base_commit": "544da95867ea48ffe5402da3b41bda4df307973f",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "cm-exclude-tools": {
+      "statement": "After a switch, context-mode returns Caveman recovery results whole in pi while other large results still get a pointer",
+      "falsifier": "Harness with the declared list returns a pointer for caveman_retrieve, or returns search_retrieve whole",
+      "status": "supported",
+      "proof_refs": [
+        "harness 2026-11-12: 3 listed exact, unlisted pointer"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "test_01m77ckw7nq7zzrt",
-      "summary": "Assert the persisted pending record",
-      "input_digest": "sha256:6e13e1694259535b98e1f6a4f7648f8263f4419d44db83c8c6215138a0e622f1"
-    },
-    {
-      "id": "test_01m77ckw7nq7zzrt-r2",
-      "summary": "Spec sentence for the new assertion",
-      "input_digest": "sha256:f39728e039329c98ffa441b6343590271bb09177bfc069ae21dbda0a4dfb2ebd"
-    },
-    {
-      "id": "test_01m77ckw7nq7zzrt-r3",
-      "summary": "Spec manifest refresh",
-      "input_digest": "sha256:38d79ec6e9fe3c1a7981c409a55ddd46e29e080475e9fa62988734802ec0d39e"
-    },
-    {
-      "id": "test_01m77ckw7nq7zzrt-r4",
-      "summary": "Rebase onto 0c6d2c4 (#156)",
-      "input_digest": "sha256:d3d8f3ae4bb9a0d1ace08e4daf3edf1850b04030ded2ce6b0163cae272ceb8d1"
-    },
-    {
-      "id": "test_01m77ckw7nq7zzrt-r5",
-      "summary": "Rebase onto 550f025",
-      "input_digest": "sha256:ca94ea8ec7027f1ea28c6befbdc3761491b84c5593b27131cccd48da638d2352"
+      "id": "cm-exclude-tools",
+      "summary": "piAgent.settings merge; contextMode.excludeTools for Caveman recovery tools; specs updated",
+      "input_digest": "sha256:dae7b013a3943af97f529a5c9e665fc01aa4c189767338d65208ed3592a809d4"
     }
   ],
   "intents": {
-    "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ": {
+    "intent:change_01M77XSMBQWT1A1136SS809334": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -108,11 +98,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+      "id": "intent:change_01M77XSMBQWT1A1136SS809334",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Assert the gate's persisted pending record in its tests (pr-reviewer note on den #154)",
-      "refined_intent": "Assert the gate's persisted pending record in its tests (pr-reviewer note on den #154)",
+      "raw_intent": "Declare contextMode.excludeTools for pi so Caveman recovery results stay whole (context-mode 2.1.9)",
+      "refined_intent": "Declare contextMode.excludeTools for pi so Caveman recovery results stay whole (context-mode 2.1.9)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -125,137 +115,110 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "pr-reviewer's note on den #154: with the PAUSE transition test removed, no test asserted that the pi prompt gate persists its pending record before the spawn. Add that assertion to the not-yet-spawned test: entries are revision, pending before the spawn and revision, pending, result after it, and the result names the pending evaluation's id. Test-only; no deployed file changes.",
+      "intent": "Tao: use the context-mode#1367 setting for us and update our guides. Add piAgent.settings (recursive merge into ~/.pi/agent/settings.json) and declare contextMode.excludeTools for the recovery tools.",
       "phases": [],
       "proof_hooks": [
-        "the gate test suite passes; a mutant that drops the pending persist fails it",
-        "plain decapod validate passes",
-        "just check (pre-commit)"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
       "spec_reviews": [
         {
-          "disposition": "updated",
+          "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "The prompt gate section now states that its unit test asserts the persisted revision, pending and result entries in order.",
+          "reason": "Same pi module and activation structure; one more merge step",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "9ec0f7ec4c8c42c0a54adeb67f2e1343e5ea8004209b614a7799ec4512732378"
         },
         {
-          "disposition": "unchanged_with_reason",
+          "disposition": "updated",
           "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Test-only change; no interface changes.",
+          "reason": "Documents the new piAgent.settings option and its merge rule",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "ef88b397639e80c822c8b74149f4e30dbbdb2b73fa3cb8b0e9c84f9ed6f17857"
+          "spec_material_hash": "c15efb54884795c383e5c343111e79d534dc0afedf38f6d1c12336dbdef89d35"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "Test-only change; it adds coverage of the gate's pending record and weakens nothing.",
+          "reason": "No credential or trust-boundary change; settings.json stays mode 600 and the option forbids credentials",
           "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
           "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
         }
       ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Assert the gate's persisted pending record in its tests",
+      "title": "Keep Caveman recovery results whole in pi",
       "todo_ids": [
-        "test_01m77ckw7nq7zzrt"
+        "code_01m77xrth1k72jxd"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794470855Z"
+      "updated_at": "1794488827Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "Only scripts/test-pi-decapod-gate.mjs"
+        "modules/pi.nix, token-toolchain.nix, specs"
       ],
-      "artifact_hash": "sha256:8977d987a253d28d541b514df6788da778dd6eb2528278a8e534558060ac0a91",
+      "artifact_hash": "sha256:34a51c0c83911675f51d5015270556072e5f173c24859d239518dbea5192db87",
       "checks": [
         {
-          "name": "gate-tests",
+          "name": "context-mode-2.1.9-exclude-tools-harness",
           "status": "passed"
         },
         {
-          "name": "pending-persist-mutant-killed",
-          "status": "passed"
-        },
-        {
-          "name": "rebase-onto-550f025",
+          "name": "piSettings-fragment-4-cases",
           "status": "passed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
+            "detail": "trajectory:branch_01M77XSMDZD3GRVC4H49YBJG34",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M77CMTVQAMJCQJKK0KMJ8DQC": {
+          "branch_01M77XSMDZD3GRVC4H49YBJG34": {
             "evidence_only": true,
-            "id": "branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
-            "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+            "id": "branch_01M77XSMDZD3GRVC4H49YBJG34",
+            "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
             "steps": [
               {
-                "action": "implementation",
+                "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "scripts/test-pi-decapod-gate.mjs",
-                  "24/24 gate tests pass on fe59592 plus this change. A mutant that removes persist({ kind: pending }) from pi-decapod-gate.ts fails 1 test (measured before #154 merged, same extension code)."
+                  "modules/pi.nix",
+                  "modules/M-02877/token-toolchain.nix",
+                  "Installed context-mode 2.1.9 with getSettings: caveman_retrieve/headroom_retrieve/mcp__caveman__retrieve 6828B exact; search_retrieve 155B pointer",
+                  "Generated piSettings fragment: merges and keeps other keys, mode 600, no rewrite when unchanged, invalid JSON left unchanged, creates missing file"
                 ],
                 "proof_refs": [
-                  "gate-tests",
-                  "pending-persist-mutant-killed"
+                  "context-mode-2.1.9-exclude-tools-harness",
+                  "piSettings-fragment-4-cases"
                 ],
                 "scope": [
                   "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "Rebased onto 550f025 (#155 Caveman, #158 pr-reviewer v0.2.7). Conflicts only in config.toml, governance.json and .manifest.json (den precedent). Decapod 0.138.3 is now deployed on PATH."
-                ],
-                "proof_refs": [
-                  "rebase-onto-550f025"
-                ],
-                "scope": [
-                  "root",
-                  "scripts/test-pi-decapod-gate.mjs"
-                ],
-                "sequence": 5,
                 "validation_findings": []
               }
             ]
@@ -265,25 +228,26 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
-        "24/24 gate tests pass on fe59592 plus this change. A mutant that removes persist({ kind: pending }) from pi-decapod-gate.ts fails 1 test (measured before #154 merged, same extension code).",
-        "Rebased onto 550f025 (#155 Caveman, #158 pr-reviewer v0.2.7). Conflicts only in config.toml, governance.json and .manifest.json (den precedent). Decapod 0.138.3 is now deployed on PATH."
+        "Generated piSettings fragment: merges and keeps other keys, mode 600, no rewrite when unchanged, invalid JSON left unchanged, creates missing file",
+        "Installed context-mode 2.1.9 with getSettings: caveman_retrieve/headroom_retrieve/mcp__caveman__retrieve 6828B exact; search_retrieve 155B pointer"
       ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M77CMTS6Y4ZBMXQXPKSTN5GZ",
+      "intent_id": "intent:change_01M77XSMBQWT1A1136SS809334",
       "modified_files": [
-        "scripts/test-pi-decapod-gate.mjs"
+        "modules/M-02877/token-toolchain.nix",
+        "modules/pi.nix"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "root",
-        "scripts/test-pi-decapod-gate.mjs"
+        "pi settings merge, context-mode excludeTools",
+        "root"
       ],
-      "run_id": "branch_01M77CMTVQAMJCQJKK0KMJ8DQC",
+      "run_id": "branch_01M77XSMDZD3GRVC4H49YBJG34",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "test_01m77ckw7nq7zzrt",
+      "task_id": "code_01m77xrth1k72jxd",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

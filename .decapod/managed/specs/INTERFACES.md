@@ -267,6 +267,11 @@ version, and each switch runs `pi update` for it, because pi does not update
 packages on its own. ponytail, context-mode and pi-beads-extension are
 unpinned.
 
+`piAgent.settings` merges other keys into `settings.json` at each switch,
+recursively (jq `*`). A declared value wins, and undeclared keys stay. It
+runs after the package step, because `pi install` rewrites the file. On
+M-02877 it sets `contextMode.excludeTools`.
+
 chorus-pi stays pinned. The Chorus client, chorus-pi and the team server move
 together: on 2026-11-11 they moved to 0.24.0 (`chorusVersion`), because the
 team server runs 0.24.0 since LEGO/devrel-infra#711. Chorus 0.24.0 adds Agent

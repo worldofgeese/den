@@ -350,7 +350,13 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
   ;; mem_sleep_default=deep: S3 instead of s2idle. Measured overnight on
   ;; this XPS 13 9380, deep drained ~98 mAh/h; s2idle does not reach package
   ;; C10 here and drains far faster.
-  (kernel-arguments (cons "ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
+  ;; usbcore.initial_descriptor_timeout=1000 (default 5000 ms): the
+  ;; Integrated_Webcam_HD (0c45:6723, port 1-5) often misses its first
+  ;; descriptor reads at boot ("device descriptor read/64, error -110" at
+  ;; ~11 s and ~27 s), and udev coldplug, so every service and the desktop,
+  ;; waited behind it: Hyprland started ~30 s after the kernel. With 1000 ms the
+  ;; camera enumerates at ~2 s and Hyprland starts at ~11 s (2026-11-12).
+  (kernel-arguments (cons "usbcore.initial_descriptor_timeout=1000 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
   ;; wireless-regdb: linux-omarchy requires a signed regulatory.db
   ;; (CFG80211_REQUIRE_SIGNED_REGDB); without it cfg80211 logs "failed to load
   ;; regulatory.db" at every boot and stays on the restrictive world domain.

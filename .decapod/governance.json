@@ -75,6 +75,11 @@
       "id": "mahakala-tuneup",
       "summary": "Drop pcie_port_pm=off, L1 substates on battery, Dell quiet, wireless-regdb",
       "input_digest": "sha256:2657a429311ad22ae7b47d84b1a061548942fcb1bc726da2551727267ebb6060"
+    },
+    {
+      "id": "mahakala-tuneup-boot",
+      "summary": "Shorter USB descriptor timeout; desktop 30s -> 11s after kernel",
+      "input_digest": "sha256:aebb8913880065a9dec4cbbdfe713ca631ea63732ad218fac953a81134e03ddb"
     }
   ],
   "intents": {
@@ -126,10 +131,14 @@
       "active_boundaries": [
         "guix/system.scm only"
       ],
-      "artifact_hash": "sha256:d7385d740f10669711d844d7e9732ecf47159bbb07e88405f4425f88eadf2ac4",
+      "artifact_hash": "sha256:d3ffa89f4c31e32ba948555fd997622a798b4ee9f75f7d5634c57231e7bb8dd7",
       "checks": [
         {
           "name": "agent-reboot-wifi-without-pcie-port-pm",
+          "status": "passed"
+        },
+        {
+          "name": "boot-webcam-timeout-desktop-11s",
           "status": "passed"
         },
         {
@@ -165,10 +174,17 @@
             "intent_id": "intent:mahakala-tuneup-pr",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:mahakala-tuneup-pr",
+            "event_id": "event:5",
+            "intent_id": "intent:mahakala-tuneup-pr",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "mahakala-tuneup-pr": {
@@ -192,6 +208,19 @@
                   "guix/system.scm specs"
                 ],
                 "sequence": 4,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [],
+                "proof_refs": [
+                  "boot-webcam-timeout-desktop-11s"
+                ],
+                "scope": [
+                  "guix/system.scm specs"
+                ],
+                "sequence": 5,
                 "validation_findings": []
               }
             ]

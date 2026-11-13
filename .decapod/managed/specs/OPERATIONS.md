@@ -170,10 +170,15 @@ still failed in 4 of 9 runs. v0.2.8 names the session's tools in the prompt,
 so the review says what it could not check (14 of 14 runs gave a review). A
 reply with no review now fails the work item, and the in-progress comment
 says that the review failed; `@pr-reviewer retry` runs it again. The custom
-instructions still ask for tools that the session does not have. To let
-those reviews read the clone, set `review_tools = ["Read", "Grep", "Glob"]`
-for those repositories, which lets a review read any file that dktaohan can
-read; otherwise remove those steps. v0.2.7 over v0.2.6: the Nix
+instructions still ask for tools that the session does not have (see
+Documentation review below). There are two ways out. Remove those steps, and
+review sessions keep no tools. Or set `review_tools = ["Read", "Grep",
+"Glob"]` for those repositories. pr-reviewer does not confine these tools to
+the clone: a review could read any file that dktaohan can read, including
+pr-reviewer's keyfile and `config.toml`. The diff of a pull request is
+untrusted input, and a prompt-injected diff could get such a file into a
+public review comment. So enable them only for repositories whose authors
+you trust. v0.2.7 over v0.2.6: the Nix
 build links nixpkgs' sqlite (worldofgeese/pr-reviewer#44). Since the
 2026-11-12 nixpkgs bump, nixpkgs' cargo setup hook exports
 `LIBSQLITE3_SYS_USE_PKG_CONFIG=1`, which overrides rusqlite's `bundled`
@@ -393,11 +398,16 @@ The instructions tell the reviewer to load four skills from
 technical-writer. They also give the path of the managed clone of the repo.
 The reviewer runs in an empty temporary directory. Without the path, it cannot
 read the source, so it cannot compare the text with the code.
+Since pr-reviewer v0.2.3 a review session has no tools (`review_tools = []`),
+so the reviewer can load no skill and read no file of the clone. From v0.2.8
+the prompt says so, and the review names what it could not check. The
+pr-reviewer section above gives the two ways out.
 
 A repo that you add, or that the launchd wrapper adds, has no instructions.
 Copy the value from another entry and change the clone path in it.
 
-Prose findings are suggestions. In the live test on 2026-10-02, a page
+Prose findings are suggestions. In the live test on 2026-10-02, before
+v0.2.3 removed the tools, a page
 described a function that did not exist on the default branch. The reviewer
 found it, but posted a comment and did not request changes.
 

@@ -88,6 +88,11 @@
       "proof_refs": [
         "/nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a"
       ]
+    },
+    {
+      "id": "pr-reviewer-028-review",
+      "summary": "OPERATIONS: state the risk of review_tools for the LEGO repositories and mark the documentation-review live test as pre-v0.2.3",
+      "input_digest": "sha256:02741ce708ace83fcdf4b44c41865843464d5f30e0d4d2845027a56c00506a61"
     }
   ],
   "intents": {
@@ -162,8 +167,16 @@
         "Current claimed task and isolated work branch",
         "flake.nix pr-reviewer pin, flake.lock, reviewed_sources_digest, OPERATIONS"
       ],
-      "artifact_hash": "sha256:2323736b8dd121da117cff369fd8d8d6d0c212dc2357359f69de5472c532a9fc",
+      "artifact_hash": "sha256:18aaec8a350912f9599af48bb50d37078e8894ec806a54be802635aea2b30402",
       "checks": [
+        {
+          "name": "decapod-validate-04491b7",
+          "status": "passed"
+        },
+        {
+          "name": "den-ci-7-checks-04491b7",
+          "status": "passed"
+        },
         {
           "name": "staged-M-02877-system-build",
           "status": "passed"
@@ -190,10 +203,17 @@
             "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ": {
@@ -223,6 +243,23 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "pr-reviewer review of 04491b7 raised two OPERATIONS points: state the prompt-injection risk of review_tools Read/Grep/Glob and keep tools off as the default; mark the Documentation review section's live test as pre-v0.2.3. Both addressed in the second commit."
+                ],
+                "proof_refs": [
+                  "decapod-validate-04491b7",
+                  "den-ci-7-checks-04491b7"
+                ],
+                "scope": [
+                  "pr-reviewer input",
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
               }
             ]
           }
@@ -237,7 +274,8 @@
         "Governance commands ran with Decapod 0.143.2 from the staged closure (/nix/store/mfdm8vmvafhbfm9bvrbk0ang85189wf2), the release main pins since #165; M-02877 PATH still has 0.140.0, whose workspace refresh would downgrade the projections",
         "agent.init inventory: only flake.nix and flake.lock differ from origin/main; reviewed_sources_digest renewed to sha256:b557959d4a3b8c3de8b919ed5f95847770125e6bbb6b90e6d4aa9eb423a8ec0f",
         "flake.lock: only the pr-reviewer node moved, ff1f984 (v0.2.7) -> 9fdf91b (v0.2.8)",
-        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a with pr-reviewer-0.2.8 (/nix/store/2xbsi415wivm12smfc2ky5wnx566mx9j)"
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a with pr-reviewer-0.2.8 (/nix/store/2xbsi415wivm12smfc2ky5wnx566mx9j)",
+        "pr-reviewer review of 04491b7 raised two OPERATIONS points: state the prompt-injection risk of review_tools Read/Grep/Glob and keep tools off as the default; mark the Documentation review section's live test as pre-v0.2.3. Both addressed in the second commit."
       ],
       "inspected_files": [],
       "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",

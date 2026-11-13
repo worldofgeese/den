@@ -149,14 +149,31 @@ brings the rejection back.
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
 `worldofgeese/pr-reviewer` ships (den's `pr-reviewer` flake input,
-`packages.default`), pinned to its v0.2.7 release (commit ff1f984; the
+`packages.default`), pinned to its v0.2.8 release (commit 9fdf91b; the
 maintained home of the project since the 2026-11 move from
 `NicholaiVogel/pr-reviewer`). The input URL names the release tag and
 `flake.lock` pins the revision, so den holds no hand-maintained rev, source
 hash or `cargoHash`; the flake builds from `Cargo.lock` with the tests off,
 because the suite binds loopback sockets that the Nix sandbox refuses. The
 build carries no local patches: HTTPS Basic auth for git, review rounds and
-stacked PRs are all in the pinned release. v0.2.7 over v0.2.6: the Nix
+stacked PRs are all in the pinned release. v0.2.8 over v0.2.7: a review
+whose harness reply holds no review JSON fails instead of being posted
+(worldofgeese/pr-reviewer#46). Since v0.2.3 a review session has no tools
+(`review_tools = []` in the runtime config), but the `custom_instructions` of
+the five LEGO repositories ask the review to load skills and to read the
+managed clone. From 2026-11-05 to 2026-11-13 about a quarter of their reviews
+were the model's tool calls written as text, which v0.2.7 posted under
+"Harness output could not be parsed as structured JSON". Such a review
+counted as a review of the head, so the automerge job below could merge on
+it. Claude Code hooks were not the cause: with all hooks off, the same prompt
+still failed in 4 of 9 runs. v0.2.8 names the session's tools in the prompt,
+so the review says what it could not check (14 of 14 runs gave a review). A
+reply with no review now fails the work item, and the in-progress comment
+says that the review failed; `@pr-reviewer retry` runs it again. The custom
+instructions still ask for tools that the session does not have. To let
+those reviews read the clone, set `review_tools = ["Read", "Grep", "Glob"]`
+for those repositories, which lets a review read any file that dktaohan can
+read; otherwise remove those steps. v0.2.7 over v0.2.6: the Nix
 build links nixpkgs' sqlite (worldofgeese/pr-reviewer#44). Since the
 2026-11-12 nixpkgs bump, nixpkgs' cargo setup hook exports
 `LIBSQLITE3_SYS_USE_PKG_CONFIG=1`, which overrides rusqlite's `bundled`

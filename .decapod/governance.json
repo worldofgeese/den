@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "86ddb8c730e9c094f4aacf6905e5565bb1164c3c",
+    "accepted_commit": "5d96b3f274ec54a3c9f2c1e3191efbfb1b21d9fc",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,33 +66,51 @@
     }
   },
   "change": {
-    "id": "mahakala-uv-initrd",
-    "base_commit": "86ddb8c730e9c094f4aacf6905e5565bb1164c3c",
+    "id": "change_01M7A0AHYCQRK560FYTZC4YDFC",
+    "base_commit": "5d96b3f274ec54a3c9f2c1e3191efbfb1b21d9fc",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "pr-reviewer-028-builds": {
+      "statement": "den with pr-reviewer v0.2.8 builds the full M-02877 system",
+      "falsifier": "nix build .#darwinConfigurations.M-02877.system fails",
+      "status": "supported",
+      "proof_refs": [
+        "/nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a"
+      ]
+    }
   },
   "checkpoints": [
     {
-      "id": "mahakala-uv-initrd",
-      "summary": "Undervolt -90, trimmed microcode, no GRUB image",
-      "input_digest": "sha256:a756804547e286b62cc410fb87a6b444bcab448ae295d6b19380b4498e2d2502"
+      "id": "pr-reviewer-028",
+      "summary": "Pin pr-reviewer v0.2.8; renew reviewed_sources_digest (flake.lock pr-reviewer node only); spec manifest; OPERATIONS records v0.2.8",
+      "input_digest": "sha256:39590094b5fc59560ca416b0a4dce6f3e9d085b5c2eefa5abd202a08d68cf927",
+      "proof_refs": [
+        "/nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a"
+      ]
+    },
+    {
+      "id": "pr-reviewer-028-review",
+      "summary": "OPERATIONS: state the risk of review_tools for the LEGO repositories and mark the documentation-review live test as pre-v0.2.3",
+      "input_digest": "sha256:02741ce708ace83fcdf4b44c41865843464d5f30e0d4d2845027a56c00506a61"
     }
   ],
   "intents": {
-    "intent:mahakala-uv-initrd-pr": {
+    "intent:change_01M7A0AHYCQRK560FYTZC4YDFC": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
-        "guix/system.scm only"
+        "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "guix/system.scm specs"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:mahakala-uv-initrd-pr",
+      "id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Undervolt further in steps; smaller initrd",
-      "refined_intent": "core/cache -90 mV; only this CPU's microcode in the initrd; no GRUB background image",
+      "raw_intent": "Pin pr-reviewer v0.2.8 in M-02877 (prr-k1q)\n\nworldofgeese/pr-reviewer v0.2.8 (#46): a review whose harness reply holds no review JSON fails instead of posting it, and the claude-code review prompt names the session's tools. Pin it in flake.nix/flake.lock, renew reviewed_sources_digest, update OPERATIONS, stage the M-02877 build, then switch.",
+      "refined_intent": "Pin pr-reviewer v0.2.8 in M-02877 (prr-k1q)\n\nworldofgeese/pr-reviewer v0.2.8 (#46): a review whose harness reply holds no review JSON fails instead of posting it, and the claude-code review prompt names the session's tools. Pin it in flake.nix/flake.lock, renew reviewed_sources_digest, update OPERATIONS, stage the M-02877 build, then switch.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -105,113 +123,180 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "User-directed: undervolt further in tested steps; smaller initrd and faster boot",
+      "intent": "Tao (handoff 2026-11-13): fix pr-reviewer posting raw harness text as reviews, release the fix and pin it in den. Pin worldofgeese/pr-reviewer v0.2.8 (#46) in M-02877: flake.nix and flake.lock (pr-reviewer node only), reviewed_sources_digest, OPERATIONS. The staged M-02877 system build is the check; the switch follows on merged main.",
       "phases": [],
       "proof_hooks": [
-        "stress-ng --verify per 10 mV step on AC and battery, plug/unplug under load",
-        "FPDT GRUB time per agent reboot"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "Same pr-reviewer flake input and module; only the release pin moves",
+          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
+          "spec_material_hash": "9306f3eca4e36f749079dcea74c628cfbe4d88c064fbfd235636adc93111cc6a"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "pr-reviewer CLI, config keys and launchd interface unchanged between v0.2.7 and v0.2.8; a failed review now rewrites its first-touch comment with a pr-reviewer-status:failed marker",
+          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
+          "spec_material_hash": "c15efb54884795c383e5c343111e79d534dc0afedf38f6d1c12336dbdef89d35"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "No trust-boundary change: review sessions keep review_tools = [] and the scrubbed environment; a reply that is not a review is no longer posted, so local paths in it stay off GitHub",
+          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
+          "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "mahakala undervolt -90 and faster GRUB",
+      "title": "Pin pr-reviewer v0.2.8",
       "todo_ids": [
-        "code_01m78qspe6h1fg9m"
+        "code_01m7a0994anjzprn"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794516870Z"
+      "updated_at": "1794559463Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "guix/system.scm only"
+        "Current claimed task and isolated work branch",
+        "flake.nix pr-reviewer pin, flake.lock, reviewed_sources_digest, OPERATIONS"
       ],
-      "artifact_hash": "sha256:d54ef85030b40e90346f02bf74e4afb340c403e0d3321906c83376dfd919d0b8",
+      "artifact_hash": "sha256:18aaec8a350912f9599af48bb50d37078e8894ec806a54be802635aea2b30402",
       "checks": [
         {
-          "name": "grub-10.7s-agent-boot",
+          "name": "decapod-validate-04491b7",
           "status": "passed"
         },
         {
-          "name": "initrd-17mb-microcode-loaded",
+          "name": "den-ci-7-checks-04491b7",
           "status": "passed"
         },
         {
-          "name": "undervolt-ac-transition",
-          "status": "passed"
-        },
-        {
-          "name": "undervolt-stepped-stress",
+          "name": "staged-M-02877-system-build",
           "status": "passed"
         }
       ],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:mahakala-uv-initrd-pr",
+            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:mahakala-uv-initrd-pr",
+            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:mahakala-uv-initrd-pr",
+            "detail": "trajectory:branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
             "event_id": "event:4",
-            "intent_id": "intent:mahakala-uv-initrd-pr",
+            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "mahakala-uv-initrd-pr": {
+          "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ": {
             "evidence_only": true,
-            "id": "mahakala-uv-initrd-pr",
-            "intent_id": "intent:mahakala-uv-initrd-pr",
+            "id": "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
+            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
             "steps": [
               {
                 "action": "trajectory.record",
+                "command": "nix flake update pr-reviewer",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "guix/system.scm"
+                  "flake.nix",
+                  "flake.lock",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "flake.lock: only the pr-reviewer node moved, ff1f984 (v0.2.7) -> 9fdf91b (v0.2.8)",
+                  "nix build .#darwinConfigurations.M-02877.system -> /nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a with pr-reviewer-0.2.8 (/nix/store/2xbsi415wivm12smfc2ky5wnx566mx9j)",
+                  "agent.init inventory: only flake.nix and flake.lock differ from origin/main; reviewed_sources_digest renewed to sha256:b557959d4a3b8c3de8b919ed5f95847770125e6bbb6b90e6d4aa9eb423a8ec0f",
+                  "Governance commands ran with Decapod 0.143.2 from the staged closure (/nix/store/mfdm8vmvafhbfm9bvrbk0ang85189wf2), the release main pins since #165; M-02877 PATH still has 0.140.0, whose workspace refresh would downgrade the projections"
                 ],
                 "proof_refs": [
-                  "undervolt-stepped-stress",
-                  "undervolt-ac-transition",
-                  "initrd-17mb-microcode-loaded",
-                  "grub-10.7s-agent-boot"
+                  "staged-M-02877-system-build"
                 ],
                 "scope": [
-                  "guix/system.scm specs"
+                  "root"
                 ],
                 "sequence": 4,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "pr-reviewer review of 04491b7 raised two OPERATIONS points: state the prompt-injection risk of review_tools Read/Grep/Glob and keep tools off as the default; mark the Documentation review section's live test as pre-v0.2.3. Both addressed in the second commit."
+                ],
+                "proof_refs": [
+                  "decapod-validate-04491b7",
+                  "den-ci-7-checks-04491b7"
+                ],
+                "scope": [
+                  "pr-reviewer input",
+                  "root"
+                ],
+                "sequence": 5,
                 "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [],
-      "evidence": [],
-      "inspected_files": [
-        "guix/system.scm"
+      "declared_commands": [
+        "nix build .#darwinConfigurations.M-02877.system",
+        "nix flake update pr-reviewer"
       ],
-      "intent_id": "intent:mahakala-uv-initrd-pr",
-      "modified_files": [],
+      "destination": "pull request",
+      "evidence": [
+        "Governance commands ran with Decapod 0.143.2 from the staged closure (/nix/store/mfdm8vmvafhbfm9bvrbk0ang85189wf2), the release main pins since #165; M-02877 PATH still has 0.140.0, whose workspace refresh would downgrade the projections",
+        "agent.init inventory: only flake.nix and flake.lock differ from origin/main; reviewed_sources_digest renewed to sha256:b557959d4a3b8c3de8b919ed5f95847770125e6bbb6b90e6d4aa9eb423a8ec0f",
+        "flake.lock: only the pr-reviewer node moved, ff1f984 (v0.2.7) -> 9fdf91b (v0.2.8)",
+        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a with pr-reviewer-0.2.8 (/nix/store/2xbsi415wivm12smfc2ky5wnx566mx9j)",
+        "pr-reviewer review of 04491b7 raised two OPERATIONS points: state the prompt-injection risk of review_tools Read/Grep/Glob and keep tools off as the default; mark the Documentation review section's live test as pre-v0.2.3. Both addressed in the second commit."
+      ],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+      "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "flake.lock",
+        "flake.nix"
+      ],
+      "next_transitions": [
+        "Checkpoint, commit, decapod validate",
+        "Refine plan and declare falsifiable checks"
+      ],
       "repo_scope": [
-        "guix/system.scm specs"
+        "pr-reviewer input",
+        "root"
       ],
-      "run_id": "mahakala-uv-initrd-pr",
+      "run_id": "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m78qspe6h1fg9m",
+      "task_id": "code_01m7a0994anjzprn",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

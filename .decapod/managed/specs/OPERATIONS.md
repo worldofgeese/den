@@ -1526,17 +1526,22 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-13 it changed 7 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-14 it changed 12 nodes of `flake.lock`.
 
 | Node | Before | After |
 |---|---|---|
-| `decapod` | fc1e2b9 (2026-11-12) | 6f1d2a3 (2026-11-13) |
-| `den` | a66a778 (2026-11-11) | cbe76f2 (2026-11-12) |
-| `devenv` | 215e857 (2026-11-11) | 9eaaab8 (2026-11-12) |
-| `llm-agents` | 1156328 (2026-11-12) | 860075d (2026-11-13) |
-| `nixarchy` | a4757e4 (2026-11-12) | b08ff2f (2026-11-13) |
-| `nixpkgs_7` | 9397dcb (2026-11-11) | 2074cc6 (2026-11-12) |
-| `rust-overlay_3` | d1e30fd (2026-11-12) | 8bbfc85 (2026-11-12) |
+| `decapod` | 6f1d2a3 (2026-11-13) | e8f8848 (2026-11-14) |
+| `den` | cbe76f2 (2026-11-12) | 9bdfbc2 (2026-11-13) |
+| `devenv` | 9eaaab8 (2026-11-12) | 6c954cc (2026-11-13) |
+| `gliff` | 32bb062 (2026-11-05) | 9d93732 (2026-11-12) |
+| `helium` | ee8c73c (2026-11-10) | 1230f02 (2026-11-13) |
+| `llm-agents` | 860075d (2026-11-13) | ee05b5a (2026-11-14) |
+| `mcp-servers-nix` | 094e3ba (2026-11-04) | 47945d9 (2026-11-11) |
+| `microvm` | b7bd556 (2026-10-29) | 194a254 (2026-11-13) |
+| `nix-doom-emacs-unstraightened` | 1d5c120 (2026-11-11) | 433519e (2026-11-13) |
+| `nixarchy` | b08ff2f (2026-11-13) | 8ba4bbc (2026-11-13) |
+| `nixpkgs_6` | 177d054 (2026-11-09) | d4f25a3 (2026-11-11) |
+| `rust-overlay_3` | 8bbfc85 (2026-11-12) | 84edd48 (2026-11-13) |
 
 ## Limited NAS Recovery Evidence
 

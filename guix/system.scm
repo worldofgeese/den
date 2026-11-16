@@ -37,6 +37,44 @@
 
 (define username "worldofgeese")
 
+;; Two-finger scrolling on the Synaptics touchpad (DELL08AF:00 06CB:76AF,
+;; hid-multitouch over i2c_hid_acpi) can stop after an S3 resume while
+;; pointer movement and clicks still work. Diagnosed 2026-11-16: the
+;; driver stays hid-multitouch across sleep, the kernel logs no I2C/HID
+;; error, and every evdev slot reports MT_TOOL_FINGER, yet libinput in
+;; Hyprland keeps classifying the second finger as "palm detected
+;; (tool-palm)", so each two-finger gesture degrades to [1fg]. The stale
+;; state lives in the compositor's view of the evdev device, not in the
+;; power-saving setup: unbinding and rebinding only this HID device (a new
+;; evdev node, so libinput starts fresh) restored scrolling live, with the
+;; desktop and applications untouched. This hook repeats exactly that after
+;; every resume. TLP runtime PM, deep sleep and the I2C controller's power
+;; management are left as they are.
+(define touchpad-resume-rebind
+  (program-file
+   "touchpad-resume-rebind"
+   #~(begin
+       (use-modules (ice-9 ftw))
+       (define driver "/sys/bus/hid/drivers/hid-multitouch")
+       (define (write-driver-file name id)
+         (call-with-output-file (string-append driver "/" name)
+           (lambda (port) (display id port))))
+       ;; elogind runs system-sleep hooks with "pre" or "post" and the verb.
+       (when (member "post" (command-line))
+         (for-each
+          (lambda (id)
+            (catch #t
+              (lambda ()
+                (when (file-exists? (string-append driver "/" id))
+                  (write-driver-file "unbind" id))
+                (write-driver-file "bind" id))
+              (lambda (key . args)
+                (format (current-error-port)
+                        "touchpad-resume-rebind: ~a: ~a ~s~%" id key args))))
+          (or (scandir "/sys/bus/hid/devices"
+                       (lambda (name) (string-prefix? "0018:06CB:76AF." name)))
+              '()))))))
+
 
 (define %my-services
   (modify-services %desktop-services
@@ -99,7 +137,9 @@
                                                  (handle-power-key 'suspend)
                                                  (handle-lid-switch-docked 'suspend)
                                                  (handle-lid-switch-external-power 'suspend)
-                                                 (handle-lid-switch 'suspend)))
+                                                 (handle-lid-switch 'suspend)
+                                                 (system-sleep-hook-files
+                                                  (list touchpad-resume-rebind))))
     (dbus-root-service-type config =>
                             (dbus-configuration
                              (inherit config)

@@ -1392,6 +1392,17 @@ Slot 0, the user's passphrase, is never modified.
 Deep sleep is the default (`mem_sleep_default=deep`). Overnight S3 drained
 about 98 mAh/h.
 
+After an S3 resume, Hyprland's libinput could keep treating the touchpad's
+second finger as a palm (`palm detected (tool-palm)`), so two-finger scrolling
+stopped while pointer movement and clicks worked. The kernel kept
+`hid-multitouch` bound, logged no I2C or HID error, and reported every slot as
+a finger, so the power settings (TLP runtime PM, deep sleep) were not the
+cause and stay unchanged. `touchpad-resume-rebind` in `guix/system.scm` is an
+elogind `system-sleep` hook. On `post` it unbinds and rebinds only HID devices
+`0018:06CB:76AF.*` on `hid-multitouch`, which gives libinput a fresh evdev
+device. Running it by hand on 2026-11-16 restored scrolling without
+disturbing the session. The hook takes effect after `just deploy-mahakala-system`.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

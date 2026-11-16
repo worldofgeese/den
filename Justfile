@@ -329,7 +329,7 @@ check-pi-gateway-provider:
 
 # Exercise the rendered startup guard without touching live containers.
 check-headroom-storage:
-    nix shell --inputs-from . nixpkgs#python3 nixpkgs#jq --command python3 scripts/test-headroom-storage.py
+    nix shell --inputs-from . nixpkgs#python3 nixpkgs#jq nixpkgs#perl --command python3 scripts/test-headroom-storage.py
 
 # Tests for the store copy that `just deploy-darwin` makes when a deploy
 # changes Decapod (scripts/decapod-deploy-backup.sh). Stub `nix` and `sqlite3`
@@ -402,6 +402,7 @@ check-guix:
         echo "check-guix: loading $scm"
         "$guix_bin" repl -L guix-packages "$scm" >/dev/null
     done
+    "$guix_bin" repl scripts/test-touchpad-resume.scm
 
 # Everything `just check` covers, plus the checks that need extra tooling or
 # provider state and so must stay out of the pre-commit path.

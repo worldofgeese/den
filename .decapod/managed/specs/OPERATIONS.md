@@ -1392,16 +1392,20 @@ Slot 0, the user's passphrase, is never modified.
 Deep sleep is the default (`mem_sleep_default=deep`). Overnight S3 drained
 about 98 mAh/h.
 
-After an S3 resume, Hyprland's libinput could keep treating the touchpad's
-second finger as a palm (`palm detected (tool-palm)`), so two-finger scrolling
-stopped while pointer movement and clicks worked. The kernel kept
-`hid-multitouch` bound, logged no I2C or HID error, and reported every slot as
-a finger, so the power settings (TLP runtime PM, deep sleep) were not the
-cause and stay unchanged. `touchpad-resume-rebind` in `guix/system.scm` is an
-elogind `system-sleep` hook. On `post` it unbinds and rebinds only HID devices
-`0018:06CB:76AF.*` on `hid-multitouch`, which gives libinput a fresh evdev
-device. Running it by hand on 2026-11-16 restored scrolling without
-disturbing the session. The hook takes effect after `just deploy-mahakala-system`.
+After a reported S3 resume, two-finger scrolling stopped while pointer
+movement and clicks worked. Raw input showed two finger contacts, while
+libinput classified the second as a palm (`palm detected (tool-palm)`).
+A manual unbind and rebind of the touchpad restored scrolling on 2026-11-16.
+This observation does not establish where the fault originates or rule out
+power settings. TLP runtime PM and deep sleep remain unchanged.
+
+`guix/system.scm` installs `guix/touchpad-resume.scm` as an elogind
+`system-sleep` hook. On `post` it unbinds and rebinds matching
+`0018:06CB:76AF.*` HID devices only when they are bound to `hid-multitouch`.
+Missing devices, a different driver, and failed sysfs writes cause a nonzero
+exit with an error. The hook takes effect after
+`just deploy-mahakala-system`; an actual suspend/resume with the hook has not
+yet been verified.
 
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
@@ -1571,7 +1575,7 @@ The checkpoint caller passes offline tests for stale receipts, changed bindings,
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
+- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

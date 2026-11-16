@@ -222,7 +222,7 @@ the same alejandra and ShellCheck releases as a host.
 | none: the merge rules of plan P0 | `ci:automerge-rules` | The module's own Go: fixed pull requests for each rule and for the replay. No network and no token |
 | none: the shepherd of plan P3 | `ci:shepherd-rules` | The module's own Go: fixed pull requests for each step of the shepherd. No network and no token |
 | `check-doom-darwin` | none | It builds the Darwin Doom wrapper. A Linux engine cannot build for Darwin |
-| `check-guix` | none | It needs the pulled `guix` with the nonguix and rosenthal channels. Only a Guix host has them |
+| `check-guix` | none | It loads the Guix configuration and tests the touchpad hook against fake sysfs paths. It needs the pulled `guix` with nonguix and rosenthal, and does not exercise real suspend or hardware |
 | `install-hooks` | none | It installs the git hooks of a host checkout |
 
 The Go SDK adds `go-sdk:generate/stale`: the generated bindings in
@@ -392,7 +392,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
+- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

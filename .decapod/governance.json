@@ -70,6 +70,32 @@
     "base_commit": "039d25fe8d4f527ca3cae5a5a517071390aa3ad3",
     "target_base": "origin/main"
   },
+  "claims": {
+    "headroom-test-portability": {
+      "statement": "The Headroom storage regression executes its bounded image-pull path on Linux with the locked Perl package.",
+      "falsifier": "The storage regression fails its image-pull assertions or the test uses an unavailable macOS-only Perl path.",
+      "status": "supported",
+      "proof_refs": [
+        "just check-headroom-storage"
+      ]
+    },
+    "touchpad-hook-behavior": {
+      "statement": "The post-resume hook rebinds only matching devices owned by hid-multitouch, and reports missing devices or failed writes.",
+      "falsifier": "The fake-sysfs regression observes an incorrect bind, missing error, or nonzero successful execution.",
+      "status": "supported",
+      "proof_refs": [
+        "just check-guix"
+      ]
+    },
+    "touchpad-resume-recovery": {
+      "statement": "The deployed hook restores two-finger scrolling after a real suspend and resume.",
+      "falsifier": "A real suspend and resume still leaves two-finger scrolling broken.",
+      "status": "blocked",
+      "proof_refs": [
+        "No real suspend-resume trial has been performed."
+      ]
+    }
+  },
   "checkpoints": [
     {
       "id": "touchpad-resume-hook",
@@ -80,6 +106,15 @@
       "id": "touchpad-resume-hook-gatekeeper",
       "summary": "reword pre-existing PAM comment that tripped the gatekeeper secret regex",
       "input_digest": "sha256:8b5b2b723382f710f576c4f9b947e7207a214dbef32dc390917a4f269d31e508"
+    },
+    {
+      "id": "touchpad-resume-hardening",
+      "summary": "Make touchpad rebinding failure-aware, exercise the hook without hardware, and repair the Headroom regression harness on Linux.",
+      "input_digest": "sha256:f9e8f5fd42dc4491784945afe64e3d26385b97f2e175450f2594507a5c79b9d1",
+      "proof_refs": [
+        "just check-guix",
+        "just check-headroom-storage"
+      ]
     }
   ],
   "intents": {
@@ -110,10 +145,11 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Durable fix: mahakala touchpad two-finger scroll after resume",
+      "intent": "Restore touchpad scrolling after resume without changing power management; correct blockers to validation, merge, and deployment.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "decapod validate",
+        "touchpad hook regression and deployed resume checks"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
@@ -124,16 +160,27 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794852833Z"
+      "updated_at": "1794854093Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:1732df88bd4c49341b29aa4c7191b64b4f33e95b05979444b30fb65ab4c6bcfd",
+      "artifact_hash": "sha256:0a1173aab58dd5994c3ab2930b230a7d8635749bcfdc4e8fa1bd348c7af747ee",
+      "blockers": [
+        "The repository-local readiness contract pins macOS-only executables; the authenticated macOS peer rejected SSH access."
+      ],
       "checks": [
         {
+          "name": "current-packaged-hook-runtime",
+          "status": "unavailable"
+        },
+        {
           "name": "guix-system-build-dry-run",
+          "status": "passed"
+        },
+        {
+          "name": "headroom-storage-regression",
           "status": "passed"
         },
         {
@@ -147,9 +194,17 @@
         {
           "name": "hook-script-guix-build",
           "status": "passed"
+        },
+        {
+          "name": "real-suspend-resume",
+          "status": "unavailable"
+        },
+        {
+          "name": "touchpad-regression",
+          "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "verification",
       "custody": {
         "events": [
           {
@@ -170,10 +225,24 @@
             "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7JQFCY4WJNN5FE1FFJGS7RE": {
@@ -201,6 +270,53 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "verification",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "guix/system.scm",
+                  "scripts/test-headroom-storage.py",
+                  ".decapod/config.toml",
+                  "guix/touchpad-resume.scm",
+                  "scripts/test-touchpad-resume.scm",
+                  "scripts/test-headroom-storage.py",
+                  "Justfile",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "Fake-sysfs tests cover post-only binding, missing devices, different drivers, and failed writes; Headroom cases pass with the locked Perl."
+                ],
+                "proof_refs": [
+                  "touchpad-regression",
+                  "headroom-storage-regression",
+                  "real-suspend-resume"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": [
+                  "The underlying resume fault remains unknown; a manual touchpad rebind restored scrolling."
+                ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "Earlier Guix build and live rebind checks applied to the pre-extraction hook; the current source path resolves correctly and its behavior is covered against fake sysfs, but the packaged executable and actual suspend remain unverified."
+                ],
+                "proof_refs": [
+                  "current-packaged-hook-runtime"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -208,18 +324,33 @@
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "Earlier Guix build and live rebind checks applied to the pre-extraction hook; the current source path resolves correctly and its behavior is covered against fake sysfs, but the packaged executable and actual suspend remain unverified.",
+        "Fake-sysfs tests cover post-only binding, missing devices, different drivers, and failed writes; Headroom cases pass with the locked Perl."
+      ],
       "inspected_files": [
+        ".decapod/config.toml",
         ".decapod/managed/specs/OPERATIONS.md",
-        "guix/system.scm"
+        "guix/system.scm",
+        "scripts/test-headroom-storage.py"
       ],
       "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
       "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
-        "guix/system.scm"
+        ".decapod/managed/specs/VALIDATION.md",
+        "Justfile",
+        "guix/system.scm",
+        "guix/touchpad-resume.scm",
+        "scripts/test-headroom-storage.py",
+        "scripts/test-touchpad-resume.scm"
       ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "Refine plan and declare falsifiable checks",
+        "Review and commit the candidate, then run exact-candidate validation."
       ],
       "repo_scope": [
         "root"
@@ -229,7 +360,9 @@
       "shortcut_risk_signals": [],
       "task_id": "bugs_01m7jq1f6p2h2v39",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "The underlying resume fault remains unknown; a manual touchpad rebind restored scrolling."
+      ]
     }
   },
   "legacy_digests": {

@@ -6,6 +6,7 @@
 - In Doom Emacs, type `jk` to leave Evil insert state. Toggle `SPC t z` for a centered 80-column writing area, or `SPC t Z` to use the same focused layout while full-screening the Emacs frame.
 - On M-02877, pi is wired to the team services in LEGO/devrel-infra: Chorus (built-in MCP, `chorus-pi`, and a wakeable `chorus daemon --agent pi` serving `~/projects`), Beads (`pi-beads-extension` for agent context; `pi-tasks` was removed on 2026-10-08), the personal Signet for every Signet client (the memory curator publishes team-level memories to the team Signet and mirrors the team pool back, every ten minutes), and the LEGO TechWriter toolbox (toolbox-docs skills replace the hand-copied ones, plus a `techwriter` pi agent that reads the LEGO style guide from Copilot Spaces).
 - On Mahakala, use `just deploy-mahakala` to update and apply the Guix System, Guix Home, and Home Manager profiles. The boot configuration also requests the ath10k warm-only reset mode for the verified QCA6174 card.
+- On Mahakala, attempt a targeted touchpad rebind after resume to recover two-finger scrolling without changing power settings. The underlying fault remains unconfirmed.
 - On mahakala, GDM starts EWM through Home Manager's `ewm-start`. Nix supplies both Emacs and `ewm-core`, which must use compatible glibc versions.
 
 ## What This Project Is
@@ -204,7 +205,7 @@ These declarations select authoring and proof obligations; they do not attest im
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
+- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

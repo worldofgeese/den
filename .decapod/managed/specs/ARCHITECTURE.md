@@ -206,6 +206,8 @@ An adapter that fails its own installation tests remains uninstalled rather than
 
 The system configuration is `guix/system.scm`. The home configuration is `guix/home-configuration.scm`. System deploy and kernel recipes use `justfile_directory()` so an isolated worktree supplies its own source files.
 
+The elogind configuration packages `guix/touchpad-resume.scm` as a system-sleep hook. After resume it rebinds the matching touchpad only when `hid-multitouch` owns it, and reports missing devices or failed writes. A manual rebind restored scrolling, but the fault's cause and the deployed hook's behavior across an actual suspend remain unverified.
+
 The QCA6174 card uses `ath10k_pci`. The Guix System kernel arguments request `ath10k_pci.reset_mode=1`. The built module defines `0` as automatic reset and `1` as warm-only reset.
 
 This reset mode is a recovery trial, not a proven fix. The deployment does not force a reboot. The next planned boot must confirm the ath10k probe result.
@@ -595,7 +597,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
+- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

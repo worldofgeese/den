@@ -75,6 +75,11 @@
       "id": "touchpad-resume-hook",
       "summary": "elogind post-resume hook rebinds mahakala touchpad on hid-multitouch; spec documents cause and boundary; plan approved by user",
       "input_digest": "sha256:28ba10eaa0b5cbfe2025164f617fb91002d4814c5fea27aa1a2bb904f201d459"
+    },
+    {
+      "id": "touchpad-resume-hook-gatekeeper",
+      "summary": "reword pre-existing PAM comment that tripped the gatekeeper secret regex",
+      "input_digest": "sha256:8b5b2b723382f710f576c4f9b947e7207a214dbef32dc390917a4f269d31e508"
     }
   ],
   "intents": {

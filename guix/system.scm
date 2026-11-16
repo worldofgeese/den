@@ -873,7 +873,7 @@ COMMIT
     ;; unlock, which is why this is not optional the way the theming shims are.
     ;;
     ;; unix-pam-service produces the same pam_unix stack that NixOS's empty
-    ;; `security.pam.services.omarchy-lock-password = { }` does. pam_unix
+    ;; `security.pam.services.omarchy-lock-password` attrset (`{ }`) does. pam_unix
     ;; checking a non-root password needs the setuid unix_chkpwd helper, and
     ;; pam-root-service-type already installs it.
     ;;

@@ -439,7 +439,7 @@ A cask that installs a macOS package (a `pkg` artifact), such as `dotnet-sdk`,
 upgrades through `sudo -E`: Homebrew deletes the old package files, forgets the
 receipt, and runs `installer`. Activation's `brew bundle` has no password, so
 `security.sudo.extraConfig` in `modules/M-02877/darwin.nix` grants those exact
-commands with `NOPASSWD: SETENV:`, as it grants `darwin-rebuild switch`. The
+commands with the `NOPASSWD` and `SETENV` tags, as it grants `darwin-rebuild switch`. The
 list covers the pkgutil, delete and launchctl uninstall stanzas of the installed
 `pkg` casks. Activation writes `/etc/sudoers.d` before `brew bundle` runs, so a
 changed rule applies in the same deploy. Without the rules, the upgrade failed

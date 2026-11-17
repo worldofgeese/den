@@ -135,7 +135,11 @@
       # `uv tool install`: entries are installed and upgraded on activation.
       #
       # crucible-llm is not on PyPI in a usable state (PyPI 0.1.0 is stale), so
-      # it is installed from git. The `name @ git+url` form is required rather
+      # it is installed from git: the owner's fork, worldofgeese/crucible, whose
+      # main carries fixes still awaiting review upstream (jkitchin/crucible#8,
+      # #16, #17). Activation reinstalls from this URL, so pointing it at
+      # jkitchin/crucible would drop those fixes on every switch. Move back to
+      # upstream once it has merged them. The `name @ git+url` form is required rather
       # than a bare `git+...` URL for two reasons: `uv tool upgrade` rejects a
       # bare URL ("URL requirement must be preceded by a package name"), and
       # `tool.prune` derives the keep-list by regex from the leading name, which
@@ -166,7 +170,7 @@
 
         tool = {
           packages = [
-            "crucible-llm @ git+https://github.com/jkitchin/crucible"
+            "crucible-llm @ git+https://github.com/worldofgeese/crucible"
             # xmemcli is the xmemory CLI, installed on every host so agents can
             # reach xmemory anywhere. It comes from PyPI because that is where
             # xmemory's own install instructions point (`uv tool install

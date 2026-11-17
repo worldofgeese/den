@@ -102,12 +102,13 @@ deploy-mahakala-guix-only:
 guix-pull-system:
     sudo bash -c 'source /root/.config/guix/current/etc/profile && guix pull --substitute-urls="{{ guix-substitute-urls }}" -C "{{ repo-dir }}/guix/channels.scm"'
 
-# No pull: reconfigures against root's CURRENT channels. If the kernel derivation
-# is not already in the store this builds it inline (~3h on 4 cores). Run
-# `just kernel-status` first, or `just kernel-build` to do it detached.
+# No pull: reconfigures against root's CURRENT channels. `just kernel-build`
+# runs first: it returns in seconds when the kernel is built and pinned, and
+# otherwise builds it (~3h on 4 cores) with swap headroom and a GC root.
 
 # Reconfigure Guix System against root's current channels (requires sudo)
 deploy-mahakala-system:
+    just kernel-build
     sudo bash -c 'source /root/.config/guix/current/etc/profile && guix system reconfigure --substitute-urls="{{ guix-substitute-urls }}" --fallback -L "{{ repo-dir }}/guix-packages" "{{ repo-dir }}/guix/system.scm"'
 
 # The occasional "I accept a multi-hour kernel build" path.
@@ -115,7 +116,6 @@ deploy-mahakala-system:
 # Full enchilada: pull channels, build kernel, then reconfigure Guix System
 deploy-mahakala-system-full:
     just guix-pull-system
-    just kernel-build
     just deploy-mahakala-system
 
 # Evaluates with root's guix on purpose: your user profile is usually a different
@@ -182,6 +182,18 @@ kernel-build:
     # old link points to. The rm removes a new root that an interrupted run
     # left; the old root stays.
     sudo rm -f {{ kernel-gc-root }}.new
+    # The final `LD vmlinux.o` link needs more memory than zram swap leaves
+    # free on a busy desktop, and earlyoom then kills the build after hours of
+    # compiling. A temporary disk swapfile below zram's priority gives the link
+    # headroom; the trap removes it however the build ends.
+    swap=/var/tmp/{{ kernel }}-build.swap
+    cleanup_swap() { sudo swapoff "$swap" 2>/dev/null || true; sudo rm -f "$swap"; }
+    trap cleanup_swap EXIT
+    cleanup_swap
+    sudo fallocate -l 12G "$swap"
+    sudo chmod 600 "$swap"
+    sudo mkswap -q "$swap"
+    sudo swapon --priority 10 "$swap"
     sudo bash -c 'source /root/.config/guix/current/etc/profile && guix build --substitute-urls="{{ guix-substitute-urls }}" --fallback --root={{ kernel-gc-root }}.new -L "{{ repo-dir }}/guix-packages" -e "(@ ({{ kernel }}) {{ kernel }})"' >"$log" 2>&1
     sudo mv -fT {{ kernel-gc-root }}.new {{ kernel-gc-root }}
     echo "kernel-build: done -> $(readlink -f {{ kernel-gc-root }})"

@@ -90,6 +90,16 @@
         "independent_review",
         "repository_checks"
       ]
+    },
+    {
+      "id": "superwhisper-delivery-trajectory-recovery",
+      "summary": "Preserve initial validation failure and resolve stale execution blockers after the package repair passed. Product source and its successful checks are unchanged.",
+      "input_digest": "sha256:531d5cbc21e67625520ae79c8803a7d20ca675b77f49005cc7ad2ede6398e94a",
+      "proof_refs": [
+        "final_package_build",
+        "independent_review",
+        "repository_checks"
+      ]
     }
   ],
   "intents": {
@@ -150,10 +160,7 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:6beeb602ca242588b0b67490f5637d11c61b287abaf4d1c63461f896bd7c221b",
-      "blockers": [
-        "Decapod proof inventory migration lacks a supported candidate publication route; report actual validation status and preserve upstream issue 1738."
-      ],
+      "artifact_hash": "sha256:61a1e3be6c74144f77b14f0284ca7e679cf29f01b4bab4d77508eb2885374da4",
       "checks": [
         {
           "name": "final_formatting",
@@ -173,7 +180,7 @@
         },
         {
           "name": "initial_package_build",
-          "status": "failed"
+          "status": "passed"
         },
         {
           "name": "repository_checks",
@@ -215,10 +222,17 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -313,6 +327,32 @@
                 ],
                 "sequence": 6,
                 "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "command": "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
+                "custody_event_id": "event:7",
+                "observations": [
+                  "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
+                  "Owner authorized the bounded publication exception. Prior suspected inventory-policy blocker is preserved as evidence and upstream issue 1738; exact validation now reports trajectory readiness first and has not established the suspected inventory failure on this candidate."
+                ],
+                "proof_refs": [
+                  "initial_package_build"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 7,
+                "validation_findings": []
               }
             ]
           }
@@ -320,6 +360,7 @@
       },
       "declared_commands": [
         "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
+        "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
         "Final package build bcd97ri1w50y8lwnpblspqx3zrnqvl3h in progress; earlier package build with launcher annotation passed before the final common-lock fix.",
         "just check: in progress",
         "nix build homeConfigurations.worldofgeese.config.programs.nixarchy.package: first build failed SC2016, targeted child-Bash annotation added and rebuild started"
@@ -329,7 +370,9 @@
         "Final package /nix/store/f6275p4gf5kjxaksdbnbhp3c75awjr4x-omarchy-4.5.0 built successfully with the postFixup Superwhisper tests and ShellCheck. All five generic app-menu scripts contain no unresolved denApps placeholder.",
         "Independent correctness reviewer: no remaining concrete findings; shared app-list lock and paused-deploy regression address both findings.",
         "Independent reviewer found omitted denApps placeholder substitution and app-list race; restored substitution and added shared state-directory app-list locking with a controlled generic-add regression.",
+        "Owner authorized the bounded publication exception. Prior suspected inventory-policy blocker is preserved as evidence and upstream issue 1738; exact validation now reports trajectory readiness first and has not established the suspected inventory failure on this candidate.",
         "Owner explicitly authorized any and all action to finish, after being informed of the Decapod 1738 blocker; bounded publication exception uses actual code checks and review, never a fabricated validation receipt.",
+        "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
         "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder."
       ],
       "inspected_files": [
@@ -345,6 +388,7 @@
         "scripts/test-omarchy-superwhisper.sh"
       ],
       "next_transitions": [
+        "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
         "Commit candidate after checkpoint, collect remaining package and review results, then run plain Decapod validation and preserve its actual result before publication.",
         "Pass package regressions and repository checks, collect independent review, checkpoint candidate, attempt exact validation, publish and merge under owner exception.",
         "Refine plan and declare falsifiable checks"

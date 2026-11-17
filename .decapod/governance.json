@@ -131,6 +131,14 @@
       "proof_refs": [
         "exact-candidate-b6a-validation"
       ]
+    },
+    {
+      "id": "post-refresh-readiness-correction",
+      "summary": "Remove the obsolete pre-refresh blocker from the active trajectory. The exact current validation had stopped before proof because it still referenced b6a12711 and PUBLICATION_BUNDLE_CURRENCY; no policy finding was made.",
+      "input_digest": "sha256:ef648a5983e3518614c3b8f8e489d4a468807f8cc5f97e26a97a2d9bb2128327",
+      "proof_refs": [
+        "exact_candidate_validation"
+      ]
     }
   ],
   "intents": {
@@ -184,10 +192,7 @@
         "Current claimed task and isolated work branch",
         "No Mac access required for mahakala system deployment; no candidate-side proof weakening or self-approval."
       ],
-      "artifact_hash": "sha256:6af317039490a7d789b5935558d09ccbe0c54b6d1b0dbb32f2a8a57a45cb040d",
-      "blockers": [
-        "Mac SSH access is not required for just deploy-mahakala-system. Exact b6a12711 validation with Decapod 0.148.2 currently stops at PUBLICATION_BUNDLE_CURRENCY; after that repair, candidate proof still needs supported per-platform execution and an independently accepted source-policy migration. Keep required checks intact; upstream DecapodLabs/decapod#1736, #1738, #1740 remain open."
-      ],
+      "artifact_hash": "sha256:a75f8fb176c85169b6b9549ac203856f48a932ae0454bf88d52f7fdfd776088e",
       "checks": [
         {
           "name": "current-packaged-hook-runtime",
@@ -196,6 +201,10 @@
         {
           "name": "exact-candidate-b6a-validation",
           "status": "failed"
+        },
+        {
+          "name": "exact_candidate_validation",
+          "status": "partial"
         },
         {
           "name": "full-validation",
@@ -283,10 +292,17 @@
             "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "trajectory_step_recorded",
             "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 8,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7JQFCY4WJNN5FE1FFJGS7RE": {
@@ -405,12 +421,31 @@
                 ],
                 "sequence": 8,
                 "validation_findings": []
+              },
+              {
+                "action": "verification",
+                "command": "Decapod 0.148.2 validate --format json",
+                "custody_event_id": "event:9",
+                "observations": [
+                  ".decapod/governance.json",
+                  "The first post-refresh validation failed READINESS_BLOCKED before proof because the active trajectory still carried a pre-refresh blocker naming commit b6a12711 and PUBLICATION_BUNDLE_CURRENCY. The release refresh is now committed at 871bc564, so that blocker is obsolete. This run made no proof-policy finding."
+                ],
+                "proof_refs": [
+                  "exact_candidate_validation"
+                ],
+                "scope": [
+                  "Touchpad post-resume recovery and validation/deployment boundaries required to merge and install it on mahakala.",
+                  "root"
+                ],
+                "sequence": 9,
+                "validation_findings": []
               }
             ]
           }
         }
       },
       "declared_commands": [
+        "Decapod 0.148.2 validate --format json",
         "decapod rpc --op specs.refresh",
         "decapod validate --format json (0.148.2; candidate b6a127113d33fde62628071bbcb5577b5e446bff)"
       ],
@@ -419,6 +454,7 @@
         "Decapod 0.148.2 validation report /tmp/touchpad-validation-b6a12711-current.json; PUBLICATION_BUNDLE_CURRENCY; entrypoint/Dockerfile/spec manifest refresh generated in isolated workspace",
         "Earlier Guix build and live rebind checks applied to the pre-extraction hook; the current source path resolves correctly and its behavior is covered against fake sysfs, but the packaged executable and actual suspend remain unverified.",
         "Fake-sysfs tests cover post-only binding, missing devices, different drivers, and failed writes; Headroom cases pass with the locked Perl.",
+        "The first post-refresh validation failed READINESS_BLOCKED before proof because the active trajectory still carried a pre-refresh blocker naming commit b6a12711 and PUBLICATION_BUNDLE_CURRENCY. The release refresh is now committed at 871bc564, so that blocker is obsolete. This run made no proof-policy finding.",
         "Validation misreported a pre-existing sudoers-tag documentation false positive as a protected-path violation; rewording the tags preserved meaning and the unchanged scanner now passes all candidate paths."
       ],
       "inspected_files": [
@@ -432,6 +468,7 @@
       "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
       "modified_files": [
         ".decapod/config.toml",
+        ".decapod/governance.json",
         ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/ARCHITECTURE.md",
@@ -452,6 +489,7 @@
       "next_transitions": [
         "Commit the generated release refresh and accepted-digest correction; rerun validation; stop on accepted policy rejection.",
         "Refine plan and declare falsifiable checks",
+        "Rerun exact-candidate validation after removing the obsolete pre-refresh blocker.",
         "Review and commit the candidate, then run exact-candidate validation."
       ],
       "repo_scope": [

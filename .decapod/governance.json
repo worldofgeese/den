@@ -155,6 +155,14 @@
       "proof_refs": [
         "updated-architecture-review"
       ]
+    },
+    {
+      "id": "mahakala-resume-hook-security-boundary",
+      "summary": "Document the privileged elogind resume-hook boundary in SECURITY.md, tying its fixed HID prefix and current hid-multitouch ownership check to the existing fake-sysfs regression. No new input-derived paths or power-management changes were added.",
+      "input_digest": "sha256:97113ea99b2aabe03ec394b1b8a2462fa146dee5e2786d46fd33b376348bee12",
+      "proof_refs": [
+        "mahakala-resume-hook-security-review"
+      ]
     }
   ],
   "intents": {
@@ -207,6 +215,13 @@
           "reason": "Reviewed the Mahakala maintenance interface against Justfile and Guix sources: deploy-mahakala-system reconfigures only the Guix System generation from repo-dir; system.scm installs the local touchpad-resume-rebind file as an elogind sleep hook; the helper handles post only, targets matching 0018:06CB:76AF.* devices currently bound to hid-multitouch, and reports missing devices, different drivers, or write failures. INTERFACES.md lines 316-318 accurately specify these inputs, effects, scope, and failures; no interface drift requires prose changes.",
           "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
           "spec_material_hash": "2258838ee5d5b48ad5613eff6a4f50aadd14f8e09ae405fe9e1f2509c1032f4b"
+        },
+        {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "Documented the new Mahakala elogind resume-hook boundary: it accepts the post event, enumerates only the fixed touchpad HID prefix, verifies current hid-multitouch binding, and writes only the matching unbind/bind attributes. The source and fake-sysfs regression cover pre no-op, wrong driver, missing devices, and write failures; no device path is derived from hook arguments.",
+          "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
+          "spec_material_hash": "e3e848ecc5f5450ef38d1e0822c62010fd927f545672d0d99b6d71fcccf3ede8"
         }
       ],
       "state": "APPROVED",
@@ -217,7 +232,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794879674Z"
+      "updated_at": "1794880301Z"
     },
     "trajectory": {
       "active_boundaries": [

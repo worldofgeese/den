@@ -147,6 +147,14 @@
       "proof_refs": [
         "interfaces-spec-review"
       ]
+    },
+    {
+      "id": "mahakala-deploy-boundary-and-spec-refresh",
+      "summary": "Update Intent and Architecture to explicitly keep the Mahakala system deploy and its operational verification target-local without Mac access; keep repository-wide publication proof separate. Update Validation to name Decapod 0.148.2, refresh the spec manifest, and record the architecture and interface reviews.",
+      "input_digest": "sha256:75c7bef89cf6f88e97d2dc22179d31f7dc3650fd5a7d9cee15d6cf3d81f5c4bb",
+      "proof_refs": [
+        "updated-architecture-review"
+      ]
     }
   ],
   "intents": {
@@ -187,6 +195,13 @@
       "schema_version": "1.1.0",
       "spec_reviews": [
         {
+          "disposition": "updated",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "Updated the Mahakala architecture section to make the source-grounded boundary explicit: deploy-mahakala-system reconfigures only Guix System from the active checkout and does not pull channels, update the shared Nix flake, or invoke M-02877; repository-wide publication proof remains separate. These behaviors match the Justfile recipe and preserve the unresolved fault and real-resume verification limits.",
+          "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
+          "spec_material_hash": "d3d29d73012e0a60bea67c87f9a690c49ba7fac302510b6aa1a3774cef48079a"
+        },
+        {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/INTERFACES.md",
           "reason": "Reviewed the Mahakala maintenance interface against Justfile and Guix sources: deploy-mahakala-system reconfigures only the Guix System generation from repo-dir; system.scm installs the local touchpad-resume-rebind file as an elogind sleep hook; the helper handles post only, targets matching 0018:06CB:76AF.* devices currently bound to hid-multitouch, and reports missing devices, different drivers, or write failures. INTERFACES.md lines 316-318 accurately specify these inputs, effects, scope, and failures; no interface drift requires prose changes.",
@@ -202,7 +217,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794879030Z"
+      "updated_at": "1794879674Z"
     },
     "trajectory": {
       "active_boundaries": [

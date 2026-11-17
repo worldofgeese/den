@@ -206,6 +206,8 @@ An adapter that fails its own installation tests remains uninstalled rather than
 
 The system configuration is `guix/system.scm`. The home configuration is `guix/home-configuration.scm`. System deploy and kernel recipes use `justfile_directory()` so an isolated worktree supplies its own source files.
 
+`just deploy-mahakala-system` reconfigures only the Guix System generation from this checkout. Unlike the composite `just deploy-mahakala` recipe, it does not pull channels, update the shared Nix flake, or invoke M-02877. Repository-wide publication proof remains a separate contract.
+
 The elogind configuration packages `guix/touchpad-resume.scm` as a system-sleep hook. After resume it rebinds the matching touchpad only when `hid-multitouch` owns it, and reports missing devices or failed writes. A manual rebind restored scrolling, but the fault's cause and the deployed hook's behavior across an actual suspend remain unverified.
 
 The QCA6174 card uses `ath10k_pci`. The Guix System kernel arguments request `ath10k_pci.reset_mode=1`. The built module defines `0` as automatic reset and `1` as warm-only reset.

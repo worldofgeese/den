@@ -1,6 +1,6 @@
 (list (channel
        (name 'guix)
-       (url "https://git.guix.gnu.org/guix.git")
+       (url "https://codeberg.org/guix/guix-mirror")
        (branch "master")
        ;; (commit "f4a0e472a949bfb91b85ec0612efdeabb9c60c56")
        (introduction
@@ -10,7 +10,7 @@
           "BBB0 2DDF 2CEA F6A8 0D1D  E643 A2A0 6DF2 A33A 54FA"))))
       (channel
        (name 'nonguix)
-       (url "https://gitlab.com/nonguix/nonguix")
+       (url "https://codeberg.org/nonguix/nonguix-mirror")
        (branch "master")
        (introduction
         (make-channel-introduction

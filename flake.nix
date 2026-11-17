@@ -128,8 +128,11 @@
     };
     # libsql 0.1.11, the latest release, cannot build for 3.15: its PyO3 0.25
     # stops at 3.14, and PyPI has no cp315 wheels. This pins the head of
-    # tursodatabase/libsql-python#112, which moves to PyO3 0.29. Point it back
-    # at tursodatabase/libsql-python once a release includes that change.
+    # tursodatabase/libsql-python#112, which moves to PyO3 0.29. The code comes
+    # from that PR author's fork (j03-dev), not from tursodatabase, and has not
+    # been through a tursodatabase release. Point it back at
+    # tursodatabase/libsql-python once a release includes that change, and
+    # review the diff from this rev when repointing.
     libsql-python-src = {
       url = "github:j03-dev/libsql-python/a524d79b938b394ecf405f5958157e4bd55b3f85";
       flake = false;

@@ -190,6 +190,10 @@
 
         tool = {
           packages =
+            # Unpinned upstream main, like xmemcli below: the owner wants the
+            # latest of every tool, so any upstream push runs on darwin at the
+            # next switch without review. Linux is stricter: its crucible is
+            # pinned in flake.lock and moves only with the flake update.
             lib.optional isDarwin "crucible-llm @ git+https://github.com/jkitchin/crucible"
             ++ [
               # xmemcli is the xmemory CLI, installed on every host so agents can

@@ -29,8 +29,10 @@ in
     build-system = [python3Packages.hatchling];
     dependencies = [python3Packages.click python3Packages.filelock libsql];
     pythonImportsCheck = ["crucible"];
-    # Runs upstream's suite on each `nix flake update`, so a crucible or libsql
-    # bump that breaks on this Python fails the build instead of the wiki.
+    # Runs upstream's suite whenever crucible-src, libsql-python-src or
+    # nixpkgs-python315 moves. CI only evaluates, so a bump that breaks on this
+    # Python fails at `just deploy`, before activation, and the installed
+    # crucible keeps running against the wiki.
     nativeCheckInputs = [python3Packages.pytestCheckHook];
     # `crucible init` shells out to `crucible manifest`, so the tests need the
     # installed script on PATH.

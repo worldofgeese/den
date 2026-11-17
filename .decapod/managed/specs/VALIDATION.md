@@ -116,6 +116,21 @@ pre-commit hook (`just check`, with `scripts/check-drvpaths.sh`) and the deploy
 of each changed deploy target stay that proof. `dagger check` also evaluates
 the hosts (see Dagger Checks).
 
+### Deployment and proof scope
+
+`deploy-mahakala-system` is a target-local operation: it reconfigures Guix
+System from `guix/system.scm` and does not refresh the shared Nix flake or
+invoke the Mac. The accepted `repo.pr-readiness.v1` contract is broader: it
+requires the repository's full local command set, currently bound to one
+platform's native tool paths. Therefore a Linux-only system deployment can be
+locally executable without Mac access while full publication readiness remains
+blocked by the accepted proof contract. Do not repin tools or narrow required
+checks in a candidate to bypass that boundary. DecapodLabs/decapod#1736 tracks
+per-platform executables, DecapodLabs/decapod#1738 tracks separately authorized
+policy migration, and DecapodLabs/decapod#1740 tracks target-to-proof mapping
+and shared dependency fanout. Until a supported accepted-target transition is
+available, retain the accepted contract and report the blocker.
+
 Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
 `GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another
 repository with those variables set. On 2026-11-09 and 2026-11-10,

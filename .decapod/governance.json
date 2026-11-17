@@ -123,6 +123,14 @@
       "proof_refs": [
         "decapod govern gatekeeper check: all candidate paths passed"
       ]
+    },
+    {
+      "id": "validation-scope-release-refresh",
+      "summary": "Refresh Decapod 0.148.2 release-bound projections, preserve the accepted reviewed source digest, and document that mahakala system deployment is target-local while repository proof remains global.",
+      "input_digest": "sha256:384bb61766d82a38feca8acc68709a7ddf0a41b7038ef224126dd5d29ea3c30a",
+      "proof_refs": [
+        "exact-candidate-b6a-validation"
+      ]
     }
   ],
   "intents": {
@@ -153,11 +161,12 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Restore touchpad scrolling after resume without changing power management; correct blockers to validation, merge, and deployment.",
+      "intent": "Restore mahakala touchpad scrolling after resume without changing power management. Keep each host/layer deploy confined to its selected slice; mahakala system deployment and required proof must not depend on Mac access. Preserve all required checks and independent Mac validation. Resolve the accepted proof-policy/source transition through an independently authorized, supported path before PR, merge, or deployment.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate",
-        "touchpad hook regression and deployed resume checks"
+        "decapod validate on exact candidate and accepted target",
+        "touchpad hook regression and deployed resume checks",
+        "mahakala system deploy changes only the selected Guix System slice"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
@@ -168,20 +177,25 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794854093Z"
+      "updated_at": "1794877812Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "No Mac access required for mahakala system deployment; no candidate-side proof weakening or self-approval."
       ],
-      "artifact_hash": "sha256:1bc87f9d5bcca015377f7e8a5bf3d8e78f8fb49cefd53cacc3f2b1728d1a3dc8",
+      "artifact_hash": "sha256:6af317039490a7d789b5935558d09ccbe0c54b6d1b0dbb32f2a8a57a45cb040d",
       "blockers": [
-        "The repository-local readiness contract pins macOS-only executables; the authenticated macOS peer rejected SSH access."
+        "Mac SSH access is not required for just deploy-mahakala-system. Exact b6a12711 validation with Decapod 0.148.2 currently stops at PUBLICATION_BUNDLE_CURRENCY; after that repair, candidate proof still needs supported per-platform execution and an independently accepted source-policy migration. Keep required checks intact; upstream DecapodLabs/decapod#1736, #1738, #1740 remain open."
       ],
       "checks": [
         {
           "name": "current-packaged-hook-runtime",
           "status": "unavailable"
+        },
+        {
+          "name": "exact-candidate-b6a-validation",
+          "status": "failed"
         },
         {
           "name": "full-validation",
@@ -262,10 +276,17 @@
             "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "trajectory_step_recorded",
             "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 7,
+        "next_sequence": 8,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7JQFCY4WJNN5FE1FFJGS7RE": {
@@ -357,14 +378,45 @@
                 ],
                 "sequence": 7,
                 "validation_findings": []
+              },
+              {
+                "action": "verification",
+                "command": "decapod validate --format json (0.148.2; candidate b6a127113d33fde62628071bbcb5577b5e446bff)",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "Justfile",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  "Decapod 0.148.2 validation report /tmp/touchpad-validation-b6a12711-current.json; PUBLICATION_BUNDLE_CURRENCY; entrypoint/Dockerfile/spec manifest refresh generated in isolated workspace"
+                ],
+                "proof_refs": [
+                  "exact-candidate-b6a-validation"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 8,
+                "validation_findings": []
               }
             ]
           }
         }
       },
-      "declared_commands": [],
+      "declared_commands": [
+        "decapod rpc --op specs.refresh",
+        "decapod validate --format json (0.148.2; candidate b6a127113d33fde62628071bbcb5577b5e446bff)"
+      ],
       "destination": "pull request",
       "evidence": [
+        "Decapod 0.148.2 validation report /tmp/touchpad-validation-b6a12711-current.json; PUBLICATION_BUNDLE_CURRENCY; entrypoint/Dockerfile/spec manifest refresh generated in isolated workspace",
         "Earlier Guix build and live rebind checks applied to the pre-extraction hook; the current source path resolves correctly and its behavior is covered against fake sysfs, but the packaged executable and actual suspend remain unverified.",
         "Fake-sysfs tests cover post-only binding, missing devices, different drivers, and failed writes; Headroom cases pass with the locked Perl.",
         "Validation misreported a pre-existing sudoers-tag documentation false positive as a protected-path violation; rewording the tags preserved meaning and the unchanged scanner now passes all candidate paths."
@@ -372,17 +424,25 @@
       "inspected_files": [
         ".decapod/config.toml",
         ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "Justfile",
         "guix/system.scm",
         "scripts/test-headroom-storage.py"
       ],
       "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
       "modified_files": [
         ".decapod/config.toml",
+        ".decapod/managed/Dockerfile.decapod",
+        ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTENT.md",
         ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/OPERATIONS.md",
         ".decapod/managed/specs/VALIDATION.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
         "Justfile",
         "guix/system.scm",
         "guix/touchpad-resume.scm",
@@ -390,10 +450,12 @@
         "scripts/test-touchpad-resume.scm"
       ],
       "next_transitions": [
+        "Commit the generated release refresh and accepted-digest correction; rerun validation; stop on accepted policy rejection.",
         "Refine plan and declare falsifiable checks",
         "Review and commit the candidate, then run exact-candidate validation."
       ],
       "repo_scope": [
+        "Touchpad post-resume recovery and validation/deployment boundaries required to merge and install it on mahakala.",
         "root"
       ],
       "run_id": "branch_01M7JQFCY4WJNN5FE1FFJGS7RE",

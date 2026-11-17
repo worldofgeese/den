@@ -6,6 +6,7 @@
   python3Packages,
   rustPlatform,
   cmake,
+  git,
   crucibleSrc,
   libsqlSrc,
 }: let
@@ -33,7 +34,12 @@ in
     # nixpkgs-python315 moves. CI only evaluates, so a bump that breaks on this
     # Python fails at `just deploy`, before activation, and the installed
     # crucible keeps running against the wiki.
-    nativeCheckInputs = [python3Packages.pytestCheckHook];
+    # git: test_gitignore_actually_ignores_external_sources runs `git check-ignore`.
+    nativeCheckInputs = [python3Packages.pytestCheckHook git];
+    # Runs the CLI in a subprocess whose PYTHONPATH is only the source tree, so
+    # it assumes click sits in the interpreter's own site-packages. Nix passes
+    # dependencies through PYTHONPATH, so the import fails here.
+    disabledTests = ["test_version_option_does_not_need_distribution_metadata"];
     # `crucible init` shells out to `crucible manifest`, so the tests need the
     # installed script on PATH.
     preCheck = ''

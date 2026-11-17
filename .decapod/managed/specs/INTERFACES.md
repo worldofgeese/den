@@ -319,9 +319,10 @@ only. Claude Code and Codex keep it. In pi, the mattpocock skill is
 
 These commands do not force an immediate reboot. The next planned boot verifies the Wi-Fi recovery trial.
 
-`guix/channels.scm` pulls nonguix from its canonical URL,
-`https://gitlab.com/nonguix/nonguix`. The Codeberg mirror made every pull warn
-that the channel might be stale. The channel introduction is the same for both.
+`guix/channels.scm` pulls `guix` and nonguix from their canonical URLs,
+`https://git.guix.gnu.org/guix.git` and `https://gitlab.com/nonguix/nonguix`.
+The Codeberg mirrors made every pull warn that a channel might be stale. Each
+channel introduction is the same for the mirror and the canonical source.
 
 ## Darwin Deploy Preflight
 | Command or file | Effect | Exit |

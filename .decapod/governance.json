@@ -139,6 +139,14 @@
       "proof_refs": [
         "exact_candidate_validation"
       ]
+    },
+    {
+      "id": "reviewed-mahakala-interface-contract",
+      "summary": "Review INTERFACES.md against Justfile and Guix source. The target-local deploy and post-resume touchpad hook rows accurately describe current scope, state transitions, and failure cases; no interface text changes were needed.",
+      "input_digest": "sha256:e6df139e4ce9ce638868dba0086cf6ad3e4c8de01946c3db3cb5638c51ec4087",
+      "proof_refs": [
+        "interfaces-spec-review"
+      ]
     }
   ],
   "intents": {
@@ -177,6 +185,15 @@
         "mahakala system deploy changes only the selected Guix System slice"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "Reviewed the Mahakala maintenance interface against Justfile and Guix sources: deploy-mahakala-system reconfigures only the Guix System generation from repo-dir; system.scm installs the local touchpad-resume-rebind file as an elogind sleep hook; the helper handles post only, targets matching 0018:06CB:76AF.* devices currently bound to hid-multitouch, and reports missing devices, different drivers, or write failures. INTERFACES.md lines 316-318 accurately specify these inputs, effects, scope, and failures; no interface drift requires prose changes.",
+          "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
+          "spec_material_hash": "2258838ee5d5b48ad5613eff6a4f50aadd14f8e09ae405fe9e1f2509c1032f4b"
+        }
+      ],
       "state": "APPROVED",
       "stop_conditions": [],
       "title": "Durable fix: mahakala touchpad two-finger scroll after resume",
@@ -185,7 +202,7 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794877812Z"
+      "updated_at": "1794879030Z"
     },
     "trajectory": {
       "active_boundaries": [

@@ -112,6 +112,31 @@
     # binary cache is keyed on, and overriding it would mean building Hyprland
     # and ~80 dependencies from source.
     nixarchy.url = "github:olafkfreund/nixarchy";
+    # Package set for Python 3.15, the latest CPython. The main nixpkgs pin
+    # fails to bootstrap python315Packages (flit-core trips over argparse's
+    # new `color` argument); nixpkgs-unstable has the fix. Only the Python
+    # 3.15 consumers in modules/shared-devtools.nix use it, so the rest of the
+    # system stays on the main pin and its binary cache. Drop it once the main
+    # pin builds python315Packages.
+    nixpkgs-python315.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Sources for crucible-llm, built for Python 3.15 in
+    # modules/_pkgs/crucible-llm.nix. Crucible tracks upstream main, so
+    # `nix flake update` moves it.
+    crucible-src = {
+      url = "github:jkitchin/crucible";
+      flake = false;
+    };
+    # libsql 0.1.11, the latest release, cannot build for 3.15: its PyO3 0.25
+    # stops at 3.14, and PyPI has no cp315 wheels. This pins the head of
+    # tursodatabase/libsql-python#112, which moves to PyO3 0.29. The code comes
+    # from that PR author's fork (j03-dev), not from tursodatabase, and has not
+    # been through a tursodatabase release. Point it back at
+    # tursodatabase/libsql-python once a release includes that change, and
+    # review the diff from this rev when repointing.
+    libsql-python-src = {
+      url = "github:j03-dev/libsql-python/a524d79b938b394ecf405f5958157e4bd55b3f85";
+      flake = false;
+    };
   };
 
   outputs = inputs:

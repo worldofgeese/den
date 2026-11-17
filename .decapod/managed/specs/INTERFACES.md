@@ -253,9 +253,11 @@ configure Olivetti separately for this workflow.
 ## uv Tools
 `programs.uv.tool.packages` in `modules/shared-devtools.nix` declares every uv tool on every host. Activation installs and upgrades each entry. `prune = true` uninstalls each uv tool that is not declared, so a manual `uv tool install` lasts only until the next switch. To keep a tool, add it to the list.
 
+The owner wants the latest CPython everywhere. Activation sets `UV_PYTHON` to `uvPython`: Python 3.15 on Linux, and 3.13 on darwin until libsql publishes macOS wheels newer than cp313 (tursodatabase/libsql-python#106).
+
 | Tool | Source | Why |
 |---|---|---|
-| `crucible-llm` | git (`worldofgeese/crucible`, the owner's fork) | PyPI 0.1.0 is stale. The fork's main carries fixes awaiting upstream review (jkitchin/crucible#8, #16, #17); activation reinstalls from this URL, so an upstream URL drops them on every switch. Return to `jkitchin/crucible` once upstream merges them. |
+| `crucible-llm` | darwin only: git (`jkitchin/crucible` main), unpinned (latest on every switch) | PyPI 0.1.0 is stale. Unpinned on purpose, like `xmemcli`: an upstream push runs on darwin at the next switch without review. On Linux `crucible` is instead the Nix package `modules/_pkgs/crucible-llm.nix`, built on Python 3.15 from the `crucible-src` input with libsql built from source (`libsql-python-src`, the head of tursodatabase/libsql-python#112, because libsql 0.1.11 cannot build for 3.15). Its checks run with `git` on the path, and `test_version_option_does_not_need_distribution_metadata` is disabled because it replaces `PYTHONPATH` with the source tree, which hides Nix's dependencies. Prune removes any Linux uv install so it cannot shadow the package. Repoint `libsql-python-src` to tursodatabase once a libsql release includes PyO3 0.29 or newer. |
 | `xmemcli` | PyPI, unpinned (latest on every switch) | The xmemory CLI. xmemory's install instructions name this PyPI package. Unpinned on purpose: the owner wants the latest release of every tool. |
 
 ## Independent Reviewer Interface

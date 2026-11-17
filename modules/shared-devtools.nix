@@ -31,6 +31,25 @@
             hash = "sha256-S63Qd9OGCACz1EK/IzH6LGsZxMovk0UBkOKtv/jnQ+I=";
           }
         else agents.codex;
+      isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+      # The latest CPython. Linux uses it for crucible-llm and for the uv
+      # tools; darwin is held back for crucible-llm, see programs.uv below.
+      pkgsPython315 = inputs.nixpkgs-python315.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+      python = pkgsPython315.python315;
+      crucible = pkgsPython315.callPackage ./_pkgs/crucible-llm.nix {
+        python3Packages = python.pkgs;
+        crucibleSrc = inputs.crucible-src;
+        libsqlSrc = inputs.libsql-python-src;
+      };
+      # Interpreter for the uv tools. darwin stays on 3.13 for crucible-llm:
+      # libsql 0.1.11 ships macOS arm64 wheels only up to cp313, and building
+      # it from source needs a Rust toolchain the activation PATH lacks. Move
+      # darwin to `python` when libsql publishes newer wheels
+      # (tursodatabase/libsql-python#106).
+      uvPython =
+        if isDarwin
+        then pkgs.python313
+        else python;
     in {
       home.packages = with pkgs;
         [
@@ -69,12 +88,14 @@
           # which failed silently and left the version unpinned.
           decapod
         ]
-        ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
+        ++ lib.optionals (!isDarwin) [
           # Darwin gets dolt and rtk from Homebrew, and bd from the BTS box
           # companion (~/bin/bd wraps ~/.local/bin/bd); Homebrew has no beads.
           beads
           dolt
           rtk
+          # Darwin installs crucible-llm with uv instead; see programs.uv.
+          crucible
         ];
 
       # pi's built-in MCP client (modules/pi.nix). `direct` exposure declares
@@ -134,17 +155,16 @@
       # uv, plus the tools it manages. Declarative replacement for
       # `uv tool install`: entries are installed and upgraded on activation.
       #
-      # crucible-llm is not on PyPI in a usable state (PyPI 0.1.0 is stale), so
-      # it is installed from git: the owner's fork, worldofgeese/crucible, whose
-      # main carries fixes still awaiting review upstream (jkitchin/crucible#8,
-      # #16, #17). Activation reinstalls from this URL, so pointing it at
-      # jkitchin/crucible would drop those fixes on every switch. Move back to
-      # upstream once it has merged them. The `name @ git+url` form is required rather
-      # than a bare `git+...` URL for two reasons: `uv tool upgrade` rejects a
-      # bare URL ("URL requirement must be preceded by a package name"), and
-      # `tool.prune` derives the keep-list by regex from the leading name, which
-      # for a bare URL yields "git" and would uninstall the tool on every
-      # activation.
+      # On darwin, crucible-llm is installed here from upstream git (PyPI 0.1.0
+      # is stale) rather than from the Nix package Linux uses: that package
+      # builds libsql from source for Python 3.15 and has only been tested on
+      # Linux. The `name @ git+url` form is required rather than a bare
+      # `git+...` URL for two reasons: `uv tool upgrade` rejects a bare URL ("URL
+      # requirement must be preceded by a package name"), and `tool.prune`
+      # derives the keep-list by regex from the leading name, which for a bare
+      # URL yields "git" and would uninstall the tool on every activation. On
+      # Linux, prune uninstalls any crucible-llm uv tool left from before, so
+      # ~/.local/bin/crucible cannot shadow the Nix package.
       programs.uv = {
         enable = true;
 
@@ -169,20 +189,24 @@
         settings.python-preference = "only-system";
 
         tool = {
-          packages = [
-            "crucible-llm @ git+https://github.com/worldofgeese/crucible"
-            # xmemcli is the xmemory CLI, installed on every host so agents can
-            # reach xmemory anywhere. It comes from PyPI because that is where
-            # xmemory's own install instructions point (`uv tool install
-            # xmemcli`); PyPI shows no provenance attestation for it. It is
-            # deliberately unpinned: the owner wants every tool on its latest
-            # release, so activation upgrades it on each switch. The trade-off
-            # is that a new PyPI upload runs on the next switch without review.
-            # The wheel is pure Python (py3-none-any, requires-python >=3.12, no
-            # dependencies), so the python313 on the activation PATH works on
-            # darwin and Guix alike.
-            "xmemcli"
-          ];
+          packages =
+            # Unpinned upstream main, like xmemcli below: the owner wants the
+            # latest of every tool, so any upstream push runs on darwin at the
+            # next switch without review. Linux is stricter: its crucible is
+            # pinned in flake.lock and moves only with the flake update.
+            lib.optional isDarwin "crucible-llm @ git+https://github.com/jkitchin/crucible"
+            ++ [
+              # xmemcli is the xmemory CLI, installed on every host so agents can
+              # reach xmemory anywhere. It comes from PyPI because that is where
+              # xmemory's own install instructions point (`uv tool install
+              # xmemcli`); PyPI shows no provenance attestation for it. It is
+              # deliberately unpinned: the owner wants every tool on its latest
+              # release, so activation upgrades it on each switch. The trade-off
+              # is that a new PyPI upload runs on the next switch without review.
+              # The wheel is pure Python (py3-none-any, requires-python >=3.12, no
+              # dependencies), so it runs on whichever Python uvPython picks.
+              "xmemcli"
+            ];
           prune = true;
         };
       };
@@ -191,13 +215,7 @@
       # does not inherit the login PATH. See programs.uv above. git is needed for
       # the same reason: uv shells out to it for `git+` tool requirements and
       # otherwise fails with "Git executable not found".
-      #
-      # python313, not python3: crucible-llm depends on libsql, whose newest
-      # release (0.1.11) ships macOS arm64 wheels only up to cp313. On 3.14 uv
-      # falls back to building it from source, which needs a Rust toolchain and a
-      # linker that the store-only activation PATH does not have. Bump this when
-      # libsql publishes a cp314 wheel.
-      home.extraActivationPath = [pkgs.python313 pkgs.git];
+      home.extraActivationPath = [uvPython pkgs.git];
 
       # `uv tool install` warns "`~/.local/bin` is not on your PATH" on every
       # activation. The directory is on the *login* PATH via home.sessionPath;
@@ -205,8 +223,18 @@
       # so the warning is noise. Prepending it here silences it. Activation
       # entries share one bash process, so this export also reaches later
       # entries -- harmless, since the login shell has the same directory.
+      #
+      # UV_PYTHON moves existing tool environments to uvPython. Without a
+      # request, `uv tool install` keeps a tool on whatever interpreter it was
+      # first installed with. It must be a version, not a path; see
+      # programs.uv above. uvToolPythonUnset clears it so later entries are
+      # unaffected.
       home.activation.uvToolBinOnPath = lib.hm.dag.entryBefore ["uvTool"] ''
         export PATH="$HOME/.local/bin:$PATH"
+        export UV_PYTHON=${uvPython.pythonVersion}
+      '';
+      home.activation.uvToolPythonUnset = lib.hm.dag.entryAfter ["uvTool"] ''
+        unset UV_PYTHON
       '';
 
       programs.direnv = {

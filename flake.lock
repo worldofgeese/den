@@ -144,6 +144,22 @@
         "type": "github"
       }
     },
+    "crucible-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794930958,
+        "narHash": "sha256-P2oQ4N9WaEKx5DC6JQXlImRNgP27zZcVxqCBO17GOP0=",
+        "owner": "jkitchin",
+        "repo": "crucible",
+        "rev": "59f576c69d1f40f4bf31c8e325e91e04f461d4b0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jkitchin",
+        "repo": "crucible",
+        "type": "github"
+      }
+    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -1184,6 +1200,23 @@
         "type": "github"
       }
     },
+    "libsql-python-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786788026,
+        "narHash": "sha256-LUfxOMAhPNe7o/ElER759ANaGNI6eQpgkyMy2nCSgxE=",
+        "owner": "j03-dev",
+        "repo": "libsql-python",
+        "rev": "a524d79b938b394ecf405f5958157e4bd55b3f85",
+        "type": "github"
+      },
+      "original": {
+        "owner": "j03-dev",
+        "repo": "libsql-python",
+        "rev": "a524d79b938b394ecf405f5958157e4bd55b3f85",
+        "type": "github"
+      }
+    },
     "llm-agents": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -2114,6 +2147,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-python315": {
+      "locked": {
+        "lastModified": 1794705614,
+        "narHash": "sha256-DZ5eNWHA6heAHwkMt1SBtF1p8Lfgi4ivqdqmgxUZkLs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "1c872b8c508bbbfebc1b0b74777ff391ce0a574c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1789009968,
@@ -2410,6 +2459,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "crucible-src": "crucible-src",
         "darwin": "darwin",
         "decapod": "decapod",
         "den": "den",
@@ -2421,6 +2471,7 @@
         "home-manager": "home-manager",
         "home-manager-nod": "home-manager-nod",
         "import-tree": "import-tree",
+        "libsql-python-src": "libsql-python-src",
         "llm-agents": "llm-agents",
         "neomacs": "neomacs",
         "nix-doom-emacs-unstraightened": "nix-doom-emacs-unstraightened",
@@ -2428,6 +2479,7 @@
         "nixarchy": "nixarchy",
         "nixpkgs": "nixpkgs_7",
         "nixpkgs-nod": "nixpkgs-nod",
+        "nixpkgs-python315": "nixpkgs-python315",
         "pr-reviewer": "pr-reviewer",
         "rust-overlay": "rust-overlay_3"
       }

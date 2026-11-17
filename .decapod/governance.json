@@ -109,6 +109,15 @@
         "repository_checks",
         "review_fix_package_build"
       ]
+    },
+    {
+      "id": "superwhisper-main-sync-01m7nt",
+      "summary": "Merged the advanced main branch; regenerated the generated specs manifest through Decapod after the merge conflict; record current-head validation and CI next.",
+      "input_digest": "sha256:a478a791bc4e52d0c5edd98f43bba0a86b423b0b5b072ac5d7ae6d3564c5e5ca",
+      "proof_refs": [
+        "specs_refresh",
+        "workspace_ensure"
+      ]
     }
   ],
   "intents": {
@@ -169,7 +178,7 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:b0d19868acbd4c2cbeabe2b56f2143165b126d98d763d29da21b489776f4f454",
+      "artifact_hash": "sha256:bfedcd73489d61a4cc53d3ba8d7d32d0653bf0bed7a9123977eca0000eecbe05",
       "checks": [
         {
           "name": "final_formatting",
@@ -197,6 +206,14 @@
         },
         {
           "name": "review_fix_package_build",
+          "status": "passed"
+        },
+        {
+          "name": "specs_refresh",
+          "status": "passed"
+        },
+        {
+          "name": "workspace_ensure",
           "status": "passed"
         }
       ],
@@ -256,10 +273,17 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 9
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:10",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 10
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 9,
+        "next_sequence": 10,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -432,6 +456,44 @@
                 ],
                 "sequence": 9,
                 "validation_findings": []
+              },
+              {
+                "action": "review",
+                "command": "git fetch origin main",
+                "custody_event_id": "event:10",
+                "observations": [
+                  ".decapod/managed/specs/.manifest.json",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/.manifest.json",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "flake.lock",
+                  "flake.nix",
+                  "guix/system.scm",
+                  "modules/_pkgs/crucible-llm.nix",
+                  "modules/shared-devtools.nix",
+                  "origin/main advanced after PR creation; merge-tree found one conflict in the generated spec manifest; the current manifest was regenerated through Decapod RPC."
+                ],
+                "proof_refs": [
+                  "workspace_ensure",
+                  "specs_refresh"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 10,
+                "tool": "Decapod specs.refresh regenerated the merge-conflicted manifest",
+                "validation_findings": []
               }
             ]
           }
@@ -441,6 +503,8 @@
         "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
         "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
         "Final package build bcd97ri1w50y8lwnpblspqx3zrnqvl3h in progress; earlier package build with launcher annotation passed before the final common-lock fix.",
+        "git fetch origin main",
+        "git merge --no-edit origin/main",
         "just check: in progress",
         "nix build homeConfigurations.worldofgeese.config.programs.nixarchy.package: first build failed SC2016, targeted child-Bash annotation added and rebuild started"
       ],
@@ -458,18 +522,28 @@
         "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
         "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
         "The scope fragments were generated from a valid explicit paths declaration by Decapod. todo edit exposes no scope repair. Upstream issue https://github.com/DecapodLabs/decapod/issues/1760 tracks the malformed projections. No generated field was hand-edited.",
-        "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder."
+        "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder.",
+        "origin/main advanced after PR creation; merge-tree found one conflict in the generated spec manifest; the current manifest was regenerated through Decapod RPC."
       ],
       "inspected_files": [
+        ".decapod/managed/specs/.manifest.json",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTERFACES.md",
         "modules/omarchy.nix",
         "scripts/test-omarchy-superwhisper.sh"
       ],
       "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
       "modified_files": [
+        ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTENT.md",
         ".decapod/managed/specs/INTERFACES.md",
+        "flake.lock",
+        "flake.nix",
+        "guix/system.scm",
+        "modules/_pkgs/crucible-llm.nix",
         "modules/omarchy.nix",
+        "modules/shared-devtools.nix",
         "scripts/test-omarchy-superwhisper.sh"
       ],
       "next_transitions": [
@@ -477,6 +551,7 @@
         "Checkpoint and commit the combined review fixes, push, reply substantively and resolve each handled thread, then finish hosted CI and merge under the owner exception.",
         "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
         "Commit candidate after checkpoint, collect remaining package and review results, then run plain Decapod validation and preserve its actual result before publication.",
+        "Commit the main sync, push, rerun exact-candidate validation, and collect current-head CI and review evidence before merge.",
         "Pass package regressions and repository checks, collect independent review, checkpoint candidate, attempt exact validation, publish and merge under owner exception.",
         "Refine plan and declare falsifiable checks"
       ],
@@ -496,7 +571,9 @@
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "secu_01m7n3hgynnee4rw",
-      "tool_calls": [],
+      "tool_calls": [
+        "Decapod specs.refresh regenerated the merge-conflicted manifest"
+      ],
       "unresolved_assumptions": []
     }
   },

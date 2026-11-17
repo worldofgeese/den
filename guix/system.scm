@@ -553,7 +553,10 @@ root ALL=(ALL) ALL
                      ;; pushed by `just cachix-push` is fetched instead of rebuilt; the other three
                      ;; serve Doom (unstraightened) and Neomacs with its WPE WebKit.
                      "extra-substituters = https://worldofgeese.cachix.org https://doom-emacs-unstraightened.cachix.org https://eval-exec.cachix.org https://nix-wpe-webkit.cachix.org\n"
-                     "extra-trusted-public-keys = doom-emacs-unstraightened.cachix.org-1:O5oOlRPnmQEvVaFyuMTmthCEooHbrg54WgSLR07tmg4= eval-exec.cachix.org-1:xvopUI7X7+Vt1gaSsWJ0PQFPP66vs8v5iIaz6boxf64= nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE= flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=\n"
+                     ;; nix-community's key: nix-wpe-webkit.cachix.org re-serves
+                     ;; nix-community paths (neomacs sources, options.json) carrying
+                     ;; only nix-community's signature, which Nix otherwise rejects.
+                     "extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= doom-emacs-unstraightened.cachix.org-1:O5oOlRPnmQEvVaFyuMTmthCEooHbrg54WgSLR07tmg4= eval-exec.cachix.org-1:xvopUI7X7+Vt1gaSsWJ0PQFPP66vs8v5iIaz6boxf64= nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE= flox-store-public-0:8c/B+kjIaQ+BloCmNkRUKwaVPFWkriSAd0JJvuDu4F0= devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw= nixpkgs-python.cachix.org-1:hxjI7pFxTyuTHn2NkvWCrAUcNZLNS3ZAvfYNuYifcEU= niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= worldofgeese.cachix.org-1:Xs/BcZWj1l+kWJlD1PwsnYR+fTZC49uey77NABJZmEs=\n"
                      "experimental-features = nix-command flakes\n"))))
     (service tailscale-service-type)
     (simple-service 'msr-module kernel-module-loader-service-type '("msr"))
@@ -936,4 +939,15 @@ COMMIT
                          (mount-point "/")
                          (device "/dev/mapper/cryptroot")
                          (type "ext4")
-                         (dependencies mapped-devices)) %base-file-systems)))
+                         (dependencies mapped-devices)) %base-file-systems))
+  ;; Disk overflow behind zram. The desktop alone fills the 8 GiB zram, and
+  ;; earlyoom then killed guix pull's compute-guix-derivation and kernel links
+  ;; (2026-11-17). Priority 10 sits below zram's 100, so the kernel only pages
+  ;; here once zram is full. The file lives on the LUKS root, so it is
+  ;; encrypted. It must exist first:
+  ;;   fallocate -l 12G /swapfile && chmod 600 /swapfile && mkswap /swapfile
+  (swap-devices (list (swap-space
+                       (target "/swapfile")
+                       (priority 10)
+                       (dependencies (filter (file-system-mount-point-predicate "/")
+                                             file-systems))))))

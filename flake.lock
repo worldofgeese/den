@@ -171,11 +171,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1794553570,
-        "narHash": "sha256-GnJ6pNj3g0xClW6PuxmbbSj+nC0FUPkUMbt2WXQ1osA=",
+        "lastModified": 1794887157,
+        "narHash": "sha256-IBPWbKLWsymFBgOIX9WtRuLn+SIdj+3fRg313JvXDUs=",
         "owner": "DecapodLabs",
         "repo": "decapod",
-        "rev": "6f1d2a39ad0b5b2f7e70fe12f75f0d8b360d9453",
+        "rev": "937c5093c85927ceb0d4693317b7b89992852f24",
         "type": "github"
       },
       "original": {

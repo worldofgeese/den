@@ -215,7 +215,7 @@ configure Olivetti separately for this workflow.
 
 | Tool | Source | Why |
 |---|---|---|
-| `crucible-llm` | git (`jkitchin/crucible`) | PyPI 0.1.0 is stale |
+| `crucible-llm` | git (`worldofgeese/crucible`, the owner's fork) | PyPI 0.1.0 is stale. The fork's main carries fixes awaiting upstream review (jkitchin/crucible#8, #16, #17); activation reinstalls from this URL, so an upstream URL drops them on every switch. Return to `jkitchin/crucible` once upstream merges them. |
 | `xmemcli` | PyPI, unpinned (latest on every switch) | The xmemory CLI. xmemory's install instructions name this PyPI package. Unpinned on purpose: the owner wants the latest release of every tool. |
 
 ## Independent Reviewer Interface

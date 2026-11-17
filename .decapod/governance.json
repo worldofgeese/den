@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "5d96b3f274ec54a3c9f2c1e3191efbfb1b21d9fc",
+    "accepted_commit": "039d25fe8d4f527ca3cae5a5a517071390aa3ad3",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -66,37 +66,107 @@
     }
   },
   "change": {
-    "id": "change_01M7A0AHYCQRK560FYTZC4YDFC",
-    "base_commit": "5d96b3f274ec54a3c9f2c1e3191efbfb1b21d9fc",
+    "id": "change_01M7JQFCXFYBB8W95C9T279S7T",
+    "base_commit": "039d25fe8d4f527ca3cae5a5a517071390aa3ad3",
     "target_base": "origin/main"
   },
   "claims": {
-    "pr-reviewer-028-builds": {
-      "statement": "den with pr-reviewer v0.2.8 builds the full M-02877 system",
-      "falsifier": "nix build .#darwinConfigurations.M-02877.system fails",
+    "headroom-test-portability": {
+      "statement": "The Headroom storage regression executes its bounded image-pull path on Linux with the locked Perl package.",
+      "falsifier": "The storage regression fails its image-pull assertions or the test uses an unavailable macOS-only Perl path.",
       "status": "supported",
       "proof_refs": [
-        "/nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a"
+        "just check-headroom-storage"
+      ]
+    },
+    "touchpad-hook-behavior": {
+      "statement": "The post-resume hook rebinds only matching devices owned by hid-multitouch, and reports missing devices or failed writes.",
+      "falsifier": "The fake-sysfs regression observes an incorrect bind, missing error, or nonzero successful execution.",
+      "status": "supported",
+      "proof_refs": [
+        "just check-guix"
+      ]
+    },
+    "touchpad-resume-recovery": {
+      "statement": "The deployed hook restores two-finger scrolling after a real suspend and resume.",
+      "falsifier": "A real suspend and resume still leaves two-finger scrolling broken.",
+      "status": "blocked",
+      "proof_refs": [
+        "No real suspend-resume trial has been performed."
       ]
     }
   },
   "checkpoints": [
     {
-      "id": "pr-reviewer-028",
-      "summary": "Pin pr-reviewer v0.2.8; renew reviewed_sources_digest (flake.lock pr-reviewer node only); spec manifest; OPERATIONS records v0.2.8",
-      "input_digest": "sha256:39590094b5fc59560ca416b0a4dce6f3e9d085b5c2eefa5abd202a08d68cf927",
+      "id": "touchpad-resume-hook",
+      "summary": "elogind post-resume hook rebinds mahakala touchpad on hid-multitouch; spec documents cause and boundary; plan approved by user",
+      "input_digest": "sha256:28ba10eaa0b5cbfe2025164f617fb91002d4814c5fea27aa1a2bb904f201d459"
+    },
+    {
+      "id": "touchpad-resume-hook-gatekeeper",
+      "summary": "reword pre-existing PAM comment that tripped the gatekeeper secret regex",
+      "input_digest": "sha256:8b5b2b723382f710f576c4f9b947e7207a214dbef32dc390917a4f269d31e508"
+    },
+    {
+      "id": "touchpad-resume-hardening",
+      "summary": "Make touchpad rebinding failure-aware, exercise the hook without hardware, and repair the Headroom regression harness on Linux.",
+      "input_digest": "sha256:f9e8f5fd42dc4491784945afe64e3d26385b97f2e175450f2594507a5c79b9d1",
       "proof_refs": [
-        "/nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a"
+        "just check-guix",
+        "just check-headroom-storage"
       ]
     },
     {
-      "id": "pr-reviewer-028-review",
-      "summary": "OPERATIONS: state the risk of review_tools for the LEGO repositories and mark the documentation-review live test as pre-v0.2.3",
-      "input_digest": "sha256:02741ce708ace83fcdf4b44c41865843464d5f30e0d4d2845027a56c00506a61"
+      "id": "sudoers-scan-clarity",
+      "summary": "Describe the existing sudoers tags without triggering a false secret match.",
+      "input_digest": "sha256:0f3abcafde4303ce9411e18cf4d6c5701423e2e2cc3d56cd86c0aaf574e0505e",
+      "proof_refs": [
+        "decapod govern gatekeeper check: all candidate paths passed"
+      ]
+    },
+    {
+      "id": "validation-scope-release-refresh",
+      "summary": "Refresh Decapod 0.148.2 release-bound projections, preserve the accepted reviewed source digest, and document that mahakala system deployment is target-local while repository proof remains global.",
+      "input_digest": "sha256:384bb61766d82a38feca8acc68709a7ddf0a41b7038ef224126dd5d29ea3c30a",
+      "proof_refs": [
+        "exact-candidate-b6a-validation"
+      ]
+    },
+    {
+      "id": "post-refresh-readiness-correction",
+      "summary": "Remove the obsolete pre-refresh blocker from the active trajectory. The exact current validation had stopped before proof because it still referenced b6a12711 and PUBLICATION_BUNDLE_CURRENCY; no policy finding was made.",
+      "input_digest": "sha256:ef648a5983e3518614c3b8f8e489d4a468807f8cc5f97e26a97a2d9bb2128327",
+      "proof_refs": [
+        "exact_candidate_validation"
+      ]
+    },
+    {
+      "id": "reviewed-mahakala-interface-contract",
+      "summary": "Review INTERFACES.md against Justfile and Guix source. The target-local deploy and post-resume touchpad hook rows accurately describe current scope, state transitions, and failure cases; no interface text changes were needed.",
+      "input_digest": "sha256:e6df139e4ce9ce638868dba0086cf6ad3e4c8de01946c3db3cb5638c51ec4087",
+      "proof_refs": [
+        "interfaces-spec-review"
+      ]
+    },
+    {
+      "id": "mahakala-deploy-boundary-and-spec-refresh",
+      "summary": "Update Intent and Architecture to explicitly keep the Mahakala system deploy and its operational verification target-local without Mac access; keep repository-wide publication proof separate. Update Validation to name Decapod 0.148.2, refresh the spec manifest, and record the architecture and interface reviews.",
+      "input_digest": "sha256:75c7bef89cf6f88e97d2dc22179d31f7dc3650fd5a7d9cee15d6cf3d81f5c4bb",
+      "proof_refs": [
+        "updated-architecture-review"
+      ]
+    },
+    {
+      "id": "mahakala-resume-hook-security-boundary",
+      "summary": "Document the privileged elogind resume-hook boundary in SECURITY.md, tying its fixed HID prefix and current hid-multitouch ownership check to the existing fake-sysfs regression. No new input-derived paths or power-management changes were added.",
+      "input_digest": "sha256:97113ea99b2aabe03ec394b1b8a2462fa146dee5e2786d46fd33b376348bee12",
+      "proof_refs": [
+        "mahakala-resume-hook-security-review"
+      ]
     }
   ],
   "intents": {
-    "intent:change_01M7A0AHYCQRK560FYTZC4YDFC": {
+    "intent:change_01M7JQFCXFYBB8W95C9T279S7T": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -106,11 +176,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+      "id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Pin pr-reviewer v0.2.8 in M-02877 (prr-k1q)\n\nworldofgeese/pr-reviewer v0.2.8 (#46): a review whose harness reply holds no review JSON fails instead of posting it, and the claude-code review prompt names the session's tools. Pin it in flake.nix/flake.lock, renew reviewed_sources_digest, update OPERATIONS, stage the M-02877 build, then switch.",
-      "refined_intent": "Pin pr-reviewer v0.2.8 in M-02877 (prr-k1q)\n\nworldofgeese/pr-reviewer v0.2.8 (#46): a review whose harness reply holds no review JSON fails instead of posting it, and the claude-code review prompt names the session's tools. Pin it in flake.nix/flake.lock, renew reviewed_sources_digest, update OPERATIONS, stage the M-02877 build, then switch.",
+      "raw_intent": "Durable fix: mahakala touchpad two-finger scroll after resume",
+      "refined_intent": "Durable fix: mahakala touchpad two-finger scroll after resume",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -123,120 +193,184 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Tao (handoff 2026-11-13): fix pr-reviewer posting raw harness text as reviews, release the fix and pin it in den. Pin worldofgeese/pr-reviewer v0.2.8 (#46) in M-02877: flake.nix and flake.lock (pr-reviewer node only), reviewed_sources_digest, OPERATIONS. The staged M-02877 system build is the check; the switch follows on merged main.",
+      "intent": "Restore mahakala touchpad scrolling after resume without changing power management. Keep each host/layer deploy confined to its selected slice; mahakala system deployment and required proof must not depend on Mac access. Preserve all required checks and independent Mac validation. Resolve the accepted proof-policy/source transition through an independently authorized, supported path before PR, merge, or deployment.",
       "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "decapod validate on exact candidate and accepted target",
+        "touchpad hook regression and deployed resume checks",
+        "mahakala system deploy changes only the selected Guix System slice"
       ],
       "schema_version": "1.1.0",
       "spec_reviews": [
         {
-          "disposition": "unchanged_with_reason",
+          "disposition": "updated",
           "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Same pr-reviewer flake input and module; only the release pin moves",
-          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "9306f3eca4e36f749079dcea74c628cfbe4d88c064fbfd235636adc93111cc6a"
+          "reason": "Updated the Mahakala architecture section to make the source-grounded boundary explicit: deploy-mahakala-system reconfigures only Guix System from the active checkout and does not pull channels, update the shared Nix flake, or invoke M-02877; repository-wide publication proof remains separate. These behaviors match the Justfile recipe and preserve the unresolved fault and real-resume verification limits.",
+          "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
+          "spec_material_hash": "d3d29d73012e0a60bea67c87f9a690c49ba7fac302510b6aa1a3774cef48079a"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "pr-reviewer CLI, config keys and launchd interface unchanged between v0.2.7 and v0.2.8; a failed review now rewrites its first-touch comment with a pr-reviewer-status:failed marker",
-          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "c15efb54884795c383e5c343111e79d534dc0afedf38f6d1c12336dbdef89d35"
+          "reason": "Reviewed the Mahakala maintenance interface against Justfile and Guix sources: deploy-mahakala-system reconfigures only the Guix System generation from repo-dir; system.scm installs the local touchpad-resume-rebind file as an elogind sleep hook; the helper handles post only, targets matching 0018:06CB:76AF.* devices currently bound to hid-multitouch, and reports missing devices, different drivers, or write failures. INTERFACES.md lines 316-318 accurately specify these inputs, effects, scope, and failures; no interface drift requires prose changes.",
+          "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
+          "spec_material_hash": "2258838ee5d5b48ad5613eff6a4f50aadd14f8e09ae405fe9e1f2509c1032f4b"
         },
         {
-          "disposition": "unchanged_with_reason",
+          "disposition": "updated",
           "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "No trust-boundary change: review sessions keep review_tools = [] and the scrubbed environment; a reply that is not a review is no longer posted, so local paths in it stay off GitHub",
-          "reviewed_code_fingerprint": "80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da",
-          "spec_material_hash": "c560749c25cdf4b9579871438947fbadcad893ac923a111d334b44dfc60aadeb"
+          "reason": "Documented the new Mahakala elogind resume-hook boundary: it accepts the post event, enumerates only the fixed touchpad HID prefix, verifies current hid-multitouch binding, and writes only the matching unbind/bind attributes. The source and fake-sysfs regression cover pre no-op, wrong driver, missing devices, and write failures; no device path is derived from hook arguments.",
+          "reviewed_code_fingerprint": "2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68",
+          "spec_material_hash": "e3e848ecc5f5450ef38d1e0822c62010fd927f545672d0d99b6d71fcccf3ede8"
         }
       ],
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Pin pr-reviewer v0.2.8",
+      "title": "Durable fix: mahakala touchpad two-finger scroll after resume",
       "todo_ids": [
-        "code_01m7a0994anjzprn"
+        "bugs_01m7jq1f6p2h2v39"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794559463Z"
+      "updated_at": "1794880301Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "flake.nix pr-reviewer pin, flake.lock, reviewed_sources_digest, OPERATIONS"
+        "No Mac access required for mahakala system deployment; no candidate-side proof weakening or self-approval."
       ],
-      "artifact_hash": "sha256:18aaec8a350912f9599af48bb50d37078e8894ec806a54be802635aea2b30402",
+      "artifact_hash": "sha256:a75f8fb176c85169b6b9549ac203856f48a932ae0454bf88d52f7fdfd776088e",
       "checks": [
         {
-          "name": "decapod-validate-04491b7",
+          "name": "current-packaged-hook-runtime",
+          "status": "unavailable"
+        },
+        {
+          "name": "exact-candidate-b6a-validation",
+          "status": "failed"
+        },
+        {
+          "name": "exact_candidate_validation",
+          "status": "partial"
+        },
+        {
+          "name": "full-validation",
+          "status": "failed"
+        },
+        {
+          "name": "gatekeeper-after-doc-repair",
           "status": "passed"
         },
         {
-          "name": "den-ci-7-checks-04491b7",
+          "name": "guix-system-build-dry-run",
           "status": "passed"
         },
         {
-          "name": "staged-M-02877-system-build",
+          "name": "headroom-storage-regression",
+          "status": "passed"
+        },
+        {
+          "name": "hook-live-post-rebind-user-confirmed-scroll",
+          "status": "passed"
+        },
+        {
+          "name": "hook-live-pre-noop",
+          "status": "passed"
+        },
+        {
+          "name": "hook-script-guix-build",
+          "status": "passed"
+        },
+        {
+          "name": "real-suspend-resume",
+          "status": "unavailable"
+        },
+        {
+          "name": "touchpad-regression",
           "status": "passed"
         }
       ],
-      "current_phase": "intent",
+      "current_phase": "verification",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ": {
+          "branch_01M7JQFCY4WJNN5FE1FFJGS7RE": {
             "evidence_only": true,
-            "id": "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
-            "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
+            "id": "branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
+            "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
             "steps": [
               {
                 "action": "trajectory.record",
-                "command": "nix flake update pr-reviewer",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "flake.nix",
-                  "flake.lock",
-                  ".decapod/config.toml",
+                  "guix/system.scm",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  "flake.lock: only the pr-reviewer node moved, ff1f984 (v0.2.7) -> 9fdf91b (v0.2.8)",
-                  "nix build .#darwinConfigurations.M-02877.system -> /nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a with pr-reviewer-0.2.8 (/nix/store/2xbsi415wivm12smfc2ky5wnx566mx9j)",
-                  "agent.init inventory: only flake.nix and flake.lock differ from origin/main; reviewed_sources_digest renewed to sha256:b557959d4a3b8c3de8b919ed5f95847770125e6bbb6b90e6d4aa9eb423a8ec0f",
-                  "Governance commands ran with Decapod 0.143.2 from the staged closure (/nix/store/mfdm8vmvafhbfm9bvrbk0ang85189wf2), the release main pins since #165; M-02877 PATH still has 0.140.0, whose workspace refresh would downgrade the projections"
+                  "guix/system.scm",
+                  ".decapod/managed/specs/OPERATIONS.md"
                 ],
                 "proof_refs": [
-                  "staged-M-02877-system-build"
+                  "hook-script-guix-build",
+                  "hook-live-pre-noop",
+                  "hook-live-post-rebind-user-confirmed-scroll",
+                  "guix-system-build-dry-run"
                 ],
                 "scope": [
                   "root"
@@ -245,20 +379,112 @@
                 "validation_findings": []
               },
               {
-                "action": "trajectory.record",
+                "action": "verification",
                 "custody_event_id": "event:5",
                 "observations": [
-                  "pr-reviewer review of 04491b7 raised two OPERATIONS points: state the prompt-injection risk of review_tools Read/Grep/Glob and keep tools off as the default; mark the Documentation review section's live test as pre-v0.2.3. Both addressed in the second commit."
+                  "guix/system.scm",
+                  "scripts/test-headroom-storage.py",
+                  ".decapod/config.toml",
+                  "guix/touchpad-resume.scm",
+                  "scripts/test-touchpad-resume.scm",
+                  "scripts/test-headroom-storage.py",
+                  "Justfile",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  "Fake-sysfs tests cover post-only binding, missing devices, different drivers, and failed writes; Headroom cases pass with the locked Perl."
                 ],
                 "proof_refs": [
-                  "decapod-validate-04491b7",
-                  "den-ci-7-checks-04491b7"
+                  "touchpad-regression",
+                  "headroom-storage-regression",
+                  "real-suspend-resume"
                 ],
                 "scope": [
-                  "pr-reviewer input",
                   "root"
                 ],
                 "sequence": 5,
+                "validation_findings": [
+                  "The underlying resume fault remains unknown; a manual touchpad rebind restored scrolling."
+                ]
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "Earlier Guix build and live rebind checks applied to the pre-extraction hook; the current source path resolves correctly and its behavior is covered against fake sysfs, but the packaged executable and actual suspend remain unverified."
+                ],
+                "proof_refs": [
+                  "current-packaged-hook-runtime"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:7",
+                "observations": [
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "Validation misreported a pre-existing sudoers-tag documentation false positive as a protected-path violation; rewording the tags preserved meaning and the unchanged scanner now passes all candidate paths."
+                ],
+                "proof_refs": [
+                  "full-validation",
+                  "gatekeeper-after-doc-repair"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": []
+              },
+              {
+                "action": "verification",
+                "command": "decapod validate --format json (0.148.2; candidate b6a127113d33fde62628071bbcb5577b5e446bff)",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "Justfile",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  "Decapod 0.148.2 validation report /tmp/touchpad-validation-b6a12711-current.json; PUBLICATION_BUNDLE_CURRENCY; entrypoint/Dockerfile/spec manifest refresh generated in isolated workspace"
+                ],
+                "proof_refs": [
+                  "exact-candidate-b6a-validation"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 8,
+                "validation_findings": []
+              },
+              {
+                "action": "verification",
+                "command": "Decapod 0.148.2 validate --format json",
+                "custody_event_id": "event:9",
+                "observations": [
+                  ".decapod/governance.json",
+                  "The first post-refresh validation failed READINESS_BLOCKED before proof because the active trajectory still carried a pre-refresh blocker naming commit b6a12711 and PUBLICATION_BUNDLE_CURRENCY. The release refresh is now committed at 871bc564, so that blocker is obsolete. This run made no proof-policy finding."
+                ],
+                "proof_refs": [
+                  "exact_candidate_validation"
+                ],
+                "scope": [
+                  "Touchpad post-resume recovery and validation/deployment boundaries required to merge and install it on mahakala.",
+                  "root"
+                ],
+                "sequence": 9,
                 "validation_findings": []
               }
             ]
@@ -266,39 +492,65 @@
         }
       },
       "declared_commands": [
-        "nix build .#darwinConfigurations.M-02877.system",
-        "nix flake update pr-reviewer"
+        "Decapod 0.148.2 validate --format json",
+        "decapod rpc --op specs.refresh",
+        "decapod validate --format json (0.148.2; candidate b6a127113d33fde62628071bbcb5577b5e446bff)"
       ],
       "destination": "pull request",
       "evidence": [
-        "Governance commands ran with Decapod 0.143.2 from the staged closure (/nix/store/mfdm8vmvafhbfm9bvrbk0ang85189wf2), the release main pins since #165; M-02877 PATH still has 0.140.0, whose workspace refresh would downgrade the projections",
-        "agent.init inventory: only flake.nix and flake.lock differ from origin/main; reviewed_sources_digest renewed to sha256:b557959d4a3b8c3de8b919ed5f95847770125e6bbb6b90e6d4aa9eb423a8ec0f",
-        "flake.lock: only the pr-reviewer node moved, ff1f984 (v0.2.7) -> 9fdf91b (v0.2.8)",
-        "nix build .#darwinConfigurations.M-02877.system -> /nix/store/g9fv9v6rl9aqxsq385f9y2j1qqf9w6wj-darwin-system-26.11.ff0e21a with pr-reviewer-0.2.8 (/nix/store/2xbsi415wivm12smfc2ky5wnx566mx9j)",
-        "pr-reviewer review of 04491b7 raised two OPERATIONS points: state the prompt-injection risk of review_tools Read/Grep/Glob and keep tools off as the default; mark the Documentation review section's live test as pre-v0.2.3. Both addressed in the second commit."
+        "Decapod 0.148.2 validation report /tmp/touchpad-validation-b6a12711-current.json; PUBLICATION_BUNDLE_CURRENCY; entrypoint/Dockerfile/spec manifest refresh generated in isolated workspace",
+        "Earlier Guix build and live rebind checks applied to the pre-extraction hook; the current source path resolves correctly and its behavior is covered against fake sysfs, but the packaged executable and actual suspend remain unverified.",
+        "Fake-sysfs tests cover post-only binding, missing devices, different drivers, and failed writes; Headroom cases pass with the locked Perl.",
+        "The first post-refresh validation failed READINESS_BLOCKED before proof because the active trajectory still carried a pre-refresh blocker naming commit b6a12711 and PUBLICATION_BUNDLE_CURRENCY. The release refresh is now committed at 871bc564, so that blocker is obsolete. This run made no proof-policy finding.",
+        "Validation misreported a pre-existing sudoers-tag documentation false positive as a protected-path violation; rewording the tags preserved meaning and the unchanged scanner now passes all candidate paths."
       ],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M7A0AHYCQRK560FYTZC4YDFC",
-      "modified_files": [
+      "inspected_files": [
         ".decapod/config.toml",
         ".decapod/managed/specs/OPERATIONS.md",
-        "flake.lock",
-        "flake.nix"
+        ".decapod/managed/specs/VALIDATION.md",
+        "Justfile",
+        "guix/system.scm",
+        "scripts/test-headroom-storage.py"
+      ],
+      "intent_id": "intent:change_01M7JQFCXFYBB8W95C9T279S7T",
+      "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/governance.json",
+        ".decapod/managed/Dockerfile.decapod",
+        ".decapod/managed/specs/.manifest.json",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
+        "Justfile",
+        "guix/system.scm",
+        "guix/touchpad-resume.scm",
+        "scripts/test-headroom-storage.py",
+        "scripts/test-touchpad-resume.scm"
       ],
       "next_transitions": [
-        "Checkpoint, commit, decapod validate",
-        "Refine plan and declare falsifiable checks"
+        "Commit the generated release refresh and accepted-digest correction; rerun validation; stop on accepted policy rejection.",
+        "Refine plan and declare falsifiable checks",
+        "Rerun exact-candidate validation after removing the obsolete pre-refresh blocker.",
+        "Review and commit the candidate, then run exact-candidate validation."
       ],
       "repo_scope": [
-        "pr-reviewer input",
+        "Touchpad post-resume recovery and validation/deployment boundaries required to merge and install it on mahakala.",
         "root"
       ],
-      "run_id": "branch_01M7A0AJ0N80S5JD5D2JSWAWRJ",
+      "run_id": "branch_01M7JQFCY4WJNN5FE1FFJGS7RE",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m7a0994anjzprn",
+      "task_id": "bugs_01m7jq1f6p2h2v39",
       "tool_calls": [],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "The underlying resume fault remains unknown; a manual touchpad rebind restored scrolling."
+      ]
     }
   },
   "legacy_digests": {

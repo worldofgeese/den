@@ -1,5 +1,5 @@
-<!-- decapod-release: 0.143.2 -->
-<!-- decapod-fingerprint: d792586d112e7161c4b8dcf1fcd1891195b5ae173940b19b79cc23003566ef70 -->
+<!-- decapod-release: 0.148.2 -->
+<!-- decapod-fingerprint: 719dbe48b93ea17dbb7e453f182c63734b51388542d8da944f93d044ae19e4f0 -->
 # CODEX.md - Agent Entrypoint
 
 You are working in a Decapod-managed repository.

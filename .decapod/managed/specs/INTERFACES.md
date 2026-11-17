@@ -313,7 +313,8 @@ only. Claude Code and Codex keep it. In pi, the mattpocock skill is
 |---|---|---|---|---|
 | `just deploy-mahakala` | Guix channel files, `flake.lock`, and Mahakala configuration | Mahakala Guix System, Guix Home, and Home Manager profiles | Mahakala only | Each profile reports a new active generation |
 | `just guix-pull-system` | `guix/channels.scm` below `justfile_directory()` | Root Guix profile | Mahakala system source | `guix describe` reports the pulled revisions |
-| `just deploy-mahakala-system` | `guix/system.scm` and `guix-packages/` below `justfile_directory()` | Guix System generation | Mahakala only | `guix system describe` reports the new generation |
+| `just deploy-mahakala-system` | `guix/system.scm`, `guix/touchpad-resume.scm` and `guix-packages/` below `justfile_directory()` | Guix System generation | Mahakala only | `guix system describe` reports the new generation |
+| elogind `system-sleep` hook | HID IDs and `hid-multitouch` bindings | `unbind`, then `bind` | Matching `0018:06CB:76AF.*` devices on `post` only | Nonzero exit and stderr on missing devices, different driver or failed writes; `pre` is a no-op |
 | `ath10k_pci.reset_mode=1` | `guix/system.scm` kernel arguments | Linux boot command line | QCA6174 on Mahakala | Built `ath10k_pci` module reports `1` as warm-only reset; runtime proof waits for the next planned boot |
 
 These commands do not force an immediate reboot. The next planned boot verifies the Wi-Fi recovery trial.
@@ -439,7 +440,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
+- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

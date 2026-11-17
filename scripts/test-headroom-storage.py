@@ -22,6 +22,9 @@ def main():
     jq = shutil.which("jq")
     if not jq:
         raise RuntimeError("jq is required for the Headroom storage regression")
+    perl = shutil.which("perl")
+    if not perl:
+        raise RuntimeError("Perl is required for the Headroom storage regression")
     result = subprocess.run(
         ["nix", "eval", "--json", ATTRIBUTE],
         cwd=ROOT,
@@ -68,6 +71,12 @@ def main():
         )
         if replaced != 1:
             raise AssertionError("The rendered jq dependency was not found")
+        perl_command = "/usr/bin/perl -e 'alarm shift; exec @ARGV'"
+        if script.count(perl_command) != 1:
+            raise AssertionError("The rendered Perl timeout was not found")
+        script = script.replace(
+            perl_command, shlex.quote(perl) + " -e 'alarm shift; exec @ARGV'", 1
+        )
         executable = directory / "launch.sh"
         executable.write_text(script)
         calls_file = directory / "calls.jsonl"

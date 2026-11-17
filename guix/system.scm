@@ -37,6 +37,16 @@
 
 (define username "worldofgeese")
 
+;; Two-finger scrolling on the Synaptics touchpad (DELL08AF:00 06CB:76AF,
+;; hid-multitouch over i2c_hid_acpi) stopped after a reported S3 resume.
+;; Raw input showed two fingers while libinput classified one as a palm.
+;; A manual rebind restored scrolling; the cause remains unconfirmed.
+;; This hook repeats the targeted rebind without changing power settings.
+(define touchpad-resume-rebind
+  (program-file
+   "touchpad-resume-rebind"
+   #~(primitive-load #$(local-file "touchpad-resume.scm"))))
+
 
 (define %my-services
   (modify-services %desktop-services
@@ -99,7 +109,9 @@
                                                  (handle-power-key 'suspend)
                                                  (handle-lid-switch-docked 'suspend)
                                                  (handle-lid-switch-external-power 'suspend)
-                                                 (handle-lid-switch 'suspend)))
+                                                 (handle-lid-switch 'suspend)
+                                                 (system-sleep-hook-files
+                                                  (list touchpad-resume-rebind))))
     (dbus-root-service-type config =>
                             (dbus-configuration
                              (inherit config)
@@ -833,7 +845,7 @@ COMMIT
     ;; unlock, which is why this is not optional the way the theming shims are.
     ;;
     ;; unix-pam-service produces the same pam_unix stack that NixOS's empty
-    ;; `security.pam.services.omarchy-lock-password = { }` does. pam_unix
+    ;; `security.pam.services.omarchy-lock-password` attrset (`{ }`) does. pam_unix
     ;; checking a non-root password needs the setuid unix_chkpwd helper, and
     ;; pam-root-service-type already installs it.
     ;;

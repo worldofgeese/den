@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it, and since 2026-11-10 it is 0.136.2. Decapod reaches
+`AGENTS.md` names it; at this revision it is 0.148.2. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -115,6 +115,21 @@ runs with an empty HOME. So it does not prove the evaluation of any host. The
 pre-commit hook (`just check`, with `scripts/check-drvpaths.sh`) and the deploy
 of each changed deploy target stay that proof. `dagger check` also evaluates
 the hosts (see Dagger Checks).
+
+### Deployment and proof scope
+
+`deploy-mahakala-system` is a target-local operation: it reconfigures Guix
+System from `guix/system.scm` and does not refresh the shared Nix flake or
+invoke the Mac. The accepted `repo.pr-readiness.v1` contract is broader: it
+requires the repository's full local command set, currently bound to one
+platform's native tool paths. Therefore a Linux-only system deployment can be
+locally executable without Mac access while full publication readiness remains
+blocked by the accepted proof contract. Do not repin tools or narrow required
+checks in a candidate to bypass that boundary. DecapodLabs/decapod#1736 tracks
+per-platform executables, DecapodLabs/decapod#1738 tracks separately authorized
+policy migration, and DecapodLabs/decapod#1740 tracks target-to-proof mapping
+and shared dependency fanout. Until a supported accepted-target transition is
+available, retain the accepted contract and report the blocker.
 
 Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
 `GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another
@@ -222,7 +237,7 @@ the same alejandra and ShellCheck releases as a host.
 | none: the merge rules of plan P0 | `ci:automerge-rules` | The module's own Go: fixed pull requests for each rule and for the replay. No network and no token |
 | none: the shepherd of plan P3 | `ci:shepherd-rules` | The module's own Go: fixed pull requests for each step of the shepherd. No network and no token |
 | `check-doom-darwin` | none | It builds the Darwin Doom wrapper. A Linux engine cannot build for Darwin |
-| `check-guix` | none | It needs the pulled `guix` with the nonguix and rosenthal channels. Only a Guix host has them |
+| `check-guix` | none | It loads the Guix configuration and tests the touchpad hook against fake sysfs paths. It needs the pulled `guix` with nonguix and rosenthal, and does not exercise real suspend or hardware |
 | `install-hooks` | none | It installs the git hooks of a host checkout |
 
 The Go SDK adds `go-sdk:generate/stale`: the generated bindings in
@@ -392,7 +407,7 @@ flowchart LR
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `80cf1f341116fd0052d79a251b192fc65cf50fa200e98eff3b96cc1244c5a0da`
+- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
 - Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

@@ -936,4 +936,15 @@ COMMIT
                          (mount-point "/")
                          (device "/dev/mapper/cryptroot")
                          (type "ext4")
-                         (dependencies mapped-devices)) %base-file-systems)))
+                         (dependencies mapped-devices)) %base-file-systems))
+  ;; Disk overflow behind zram. The desktop alone fills the 8 GiB zram, and
+  ;; earlyoom then killed guix pull's compute-guix-derivation and kernel links
+  ;; (2026-11-17). Priority 10 sits below zram's 100, so the kernel only pages
+  ;; here once zram is full. The file lives on the LUKS root, so it is
+  ;; encrypted. It must exist first:
+  ;;   fallocate -l 12G /swapfile && chmod 600 /swapfile && mkswap /swapfile
+  (swap-devices (list (swap-space
+                       (target "/swapfile")
+                       (priority 10)
+                       (dependencies (filter (file-system-mount-point-predicate "/")
+                                             file-systems))))))

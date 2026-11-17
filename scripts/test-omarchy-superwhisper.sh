@@ -222,6 +222,14 @@ fi
 rg -q 'A Superwhisper setup or removal is already running' "$test_dir/concurrent-removal.err" \
   || fail 'removal did not report the active setup lock'
 app_status=0
+(
+  exec 8>&-
+  DEN_APPS_SETUP_LOCKED=1 "$den_apps" add nixarchy-apps.superwhisper
+) 2>"$test_dir/setup-lock-env-leak.err" || app_status=$?
+[[ $app_status == 75 ]] || fail 'an exported setup-lock variable bypassed app-list locking without fd 8'
+rg -q 'The app list is busy' "$test_dir/setup-lock-env-leak.err" \
+  || fail 'an exported setup-lock variable did not honor the active app-list lock'
+app_status=0
 "$den_apps" add nixarchy-apps.superwhisper 2>"$test_dir/concurrent-app-add.err" || app_status=$?
 if ((app_status == 0)); then
   fail 'a generic app-list operation ran while setup held the lock'

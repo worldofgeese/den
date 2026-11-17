@@ -107,7 +107,7 @@
           DEN_DIR=$den_source
         fi
         export DEN_DIR
-        if [[ ''${DEN_APPS_SETUP_LOCKED:-0} == 1 ]]; then
+        if [[ ''${DEN_APPS_SETUP_LOCKED:-0} == 1 && -e /proc/self/fd/8 ]]; then
           exec 8>&-
           exec ${denAppsSource} "$@"
         fi

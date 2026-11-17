@@ -112,6 +112,27 @@ This project's architecture consists of the following key layers/directories:
 - `modules/omarchy.nix` adapts Omarchy to Guix. Its Quickshell uses an
   elogind-aware polkit library and the Guix privileged helper. The keyboard
   indicator uses Python with PyGObject and the GLib typelibs.
+- `modules/omarchy.nix` builds the Superwhisper install, removal, dictation, and
+  service scripts with `pkgs.writeShellScript`.
+  The service uses `setsid` and `flock`, with bounded startup and shutdown checks.
+  Removal signals only processes that hold the private daemon lock.
+  Dictation starts the daemon on demand and does not need a systemd user manager.
+  The app wrapper uses explicit `DEN_DIR`, then `$XDG_STATE_HOME/den/app-source`,
+  then the main checkout.
+  This keeps menu installations on the repaired source after a worktree deployment.
+  Setup and removal serialize on a private app-list lock before changing the
+  app list, preferences, daemon, or dictation selection; the service closes the
+  setup lock descriptor before launching its long-lived daemon. A failed
+  preference update leaves the previous value unchanged and reports that state.
+  Setup records an owner token only after its daemon process acquires the private lock.
+  If setup fails, it stops only that daemon and removes only its new app entry.
+  It restores the previous dictation selection only while the current selection
+  is still Superwhisper, preserving a newer choice. Crash reports stay disabled
+  after their preference update succeeds, and failures before that update is
+  confirmed do not claim it succeeded.
+  Package construction runs `scripts/test-omarchy-superwhisper.sh` against the
+  generated scripts and a fake daemon during `postFixup`.
+  The test runs after Nix's interpreter fixup, inside the build sandbox.
 
 ## Data Flows
 - Inbound request/command parses and validates at the entrypoint.

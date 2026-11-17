@@ -28,6 +28,43 @@ Generated interface specs should include:
 | `TODO` | `TODO` | `TODO` | `TODO` | `TODO` |
 
 ## Inbound Contracts
+- The Superwhisper installer accepts `--background` and retains the Cloud/Offline confirmation prompt.
+  Before confirmation, it explains that Cloud sends audio, transcripts, and required
+  context to the selected provider. Superwhisper-hosted Cloud models process content
+  in memory without retention; third-party Cloud models follow their providers' terms.
+  Offline models run on this device.
+  After confirmation it takes an exclusive lock at
+  `$XDG_STATE_HOME/den/app-list.lock`, with the standard state-directory fallback.
+  Another Superwhisper setup
+  or removal exits before changing user state.
+  It atomically disables crash reports before startup and saves the backend
+  after successful package deployment and CLI configuration. A preference-write
+  failure leaves the prior preference unchanged and is reported without claiming
+  that crash reports were disabled.
+  Cancellation installs nothing and writes no preferences or backend selection.
+- If setup fails after confirmation, it stops only a daemon started by this attempt
+  and removes only an app entry that this attempt added.
+  It restores the previous dictation selection only if the current selection is still
+  Superwhisper; a newer choice is preserved. A completed preference update leaves
+  crash reports disabled; if that update fails, the prior value remains unchanged
+  and the error message says so.
+  It preserves any app and daemon that existed before setup.
+- The Guix Superwhisper helper accepts `start` or `stop`.
+  It uses `SUPERWHISPER_RUNTIME`, or `$XDG_RUNTIME_DIR/superwhisper`, for private locks and the control socket.
+  Its startup and shutdown checks each allow ten seconds.
+  Its internal `stop-owned` command requires the setup attempt's owner token.
+  It records ownership only after `flock` grants the daemon lock and stops the daemon
+  only when the runtime owner file matches that token.
+  It writes daemon output to `$XDG_STATE_HOME/superwhisper/guix-daemon.log`, with the standard XDG fallback.
+  Removal preserves preferences, models, and history.
+- The `omarchy-den-apps` wrapper in `modules/omarchy.nix` uses `DEN_DIR`, then
+  `$XDG_STATE_HOME/den/app-source`, then the main checkout.
+  The marker is a source-directory symlink configured after successful deployment from an isolated worktree.
+  A broken marker fails before changing the app list; it does not select the main checkout instead.
+  Ordinary app-list operations acquire the Superwhisper setup lock for their
+  complete deployment. Setup and removal pass an internal lock context to their
+  app-list calls while the parent retains that lock. The wrapper closes the
+  inherited descriptor before deployment so new services cannot retain it.
 - GDM invokes Guix's `ewm-session`. It executes
   `$HOME/.local/state/nix/profiles/home-manager/home-path/bin/ewm-start`
   and forwards all arguments. If the launcher is absent, it writes an error

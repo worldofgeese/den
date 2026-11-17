@@ -72,6 +72,8 @@
       # Guix replacements for Omarchy's package, update, DNS, channel and
       # reminder flows (scripts/omarchy-guix/). @name@ placeholders are filled
       # here; @table@ is filled in postInstall, where the table's path exists.
+      # Superwhisper helpers are generated below because their app and service
+      # paths are Nix store references.
       guixScript = name: file: vars:
         pkgs.writeShellScript name (builtins.replaceStrings
           (map (v: "@${v}@") (builtins.attrNames vars))
@@ -94,7 +96,271 @@
           lib.optionalString (attr != null) "${id}\t${attr}\n")
         (import "${inputs.nixarchy}/data/apps.nix")));
 
-      denApps = guixScript "omarchy-den-apps" "den-apps.sh" {};
+      denAppsSource = guixScript "omarchy-den-apps-source" "den-apps.sh" {};
+      denApps = pkgs.writeShellScript "omarchy-den-apps" ''
+        set -euo pipefail
+        if [[ -z ''${DEN_DIR:-} ]]; then
+          den_source=''${XDG_STATE_HOME:-$HOME/.local/state}/den/app-source
+          if [[ ! -e $den_source && ! -L $den_source ]]; then
+            den_source=$HOME/.config/home-manager
+          fi
+          DEN_DIR=$den_source
+        fi
+        export DEN_DIR
+        if [[ ''${DEN_APPS_SETUP_LOCKED:-0} == 1 ]]; then
+          exec 8>&-
+          exec ${denAppsSource} "$@"
+        fi
+        umask 077
+        app_state=''${XDG_STATE_HOME:-$HOME/.local/state}/den
+        mkdir -p "$app_state"
+        if ! ${pkgs.util-linux}/bin/flock --nonblock --close "$app_state/app-list.lock" ${denAppsSource} "$@"; then
+          echo 'The app-list operation failed. If Superwhisper setup or removal is active, wait for it to finish and try again.' >&2
+          exit 1
+        fi
+      '';
+      superwhisperService = pkgs.writeShellScript "omarchy-superwhisper-service" ''
+        set -euo pipefail
+
+        case ''${1:-} in start|stop|stop-owned) ;; *) echo 'Usage: superwhisper-service {start|stop|stop-owned}' >&2; exit 2 ;; esac
+        umask 077
+        runtime=''${SUPERWHISPER_RUNTIME:-''${XDG_RUNTIME_DIR:?}/superwhisper}
+        mkdir -p "$runtime"
+        exec 9>"$runtime/omarchy-control.lock"
+        ${pkgs.util-linux}/bin/flock -w 10 9
+        lock=$runtime/omarchy-daemon.lock
+        owner=$runtime/omarchy-daemon.owner
+        owner_token=''${SUPERWHISPER_OWNER_TOKEN:-}
+        running() { [[ -S $runtime/control.sock ]] && superwhisper status >/dev/null 2>&1; }
+
+        if [[ $1 == stop-owned ]]; then
+          [[ -n $owner_token ]] || { echo 'stop-owned requires an owner token.' >&2; exit 2; }
+          [[ -f $owner && $(<"$owner") == "$owner_token" ]] || exit 0
+        fi
+
+        if [[ $1 == stop || $1 == stop-owned ]]; then
+          if ${pkgs.util-linux}/bin/flock --nonblock "$lock" true; then
+            rm -f "$owner"
+            if [[ $1 == stop ]] && command -v superwhisper >/dev/null && running; then
+              echo 'Superwhisper started outside this setup. Close it before removal.' >&2
+              exit 1
+            fi
+            exit 0
+          fi
+          ${pkgs.psmisc}/bin/fuser --kill -TERM "$lock" >/dev/null 2>&1 || true
+          for ((attempt=0; attempt<100; attempt++)); do
+            if ${pkgs.util-linux}/bin/flock --nonblock "$lock" true; then
+              rm -f "$owner"
+              exit 0
+            fi
+            sleep .1
+          done
+          echo 'Superwhisper did not stop. The package selection stays unchanged.' >&2
+          exit 1
+        fi
+
+        command -v superwhisper >/dev/null
+        if running; then exit 0; fi
+        state=''${XDG_STATE_HOME:-$HOME/.local/state}/superwhisper
+        mkdir -p "$state"
+        log=$state/guix-daemon.log
+        if [[ -n $owner_token ]]; then
+          [[ $owner_token =~ ^[A-Za-z0-9_-]+$ ]] || { echo 'Invalid Superwhisper owner token.' >&2; exit 2; }
+        fi
+        # The child Bash expands its own positional parameters.
+        # shellcheck disable=SC2016
+        ${pkgs.util-linux}/bin/setsid --fork ${pkgs.util-linux}/bin/flock --no-fork --nonblock "$lock" \
+          ${pkgs.bash}/bin/bash -euo pipefail -c '
+            owner=$1
+            owner_token=$2
+            shift 2
+            if [[ -n $owner_token ]]; then
+              owner_tmp=$(mktemp "$owner.XXXXXX")
+              printf "%s\n" "$owner_token" >"$owner_tmp"
+              mv -f -- "$owner_tmp" "$owner"
+            else
+              rm -f -- "$owner"
+            fi
+            exec "$@"
+          ' _ "$owner" "$owner_token" superwhisper daemon \
+          9>&- </dev/null >>"$log" 2>&1
+        for ((attempt=0; attempt<100; attempt++)); do
+          if running; then exit 0; fi
+          sleep .1
+        done
+        echo "Superwhisper did not become ready. Read $log." >&2
+        exit 1
+      '';
+      superwhisperInstall = pkgs.writeShellScript "omarchy-install-dictation-superwhisper" ''
+        set -euo pipefail
+
+        background=false
+        if [[ ''${1:-} == --background ]]; then background=true; shift; fi
+        if (($#)); then
+          echo 'Usage: omarchy install dictation superwhisper [--background]' >&2
+          exit 1
+        fi
+
+        cat <<'NOTICE'
+        Superwhisper is proprietary software. Cloud sends audio, transcripts and any
+        needed prompt or context for processing; Offline runs models on this device.
+        Superwhisper says its own Cloud models process audio and transcripts in memory
+        and do not retain them after a request. Third-party Cloud models follow their
+        providers' terms and retention practices.
+        The app can contact the vendor on startup even before a recording. Crash reports
+        will be turned off before startup. Read the vendor's terms and privacy policy:
+        https://superwhisper.com/terms
+        https://superwhisper.com/privacy
+        NOTICE
+        mode=$(gum choose 'Cloud' 'Offline') || exit 0
+        case $mode in Cloud|Offline) ;; *) exit 1 ;; esac
+        gum confirm "Install Superwhisper and use $mode?" || exit 0
+
+        umask 077
+        app_state=''${XDG_STATE_HOME:-$HOME/.local/state}/den
+        mkdir -p "$app_state"
+        exec 8>>"$app_state/app-list.lock"
+        if ! ${pkgs.util-linux}/bin/flock --nonblock 8; then
+          echo 'Another Superwhisper setup or removal is already running. Wait for it to finish before trying again.' >&2
+          exit 1
+        fi
+
+        preferences=''${XDG_CONFIG_HOME:-$HOME/.config}/superwhisper/preferences.json
+        selection=''${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/defaults/dictation
+        tmp=
+        selection_backup=
+        selection_had_previous=false
+        selection_change_attempted=false
+        setup_complete=false
+        app_added=false
+        daemon_start_attempted=false
+        crash_reports_disabled=false
+        owner_token="setup-$BASHPID-$RANDOM-$RANDOM"
+
+        cleanup_setup() {
+          status=$?
+          trap - EXIT
+          [[ -z $tmp ]] || rm -f "$tmp"
+          cleanup_failed=false
+          if ((status != 0)) && [[ $setup_complete == false ]]; then
+            if [[ $daemon_start_attempted == true ]]; then
+              if ! SUPERWHISPER_OWNER_TOKEN=$owner_token ${superwhisperService} stop-owned; then
+                cleanup_failed=true
+              fi
+            fi
+            if [[ $app_added == true && $cleanup_failed == false ]]; then
+              if ! DEN_APPS_SETUP_LOCKED=1 ${denApps} remove nixarchy-apps.superwhisper; then cleanup_failed=true; fi
+            fi
+            if [[ $selection_change_attempted == true ]]; then
+              if [[ -f $selection && $(<"$selection") == superwhisper ]]; then
+                if [[ $selection_had_previous == true ]]; then
+                  mv -f -- "$selection_backup" "$selection" || cleanup_failed=true
+                else
+                  rm -f -- "$selection" || cleanup_failed=true
+                fi
+              fi
+            fi
+            if [[ $cleanup_failed == true ]]; then
+              echo 'Superwhisper setup failed. Automatic cleanup was incomplete. Check the app list and use the removal menu if needed.' >&2
+              if [[ -n $selection_backup && ( -e $selection_backup || -L $selection_backup ) ]]; then
+                echo "The previous dictation choice is saved at $selection_backup." >&2
+              fi
+            else
+              echo 'Superwhisper setup failed. This attempt cleaned up its app and daemon changes. Any app or daemon that existed before setup remains unchanged. The previous dictation choice was restored if it was still selected; a newer choice was preserved.' >&2
+              if [[ $crash_reports_disabled == true ]]; then
+                echo 'Crash reports remain disabled.' >&2
+              else
+                echo "The crash-report preference was not updated; any previous value remains unchanged in $preferences." >&2
+              fi
+            fi
+          fi
+          if [[ -n $selection_backup && ( -e $selection_backup || -L $selection_backup ) ]]; then
+            if [[ $setup_complete == true || $cleanup_failed == false ]]; then
+              rm -f -- "$selection_backup"
+            fi
+          fi
+          exit "$status"
+        }
+        trap cleanup_setup EXIT
+
+        mkdir -p "''${preferences%/*}"
+        tmp=$(mktemp "$preferences.XXXXXX")
+        if [[ -f $preferences ]]; then
+          jq '.errorLoggingEnabled = false' "$preferences" >"$tmp"
+        else
+          jq -n '{errorLoggingEnabled: false}' >"$tmp"
+        fi
+        mv "$tmp" "$preferences"
+        crash_reports_disabled=true
+
+        existing_apps=$(DEN_APPS_SETUP_LOCKED=1 ${denApps} list)
+        case $'\n'"$existing_apps"$'\n' in
+          *$'\nnixarchy-apps.superwhisper\n'*) ;;
+          *) app_added=true ;;
+        esac
+        DEN_APPS_SETUP_LOCKED=1 ${denApps} add nixarchy-apps.superwhisper
+        daemon_start_attempted=true
+        SUPERWHISPER_OWNER_TOKEN=$owner_token ${superwhisperService} start 8>&-
+        superwhisper models select "''${mode,,}" >/dev/null
+        superwhisper shortcuts set toggle Ctrl+Alt+Space >/dev/null
+        superwhisper shortcuts set hold none >/dev/null
+        mkdir -p "''${selection%/*}"
+        selection_backup=$(mktemp "$selection.XXXXXX")
+        rm -f -- "$selection_backup"
+        if [[ -e $selection || -L $selection ]]; then
+          cp -a -- "$selection" "$selection_backup"
+          selection_had_previous=true
+        fi
+        selection_change_attempted=true
+        omarchy-dictation-use superwhisper
+        omarchy-restart-hyprctl
+        setup_complete=true
+        exec 8>&-
+        if [[ $background == false ]]; then
+          omarchy-notification-send -g  "$(omarchy-i18n dictation.superwhisperReady)" "$(omarchy-i18n dictation.hint)" -t 10000 \
+            || echo 'Superwhisper is ready, but the notification could not be sent.' >&2
+          superwhisper settings || echo 'Superwhisper is ready, but its settings window could not be opened.' >&2
+        fi
+      '';
+      superwhisperRemove = pkgs.writeShellScript "omarchy-remove-dictation-superwhisper" ''
+        set -euo pipefail
+
+        umask 077
+        app_state=''${XDG_STATE_HOME:-$HOME/.local/state}/den
+        mkdir -p "$app_state"
+        exec 8>>"$app_state/app-list.lock"
+        if ! ${pkgs.util-linux}/bin/flock --nonblock 8; then
+          echo 'A Superwhisper setup or removal is already running. Wait for it to finish before trying again.' >&2
+          exit 1
+        fi
+
+        ${superwhisperService} stop
+        DEN_APPS_SETUP_LOCKED=1 ${denApps} remove nixarchy-apps.superwhisper
+
+        selection=''${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/defaults/dictation
+        if [[ -f $selection && $(<"$selection") == superwhisper ]]; then
+          rm "$selection"
+        fi
+        omarchy-restart-hyprctl
+      '';
+      superwhisperDictation = pkgs.writeShellScript "omarchy-dictation-superwhisper" ''
+        set -euo pipefail
+
+        case ''${1:-} in
+          start|toggle)
+            ${superwhisperService} start
+            if [[ $1 == start ]]; then superwhisper start
+            else superwhisper record; fi
+            ;;
+          stop)
+            runtime=''${SUPERWHISPER_RUNTIME:-''${XDG_RUNTIME_DIR:?}/superwhisper}
+            if command -v superwhisper >/dev/null && [[ -S $runtime/control.sock ]]; then
+              superwhisper stop
+            fi
+            ;;
+          *) echo 'Usage: omarchy dictation superwhisper <start|stop|toggle>' >&2; exit 1 ;;
+        esac
+      '';
       guixPkgScripts = {
         omarchy-pkg-add = "pkg-add.sh";
         omarchy-pkg-drop = "pkg-drop.sh";
@@ -106,13 +372,19 @@
         omarchy-refresh-plymouth = "refresh-plymouth.sh";
         omarchy-dns = "dns.sh";
       };
-      guixPkgScriptDrvs = lib.mapAttrs (name: file:
-        guixScript name file {
-          appmap = "${appMap}";
-          denApps = "${denApps}";
-          table = "@table@";
-        })
-      guixPkgScripts;
+      guixPkgScriptDrvs =
+        (lib.mapAttrs (name: file:
+          guixScript name file {
+            appmap = "${appMap}";
+            denApps = "${denApps}";
+            table = "@table@";
+          })
+        guixPkgScripts)
+        // {
+          omarchy-install-dictation-superwhisper = superwhisperInstall;
+          omarchy-remove-dictation-superwhisper = superwhisperRemove;
+          omarchy-dictation-superwhisper = superwhisperDictation;
+        };
       setTimezone = guixScript "omarchy-guix-set-timezone" "set-timezone.sh" {};
       reminderRun = guixScript "omarchy-guix-reminder-run" "reminder-run.sh" {
         setsid = "${pkgs.util-linux}/bin/setsid";
@@ -663,7 +935,7 @@
                     'if command -v fcitx5 >/dev/null 2>&1; then setsid --fork fcitx5 -d >/dev/null 2>&1; else omarchy-notification-send "XCompose saved" "Apps read it when they next start."; fi'
 
                 for f in omarchy-reminder omarchy-toggle-crash-capture omarchy-restart-xcompose \
-                         omarchy-menu-timezone ${lib.concatStringsSep " " (lib.attrNames guixPkgScripts)}; do
+                         omarchy-menu-timezone ${lib.concatStringsSep " " (lib.attrNames guixPkgScriptDrvs)}; do
                   if grep -nE 'systemctl|systemd-run|timedatectl|pacman|yay |nixos-rebuild' \
                        "$out/share/omarchy/bin/$f" | grep -vE '^[0-9]+:\s*#' | grep -q .; then
                     echo "$f still calls systemd, pacman or NixOS tools after the Guix override:" >&2
@@ -706,6 +978,22 @@
 
                 PATH=${lib.makeBinPath [pkgs.util-linux]}:$PATH \
                   ${pkgs.bash}/bin/bash ${../scripts/test-omarchy-share.sh} "$out/share/omarchy"
+              '';
+            postFixup =
+              (old.postFixup or "")
+              + ''
+                OMARCHY_PATH="$out/share/omarchy" \
+                  PATH=${lib.makeBinPath [pkgs.util-linux pkgs.psmisc pkgs.python3 pkgs.ripgrep pkgs.jq pkgs.shellcheck]}:$PATH \
+                  ${pkgs.shellcheck}/bin/shellcheck \
+                    ${../scripts/test-omarchy-superwhisper.sh} \
+                    ${superwhisperService} ${denApps} \
+                    "$out/share/omarchy/bin/omarchy-install-dictation-superwhisper" \
+                    "$out/share/omarchy/bin/omarchy-remove-dictation-superwhisper" \
+                    "$out/share/omarchy/bin/omarchy-dictation-superwhisper"
+                OMARCHY_PATH="$out/share/omarchy" \
+                  PATH=${lib.makeBinPath [pkgs.util-linux pkgs.psmisc pkgs.python3 pkgs.ripgrep pkgs.jq pkgs.shellcheck]}:$PATH \
+                  ${pkgs.bash}/bin/bash ${../scripts/test-omarchy-superwhisper.sh} \
+                    "$out/share/omarchy" ${superwhisperService} ${denApps} ${pkgs.psmisc}/bin/fuser
               '';
           });
       };

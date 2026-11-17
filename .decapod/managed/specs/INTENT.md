@@ -11,6 +11,15 @@
 - On mahakala, GDM starts EWM through Home Manager's `ewm-start`. Nix supplies both Emacs and `ewm-core`, which must use compatible glibc versions.
 
 ## What This Project Is
+On mahakala, the Superwhisper setup menu uses the Guix integration in `modules/omarchy.nix`.
+The user selects Cloud or Offline before installation and startup.
+After confirmation, setup serializes Superwhisper setup and removal, disables
+crash reports before startup, and selects the backend only after successful
+configuration. If the preference write fails, the previous value remains and
+setup reports that accurately.
+Removal preserves preferences, models, and history.
+Package construction tests consent, setup failures, removal, dictation, and daemon control.
+
 Den is the configuration repository for the user's workstations, servers, and mobile deploy targets.
 `flake.nix`, `modules/`, the Guix files, and `Justfile` define their packages, services, agent integrations, and deployment procedures.
 Shared gateway facts have one owner in `gateway.json`; each host and harness adapts those facts without embedding credentials.

@@ -114,10 +114,12 @@
         umask 077
         app_state=''${XDG_STATE_HOME:-$HOME/.local/state}/den
         mkdir -p "$app_state"
-        if ! ${pkgs.util-linux}/bin/flock --nonblock --close "$app_state/app-list.lock" ${denAppsSource} "$@"; then
-          echo 'The app-list operation failed. If Superwhisper setup or removal is active, wait for it to finish and try again.' >&2
-          exit 1
+        status=0
+        ${pkgs.util-linux}/bin/flock --nonblock --conflict-exit-code 75 --close "$app_state/app-list.lock" ${denAppsSource} "$@" || status=$?
+        if ((status == 75)); then
+          echo 'The app list is busy. Wait for the current app operation to finish and try again.' >&2
         fi
+        exit "$status"
       '';
       superwhisperService = pkgs.writeShellScript "omarchy-superwhisper-service" ''
         set -euo pipefail
@@ -244,7 +246,7 @@
           cleanup_failed=false
           if ((status != 0)) && [[ $setup_complete == false ]]; then
             if [[ $daemon_start_attempted == true ]]; then
-              if ! SUPERWHISPER_OWNER_TOKEN=$owner_token ${superwhisperService} stop-owned; then
+              if ! SUPERWHISPER_OWNER_TOKEN=$owner_token ${superwhisperService} stop-owned 8>&-; then
                 cleanup_failed=true
               fi
             fi
@@ -301,9 +303,9 @@
         DEN_APPS_SETUP_LOCKED=1 ${denApps} add nixarchy-apps.superwhisper
         daemon_start_attempted=true
         SUPERWHISPER_OWNER_TOKEN=$owner_token ${superwhisperService} start 8>&-
-        superwhisper models select "''${mode,,}" >/dev/null
-        superwhisper shortcuts set toggle Ctrl+Alt+Space >/dev/null
-        superwhisper shortcuts set hold none >/dev/null
+        superwhisper models select "''${mode,,}" >/dev/null 8>&-
+        superwhisper shortcuts set toggle Ctrl+Alt+Space >/dev/null 8>&-
+        superwhisper shortcuts set hold none >/dev/null 8>&-
         mkdir -p "''${selection%/*}"
         selection_backup=$(mktemp "$selection.XXXXXX")
         rm -f -- "$selection_backup"
@@ -312,8 +314,8 @@
           selection_had_previous=true
         fi
         selection_change_attempted=true
-        omarchy-dictation-use superwhisper
-        omarchy-restart-hyprctl
+        omarchy-dictation-use superwhisper 8>&-
+        omarchy-restart-hyprctl 8>&-
         setup_complete=true
         exec 8>&-
         if [[ $background == false ]]; then
@@ -334,14 +336,14 @@
           exit 1
         fi
 
-        ${superwhisperService} stop
+        ${superwhisperService} stop 8>&-
         DEN_APPS_SETUP_LOCKED=1 ${denApps} remove nixarchy-apps.superwhisper
 
         selection=''${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/defaults/dictation
         if [[ -f $selection && $(<"$selection") == superwhisper ]]; then
           rm "$selection"
         fi
-        omarchy-restart-hyprctl
+        omarchy-restart-hyprctl 8>&-
       '';
       superwhisperDictation = pkgs.writeShellScript "omarchy-dictation-superwhisper" ''
         set -euo pipefail

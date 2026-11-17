@@ -49,6 +49,14 @@ set -euo pipefail
 name=${0##*/}
 printf '%s %s\n' "$name" "$*" >>"$SW_TEST_CALLS"
 case $name in
+  superwhisper|omarchy-restart-hyprctl)
+    if [[ -e /proc/$$/fd/8 ]]; then
+      echo "Unexpected app-list lock descriptor in $name" >&2
+      exit 98
+    fi
+    ;;
+esac
+case $name in
   jq)
     [[ ${SW_TEST_JQ_FAIL:-0} != 1 ]] || exit 1
     exec "$SW_TEST_REAL_JQ" "$@"
@@ -213,10 +221,13 @@ if bash "$remove_script" 2>"$test_dir/concurrent-removal.err"; then
 fi
 rg -q 'A Superwhisper setup or removal is already running' "$test_dir/concurrent-removal.err" \
   || fail 'removal did not report the active setup lock'
-if "$den_apps" add nixarchy-apps.superwhisper 2>"$test_dir/concurrent-app-add.err"; then
+app_status=0
+"$den_apps" add nixarchy-apps.superwhisper 2>"$test_dir/concurrent-app-add.err" || app_status=$?
+if ((app_status == 0)); then
   fail 'a generic app-list operation ran while setup held the lock'
 fi
-rg -q 'The app-list operation failed' "$test_dir/concurrent-app-add.err" \
+[[ $app_status == 75 ]] || fail 'app-list lock contention did not return its reserved status'
+rg -q 'The app list is busy' "$test_dir/concurrent-app-add.err" \
   || fail 'a generic app-list operation did not explain the setup lock'
 jq -e '. == ["nixarchy-apps.superwhisper"]' "$app_source/modules/omarchy-apps.json" >/dev/null \
   || fail 'a rejected concurrent setup or removal changed the first setup app entry'
@@ -232,6 +243,27 @@ DEN_DIR=$main_source "$den_apps" add jq
 jq -e '. == ["jq"]' "$main_source/modules/omarchy-apps.json" >/dev/null \
   || fail 'the app script ignored explicit DEN_DIR'
 jq -e '. == ["nixarchy-apps.superwhisper"]' "$app_source/modules/omarchy-apps.json" >/dev/null
+
+echo '{invalid' >"$app_source/modules/omarchy-apps.json"
+expected_jq_status=0
+"$SW_TEST_REAL_JQ" -r '.[]' "$app_source/modules/omarchy-apps.json" >/dev/null 2>&1 || expected_jq_status=$?
+((expected_jq_status != 0)) || fail 'the malformed app list did not make jq fail'
+app_status=0
+"$den_apps" list >"$test_dir/invalid-app-list.out" 2>"$test_dir/invalid-app-list.err" || app_status=$?
+[[ $app_status == "$expected_jq_status" ]] || fail 'the app wrapper did not preserve the jq parse failure status'
+! rg -q 'The app list is busy' "$test_dir/invalid-app-list.err" \
+  || fail 'a jq parse failure was reported as lock contention'
+echo '["nixarchy-apps.superwhisper"]' >"$app_source/modules/omarchy-apps.json"
+
+export SW_TEST_DEPLOY_FAIL=1
+app_status=0
+"$den_apps" add ripgrep >"$test_dir/app-deploy-failure.out" 2>"$test_dir/app-deploy-failure.err" || app_status=$?
+[[ $app_status == 1 ]] || fail 'the app wrapper did not preserve a deploy failure status'
+! rg -q 'The app list is busy' "$test_dir/app-deploy-failure.err" \
+  || fail 'a deploy failure was reported as lock contention'
+jq -e '. == ["nixarchy-apps.superwhisper"]' "$app_source/modules/omarchy-apps.json" >/dev/null \
+  || fail 'a failed ordinary app deployment did not restore the app list'
+unset SW_TEST_DEPLOY_FAIL
 
 echo voxtype >"$selection"
 echo '[]' >"$app_source/modules/omarchy-apps.json"

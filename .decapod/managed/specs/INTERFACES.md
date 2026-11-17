@@ -59,12 +59,15 @@ Generated interface specs should include:
   Removal preserves preferences, models, and history.
 - The `omarchy-den-apps` wrapper in `modules/omarchy.nix` uses `DEN_DIR`, then
   `$XDG_STATE_HOME/den/app-source`, then the main checkout.
-  The marker is a source-directory symlink configured after successful deployment from an isolated worktree.
+  The optional marker is a user-managed source-directory symlink.
+  This change reads the marker; deployment does not create or update it.
   A broken marker fails before changing the app list; it does not select the main checkout instead.
   Ordinary app-list operations acquire the Superwhisper setup lock for their
   complete deployment. Setup and removal pass an internal lock context to their
   app-list calls while the parent retains that lock. The wrapper closes the
   inherited descriptor before deployment so new services cannot retain it.
+  Lock contention returns status 75 with a busy message. Other failures retain
+  the child command's status and error output.
 - GDM invokes Guix's `ewm-session`. It executes
   `$HOME/.local/state/nix/profiles/home-manager/home-path/bin/ewm-start`
   and forwards all arguments. If the launcher is absent, it writes an error

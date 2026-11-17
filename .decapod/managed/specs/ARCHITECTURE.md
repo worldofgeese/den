@@ -119,7 +119,8 @@ This project's architecture consists of the following key layers/directories:
   Dictation starts the daemon on demand and does not need a systemd user manager.
   The app wrapper uses explicit `DEN_DIR`, then `$XDG_STATE_HOME/den/app-source`,
   then the main checkout.
-  This keeps menu installations on the repaired source after a worktree deployment.
+  An explicit override or optional user-managed marker selects the intended checkout.
+  This module reads the marker; deployment does not create it automatically.
   Setup and removal serialize on a private app-list lock before changing the
   app list, preferences, daemon, or dictation selection; the service closes the
   setup lock descriptor before launching its long-lived daemon. A failed

@@ -100,6 +100,15 @@
         "independent_review",
         "repository_checks"
       ]
+    },
+    {
+      "id": "superwhisper-hosted-review-fixes",
+      "summary": "Preserve app-command error status, prevent child lock-descriptor leaks, correct marker and product specs, and retain historical failures. Expanded package regressions passed; generated scope defect is tracked upstream in issue1760.",
+      "input_digest": "sha256:f28e3ecc3d7b7beab65a2176ca3a0a65631c63a98c7106700e9cad470ad3aa2c",
+      "proof_refs": [
+        "repository_checks",
+        "review_fix_package_build"
+      ]
     }
   ],
   "intents": {
@@ -160,7 +169,7 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:61a1e3be6c74144f77b14f0284ca7e679cf29f01b4bab4d77508eb2885374da4",
+      "artifact_hash": "sha256:b0d19868acbd4c2cbeabe2b56f2143165b126d98d763d29da21b489776f4f454",
       "checks": [
         {
           "name": "final_formatting",
@@ -180,14 +189,18 @@
         },
         {
           "name": "initial_package_build",
-          "status": "passed"
+          "status": "failed"
         },
         {
           "name": "repository_checks",
           "status": "passed"
+        },
+        {
+          "name": "review_fix_package_build",
+          "status": "passed"
         }
       ],
-      "current_phase": "verify",
+      "current_phase": "review",
       "custody": {
         "events": [
           {
@@ -229,10 +242,24 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 7,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -353,6 +380,58 @@
                 ],
                 "sequence": 7,
                 "validation_findings": []
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:8",
+                "observations": [
+                  "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
+                  "The scope fragments were generated from a valid explicit paths declaration by Decapod. todo edit exposes no scope repair. Upstream issue https://github.com/DecapodLabs/decapod/issues/1760 tracks the malformed projections. No generated field was hand-edited.",
+                  "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed."
+                ],
+                "proof_refs": [
+                  "initial_package_build"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 8,
+                "validation_findings": []
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:9",
+                "observations": [
+                  "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
+                  "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
+                  "Hosted review fixes preserve actual data: source marker is documented as user-managed; product identity leads INTENT.md; initial SC2016 failure remains failed, repaired package builds remain passed, and generated scope limitation is tracked in upstream issue1760."
+                ],
+                "proof_refs": [
+                  "review_fix_package_build"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 9,
+                "validation_findings": []
               }
             ]
           }
@@ -368,11 +447,17 @@
       "destination": "Merge the repaired Superwhisper setup under the renewed owner authority",
       "evidence": [
         "Final package /nix/store/f6275p4gf5kjxaksdbnbhp3c75awjr4x-omarchy-4.5.0 built successfully with the postFixup Superwhisper tests and ShellCheck. All five generic app-menu scripts contain no unresolved denApps placeholder.",
+        "Hosted review fixes preserve actual data: source marker is documented as user-managed; product identity leads INTENT.md; initial SC2016 failure remains failed, repaired package builds remain passed, and generated scope limitation is tracked in upstream issue1760.",
         "Independent correctness reviewer: no remaining concrete findings; shared app-list lock and paused-deploy regression address both findings.",
         "Independent reviewer found omitted denApps placeholder substitution and app-list race; restored substitution and added shared state-directory app-list locking with a controlled generic-add regression.",
         "Owner authorized the bounded publication exception. Prior suspected inventory-policy blocker is preserved as evidence and upstream issue 1738; exact validation now reports trajectory readiness first and has not established the suspected inventory failure on this candidate.",
         "Owner explicitly authorized any and all action to finish, after being informed of the Decapod 1738 blocker; bounded publication exception uses actual code checks and review, never a fabricated validation receipt.",
+        "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed.",
+        "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
         "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
+        "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
+        "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
+        "The scope fragments were generated from a valid explicit paths declaration by Decapod. todo edit exposes no scope repair. Upstream issue https://github.com/DecapodLabs/decapod/issues/1760 tracks the malformed projections. No generated field was hand-edited.",
         "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder."
       ],
       "inspected_files": [
@@ -388,6 +473,8 @@
         "scripts/test-omarchy-superwhisper.sh"
       ],
       "next_transitions": [
+        "Apply hosted review fixes, rebuild the affected package with added regressions, then checkpoint, commit, push and finish the review threads.",
+        "Checkpoint and commit the combined review fixes, push, reply substantively and resolve each handled thread, then finish hosted CI and merge under the owner exception.",
         "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
         "Commit candidate after checkpoint, collect remaining package and review results, then run plain Decapod validation and preserve its actual result before publication.",
         "Pass package regressions and repository checks, collect independent review, checkpoint candidate, attempt exact validation, publish and merge under owner exception.",

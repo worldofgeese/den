@@ -64,7 +64,9 @@ Generated interface specs should include:
   A broken marker fails before changing the app list; it does not select the main checkout instead.
   Ordinary app-list operations acquire the Superwhisper setup lock for their
   complete deployment. Setup and removal pass an internal lock context to their
-  app-list calls while the parent retains that lock. The wrapper closes the
+  app-list calls while the parent retains that lock. The wrapper accepts that
+  context only when fd 8 refers to the same `app-list.lock` file; an exported
+  flag or unrelated open descriptor cannot bypass locking. It closes the
   inherited descriptor before deployment so new services cannot retain it.
   Lock contention returns status 75 with a busy message. Other failures retain
   the child command's status and error output.

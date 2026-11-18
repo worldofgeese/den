@@ -22,8 +22,8 @@ Key operating facts:
 ## Superwhisper on mahakala
 On mahakala, the Superwhisper setup menu uses the Guix integration in `modules/omarchy.nix`.
 The user selects Cloud or Offline before installation and startup.
-After confirmation, setup serializes Superwhisper setup and removal, disables
-crash reports before startup, and selects the backend only after successful
+After confirmation, setup and removal serialize with app-list changes, disable
+crash reports before startup, and select the backend only after successful
 configuration. If the preference write fails, the previous value remains and
 setup reports that accurately.
 Removal preserves preferences, models, and history.

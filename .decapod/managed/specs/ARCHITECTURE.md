@@ -123,7 +123,9 @@ This project's architecture consists of the following key layers/directories:
   This module reads the marker; deployment does not create it automatically.
   Setup and removal serialize on a private app-list lock before changing the
   app list, preferences, daemon, or dictation selection; the service closes the
-  setup lock descriptor before launching its long-lived daemon. A failed
+  setup lock descriptor before launching its long-lived daemon. The app wrapper
+  accepts its internal lock context only when descriptor 8 refers to that same
+  app-list lock; an exported flag or unrelated descriptor cannot bypass it. A failed
   preference update leaves the previous value unchanged and reports that state.
   Setup records an owner token only after its daemon process acquires the private lock.
   If setup fails, it stops only that daemon and removes only its new app entry.

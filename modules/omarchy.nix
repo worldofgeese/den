@@ -107,15 +107,16 @@
           DEN_DIR=$den_source
         fi
         export DEN_DIR
-        if [[ ''${DEN_APPS_SETUP_LOCKED:-0} == 1 && -e /proc/self/fd/8 ]]; then
+        app_state=''${XDG_STATE_HOME:-$HOME/.local/state}/den
+        app_lock=$app_state/app-list.lock
+        if [[ ''${DEN_APPS_SETUP_LOCKED:-0} == 1 && /proc/self/fd/8 -ef $app_lock ]]; then
           exec 8>&-
           exec ${denAppsSource} "$@"
         fi
         umask 077
-        app_state=''${XDG_STATE_HOME:-$HOME/.local/state}/den
         mkdir -p "$app_state"
         status=0
-        ${pkgs.util-linux}/bin/flock --nonblock --conflict-exit-code 75 --close "$app_state/app-list.lock" ${denAppsSource} "$@" || status=$?
+        ${pkgs.util-linux}/bin/flock --nonblock --conflict-exit-code 75 --close "$app_lock" ${denAppsSource} "$@" || status=$?
         if ((status == 75)); then
           echo 'The app list is busy. Wait for the current app operation to finish and try again.' >&2
         fi

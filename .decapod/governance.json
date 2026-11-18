@@ -152,6 +152,11 @@
       "id": "superwhisper-project-check-01m7n3",
       "summary": "Record the repository-wide project-check Gatekeeper failure without attributing it to Superwhisper; preserve exact publication readiness as false alongside the lock-bypass fix.",
       "input_digest": "sha256:a1740ab0d3762637b4d222f0a2c968959a7a94b44a8b0b4f5f231910b8ffd03d"
+    },
+    {
+      "id": "superwhisper-lock-inode-guard-01m7nz",
+      "summary": "Require fd 8 to reference the exact app-list lock before honoring the internal bypass, add a held-lock regression for an unrelated descriptor, update all three Superwhisper living specs, and refresh their projections.",
+      "input_digest": "sha256:7d95015c1efa978dbfca6ba2814bfefb2f32f28ef8ffc6a1a2723d21a9428e9c"
     }
   ],
   "intents": {
@@ -212,11 +217,15 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:bd6e3fb00784db9e09c819e69f892bd5aad9f2f80139738f834563d03998e6ab",
+      "artifact_hash": "sha256:b9e08e2472d5e35dcf598c927b51d0521f5e4239a5516486e49ff8608c2f3612",
       "blockers": [
-        "Repository shepherd requires a human review of current PR head 0f5a5629; owner was asked to review."
+        "A person must review the current PR #177 head before merge; the owner has been asked to review the exact candidate."
       ],
       "checks": [
+        {
+          "name": "exact_lock_regression",
+          "status": "unavailable"
+        },
         {
           "name": "final_formatting",
           "status": "passed"
@@ -244,6 +253,10 @@
         {
           "name": "lock_bypass_guard",
           "status": "passed"
+        },
+        {
+          "name": "native_validation_6f88849b",
+          "status": "failed"
         },
         {
           "name": "prior_checkpoint_history",
@@ -355,10 +368,17 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 12
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:13",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 13
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 12,
+        "next_sequence": 13,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -637,6 +657,43 @@
                 ],
                 "sequence": 12,
                 "validation_findings": []
+              },
+              {
+                "action": "PR review fixes",
+                "command": "Decapod validate on 6f88849b: READINESS_BLOCKED by stale human-review blocker for 0f5a5629",
+                "custody_event_id": "event:13",
+                "observations": [
+                  "modules/omarchy.nix",
+                  "scripts/test-omarchy-superwhisper.sh",
+                  "modules/omarchy.nix",
+                  "scripts/test-omarchy-superwhisper.sh",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/.manifest.json",
+                  ".decapod/governance.json",
+                  "The validator reached repository readiness but did not run its proof suite because the trajectory still named the previous PR head. Recovery advice was to set the claimed owner identity and bind the existing branch using workspace ensure; the exact-lock code revision is not yet committed or tested.",
+                  "The wrapper now checks that fd 8 and /home/worldofgeese/.local/state/den/app-list.lock are the same file before accepting the internal bypass; regression covers a held setup lock with an unrelated fd 8."
+                ],
+                "proof_refs": [
+                  "native_validation_6f88849b",
+                  "exact_lock_regression",
+                  "specs_refresh"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 13,
+                "validation_findings": []
               }
             ]
           }
@@ -644,6 +701,8 @@
       },
       "declared_commands": [
         "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
+        "Decapod rpc --op specs.refresh",
+        "Decapod validate on 6f88849b: READINESS_BLOCKED by stale human-review blocker for 0f5a5629",
         "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
         "Final package build bcd97ri1w50y8lwnpblspqx3zrnqvl3h in progress; earlier package build with launcher annotation passed before the final common-lock fix.",
         "decapod govern project-check --store repo --format json --refresh-specs --projections",
@@ -670,6 +729,8 @@
         "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
         "The scope fragments were generated from a valid explicit paths declaration by Decapod. todo edit exposes no scope repair. Upstream issue https://github.com/DecapodLabs/decapod/issues/1760 tracks the malformed projections. No generated field was hand-edited.",
         "The two supported claims from accepted main are restored with their original text, status, and proof references; blocked touchpad recovery remains unresolved.",
+        "The validator reached repository readiness but did not run its proof suite because the trajectory still named the previous PR head. Recovery advice was to set the claimed owner identity and bind the existing branch using workspace ensure; the exact-lock code revision is not yet committed or tested.",
+        "The wrapper now checks that fd 8 and /home/worldofgeese/.local/state/den/app-list.lock are the same file before accepting the internal bypass; regression covers a held setup lock with an unrelated fd 8.",
         "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder.",
         "origin/main advanced after PR creation; merge-tree found one conflict in the generated spec manifest; the current manifest was regenerated through Decapod RPC.",
         "verify-checkpoints --base-branch main reported disposition=proven with no findings for all four authored commits through 0f5a5629."
@@ -700,6 +761,7 @@
       ],
       "next_transitions": [
         "Apply hosted review fixes, rebuild the affected package with added regressions, then checkpoint, commit, push and finish the review threads.",
+        "Checkpoint and commit exact-lock descriptor validation with its regression and spec updates, push, rerun current-head checks, and collect human review.",
         "Checkpoint and commit the combined review fixes, push, reply substantively and resolve each handled thread, then finish hosted CI and merge under the owner exception.",
         "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
         "Commit and push the fd-8 lock guard, rerun exact-candidate validation, and collect fresh CI plus required human review before merge.",

@@ -133,6 +133,15 @@
         "scripts/test_topgrade_gh_skills.py",
         "scripts/test_topgrade_omarchy_session.py"
       ]
+    },
+    {
+      "id": "topgrade-target-reconciliation",
+      "summary": "Merge the accepted Superwhisper target while preserving its source, tests, and authored architecture; keep the Topgrade journal intact.",
+      "input_digest": "sha256:fbc7002ce8081f3bba21ad852df441d51acea1aa7aaa0620c2372491f40cf820",
+      "proof_refs": [
+        "scripts/test-omarchy-superwhisper.sh",
+        "scripts/test_topgrade_omarchy_session.py"
+      ]
     }
   ],
   "intents": {
@@ -186,12 +195,17 @@
         "Current claimed task and isolated work branch",
         "Preserve the selected Codeberg mirrors and unrelated root checkout changes."
       ],
-      "artifact_hash": "sha256:4b8772b86e35c90864356f7332147a078240f75ce7626fb2d8861152150f6c94",
+      "artifact_hash": "sha256:58d571e82dd7db1ca7296d7c7b95522a39f16116c2aa368f0eec1ce6d6068b23",
       "blockers": [
         "The cgroup implementation received PROMPT_EVAL_BLOCKED and requires human review. Guix upstream emits deprecation warnings. Full Topgrade has not run against this candidate.",
+        "The completed Superwhisper task has no verification artifacts; qa verify reported unknown, and supported recovery requires a fresh passing full validation.",
         "The existing repository proof tool paths are macOS arm64 binaries and cannot run on mahakala. A portable accepted proof contract is not established."
       ],
       "checks": [
+        {
+          "name": "candidate-71685577-validation",
+          "status": "failed"
+        },
         {
           "name": "changed-nix-format",
           "status": "passed"
@@ -255,6 +269,10 @@
         {
           "name": "shellcheck_changed_helpers",
           "status": "passed"
+        },
+        {
+          "name": "target-merge-reconciliation",
+          "status": "partial"
         },
         {
           "name": "topgrade-regressions",
@@ -328,10 +346,17 @@
             "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
             "kind": "trajectory_step_recorded",
             "sequence": 10
+          },
+          {
+            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
+            "event_id": "event:11",
+            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+            "kind": "trajectory_step_recorded",
+            "sequence": 11
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 10,
+        "next_sequence": 11,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7NZ8CAV84P4PP6STXF7TFVC": {
@@ -506,6 +531,25 @@
                 ],
                 "sequence": 10,
                 "validation_findings": []
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:11",
+                "observations": [
+                  "scripts/test_topgrade_guix_gc.py",
+                  "Candidate 71685577 passed its repository commit hook and checkpoint-history verification; full validation failed because the accepted target advanced and completed task secu_01m7n3hgynnee4rw lacks verification artifacts.",
+                  "Merged accepted target edad7072 into the worktree without rewriting the active governance journal; retained the target Superwhisper source, tests, and architecture prose. Merge commit and final validation remain pending."
+                ],
+                "proof_refs": [
+                  "candidate-71685577-validation",
+                  "target-merge-reconciliation"
+                ],
+                "scope": [
+                  "Mahakala update configuration, host integration, focused checks, and living specs.",
+                  "root"
+                ],
+                "sequence": 11,
+                "validation_findings": []
               }
             ]
           }
@@ -518,8 +562,10 @@
       "destination": "pull request",
       "evidence": [
         "35 focused tests passed, including selector failure propagation. Both changed Nix modules passed Alejandra and the shell helpers passed ShellCheck. Real Hyprpm inventory was empty. Unattended Podman pruning was removed after inspection found an unrelated tagged image eligible for deletion.",
+        "Candidate 71685577 passed its repository commit hook and checkpoint-history verification; full validation failed because the accepted target advanced and completed task secu_01m7n3hgynnee4rw lacks verification artifacts.",
         "GitHub CLI false-success cases are reported at cli/cli#15092. The stale Caveman source was replaced after a backup and verified by a forced dry run.",
         "Hyprland upstream merged the root-owned Hyprpm build fix after the locked revision; actual plugin updates remain unverified.",
+        "Merged accepted target edad7072 into the worktree without rewriting the active governance journal; retained the target Superwhisper source, tests, and architecture prose. Merge commit and final validation remain pending.",
         "Repeated raw postInstall evaluation produced a Nix string-context cache error; disabling eval-cache worked for inspection only and does not establish publication readiness.",
         "Six mocked and Guix-backed cleanup checks passed; live generation selection was read-only.",
         "The 37 focused tests passed. A disposable Guix profile retained its current generation after deletion of generations 1 and 2. The accepted repository proof config points to Mach-O arm64 executables; the formatter returns exec format error on mahakala.",
@@ -548,6 +594,7 @@
         "scripts/test_topgrade_claude_plugins.py",
         "scripts/test_topgrade_config.py",
         "scripts/test_topgrade_gh_skills.py",
+        "scripts/test_topgrade_guix_gc.py",
         "scripts/test_topgrade_hyprpm.py",
         "scripts/test_topgrade_omarchy_session.py",
         "scripts/topgrade-claude-plugins.sh",

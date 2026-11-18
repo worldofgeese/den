@@ -109,9 +109,14 @@ This project's architecture consists of the following key layers/directories:
 - `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
   `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
   module together. The launcher clears Guix's Emacs load-path variables.
+  The `ewm` flake input uses the author's GitHub mirror (`github:ezemtsov/ewm`).
+  Evaluation fetches flake inputs, and a codeberg.org outage would otherwise
+  break every host and CI evaluation. The Guix channels stay on Codeberg by
+  owner choice, and only `guix pull` uses them.
 - `modules/omarchy.nix` adapts Omarchy to Guix. Its Quickshell uses an
   elogind-aware polkit library and the Guix privileged helper. The keyboard
-  indicator uses Python with PyGObject and the GLib typelibs.
+  indicator uses Python with PyGObject and the GLib typelibs. A Home Manager
+  switch syncs the current Wayland session without a systemd user manager.
 - `modules/omarchy.nix` builds the Superwhisper install, removal, dictation, and
   service scripts with `pkgs.writeShellScript`.
   The service uses `setsid` and `flock`, with bounded startup and shutdown checks.
@@ -232,7 +237,7 @@ The system configuration is `guix/system.scm`. The home configuration is `guix/h
 
 `just deploy-mahakala-system` reconfigures only the Guix System generation from this checkout. Unlike the composite `just deploy-mahakala` recipe, it does not pull channels, update the shared Nix flake, or invoke M-02877. Repository-wide publication proof remains a separate contract.
 
-The elogind configuration packages `guix/touchpad-resume.scm` as a system-sleep hook. After resume it rebinds the matching touchpad only when `hid-multitouch` owns it, and reports missing devices or failed writes. A manual rebind restored scrolling, but the fault's cause and the deployed hook's behavior across an actual suspend remain unverified.
+The elogind configuration packages `guix/touchpad-resume.scm` as a system-sleep hook. After resume it rebinds the matching touchpad only when `hid-multitouch` owns it, and reports missing devices or failed writes. The user confirmed that two-finger scrolling works after sleep. The fault's cause and whether the hook performed the rebind remain unverified.
 
 The QCA6174 card uses `ath10k_pci`. The Guix System kernel arguments request `ath10k_pci.reset_mode=1`. The built module defines `0` as automatic reset and `1` as warm-only reset.
 
@@ -251,6 +256,60 @@ mahakala's power path, as measured at idle on 2026-11-12 under linux-omarchy wit
 Doom Emacs on mahakala runs on Neomacs (`inputs.neomacs`, pinned to the v0.0.20 release tag because eval-exec.cachix.org only publishes release builds). `modules/doom-emacs.nix` wraps the cached package without rebuilding it: it adds `meta.platforms`, which nixpkgs' Emacs wrapper reads, drops `-Q` when `--script` is present (v0.0.20 leaves `-Q` in `command-line-args-left`, and Doom-unstraightened runs `emacs -Q --batch --script` for every package), installs GNU Emacs's setup hook so elisp builds see their dependencies on `EMACSLOADPATH`, and adds `bin/emacs-31.1` because Doom-unstraightened's wrapper removes `bin/emacs-*`. v0.0.20's daemon cannot open GUI client frames, so on mahakala Neomacs runs as a single GUI instance; measured idle with Doom loaded: about 5% of one core, against 43% for the emacs-pgtk daemon stuck in its redisplay loop; `modules/doom.d/config.el` turns off Neomacs's default cursor colour cycle (a 24 fps redraw), which brings idle to 0%, and drops the `LD_LIBRARY_PATH` its wrapper sets so subprocesses (Guix's bash, codex-acp) do not load its libraries. agent-shell's Codex sessions run `codex-acp` from llm-agents.nix with the stored ChatGPT login, and Linux turns off agent-shell's sleep inhibitor because elogind requires interactive authorisation for it. mahakala's personal Signet container no longer starts automatically (`auto-start? #f`); `herd start signet` starts it. Linux disables the `reader` package: Neomacs keeps its own nixpkgs pin and so an older glibc, and `render-core.so` links den's mupdf, which needs `GLIBC_2.43`. The M-02877 Systems Manager tunnels share `ssmTunnelEnv`, whose PATH includes `/opt/homebrew/bin` so the LEGO CLI can find `az` when it renews credentials. mahakala's Nix daemon (`guix/system.scm`) and Home Manager deploys (`mahakala-hm-caches` in the Justfile) enable doom-emacs-unstraightened.cachix.org, eval-exec.cachix.org and nix-wpe-webkit.cachix.org; M-02877 enables the Doom cache.
 
 The Nix daemon's `extra-trusted-public-keys` in `guix/system.scm` also trusts `nix-community.cachix.org-1:mB9FSh9…`. nix-wpe-webkit.cachix.org serves some paths, such as neomacs sources and `options.json`, that carry only nix-community's signature. Before the key was added, the daemon rejected those substitutes with "not signed by any of the keys in 'trusted-public-keys'" warnings during every Home Manager deploy (2026-11-17).
+
+## Mahakala Topgrade Ownership
+
+`modules/workstation.nix` gives Guix System ownership of Tailscale updates.
+Topgrade does not run the Tailscale self-updater against the Guix store.
+`scripts/topgrade-guix-generations.scm` selects generations older than two weeks
+and excludes each current profile. `scripts/topgrade-guix-gc.sh` deletes only
+the selected generations and stops on a selection or deletion failure.
+Topgrade leaves Nix garbage collection to manual maintenance.
+The shared store can contain unrooted tools and outputs for other work.
+Flatpak cleanup is limited to the user installation.
+
+The GitHub CLI update step selects unpinned skills with GitHub source metadata.
+`scripts/topgrade-gh-skills.sh` backs up each selected skill before its update.
+It uses a forced dry run to check that each source skill still exists.
+It reports a skipped source check or update as a failure.
+`scripts/topgrade-agent-skills.mjs` replaces the built-in agent skills step.
+It inventories global skill roots through the installed skills package and
+backs up each existing resolved root and the active global lock before updating.
+The private backups preserve nested symlinks as links, not their targets.
+The updater may still replace live local edits; the snapshots make them
+recoverable. Inventory, backup, or overlapping backup-path failures stop the
+update. The guard rejects invalid or obsolete locks and flags entries that the
+updater cannot check, while still attempting checkable entries. It detects
+unchecked entries from the snapshot; a concurrent lock edit may not be reflected.
+The guard also rejects the updater's current failure and warning markers even
+when it exits successfully; a message in an unrecognized format may escape that
+check. It prefers an installed `skills` executable and otherwise uses `npx`.
+Claude plugin updates use `scripts/topgrade-claude-plugins.sh` in bare mode.
+Normal Claude sessions keep their hooks, and Signet remains off by default.
+`scripts/topgrade-hyprpm.sh` updates Hyprland plugins only when its list names a
+repository. It rejects unexpected list output. Topgrade does not purge the Trash.
+It also leaves Podman images intact: an unused tagged image can belong to
+another workload even when no container currently references it.
+Guix's `rootless-podman-service-type` runs `cgroups2-fs-owner`, which makes
+`/sys/fs/cgroup` `root:cgroup` mode 775 after boot. The user account in
+`guix/system.scm` is therefore a `cgroup` group member, as the Guix manual
+documents. Without that membership, crun cannot create the per-container
+cgroup that the Distrobox `arch` box needs, and both Distrobox Topgrade steps
+fail. Group membership replaces the reviewed and rejected design of a sudo
+rule that moved PIDs into a delegated cgroup.
+
+`guix/omarchy-session.sh` resolves the Home Manager profile at login.
+The session keeps its Omarchy tree and Hyprland executable from that profile.
+The Omarchy launcher uses the Quickshell executable from the same package.
+Other commands can use the current Home Manager profile.
+`modules/omarchy.nix` synchronizes only an Omarchy tree in the Nix store.
+It reports a deferral when an existing session uses a mutable profile path.
+It does not restart the session.
+
+`modules/workstation.nix` keeps the upstream Home Manager profile activation.
+It selects `nix profile add` when the installed Nix supports that command.
+It selects `nix profile install` when the command is unavailable on Lix.
+Other probe failures stop activation before the old profile is changed.
 
 ## Data and Contracts
 - Inbound contracts (CLI/API/events):
@@ -629,7 +688,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
+- Repository signal fingerprint: `7a08dde919e5f7bdf87d4e3739d5b88f6e84bc3bdb8980e630dccc275b86467f`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (17 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

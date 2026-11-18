@@ -75,7 +75,7 @@
     # libdisplay-info_0_3` directly, so the separate nixpkgs-ewm pin used to
     # work around the pre-alias nixpkgs is no longer needed.
     ewm = {
-      url = "git+https://codeberg.org/ezemtsov/ewm";
+      url = "github:ezemtsov/ewm";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Use nix-on-droid's own tested nixpkgs + home-manager versions.

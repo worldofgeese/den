@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ed1f4bb1c773f65208bd568db1ce1c94ec88675e",
+    "accepted_commit": "52a0404e6924382c93186a74536cec2bd4e8d908",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -27,6 +27,16 @@
         "id": "project-specific-claim",
         "owner": "Project maintainers",
         "question": "Which project capability should replace this template claim first?",
+        "status": "open"
+      },
+      "claim:topgrade-guix-gc": {
+        "falsifier": "The cleanup rejects a valid retention period, hides a real command failure, or runs GC after failure.",
+        "statement": "The Guix cleanup uses valid generation arguments and reports real failures.",
+        "status": "open"
+      },
+      "claim:topgrade-tailscale": {
+        "falsifier": "The Guix deployment is absent or Topgrade still invokes the immutable-store updater.",
+        "statement": "Tailscale updates through the Guix system deployment rather than mutating the store.",
         "status": "open"
       },
       "claim:touchpad-resume-recovery": {
@@ -57,6 +67,7 @@
       "trajectory:2c0bfa5e68ae91a1": "The underlying resume fault remains unknown; a manual touchpad rebind restored scrolling.",
       "trajectory:2e73ace6f8b455ed": "Local readiness cannot pass on macOS (DecapodLabs/decapod#1470); the merge gate is CI validate, the pre-commit just check and the deploy proof (VALIDATION.md).",
       "trajectory:2fc25673715437ce": "Headroom's model loading uses huggingface_hub and honors HF_HOME (the image sets no HF_* variables)",
+      "trajectory:3830f3fed597e8bf": "The cgroup implementation received PROMPT_EVAL_BLOCKED and requires human review. Guix upstream emits deprecation warnings. Full Topgrade has not run against this candidate.",
       "trajectory:41ab09cc3a9efcb7": "Deploy verification follows the merge and is recorded on bead prr-0ji.19",
       "trajectory:4b9d0230624a5890": "chorus-pi stays pinned to chorusVersion (server compatibility), as proposed to the user and not objected to",
       "trajectory:4c3a11d1469258d8": "Plain decapod validate can stop on macOS at READINESS_BLOCKED: missing bound input: justfile (DecapodLabs/decapod#1470 is open; VALIDATION.md). If it does, the PR waits and the blocker goes to the orchestrator.",
@@ -64,114 +75,42 @@
       "trajectory:56b396336dfc37b6": "the live marker is created and the deploy is run by others (BrightQuartz, PureViper); not done here",
       "trajectory:56f9d4f4f67c20dc": "publication_readiness failure is solely the DecapodLabs/decapod#1474 receipt gap",
       "trajectory:67a8a5b396bb8691": "Deploying needs the user's sudo (darwin-rebuild switch); sessions started before the switch keep the team URL.",
+      "trajectory:690bf59218f5da28": "The existing repository proof tool paths are macOS arm64 binaries and cannot run on mahakala. A portable accepted proof contract is not established.",
       "trajectory:76e210848ceec42e": "The first scheduled firmware cycle on paphos (04:30 / 06:00) is unproven until it runs after deploy.",
       "trajectory:77f57b43e47a2caa": "The unattended Tang unlock stays unproven until paphos reboots after enrollment.",
+      "trajectory:785bd980c176e691": "The completed Superwhisper task has no verification artifacts; qa verify reported unknown, and supported recovery requires a fresh passing full validation.",
+      "trajectory:89321a5242cf24b0": "The running desktop still uses a mutable profile path, so its session sync must defer until a later login.",
       "trajectory:a11ddf38831feaab": "Live behaviour (delayed transition test on the deployed extension) is verified by PureViper after deploy",
       "trajectory:af872a91299f1590": "PureViper's overlay fix home-manager-b0k keeps the package name decapod-<version>; the script matches parseDrvName name == decapod",
       "trajectory:bb7f2b410288c6ec": "Extension-sent user messages are identified by arrival order, best effort and fail safe",
+      "trajectory:cde1e885e16526bf": "Failure reporting recognizes the current upstream failure marker; an unmarked error may escape detection.",
       "trajectory:dbf928a616b74bec": "publication under the owner's #1474 exception; den's gate (shepherd) merges, not this agent",
+      "trajectory:dcfc33e0fcef506b": "The current user confirmed touchpad scrolling after sleep; the original cause and the exact hook action remain unproven.",
+      "trajectory:e0da049f961b4ef6": "The lock preflight follows skills 1.9.0 metadata rules; unrecognized future output formats and concurrent lock changes may escape detection.",
       "trajectory:ea8d12aa7cc7885a": "task-38.md still blocks the gate on the phrase 'sudo (deploys)'; Tao decides",
       "trajectory:fdec2beaf29b30d0": "Tang enrollment (sudo /etc/secrets/initrd/enroll-tang.sh on paphos) needs the user's LUKS passphrase and must run before the merge. Without root.jwe the paphos upgrade build fails and alerts nixos-upgrade-failed; the running system stays unchanged."
     }
   },
   "change": {
-    "id": "change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-    "base_commit": "ed1f4bb1c773f65208bd568db1ce1c94ec88675e",
+    "id": "change_01M7Q0QTJNNG1648V82S4T2RPM",
+    "base_commit": "52a0404e6924382c93186a74536cec2bd4e8d908",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "omarchy-session-compatibility": {
-      "statement": "Live Omarchy synchronization defers mutable session trees and permits pinned immutable session trees.",
-      "falsifier": "A mutable session receives compositor or D-Bus reload calls, or an immutable session is refused.",
-      "status": "supported",
-      "proof_refs": [
-        "scripts/test_topgrade_omarchy_session.py"
-      ]
-    },
-    "topgrade-agent-skills": {
-      "statement": "The guarded global agent-skills updater snapshots supported roots and the active lock, rejects invalid locks, and reports unchecked skills or known upstream failures and warnings even when the updater exits successfully.",
-      "falsifier": "An isolated update starts without snapshots, accepts an invalid lock, or succeeds after an unchecked skill or upstream failure or warning.",
-      "status": "supported",
-      "proof_refs": [
-        "scripts/test_topgrade_agent_skills.py"
-      ]
-    },
-    "topgrade-cleanup-scope": {
-      "statement": "Automatic cleanup preserves shared Nix stores, Podman images, and user Trash; Flatpak cleanup is limited to the user installation.",
-      "falsifier": "Topgrade automatically prunes any of those shared resources or the system Flatpak installation.",
-      "status": "supported",
-      "proof_refs": [
-        "scripts/test_topgrade_config.py"
-      ]
-    },
-    "topgrade-gh-skills": {
-      "statement": "GitHub-managed skill updates back up selected skills and reject unverifiable upstream sources.",
-      "falsifier": "An unavailable or removed source is reported as successful, updated, or modified without a backup.",
-      "status": "supported",
-      "proof_refs": [
-        "scripts/test_topgrade_gh_skills.py"
-      ]
-    },
-    "topgrade-guix-gc": {
-      "statement": "The Guix cleanup uses valid generation arguments and reports real failures.",
-      "falsifier": "The cleanup rejects a valid retention period, hides a real command failure, or runs GC after failure.",
-      "status": "open"
-    },
-    "topgrade-hyprpm": {
-      "statement": "Hyprpm is skipped only for a recognized empty plugin inventory and update errors remain failures.",
-      "falsifier": "An unknown or nonempty inventory is skipped, or an updater failure is reported as success.",
-      "status": "supported",
-      "proof_refs": [
-        "scripts/test_topgrade_hyprpm.py"
-      ]
-    },
-    "topgrade-tailscale": {
-      "statement": "Tailscale updates through the Guix system deployment rather than mutating the store.",
-      "falsifier": "The Guix deployment is absent or Topgrade still invokes the immutable-store updater.",
-      "status": "open"
-    }
   },
   "checkpoints": [
     {
-      "id": "topgrade-update-safety",
-      "summary": "Scope Topgrade cleanup and update ownership while protecting active Omarchy sessions; retain known validation and cgroup blockers.",
-      "input_digest": "sha256:34ff49cbd919b23dca4a333f3ca958370f17b064662f80efcbe69ad5720c15eb",
+      "id": "checkpoint-main-52a0404e",
+      "summary": "Preserve the root lock updates and current accepted-main source entry. Bind the reviewed source digest to agent.init.",
+      "input_digest": "sha256:3295627775f5f5432184a8b3e1290b6c0e30999a2754534654d96b693b074402",
       "proof_refs": [
-        "scripts/test_topgrade_config.py",
-        "scripts/test_topgrade_gh_skills.py",
-        "scripts/test_topgrade_omarchy_session.py"
+        "agent.init inventory sha256:c01d190a7de7abf2f4e061cf5180e2fb526c303531d5a111524d41cce3aac2e9",
+        "root checkout HEAD and staged, unstaged, untracked data remain preserved",
+        "root lock entries match outside accepted main ewm record",
+        "specs.refresh receipt 01M7Q26X2D0F1QC2HFBQ6YNCSM"
       ]
-    },
-    {
-      "id": "topgrade-target-reconciliation",
-      "summary": "Merge the accepted Superwhisper target while preserving its source, tests, and authored architecture; keep the Topgrade journal intact.",
-      "input_digest": "sha256:fbc7002ce8081f3bba21ad852df441d51acea1aa7aaa0620c2372491f40cf820",
-      "proof_refs": [
-        "scripts/test-omarchy-superwhisper.sh",
-        "scripts/test_topgrade_omarchy_session.py"
-      ]
-    },
-    {
-      "id": "topgrade-agent-skills-guard",
-      "summary": "Back up global agent skills and expose unchecked sources and updater warnings without disturbing existing Topgrade safety boundaries.",
-      "input_digest": "sha256:96e2d5132eec5b43d8b7f8b8747a68ea2989099c509d31ca15d3a2ebf720c4ad",
-      "proof_refs": [
-        "scripts/test_topgrade_agent_skills.py"
-      ]
-    },
-    {
-      "id": "rootless-podman-cgroup-group",
-      "summary": "Add the user to Guix's cgroup group so rootless Podman/Distrobox can create container cgroups; owner approved the human cgroup review on 2026-11-18.",
-      "input_digest": "sha256:fed8c831d02b23b06903a9d85ac0180abf9464f91de9f417de4094bed79f4c57"
-    },
-    {
-      "id": "ewm-github-mirror",
-      "summary": "Fetch the ewm flake input from the author's GitHub mirror at the same rev and narHash so evaluation survives the codeberg.org outage",
-      "input_digest": "sha256:267898f669c1214514ada3f4c5d823f30449f442e164070f9f7bcfa98aa91882"
     }
   ],
   "intents": {
-    "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D": {
+    "intent:change_01M7Q0QTJNNG1648V82S4T2RPM": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -181,11 +120,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+      "id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Fix mahakala topgrade failures",
-      "refined_intent": "Fix mahakala topgrade failures",
+      "raw_intent": "Reauthor preserved config and flake edits on current main\n\nCarry the preserved configuration and flake.lock edits from agent/root/code_01m7p6xa2dk4gda3-integrate-existing-edits at 1e75c071 onto the current accepted main 52a0404e. Preserve the old branch and all changes already merged into main. Use the supported fresh-workspace history-recovery workflow for the missing historical proof. Update the source inventory digest from the current candidate. Run exact-candidate full validation and create a PR only if it passes. The user authorizes integration and merge.",
+      "refined_intent": "Reauthor preserved config and flake edits on current main\n\nCarry the preserved configuration and flake.lock edits from agent/root/code_01m7p6xa2dk4gda3-integrate-existing-edits at 1e75c071 onto the current accepted main 52a0404e. Preserve the old branch and all changes already merged into main. Use the supported fresh-workspace history-recovery workflow for the missing historical proof. Update the source inventory digest from the current candidate. Run exact-candidate full validation and create a PR only if it passes. The user authorizes integration and merge.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -194,259 +133,132 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": []
+        "forbidden_paths": [
+          "modules/",
+          "scripts/",
+          "pkgs/",
+          "guix/",
+          "secrets/",
+          "flake.nix",
+          ".swamp/"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Repair every mahakala topgrade error and warning except the selected Codeberg mirror notices, then verify a full run.",
+      "intent": "Start from accepted main commit 52a0404e6924382c93186a74536cec2bd4e8d908. Keep the old source branch agent/root/code_01m7p6xa2dk4gda3-integrate-existing-edits at 1e75c07117795147b62bdaa0ebd4f491ca534add. Preserve every change already merged into main, including PR #183. Carry forward the existing .decapod/config.toml digest edit, 25 flake.lock input updates, and authored VALIDATION.md revision. Use Decapod 0.148.10 to refresh generated release files. The old branch checkpoints pass only against their recorded base edad7072e66db9d1f45ee7a5deffede796e4f442. The documented record-history-recovery command rejected that source as not applicable. The completed Superwhisper task still lacks canonical full-validation proof. Set the source inventory digest to the value agent.init reports for the exact candidate. The user authorized this source-inventory transition and asked to merge the preserved edits. Run full decapod validate on the exact committed candidate. Create a PR and merge only if validation passes.",
       "phases": [],
       "proof_hooks": [
-        "Focused regression checks for each repair",
-        "A full topgrade run on mahakala",
-        "decapod validate"
+        "The new branch is based on accepted main 52a0404e and retains all PR #183 changes.",
+        "The old source branch remains at 1e75c07117795147b62bdaa0ebd4f491ca534add.",
+        "The candidate retains the 25 intended flake.lock updates and the current main lock and source entries.",
+        "The candidate reviewed_sources_digest matches agent.init for the exact committed tree.",
+        "verify-checkpoints reports the old branch history only against its recorded base. record-history-recovery remains not applicable.",
+        "The completed Superwhisper task has no canonical full-validation proof. Any recovery result remains distinct from that historical fact.",
+        "Full plain decapod validate exits 0 for the exact committed candidate and accepted main.",
+        "The root checkout keeps its original HEAD, staged and unstaged edits, ignored data, and untracked .swamp/ directory."
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Fix mahakala topgrade failures",
+      "stop_conditions": [
+        "Do not reset, rebase, force-push, or overwrite the old source branch.",
+        "Keep root HEAD and all staged, unstaged, ignored, and untracked data unchanged.",
+        "Do not fabricate historical proof or claim readiness after a failed gate.",
+        "If full validation fails, preserve the report and do not create a PR or merge.",
+        "Do not include .swamp/ or any unrelated root data in the candidate."
+      ],
+      "title": "Reconcile the preserved edits with current main",
       "todo_ids": [
-        "bugs_01m7nywc7v14n39t"
+        "secu_01m7q0jrr5f8kbeb"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794960397Z"
+      "updated_at": "1794995931Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch",
-        "Preserve the selected Codeberg mirrors and unrelated root checkout changes."
+        "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:984b17b0247004c0dc85a6092a5d47fc0835a690c8721abcf59a93f9af92bf46",
+      "artifact_hash": "sha256:4cb126d09c32606b8c08b82df3e5e47cb53fda32cf7188d100e1cdef06e8b80e",
       "blockers": [
-        "The cgroup implementation received PROMPT_EVAL_BLOCKED and requires human review. Guix upstream emits deprecation warnings. Full Topgrade has not run against this candidate.",
-        "The completed Superwhisper task has no verification artifacts; qa verify reported unknown, and supported recovery requires a fresh passing full validation.",
-        "The existing repository proof tool paths are macOS arm64 binaries and cannot run on mahakala. A portable accepted proof contract is not established."
+        "The completed Superwhisper task has no canonical full validation proof. record-history-recovery is not applicable because the old branch history is proven.",
+        "The completed Superwhisper task has no canonical full-validation proof; readiness remains unproven."
       ],
       "checks": [
         {
-          "name": "agent_skills_nix_format",
+          "name": "checkpoint_history",
           "status": "passed"
         },
         {
-          "name": "agent_skills_real_cli",
-          "status": "passed"
-        },
-        {
-          "name": "agent_skills_real_npx_loopback",
-          "status": "passed"
-        },
-        {
-          "name": "candidate-71685577-validation",
+          "name": "history_recovery",
           "status": "failed"
         },
         {
-          "name": "changed-nix-format",
+          "name": "inventory_binding",
           "status": "passed"
         },
         {
-          "name": "changed-shellcheck",
+          "name": "lock_preservation",
           "status": "passed"
         },
         {
-          "name": "full-topgrade",
-          "status": "unavailable"
-        },
-        {
-          "name": "full_topgrade",
-          "status": "unavailable"
-        },
-        {
-          "name": "generated_session_guard_integration",
+          "name": "root_checkout",
           "status": "passed"
         },
         {
-          "name": "gh-missing-source-real-cli",
-          "status": "passed"
-        },
-        {
-          "name": "guix-disposable-profile",
-          "status": "passed"
-        },
-        {
-          "name": "guix_cleanup_regressions",
-          "status": "passed"
-        },
-        {
-          "name": "guix_generation_argument",
-          "status": "failed"
-        },
-        {
-          "name": "home-manager-evaluation",
-          "status": "passed"
-        },
-        {
-          "name": "hyprpm-empty-inventory",
-          "status": "passed"
-        },
-        {
-          "name": "linux-repository-proof-tools",
-          "status": "failed"
-        },
-        {
-          "name": "nix-format",
-          "status": "passed"
-        },
-        {
-          "name": "nix-raw-postinstall-eval-cache",
-          "status": "failed"
-        },
-        {
-          "name": "nix_format_changed_modules",
-          "status": "passed"
-        },
-        {
-          "name": "node-syntax",
-          "status": "passed"
-        },
-        {
-          "name": "omarchy_derivation",
-          "status": "unavailable"
-        },
-        {
-          "name": "real-skills-loopback",
-          "status": "passed"
-        },
-        {
-          "name": "shellcheck_changed_helpers",
-          "status": "passed"
-        },
-        {
-          "name": "target-merge-reconciliation",
-          "status": "partial"
-        },
-        {
-          "name": "topgrade-regressions",
-          "status": "passed"
-        },
-        {
-          "name": "topgrade_agent_skills",
-          "status": "passed"
-        },
-        {
-          "name": "topgrade_regression",
-          "status": "passed"
-        },
-        {
-          "name": "topgrade_regressions_60",
+          "name": "specs_refresh",
           "status": "passed"
         }
       ],
-      "current_phase": "review",
+      "current_phase": "Preserved source integration",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+            "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+            "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
+            "detail": "trajectory:branch_01M7Q0QTKCJD6NK1AA9G0626H1",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+            "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           },
           {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
+            "detail": "trajectory:branch_01M7Q0QTKCJD6NK1AA9G0626H1",
             "event_id": "event:5",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+            "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
             "kind": "trajectory_step_recorded",
             "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:7",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 7
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:8",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 8
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:9",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 9
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:10",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 10
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:11",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 11
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:12",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 12
-          },
-          {
-            "detail": "trajectory:branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "event_id": "event:13",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
-            "kind": "trajectory_step_recorded",
-            "sequence": 13
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 13,
+        "next_sequence": 5,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M7NZ8CAV84P4PP6STXF7TFVC": {
+          "branch_01M7Q0QTKCJD6NK1AA9G0626H1": {
             "evidence_only": true,
-            "id": "branch_01M7NZ8CAV84P4PP6STXF7TFVC",
-            "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+            "id": "branch_01M7Q0QTKCJD6NK1AA9G0626H1",
+            "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
             "steps": [
               {
-                "action": "investigation",
-                "command": "guix package --delete-generations 2w",
+                "action": "History gap classification",
+                "command": "Decapod 0.148.10 verify-checkpoints for old source at exact recorded base: history_proven=true, no findings",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/workstation.nix",
-                  "guix/system.scm",
-                  "Topgrade run 8 logged extraneous argument and exited 1."
+                  ".decapod/governance.json",
+                  "On the preserved source branch, verify-checkpoints used its exact recorded base edad7072e66db9d1f45ee7a5deffede796e4f442 and current target origin/main. It reported history_proven=true with no findings. record-history-recovery rejected the source with HISTORY_RECOVERY_NOT_APPLICABLE because no historical checkpoint gap exists. The separate completed-task PROOF_HOOK_FAILED remains unresolved; no proof or obligation was changed."
                 ],
                 "proof_refs": [
-                  "guix_generation_argument"
+                  "checkpoint_history",
+                  "history_recovery"
                 ],
                 "scope": [
                   "root"
@@ -455,315 +267,84 @@
                 "validation_findings": []
               },
               {
-                "action": "trajectory.record",
+                "action": "Preserved source integration",
+                "command": "git three-way transfer from root lock state, preserving accepted main ewm entry",
                 "custody_event_id": "event:5",
                 "observations": [
-                  "modules/workstation.nix",
-                  "scripts/topgrade-guix-gc.sh",
-                  "scripts/topgrade-guix-generations.scm",
-                  "scripts/test-topgrade-guix-gc.py",
-                  "Six mocked and Guix-backed cleanup checks passed; live generation selection was read-only."
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "flake.lock",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "flake.lock",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  "Fresh workspace HEAD and accepted origin/main are 52a0404e6924382c93186a74536cec2bd4e8d908, which includes PR #183. The candidate flake.lock matches the root checkout's 25 input updates outside ewm and retains the accepted main ewm node. jq parsed the lock. agent.init reports inventory_digest sha256:c01d190a7de7abf2f4e061cf5180e2fb526c303531d5a111524d41cce3aac2e9 and the unchanged command digest sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; config.toml records the same inventory digest. specs.refresh succeeded. The root checkout remains at ed1f4bb1 with staged config, unstaged flake.lock, and untracked .swamp/ unchanged."
                 ],
                 "proof_refs": [
-                  "guix_cleanup_regressions"
+                  "lock_preservation",
+                  "inventory_binding",
+                  "specs_refresh",
+                  "root_checkout"
                 ],
                 "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
                   "root"
                 ],
                 "sequence": 5,
                 "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:6",
-                "observations": [
-                  "modules/workstation.nix",
-                  "modules/omarchy.nix",
-                  "guix/home-configuration.scm",
-                  "<external-path>",
-                  "modules/workstation.nix",
-                  "modules/omarchy.nix",
-                  "Justfile",
-                  "scripts/topgrade-guix-gc.sh",
-                  "scripts/topgrade-guix-generations.scm",
-                  "scripts/topgrade-hyprpm.sh",
-                  "scripts/topgrade-gh-skills.sh",
-                  "scripts/topgrade-claude-plugins.sh",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "just check-topgrade passed 32 tests; the actual Home Manager activation evaluated successfully; the Nix daemon restarted after its clients exited."
-                ],
-                "proof_refs": [
-                  "topgrade-regressions",
-                  "changed-shellcheck",
-                  "home-manager-evaluation",
-                  "full-topgrade"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 6,
-                "validation_findings": [
-                  "The current user confirmed touchpad scrolling after sleep; the original cause and the exact hook action remain unproven."
-                ]
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:7",
-                "observations": [
-                  "scripts/test_topgrade_config.py",
-                  "scripts/test_topgrade_gh_skills.py",
-                  "scripts/test_topgrade_claude_plugins.py",
-                  "35 focused tests passed, including selector failure propagation. Both changed Nix modules passed Alejandra and the shell helpers passed ShellCheck. Real Hyprpm inventory was empty. Unattended Podman pruning was removed after inspection found an unrelated tagged image eligible for deletion.",
-                  "Hyprland upstream merged the root-owned Hyprpm build fix after the locked revision; actual plugin updates remain unverified."
-                ],
-                "proof_refs": [
-                  "topgrade-regressions",
-                  "changed-shellcheck",
-                  "changed-nix-format",
-                  "hyprpm-empty-inventory"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 7,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:8",
-                "observations": [
-                  "modules/workstation.nix",
-                  "scripts/test_topgrade_config.py",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  "The 37 focused tests passed. A disposable Guix profile retained its current generation after deletion of generations 1 and 2. The accepted repository proof config points to Mach-O arm64 executables; the formatter returns exec format error on mahakala."
-                ],
-                "proof_refs": [
-                  "topgrade-regressions",
-                  "guix-disposable-profile",
-                  "linux-repository-proof-tools"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 8,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "command": "just check-topgrade",
-                "custody_event_id": "event:9",
-                "observations": [
-                  "guix/omarchy-session.sh",
-                  "modules/omarchy.nix",
-                  "scripts/omarchy-guix/session-sync-guard.sh",
-                  "scripts/topgrade-gh-skills.sh",
-                  "scripts/topgrade-hyprpm.sh",
-                  "scripts/test_topgrade_omarchy_session.py",
-                  "scripts/test_topgrade_gh_skills.py",
-                  "scripts/test_topgrade_hyprpm.py",
-                  "The focused suite passed 49 tests. The generated session guard deferred a mutable tree without compositor or bus calls and synchronized a pinned tree with stubs.",
-                  "GitHub CLI false-success cases are reported at cli/cli#15092. The stale Caveman source was replaced after a backup and verified by a forced dry run."
-                ],
-                "proof_refs": [
-                  "topgrade_regression",
-                  "shellcheck_changed_helpers",
-                  "nix_format_changed_modules",
-                  "generated_session_guard_integration",
-                  "omarchy_derivation",
-                  "full_topgrade"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 9,
-                "validation_findings": [
-                  "The running desktop still uses a mutable profile path, so its session sync must defer until a later login."
-                ]
-              },
-              {
-                "action": "trajectory.record",
-                "custody_event_id": "event:10",
-                "observations": [
-                  "The actual GitHub CLI dry-run with an isolated nonexistent public skill path returned a nonzero wrapper result before the guarded update; its fixture backup was preserved.",
-                  "Repeated raw postInstall evaluation produced a Nix string-context cache error; disabling eval-cache worked for inspection only and does not establish publication readiness."
-                ],
-                "proof_refs": [
-                  "gh-missing-source-real-cli",
-                  "nix-raw-postinstall-eval-cache"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 10,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "custody_event_id": "event:11",
-                "observations": [
-                  "scripts/test_topgrade_guix_gc.py",
-                  "Candidate 71685577 passed its repository commit hook and checkpoint-history verification; full validation failed because the accepted target advanced and completed task secu_01m7n3hgynnee4rw lacks verification artifacts.",
-                  "Merged accepted target edad7072 into the worktree without rewriting the active governance journal; retained the target Superwhisper source, tests, and architecture prose. Merge commit and final validation remain pending."
-                ],
-                "proof_refs": [
-                  "candidate-71685577-validation",
-                  "target-merge-reconciliation"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 11,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "command": "just check-topgrade",
-                "custody_event_id": "event:12",
-                "observations": [
-                  "modules/workstation.nix",
-                  "Justfile",
-                  "scripts/topgrade-agent-skills.mjs",
-                  "scripts/test_topgrade_agent_skills.py",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "Sixty focused Topgrade tests passed. Disposable loopback Git fixtures demonstrated the real skills 1.9.0 replacement and false-success behaviors through the guard; a loopback npm registry verified the real npx fallback."
-                ],
-                "proof_refs": [
-                  "topgrade_agent_skills",
-                  "topgrade_regressions_60",
-                  "agent_skills_real_cli",
-                  "agent_skills_real_npx_loopback",
-                  "agent_skills_nix_format",
-                  "full_topgrade"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 12,
-                "validation_findings": [
-                  "Failure reporting recognizes the current upstream failure marker; an unmarked error may escape detection."
-                ]
-              },
-              {
-                "action": "review",
-                "command": "just check-topgrade: 63 tests passed",
-                "custody_event_id": "event:13",
-                "observations": [
-                  "scripts/topgrade-agent-skills.mjs",
-                  "scripts/test_topgrade_agent_skills.py",
-                  "modules/workstation.nix",
-                  "Justfile",
-                  "Disposable skills 1.9.0 loopback fixtures demonstrated normal update and clean check, and confirmed an unchecked lock entry produces a nonzero guard result instead of false success.",
-                  "The upstream silent-skip reproduction was reported as vercel-labs/skills#2783."
-                ],
-                "proof_refs": [
-                  "topgrade-regressions",
-                  "real-skills-loopback",
-                  "nix-format",
-                  "node-syntax"
-                ],
-                "scope": [
-                  "Mahakala update configuration, host integration, focused checks, and living specs.",
-                  "root"
-                ],
-                "sequence": 13,
-                "validation_findings": [
-                  "The lock preflight follows skills 1.9.0 metadata rules; unrecognized future output formats and concurrent lock changes may escape detection."
-                ]
               }
             ]
           }
         }
       },
       "declared_commands": [
-        "guix package --delete-generations 2w",
-        "just check-topgrade",
-        "just check-topgrade: 63 tests passed"
+        "Decapod 0.148.10 agent.init inventory sha256:c01d190a7de7abf2f4e061cf5180e2fb526c303531d5a111524d41cce3aac2e9",
+        "Decapod 0.148.10 record-history-recovery: HISTORY_RECOVERY_NOT_APPLICABLE",
+        "Decapod 0.148.10 specs.refresh receipt 01M7Q26X2D0F1QC2HFBQ6YNCSM",
+        "Decapod 0.148.10 verify-checkpoints for old source at exact recorded base: history_proven=true, no findings",
+        "git three-way transfer from root lock state, preserving accepted main ewm entry"
       ],
       "destination": "pull request",
       "evidence": [
-        "35 focused tests passed, including selector failure propagation. Both changed Nix modules passed Alejandra and the shell helpers passed ShellCheck. Real Hyprpm inventory was empty. Unattended Podman pruning was removed after inspection found an unrelated tagged image eligible for deletion.",
-        "Candidate 71685577 passed its repository commit hook and checkpoint-history verification; full validation failed because the accepted target advanced and completed task secu_01m7n3hgynnee4rw lacks verification artifacts.",
-        "Disposable skills 1.9.0 loopback fixtures demonstrated normal update and clean check, and confirmed an unchecked lock entry produces a nonzero guard result instead of false success.",
-        "GitHub CLI false-success cases are reported at cli/cli#15092. The stale Caveman source was replaced after a backup and verified by a forced dry run.",
-        "Hyprland upstream merged the root-owned Hyprpm build fix after the locked revision; actual plugin updates remain unverified.",
-        "Merged accepted target edad7072 into the worktree without rewriting the active governance journal; retained the target Superwhisper source, tests, and architecture prose. Merge commit and final validation remain pending.",
-        "Repeated raw postInstall evaluation produced a Nix string-context cache error; disabling eval-cache worked for inspection only and does not establish publication readiness.",
-        "Six mocked and Guix-backed cleanup checks passed; live generation selection was read-only.",
-        "Sixty focused Topgrade tests passed. Disposable loopback Git fixtures demonstrated the real skills 1.9.0 replacement and false-success behaviors through the guard; a loopback npm registry verified the real npx fallback.",
-        "The 37 focused tests passed. A disposable Guix profile retained its current generation after deletion of generations 1 and 2. The accepted repository proof config points to Mach-O arm64 executables; the formatter returns exec format error on mahakala.",
-        "The actual GitHub CLI dry-run with an isolated nonexistent public skill path returned a nonzero wrapper result before the guarded update; its fixture backup was preserved.",
-        "The focused suite passed 49 tests. The generated session guard deferred a mutable tree without compositor or bus calls and synchronized a pinned tree with stubs.",
-        "The upstream silent-skip reproduction was reported as vercel-labs/skills#2783.",
-        "Topgrade run 8 logged extraneous argument and exited 1.",
-        "just check-topgrade passed 32 tests; the actual Home Manager activation evaluated successfully; the Nix daemon restarted after its clients exited."
+        "Fresh workspace HEAD and accepted origin/main are 52a0404e6924382c93186a74536cec2bd4e8d908, which includes PR #183. The candidate flake.lock matches the root checkout's 25 input updates outside ewm and retains the accepted main ewm node. jq parsed the lock. agent.init reports inventory_digest sha256:c01d190a7de7abf2f4e061cf5180e2fb526c303531d5a111524d41cce3aac2e9 and the unchanged command digest sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; config.toml records the same inventory digest. specs.refresh succeeded. The root checkout remains at ed1f4bb1 with staged config, unstaged flake.lock, and untracked .swamp/ unchanged.",
+        "On the preserved source branch, verify-checkpoints used its exact recorded base edad7072e66db9d1f45ee7a5deffede796e4f442 and current target origin/main. It reported history_proven=true with no findings. record-history-recovery rejected the source with HISTORY_RECOVERY_NOT_APPLICABLE because no historical checkpoint gap exists. The separate completed-task PROOF_HOOK_FAILED remains unresolved; no proof or obligation was changed."
       ],
       "inspected_files": [
-        "<external-path>",
-        "guix/home-configuration.scm",
-        "guix/system.scm",
-        "modules/omarchy.nix",
-        "modules/workstation.nix"
+        ".decapod/config.toml",
+        ".decapod/governance.json",
+        ".decapod/managed/specs/VALIDATION.md",
+        "flake.lock"
       ],
-      "intent_id": "intent:change_01M7NZ8CA3RVWPX2NSSFCX1Y7D",
+      "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
       "modified_files": [
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        "Justfile",
-        "guix/omarchy-session.sh",
-        "modules/omarchy.nix",
-        "modules/workstation.nix",
-        "scripts/omarchy-guix/session-sync-guard.sh",
-        "scripts/test-topgrade-guix-gc.py",
-        "scripts/test_topgrade_agent_skills.py",
-        "scripts/test_topgrade_claude_plugins.py",
-        "scripts/test_topgrade_config.py",
-        "scripts/test_topgrade_gh_skills.py",
-        "scripts/test_topgrade_guix_gc.py",
-        "scripts/test_topgrade_hyprpm.py",
-        "scripts/test_topgrade_omarchy_session.py",
-        "scripts/topgrade-agent-skills.mjs",
-        "scripts/topgrade-claude-plugins.sh",
-        "scripts/topgrade-gh-skills.sh",
-        "scripts/topgrade-guix-gc.sh",
-        "scripts/topgrade-guix-generations.scm",
-        "scripts/topgrade-hyprpm.sh"
+        ".decapod/config.toml",
+        ".decapod/managed/Dockerfile.decapod",
+        ".decapod/managed/specs/.manifest.json",
+        ".decapod/managed/specs/VALIDATION.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
+        "flake.lock"
       ],
       "next_transitions": [
-        "Checkpoint and push the candidate, then run exact-candidate governed validation.",
-        "Checkpoint the candidate and run exact-candidate validation.",
-        "Checkpoint the updater guard; preserve the cgroup human-review and historical-proof blockers before publication or deployment.",
-        "Finish focused verification, then seek human review of the blocked cgroup implementation.",
-        "Finish the candidate review and preserve the cgroup safety gate; resolve or report portable validation before publication.",
+        "Reauthor the selected files on the current accepted base. Test the documented completed-task recovery against the exact candidate.",
         "Refine plan and declare falsifiable checks",
-        "Repair the confirmed cleanup argument and reproduce its failure handling."
+        "Stage authored changes, checkpoint and commit. Run the documented task recovery and full validation on the exact candidate."
       ],
       "repo_scope": [
-        "Mahakala update configuration, host integration, focused checks, and living specs.",
         "root"
       ],
-      "run_id": "branch_01M7NZ8CAV84P4PP6STXF7TFVC",
+      "run_id": "branch_01M7Q0QTKCJD6NK1AA9G0626H1",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bugs_01m7nywc7v14n39t",
+      "task_id": "secu_01m7q0jrr5f8kbeb",
       "tool_calls": [],
-      "unresolved_assumptions": [
-        "Failure reporting recognizes the current upstream failure marker; an unmarked error may escape detection.",
-        "The current user confirmed touchpad scrolling after sleep; the original cause and the exact hook action remain unproven.",
-        "The lock preflight follows skills 1.9.0 metadata rules; unrecognized future output formats and concurrent lock changes may escape detection.",
-        "The running desktop still uses a mutable profile path, so its session sync must defer until a later login."
-      ]
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it; at this revision it is 0.148.3. Decapod reaches
+`AGENTS.md` names it; at this revision it is 0.148.10. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -124,12 +124,35 @@ invoke the Mac. The accepted `repo.pr-readiness.v1` contract is broader: it
 requires the repository's full local command set, currently bound to one
 platform's native tool paths. Therefore a Linux-only system deployment can be
 locally executable without Mac access while full publication readiness remains
-blocked by the accepted proof contract. Do not repin tools or narrow required
-checks in a candidate to bypass that boundary. DecapodLabs/decapod#1736 tracks
-per-platform executables, DecapodLabs/decapod#1738 tracks separately authorized
-policy migration, and DecapodLabs/decapod#1740 tracks target-to-proof mapping
-and shared dependency fanout. Until a supported accepted-target transition is
-available, retain the accepted contract and report the blocker.
+blocked by the accepted proof contract.
+
+The source inventory digest covers the workflows, Justfile, flake files, and
+scripts. The Superwhisper regression script and a later `flake.lock` refresh
+changed that inventory. The root checkout first carried digest
+`sha256:d6844db78fb0b44bc0685b4faf1559fa1c3399532022b4388b623666586c3d57`.
+The prior candidate on accepted base
+`edad7072e66db9d1f45ee7a5deffede796e4f442` reported
+`sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f`.
+PR #183 advanced accepted main to
+`52a0404e6924382c93186a74536cec2bd4e8d908`. Before the preserved lock
+updates, `agent.init` reported
+`sha256:9d5f57c1e23a789b1037e5bf3e908f1412ca9508cfe197578598268060b2ee63`.
+After the root checkout's 25 lock input updates were carried forward with the
+accepted main changes, `agent.init` reported
+`sha256:c01d190a7de7abf2f4e061cf5180e2fb526c303531d5a111524d41cce3aac2e9`.
+The candidate records this current inventory digest. The command digest is
+`sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1`;
+the required commands and their executions did not change.
+
+Decapod 0.148.9 reported `PROOF_PROFILE_RECONCILIATION_REQUIRED` when a
+candidate changed an accepted source inventory. Issue
+DecapodLabs/decapod#1738 remains open, and issue #1763 tracks candidate-side
+policy repinning. The owner authorized a bounded exception for this candidate.
+That exception does not establish Decapod readiness or provide a migration
+path for later candidates. Report the exact validation result. Do not describe
+the exception as a passing proof. DecapodLabs/decapod#1736 tracks per-platform
+executables, and DecapodLabs/decapod#1740 tracks target-to-proof mapping and
+shared dependency fanout.
 
 Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
 `GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another

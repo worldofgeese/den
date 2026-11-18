@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1.0",
   "template_version": "scaffold-v4",
-  "generated_at": "1794992250Z",
+  "generated_at": "1794992953Z",
   "repo_signal_fingerprint": "7a08dde919e5f7bdf87d4e3739d5b88f6e84bc3bdb8980e630dccc275b86467f",
   "declared_capabilities": [
     "infrastructure-management",
@@ -9,7 +9,7 @@
   ],
   "capability_definition_version": "1.0.0",
   "config_input_hash": "61d288f07980885049eb1195893a98a5cbbf58d39fee28511d3d0587ae06dd33",
-  "spec_input_hash": "348c27bd087d89b50232677abdf8109235a68dba7c7c9d486d2f4f1bec6be0ab",
+  "spec_input_hash": "3e56b3f83827279b934fc705702cfe6a58fc287257284695a484f7aa9c8d7afe",
   "decapod_release": "0.148.9",
   "entrypoints": [
     {
@@ -53,7 +53,7 @@
     {
       "path": ".decapod/managed/specs/ARCHITECTURE.md",
       "template_hash": "d3d1b35e1d66160f552a8d0140475756b33d4f33ec80bb2001f7d8e921a19539",
-      "content_hash": "32e48489d8d459ba098b092925b1b93efa347e0316c98615722cedd1ae24d515",
+      "content_hash": "50b4cf8d2e93e9818f43f8d94450de495081165e96aff9ea8d7e6ca6ffdd4d20",
       "fingerprint": ""
     },
     {

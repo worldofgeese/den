@@ -370,15 +370,15 @@
       "locked": {
         "lastModified": 1794419138,
         "narHash": "sha256-KjQbnWTenfn0OxNrFGydkNAm+ISxkA6jXqEuTIDDtwk=",
-        "ref": "refs/heads/master",
+        "owner": "ezemtsov",
+        "repo": "ewm",
         "rev": "57394a20ed40ca1767880baa2bfd4aac53934e76",
-        "revCount": 1257,
-        "type": "git",
-        "url": "https://codeberg.org/ezemtsov/ewm"
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "https://codeberg.org/ezemtsov/ewm"
+        "owner": "ezemtsov",
+        "repo": "ewm",
+        "type": "github"
       }
     },
     "flake-compat": {

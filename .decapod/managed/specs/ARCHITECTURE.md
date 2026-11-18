@@ -109,6 +109,10 @@ This project's architecture consists of the following key layers/directories:
 - `guix/system.scm` supplies GDM's `ewm-session` entry. It delegates to
   `ewm-start` in `modules/workstation.nix`. Nix supplies Emacs and the EWM
   module together. The launcher clears Guix's Emacs load-path variables.
+  The `ewm` flake input uses the author's GitHub mirror (`github:ezemtsov/ewm`).
+  Evaluation fetches flake inputs, and a codeberg.org outage would otherwise
+  break every host and CI evaluation. The Guix channels stay on Codeberg by
+  owner choice, and only `guix pull` uses them.
 - `modules/omarchy.nix` adapts Omarchy to Guix. Its Quickshell uses an
   elogind-aware polkit library and the Guix privileged helper. The keyboard
   indicator uses Python with PyGObject and the GLib typelibs. A Home Manager

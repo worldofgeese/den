@@ -163,6 +163,11 @@
       "id": "rootless-podman-cgroup-group",
       "summary": "Add the user to Guix's cgroup group so rootless Podman/Distrobox can create container cgroups; owner approved the human cgroup review on 2026-11-18.",
       "input_digest": "sha256:fed8c831d02b23b06903a9d85ac0180abf9464f91de9f417de4094bed79f4c57"
+    },
+    {
+      "id": "ewm-github-mirror",
+      "summary": "Fetch the ewm flake input from the author's GitHub mirror at the same rev and narHash so evaluation survives the codeberg.org outage",
+      "input_digest": "sha256:267898f669c1214514ada3f4c5d823f30449f442e164070f9f7bcfa98aa91882"
     }
   ],
   "intents": {

@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it; at this revision it is 0.148.9. Decapod reaches
+`AGENTS.md` names it; at this revision it is 0.148.10. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -136,8 +136,8 @@ The candidate records this complete inventory digest. The command digest stays
 `sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1`;
 the required commands and their executions did not change.
 
-Decapod 0.148.9 still reports `PROOF_PROFILE_RECONCILIATION_REQUIRED` when a
-candidate changes an accepted source inventory. Issue
+Decapod 0.148.9 reported `PROOF_PROFILE_RECONCILIATION_REQUIRED` when a
+candidate changed an accepted source inventory. Issue
 DecapodLabs/decapod#1738 remains open, and issue #1763 tracks candidate-side
 policy repinning. The owner authorized a bounded exception for this candidate.
 That exception does not establish Decapod readiness or provide a migration

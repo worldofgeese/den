@@ -96,6 +96,16 @@
         "review:/tmp/compound-engineering-1000/ce-code-review/20261118-035913-18da8f3a/review.json",
         "root:ed1f4bb1c773f65208bd568db1ce1c94ec88675e"
       ]
+    },
+    {
+      "id": "root-code-01m7p6-014810-publication-bundle",
+      "summary": "Stage the Decapod 0.148.10 release-bound entrypoint fingerprints, managed Dockerfile pin, refreshed specs manifest, and current validation spec version. The source-inventory digest and flake.lock edits remain preserved from the root checkout. Latest full validation failed with PROOF_HOOK_FAILED and PUBLICATION_BUNDLE_CURRENCY; validation readiness is not established.",
+      "input_digest": "sha256:0360279e37fefb1d6a4e0b5010375cf6eef201a5091c5451a2a19b9f0fd7f187",
+      "proof_refs": [
+        "decapod-0.148.10-validation",
+        "git-diff-review",
+        "specs-refresh"
+      ]
     }
   ],
   "intents": {
@@ -157,14 +167,27 @@
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
+        "Keep the original root checkout untouched; preserve the source-inventory digest and flake.lock updates on this isolated branch.",
         "Keep the root checkout at its original HEAD and preserve its staged config and unstaged flake.lock edits; no untracked or ignored data enters the candidate; the #1738 exception does not establish Decapod readiness.",
         "Keep the root checkout read-only. Include only .decapod/config.toml, flake.lock, authored validation spec, and Decapod-owned governance state."
       ],
-      "artifact_hash": "sha256:dec3942585edb1128e339b3229b25a91ecda373650f5681a68687f81d7d1d5bb",
+      "artifact_hash": "sha256:f070d32a4e5ad8a4c8afc30b08596b585c7c4943ca4704040b4a041da28d132e",
+      "blockers": [
+        "PROOF_HOOK_FAILED: completed task secu_01m7n3hgynnee4rw has no canonical verification proof; supported recovery remains unresolved.",
+        "PUBLICATION_BUNDLE_CURRENCY: the validator refreshed four entrypoint fingerprints, the managed Dockerfile pin, and the specs manifest; these must be committed and revalidated."
+      ],
       "checks": [
         {
           "name": "browser-ui-routes",
           "status": "unavailable"
+        },
+        {
+          "name": "cached_diff_check",
+          "status": "passed"
+        },
+        {
+          "name": "candidate_validation",
+          "status": "failed"
         },
         {
           "name": "code-review",
@@ -187,15 +210,23 @@
           "status": "passed"
         },
         {
+          "name": "release_bundle_refresh",
+          "status": "passed"
+        },
+        {
           "name": "root-checkout-preservation",
           "status": "passed"
         },
         {
           "name": "source-inventory-binding",
           "status": "passed"
+        },
+        {
+          "name": "specs_refresh",
+          "status": "passed"
         }
       ],
-      "current_phase": "work",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
@@ -230,10 +261,17 @@
             "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M7P717HRNFYVF2PFD9Y51QA9",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7P717HRNFYVF2PFD9Y51QA9": {
@@ -323,6 +361,46 @@
                 ],
                 "sequence": 6,
                 "validation_findings": []
+              },
+              {
+                "action": "validation",
+                "command": "nix run Decapod 0.148.10 docs ingest",
+                "custody_event_id": "event:7",
+                "observations": [
+                  ".decapod/config.toml",
+                  ".decapod/OVERRIDE.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  "Decapod 0.148.10 validation on exact candidate 054fe8d returned publication_ready=false and fail_count=2: PROOF_HOOK_FAILED and PUBLICATION_BUNDLE_CURRENCY. The validator refreshed release-bound files through its supported self-heal path.",
+                  "Issue #1738 remains open with no newer update than 2026-11-18T00:46:19Z. Issue #1781 remains open; new comments discuss diagnostic source and substring matching but provide no recovery fix."
+                ],
+                "proof_refs": [
+                  "candidate_validation",
+                  "release_bundle_refresh",
+                  "specs_refresh",
+                  "cached_diff_check"
+                ],
+                "scope": [
+                  "Integrate only the preserved .decapod/config.toml and flake.lock edits plus the authored validation spec and required Decapod governance projections.",
+                  "paths:[\".decapod/config.toml\",\"flake.lock\",\".decapod/managed/specs/VALIDATION.md\",\".decapod/governance.json\"]",
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": [
+                  "The generated release-bound refresh is required by the latest validator and must be included in the next candidate."
+                ]
               }
             ]
           }
@@ -335,11 +413,16 @@
         "commit hook just check passed",
         "decapod govern plan check-execute returned EXECUTION_READY",
         "decapod rpc --op agent.init",
+        "decapod rpc --op specs.refresh",
+        "decapod validate --format json on 054fe8d",
         "git apply --3way --index preserved tracked changes",
-        "git commit fe68dbbfa21c03ae0f12822b5766f3991651b534 completed with exit 0"
+        "git commit fe68dbbfa21c03ae0f12822b5766f3991651b534 completed with exit 0",
+        "nix run Decapod 0.148.10 docs ingest"
       ],
       "destination": "pull request",
       "evidence": [
+        "Decapod 0.148.10 validation on exact candidate 054fe8d returned publication_ready=false and fail_count=2: PROOF_HOOK_FAILED and PUBLICATION_BUNDLE_CURRENCY. The validator refreshed release-bound files through its supported self-heal path.",
+        "Issue #1738 remains open with no newer update than 2026-11-18T00:46:19Z. Issue #1781 remains open; new comments discuss diagnostic source and substring matching but provide no recovery fix.",
         "agent.init receipt 01M7P9NH0MK2GT41E0X1EKEPSV; inventory_digest sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f",
         "agent.init reported inventory_digest=sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f and command_contract_digest=sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; status=proof_pending, merge_ready=false, proof_status=not_run",
         "candidate commit fe68dbbfa21c03ae0f12822b5766f3991651b534; git commit hook completed all configured checks and exited 0",
@@ -349,26 +432,39 @@
         "root HEAD ed1f4bb1c773f65208bd568db1ce1c94ec88675e; root status still contains only the original staged .decapod/config.toml and unstaged flake.lock edits"
       ],
       "inspected_files": [
+        ".decapod/OVERRIDE.md",
         ".decapod/config.toml",
+        ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/VALIDATION.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
         "flake.lock"
       ],
       "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
       "modified_files": [
         ".decapod/config.toml",
         ".decapod/governance.json",
+        ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/VALIDATION.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
         "flake.lock"
       ],
       "next_transitions": [
         "Checkpoint and commit current governance, run plain decapod validate on the exact resulting candidate, and preserve its full report.",
+        "Checkpoint and commit the 0.148.10 release-bound files, then rerun full validation on the exact commit.",
         "Refine plan and declare falsifiable checks",
         "Review authored validation spec, checkpoint the exact candidate, run full decapod validate, then follow its precise result.",
         "Review the exact candidate, checkpoint and commit updated governance, then run full decapod validate and preserve its exact result."
       ],
       "repo_scope": [
+        "Existing .decapod/config.toml digest, flake.lock refresh, validation spec, and Decapod-generated release-bound files.",
         "Integrate only the preserved .decapod/config.toml and flake.lock edits plus the authored validation spec and required Decapod governance projections.",
         "paths:[\".decapod/config.toml\",\"flake.lock\",\".decapod/managed/specs/VALIDATION.md\",\".decapod/governance.json\"]",
         "root"
@@ -382,6 +478,7 @@
         "reclaimed expired lease for existing task as its assigned root agent; workspace ensure rebound the same isolated branch"
       ],
       "unresolved_assumptions": [
+        "The generated release-bound refresh is required by the latest validator and must be included in the next candidate.",
         "The user requests both tracked checkout edits in the candidate; the prior owner authorization covers the bounded exception for issue 1738. The exception does not claim Decapod readiness."
       ]
     }

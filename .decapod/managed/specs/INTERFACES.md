@@ -316,6 +316,12 @@ only. Claude Code and Codex keep it. In pi, the mattpocock skill is
 | `just deploy-mahakala` | Guix channel files, `flake.lock`, and Mahakala configuration | Mahakala Guix System, Guix Home, and Home Manager profiles | Mahakala only | Each profile reports a new active generation |
 | `just guix-pull-system` | `guix/channels.scm` below `justfile_directory()` | Root Guix profile | Mahakala system source | `guix describe` reports the pulled revisions |
 | `just deploy-mahakala-system` | `guix/system.scm`, `guix/touchpad-resume.scm` and `guix-packages/` below `justfile_directory()` | Guix System generation | Mahakala only | `guix system describe` reports the new generation |
+| `just check-topgrade` | Topgrade settings and stubbed updater commands | No live profiles or containers | Local regression suite | Tests cover selection, failure propagation, and profile compatibility |
+| Guix cleanup | Guix package, Home, and System profiles | Expired non-current generations and unreachable store items | Mahakala | A failed selection or deletion stops cleanup with a nonzero exit |
+| GitHub CLI skills | Skills with GitHub source metadata | Unpinned managed skills and backups in `${XDG_STATE_HOME:-$HOME/.local/state}/den/skill-backups` | Current user and project | A failed source check, inventory, backup, or update returns a nonzero exit |
+| Claude plugin update | Configured marketplaces and plugins | Marketplace-managed plugins | Current user and project | Bare mode does not run conversation hooks; update failures return a nonzero exit |
+| Omarchy session launch | Home Manager profile at login | Session tree and compositor path | Future Guix graphical sessions | A profile switch does not change the pinned session tree |
+| Omarchy session sync | The caller's `WAYLAND_DISPLAY` and active shell | Hyprland and D-Bus session environment | Current graphical session | A mutable tree defers sync with a message; a sync failure returns a nonzero exit |
 | elogind `system-sleep` hook | HID IDs and `hid-multitouch` bindings | `unbind`, then `bind` | Matching `0018:06CB:76AF.*` devices on `post` only | Nonzero exit and stderr on missing devices, different driver or failed writes; `pre` is a no-op |
 | `ath10k_pci.reset_mode=1` | `guix/system.scm` kernel arguments | Linux boot command line | QCA6174 on Mahakala | Built `ath10k_pci` module reports `1` as warm-only reset; runtime proof waits for the next planned boot |
 
@@ -442,7 +448,7 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `2b074d518781f45909a40155958598b6880762521764e06c6084d6a0d36ecd68`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (9 files), `terraform/` (1 files)
+- Repository signal fingerprint: `bdc985cc7d7d5c0f566f8ab4a60752d424ef6db1c58e9c5bf87ab0cd0637aab0`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (16 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

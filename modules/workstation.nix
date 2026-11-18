@@ -10,6 +10,7 @@
       den.aspects.doom-emacs
     ];
     homeManager = {
+      config,
       pkgs,
       lib,
       ...
@@ -312,6 +313,44 @@
         X-GNOME-Autostart-enabled=true
       '';
 
+      # Home Manager still uses the deprecated Nix alias, while Lix lacks
+      # `profile add`. Preserve the upstream activation and select at runtime.
+      home.activation.installPackages = let
+        upstream =
+          (import "${inputs.home-manager}/modules/home-environment.nix" {
+            inherit config lib pkgs;
+          }).config.home.activation.installPackages;
+        oldInstall = "run $oldNix profile install $1";
+        oldHint = ''INSTALL_CMD="nix profile install"'';
+      in
+        lib.mkForce (
+          if config.submoduleSupport.externalPackageInstall || !(lib.hasInfix "profile install" upstream.data)
+          then upstream
+          else
+            assert lib.assertMsg
+            (lib.hasInfix oldInstall upstream.data && lib.hasInfix oldHint upstream.data)
+            "Home Manager's profile activation changed; update the Nix/Lix compatibility override.";
+              upstream
+              // {
+                data =
+                  lib.replaceStrings [oldInstall oldHint] [
+                    ''run "$oldNix" profile "''${INSTALL_CMD##* }" "$1"''
+                    ''
+                      if profileAddHelp=$(nix profile add --help 2>&1); then
+                        INSTALL_CMD="nix profile add"
+                      elif [[ $profileAddHelp == *"'add' is not a recognised command"* ]]; then
+                        INSTALL_CMD="nix profile install"
+                      else
+                        printf '%s\n' "$profileAddHelp" >&2
+                        exit 1
+                      fi
+                      unset profileAddHelp
+                    ''
+                  ]
+                  upstream.data;
+              }
+        );
+
       # GNOME doesn't ship StatusNotifierWatcher, so Qt tray apps (Telegram,
       # Synology Drive) appear to "not start" because their only UI is a tray
       # icon. The AppIndicator extension provides the watcher. It's installed
@@ -440,21 +479,23 @@
             ask_retry = false;
             pre_sudo = true;
             show_distribution_summary = false;
-            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "node" "emacs" "claude_code" "pi" "system" "distrobox" "a_m"];
+            # Guix System updates Tailscale; its own updater cannot write to
+            # the immutable Guix store.
+            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "node" "emacs" "claude_code" "pi" "system" "distrobox" "a_m" "tailscale" "hyprpm" "github_cli_skills" "claude_code_plugins"];
           };
           commands = {
             "Distrobox (arch)" = "distrobox-upgrade arch";
             "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'export HOMEBREW_NO_ASK=1; brew update && brew upgrade'";
+            "Hyprland plugins" = "bash ${../scripts/topgrade-hyprpm.sh}";
+            "GitHub CLI managed skills" = "bash ${../scripts/topgrade-gh-skills.sh}";
+            "Claude Code plugins" = "bash ${../scripts/topgrade-claude-plugins.sh}";
           };
           post_commands = {
-            "Garbage collect Nix" = "nix-collect-garbage -d";
             # Retain 2w of system generations, not 1d: a same-day kernel needs a
             # rollback target that outlives the day it was deployed. The kernel
             # itself is pinned by the kernel-gc-root GC root in the Justfile.
-            "Garbage collect Guix" = "guix package --delete-generations 2w && guix home delete-generations 2w && (sudo guix system delete-generations 2w 2> >(grep -v 'no matching generation' >&2) || true) && sudo guix gc";
-            "Remove unused Flatpak runtimes" = "flatpak uninstall --unused -y";
-            "Prune Podman images" = "podman image prune -a -f";
-            "Empty Trash" = "chmod -R u+w ~/.local/share/Trash/files ~/.local/share/Trash/info 2>/dev/null || true; rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/*";
+            "Garbage collect Guix" = "bash ${../scripts/topgrade-guix-gc.sh} ${../scripts/topgrade-guix-generations.scm}";
+            "Remove unused Flatpak runtimes" = "flatpak uninstall --user --unused -y";
           };
         };
       };

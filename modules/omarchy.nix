@@ -134,6 +134,11 @@
               --replace-fail '/run/wrappers/bin/' '/run/privileged/bin/'
           '';
       });
+      guixQuickshell = omarchy.passthru.quickshell.override {polkit = guixPolkit;};
+      sessionSyncGuard = pkgs.writeShellScript "omarchy-session-sync-guard" (
+        builtins.readFile ../scripts/omarchy-guix/session-sync-guard.sh
+      );
+      sessionSyncCheck = "[[ -n $selected_instance ]] || fail 'the shell has no Hyprland instance; nothing was changed'";
       inputMethodPython = pkgs.python3.withPackages (ps: [ps.pygobject3]);
       inputMethodIndicator = pkgs.writeShellScript "omarchy-input-method-indicator" ''
         export GI_TYPELIB_PATH="${lib.getLib pkgs.glib}/lib/girepository-1.0''${GI_TYPELIB_PATH:+:$GI_TYPELIB_PATH}"
@@ -187,7 +192,7 @@
           {
             echo "--- quickshell starting $(date -Is)"
             QS_DISABLE_FILE_WATCHER=1 QS_NO_RELOAD_POPUP=1 \
-              quickshell -n -p "$OMARCHY_PATH/shell" 2>&1
+              ${guixQuickshell}/bin/quickshell -n -p "$OMARCHY_PATH/shell" 2>&1
             echo "--- quickshell exited $? at $(date -Is)"
           } >>"$log_file" 2>&1 &
           shell_pid=$!
@@ -316,7 +321,7 @@
         package =
           (omarchy.override {
             # Keep nixarchy's lock fixes, but use elogind to find the session.
-            quickshell = omarchy.passthru.quickshell.override {polkit = guixPolkit;};
+            quickshell = guixQuickshell;
           }).overrideAttrs
           (old: {
             postInstall =
@@ -329,6 +334,19 @@
                   exit 1
                 fi
                 install -Dm755 ${launchShell} "$target"
+
+                # Shepherd has no systemd user environment to update.
+                substituteInPlace "$out/share/omarchy/bin/nixarchy-shell-session" \
+                  --replace-fail 'dbus-update-activation-environment --systemd' \
+                    'dbus-update-activation-environment' \
+                  --replace-fail ${lib.escapeShellArg sessionSyncCheck} \
+                    ${lib.escapeShellArg ''
+                  sync_guard_status=0
+                  ${sessionSyncGuard} "$selected_tree" || sync_guard_status=$?
+                  if ((sync_guard_status == 2)); then exit 0; fi
+                  if ((sync_guard_status != 0)); then exit "$sync_guard_status"; fi
+                  ${sessionSyncCheck}
+                ''}
 
                 # nixarchy now rewrites /usr/bin/python3 here itself (a Python
                 # with pygobject3, but no GI_TYPELIB_PATH), so match whichever
@@ -709,6 +727,14 @@
               '';
           });
       };
+
+      # Use the caller's graphical session instead of probing a systemd user bus.
+      home.activation.nixarchySyncSession = lib.mkForce (lib.hm.dag.entryAfter ["reloadSystemd" "nixarchySeed"] ''
+        if [[ -n "''${WAYLAND_DISPLAY:-}" ]]; then
+          PATH="${config.programs.nixarchy.package}/bin:${lib.makeBinPath config.programs.nixarchy.package.passthru.runtimeDeps}:$PATH" \
+            run ${config.programs.nixarchy.package}/bin/nixarchy-shell-session sync --if-running
+        fi
+      '');
 
       # Omarchy's GTK light/dark follow.
       #

@@ -7,14 +7,12 @@
 set -eu
 
 hm_profile="$HOME/.local/state/nix/profiles/home-manager/home-path"
-omarchy_path="$hm_profile/share/omarchy"
 
 # Hyprland comes from the nixarchy overlay via the omarchy package's
 # passthru.runtimeDeps, not from Guix. Guix does package hyprland (0.55.4), and
 # switching to it means pointing this one variable at
 # /run/current-system/profile/bin/Hyprland -- but nixarchy pins 0.56.2 from the
 # Hyprland flake and that is the pair upstream tests the Lua config against.
-hyprland="$hm_profile/bin/Hyprland"
 
 # The upstream watchdog, which is what Hyprland wants to be started by.
 #
@@ -37,7 +35,6 @@ hyprland="$hm_profile/bin/Hyprland"
 # Guarded rather than assumed: if a future Hyprland drops the binary, fall back
 # to launching the compositor directly. A warning in the log is a much smaller
 # problem than a session that cannot start.
-start_hyprland="$hm_profile/bin/start-hyprland"
 
 # Omarchy's 460 scripts are unwrapped by design -- the CLI scans them for
 # metadata comments and wrapping breaks that -- so their dependencies have to be
@@ -53,7 +50,6 @@ start_hyprland="$hm_profile/bin/start-hyprland"
 # script died with "mkdir: command not found" before the log it writes the
 # diagnosis to existed, which is the one failure mode this whole file is
 # structured to avoid.
-export OMARCHY_PATH="$omarchy_path"
 # /run/privileged/bin FIRST, ahead of the system profile.
 #
 # Ordering, not just membership, and getting it wrong broke sudo for the whole
@@ -66,7 +62,7 @@ export OMARCHY_PATH="$omarchy_path"
 # /run/setuid-programs is the legacy name -- a farm of symlinks into
 # /run/privileged/bin -- and is kept last as a fallback for an older system
 # generation that has no /run/privileged.
-export PATH="/run/privileged/bin:$hm_profile/bin:$omarchy_path/bin:/run/current-system/profile/bin:/run/setuid-programs${PATH:+:$PATH}"
+export PATH="/run/privileged/bin:$hm_profile/bin:/run/current-system/profile/bin:/run/setuid-programs${PATH:+:$PATH}"
 
 # A session that exits drops straight back to the greeter with nothing printed
 # anywhere, so keep a log the next GNOME login can read. Truncated per run: the
@@ -81,6 +77,14 @@ fi
 exec >"$log" 2>&1
 echo "omarchy-session: starting $(date -Is)"
 
+if ! session_profile=$(readlink -e -- "$hm_profile"); then
+  echo "FATAL: no Home Manager profile at $hm_profile"
+  exit 1
+fi
+omarchy_path="$session_profile/share/omarchy"
+hyprland="$session_profile/bin/Hyprland"
+start_hyprland="$session_profile/bin/start-hyprland"
+
 if [ ! -d "$omarchy_path" ]; then
   echo "FATAL: no Omarchy tree at $omarchy_path"
   echo "The nixarchy home-manager module installs it."
@@ -93,6 +97,16 @@ if [ ! -x "$hyprland" ]; then
   echo "It arrives via the omarchy package's passthru.runtimeDeps."
   exit 1
 fi
+
+if ! omarchy_path=$(readlink -e -- "$omarchy_path"); then
+  echo "FATAL: cannot resolve the Omarchy tree in $session_profile"
+  exit 1
+fi
+if ! hyprland=$(readlink -e -- "$hyprland"); then
+  echo "FATAL: cannot resolve Hyprland in $session_profile"
+  exit 1
+fi
+export OMARCHY_PATH="$omarchy_path"
 
 # Omarchy assumes uwsm started the session and put these in the systemd user
 # environment. There is no user manager here, so set them directly; Quickshell
@@ -171,7 +185,7 @@ fi
 # /run/privileged/bin stays ahead of everything for the setuid reason given
 # where PATH is first set: sourcing setup-environment re-prepended the Guix
 # profiles, which would otherwise put the non-setuid sudo back in front.
-export PATH="/run/privileged/bin:$hm_profile/bin:$omarchy_path/bin:$PATH"
+export PATH="/run/privileged/bin:${hyprland%/*}:$omarchy_path/bin:$hm_profile/bin:$PATH"
 
 # The Home Manager profile's share/ has to be on XDG_DATA_DIRS too, and nothing
 # above puts it there. setup-environment builds XDG_DATA_DIRS from the Guix

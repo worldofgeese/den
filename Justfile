@@ -312,6 +312,7 @@ check: install-hooks
     just check-pi-gateway-provider
     just check-headroom-storage
     just check-decapod-deploy-backup
+    just check-topgrade
 
 # Prove the project overrides in .decapod/OVERRIDE.md are actually loaded.
 #
@@ -342,6 +343,9 @@ check-pi-gateway-provider:
 # Exercise the rendered startup guard without touching live containers.
 check-headroom-storage:
     nix shell --inputs-from . nixpkgs#python3 nixpkgs#jq nixpkgs#perl --command python3 scripts/test-headroom-storage.py
+
+check-topgrade:
+    nix shell --inputs-from . nixpkgs#bash nixpkgs#coreutils nixpkgs#python3 nixpkgs#jq --command python3 -B -m unittest discover -s scripts -p 'test_topgrade_*.py'
 
 # Tests for the store copy that `just deploy-darwin` makes when a deploy
 # changes Decapod (scripts/decapod-deploy-backup.sh). Stub `nix` and `sqlite3`

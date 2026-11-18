@@ -60,9 +60,28 @@ deploy-mahakala-hm:
 mahakala-hm-caches := "https://cache.numtide.com https://nixarchy.cachix.org https://hyprland.cachix.org https://decapod.cachix.org https://doom-emacs-unstraightened.cachix.org https://eval-exec.cachix.org https://nix-wpe-webkit.cachix.org"
 mahakala-hm-keys := "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g= nixarchy.cachix.org-1:05JOuIlsQOWY2/5DQMq7JEA1hwlhgvmMWowMfka8mMM= hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIITemDosxrE9/Kb+PfYvE= decapod.cachix.org-1:AF1GjlAzLHQln1avulS5PZZMj0H9ftSFpTNz6mHg/ng= doom-emacs-unstraightened.cachix.org-1:O5oOlRPnmQEvVaFyuMTmthCEooHbrg54WgSLR07tmg4= eval-exec.cachix.org-1:xvopUI7X7+Vt1gaSsWJ0PQFPP66vs8v5iIaz6boxf64= nix-wpe-webkit.cachix.org-1:ItCjHkz1Y5QcwqI9cTGNWHzcox4EqcXqKvOygxpwYHE="
 deploy-mahakala-hm-only:
+    just _mahakala-gpu-link
     NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\nextra-substituters = %s\nextra-trusted-public-keys = %s' '{{ mahakala-hm-caches }}' '{{ mahakala-hm-keys }}')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"
     update-desktop-database ~/.local/share/applications
     @just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
+
+# Point /run/opengl-driver at the GPU drivers of the generation about to be
+# activated. guix/system.scm's nix-opengl-driver one-shot does the same from
+# the *current* generation, but only at boot and system reconfigure, which
+# Topgrade runs before Home Manager. Whenever a deploy changed the drivers, the
+# link went stale and activation's checkExistingGpuDrivers warned "GPU drivers
+# require an update". Home Manager's suggested non-nixos-gpu-setup is the
+# systemd-tmpfiles route, which does nothing on Guix. The build is the one
+# `home-manager switch` would do next, so the switch reuses it.
+_mahakala-gpu-link:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    gen=$(NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\nextra-substituters = %s\nextra-trusted-public-keys = %s' '{{ mahakala-hm-caches }}' '{{ mahakala-hm-keys }}')" \
+      nix build --no-link --print-out-paths "{{ repo-dir }}#homeConfigurations.worldofgeese.activationPackage")
+    drivers=$(grep -m1 -oP '(?<=^new=)\S+' "$gen/activate")
+    if [ "$(readlink /run/opengl-driver || true)" != "$drivers" ]; then
+      sudo ln -sfT "$drivers" /run/opengl-driver
+    fi
 
 # Reboot mahakala to its desktop with no passphrase (guix/agent-unlock.sh).
 # The session comes up locked; release it with `just mahakala-session-unlock`.

@@ -462,6 +462,7 @@
           # succeeded. Split, each failure is contained to its own step. Ordering
           # is preserved by the numeric prefixes (topgrade sorts keys).
           pre_commands = {
+            "0. Sync den checkout" = "bash ${../scripts/topgrade-sync-checkout.sh} ~/.config/home-manager";
             "1. Deploy Guix System" = "cd ~/.config/home-manager && just guix-pull-system && just deploy-mahakala-system";
             "2. Deploy Guix Home" = "cd ~/.config/home-manager && just guix-pull-home && just deploy-mahakala-guix-only";
             "3. Flake inputs" = "cd ~/.config/home-manager && just update";
@@ -484,8 +485,11 @@
             disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "node" "emacs" "claude_code" "pi" "system" "distrobox" "a_m" "tailscale" "hyprpm" "github_cli_skills" "claude_code_plugins" "skills"];
           };
           commands = {
-            "Distrobox (arch)" = "distrobox-upgrade arch";
-            "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'export HOMEBREW_NO_ASK=1; brew update && brew upgrade'";
+            "Distrobox (arch)" = "distrobox enter arch -- sudo bash -s < ${../scripts/topgrade-arch-distrobox-hooks.sh} && distrobox-upgrade arch";
+            # A bare `brew upgrade` already upgrades every outdated formula, so
+            # the installed-dependents check only warned about tap formulae
+            # without bottles (gascity) that this same run then upgraded.
+            "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'export HOMEBREW_NO_ASK=1 HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1; brew update && brew upgrade'";
             "Hyprland plugins" = "bash ${../scripts/topgrade-hyprpm.sh}";
             "GitHub CLI managed skills" = "bash ${../scripts/topgrade-gh-skills.sh}";
             "Agent skills" = "node ${../scripts/topgrade-agent-skills.mjs}";

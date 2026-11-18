@@ -106,6 +106,11 @@
       "id": "plan-approved",
       "summary": "Plan intent recorded and approved under the user's standing authorization",
       "input_digest": "sha256:aa8f6994f0169e133d5a37b72f38a99062cc54fe8d0cbd07826e9e90e4de284f"
+    },
+    {
+      "id": "review-184",
+      "summary": "Address pr-reviewer findings: GPU link soft-fails and is restored on a failed switch, lock discard is logged, hook script is tested and warns on renamed hooks",
+      "input_digest": "sha256:e76eb1c340ba187606f1993592864c3d0416626b0d1d7d1fb592cbcfd68f144a"
     }
   ],
   "intents": {

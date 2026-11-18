@@ -17,5 +17,8 @@ if [ "$branch" != main ]; then
   exit 1
 fi
 git fetch --quiet origin main
-git restore --worktree -- flake.lock
+if ! git diff --quiet -- flake.lock; then
+  echo "note: discarding the uncommitted flake.lock in $PWD" >&2
+  git restore --worktree -- flake.lock
+fi
 git merge --ff-only --quiet origin/main

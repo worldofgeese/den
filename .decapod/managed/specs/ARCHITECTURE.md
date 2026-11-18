@@ -303,14 +303,20 @@ first step, `scripts/topgrade-sync-checkout.sh`, fast-forwards that checkout to
 `origin/main`. A checkout left behind main once redeployed configuration that a
 merged change had removed. The script refuses any branch but main and any local
 change the fast-forward would overwrite. It discards only `flake.lock`, which
-the input refresh step regenerates on every run.
+the input refresh step regenerates on every run, and says so in the Topgrade
+log. An unrelated local change that does not conflict stays in place and is
+deployed with the checkout.
 
 `just deploy-mahakala-hm-only` builds the Home Manager generation and points
 `/run/opengl-driver` at its GPU drivers before switching. The Guix System
 `nix-opengl-driver` one-shot sets the same link from the current generation, but
 only at boot and system reconfigure, so a Home Manager deploy that changed the
 drivers left the link stale. Home Manager's suggested `non-nixos-gpu-setup`
-relies on systemd-tmpfiles and has no effect on Guix.
+relies on systemd-tmpfiles and has no effect on Guix. If the switch fails, the
+recipe restores the previous link, so the link keeps matching the active
+generation. If a Home Manager change removes the `new=` driver path from the
+activation script, the recipe warns and leaves the link alone instead of failing
+the deploy.
 
 Before each Arch Distrobox upgrade, Topgrade runs
 `scripts/topgrade-arch-distrobox-hooks.sh` as root in the box. The box has no
@@ -318,7 +324,8 @@ systemd as PID 1 and cannot chown the host's `/dev`, `/tmp` and `/run` mounts.
 The script masks the sshd-restart and systemd-reload pacman hooks, limits the
 tmpfiles hook to container-owned paths, and gives `/etc/ssl/private` the mode
 the openssl package expects. It runs on every upgrade, so a recreated box gets
-the same treatment. The Homebrew step disables the installed-dependents check.
+the same treatment. Masks match pacman hooks by file name, so the script warns
+when a masked hook is no longer shipped under that name. The Homebrew step disables the installed-dependents check.
 A bare `brew upgrade` already upgrades every outdated formula, and the check
 only warned about tap formulae without bottles that the same run upgraded.
 
@@ -712,7 +719,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `4a6bda5e17a590dfd90eb6139b60be88781082cdfb674448b7122999c73bb083`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (18 files), `terraform/` (1 files)
+- Repository signal fingerprint: `82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (19 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

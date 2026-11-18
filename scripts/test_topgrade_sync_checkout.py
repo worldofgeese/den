@@ -63,6 +63,7 @@ class SyncCheckoutTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(git(self.checkout, "rev-parse", "HEAD"), self.upstream_head)
         self.assertEqual((self.checkout / "flake.lock").read_text(), "lock 2\n")
+        self.assertIn("discarding the uncommitted flake.lock", result.stderr)
 
     def test_refuses_a_branch_other_than_main(self):
         git(self.checkout, "switch", "-q", "-c", "feature")

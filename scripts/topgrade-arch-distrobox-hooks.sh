@@ -10,9 +10,11 @@
 #  - the tmpfiles hook tried to chown host-owned paths such as /dev/kvm.
 # Pacman runs a hook in /etc/pacman.d/hooks instead of the packaged one of the
 # same name, and skips it entirely when that file is a link to /dev/null.
+# The optional argument is a root prefix, for tests.
 set -euo pipefail
 
-hooks=/etc/pacman.d/hooks
+root=${1:-}
+hooks=$root/etc/pacman.d/hooks
 mkdir -p "$hooks"
 for hook in \
   10-openssh-mark-sshd-for-restart \
@@ -23,6 +25,10 @@ for hook in \
   35-systemd-udev-reload \
   70-openssh-restart-sshd \
   dbus-reload; do
+  # Masks match by file name, so a renamed packaged hook would run again.
+  if [ ! -e "$root/usr/share/libalpm/hooks/$hook.hook" ]; then
+    echo "warning: pacman no longer ships $hook.hook; review its mask" >&2
+  fi
   ln -sfn /dev/null "$hooks/$hook.hook"
 done
 
@@ -41,4 +47,4 @@ HOOK
 
 # The openssl package ships this directory as 0700; the image has it at 0755,
 # and pacman warns about the mismatch on every openssl upgrade.
-chmod 0700 /etc/ssl/private
+chmod 0700 "$root/etc/ssl/private"

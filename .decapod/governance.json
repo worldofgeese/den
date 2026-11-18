@@ -107,6 +107,11 @@
         "root lock entries match outside accepted main ewm record",
         "specs.refresh receipt 01M7Q26X2D0F1QC2HFBQ6YNCSM"
       ]
+    },
+    {
+      "id": "current-main-dec-148-11-refresh",
+      "summary": "Refresh generated projections to Decapod 0.148.11 and record exact validation result; recovery of the original Superwhisper proof remains outstanding.",
+      "input_digest": "sha256:4c715946f0438483a316ad16778025e9eb930be9f4ed1a0d695b6566821c8ee8"
     }
   ],
   "intents": {
@@ -178,8 +183,9 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:4cb126d09c32606b8c08b82df3e5e47cb53fda32cf7188d100e1cdef06e8b80e",
+      "artifact_hash": "sha256:e0ac1935e1fa369ae235140ad8fbe6f355597884bba56c7bbe6ad5673ff128e4",
       "blockers": [
+        "Original completed task secu_01m7n3hgynnee4rw has no canonical full-validation proof.",
         "The completed Superwhisper task has no canonical full validation proof. record-history-recovery is not applicable because the old branch history is proven.",
         "The completed Superwhisper task has no canonical full-validation proof; readiness remains unproven."
       ],
@@ -187,6 +193,10 @@
         {
           "name": "checkpoint_history",
           "status": "passed"
+        },
+        {
+          "name": "full-validation-0-148-11",
+          "status": "failed"
         },
         {
           "name": "history_recovery",
@@ -201,6 +211,18 @@
           "status": "passed"
         },
         {
+          "name": "qa-verify-recover-0-148-10",
+          "status": "failed"
+        },
+        {
+          "name": "qa-verify-regen-0-148-10",
+          "status": "failed"
+        },
+        {
+          "name": "qa-verify-todo",
+          "status": "partial"
+        },
+        {
           "name": "root_checkout",
           "status": "passed"
         },
@@ -209,7 +231,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "Preserved source integration",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
@@ -237,10 +259,17 @@
             "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M7Q0QTKCJD6NK1AA9G0626H1",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M7Q0QTJNNG1648V82S4T2RPM",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7Q0QTKCJD6NK1AA9G0626H1": {
@@ -296,6 +325,35 @@
                 ],
                 "sequence": 5,
                 "validation_findings": []
+              },
+              {
+                "action": "validation",
+                "command": "nix run github:DecapodLabs/decapod/v0.148.11#decapod -- validate --format json",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".decapod/config.toml",
+                  ".decapod/OVERRIDE.md",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  "Candidate 816726d9f5c4b8f328b74ce2954c1534a028ad4c against accepted base 52a0404e6924382c93186a74536cec2bd4e8d908: Decapod 0.148.11 validation passed 191 gates and failed only PROOF_HOOK_FAILED for secu_01m7n3hgynnee4rw.",
+                  "qa verify todo reports unknown with no proofs or artifacts; 0.148.10 recover and regen captured no baseline.",
+                  "Validation refreshed release projections to 0.148.11; this changes the candidate tree."
+                ],
+                "proof_refs": [
+                  "full-validation-0-148-11",
+                  "qa-verify-todo",
+                  "qa-verify-recover-0-148-10",
+                  "qa-verify-regen-0-148-10"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -306,14 +364,20 @@
         "Decapod 0.148.10 record-history-recovery: HISTORY_RECOVERY_NOT_APPLICABLE",
         "Decapod 0.148.10 specs.refresh receipt 01M7Q26X2D0F1QC2HFBQ6YNCSM",
         "Decapod 0.148.10 verify-checkpoints for old source at exact recorded base: history_proven=true, no findings",
-        "git three-way transfer from root lock state, preserving accepted main ewm entry"
+        "decapod qa verify recover and regen on candidate 816726d9",
+        "git three-way transfer from root lock state, preserving accepted main ewm entry",
+        "nix run github:DecapodLabs/decapod/v0.148.11#decapod -- validate --format json"
       ],
       "destination": "pull request",
       "evidence": [
+        "Candidate 816726d9f5c4b8f328b74ce2954c1534a028ad4c against accepted base 52a0404e6924382c93186a74536cec2bd4e8d908: Decapod 0.148.11 validation passed 191 gates and failed only PROOF_HOOK_FAILED for secu_01m7n3hgynnee4rw.",
         "Fresh workspace HEAD and accepted origin/main are 52a0404e6924382c93186a74536cec2bd4e8d908, which includes PR #183. The candidate flake.lock matches the root checkout's 25 input updates outside ewm and retains the accepted main ewm node. jq parsed the lock. agent.init reports inventory_digest sha256:c01d190a7de7abf2f4e061cf5180e2fb526c303531d5a111524d41cce3aac2e9 and the unchanged command digest sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; config.toml records the same inventory digest. specs.refresh succeeded. The root checkout remains at ed1f4bb1 with staged config, unstaged flake.lock, and untracked .swamp/ unchanged.",
-        "On the preserved source branch, verify-checkpoints used its exact recorded base edad7072e66db9d1f45ee7a5deffede796e4f442 and current target origin/main. It reported history_proven=true with no findings. record-history-recovery rejected the source with HISTORY_RECOVERY_NOT_APPLICABLE because no historical checkpoint gap exists. The separate completed-task PROOF_HOOK_FAILED remains unresolved; no proof or obligation was changed."
+        "On the preserved source branch, verify-checkpoints used its exact recorded base edad7072e66db9d1f45ee7a5deffede796e4f442 and current target origin/main. It reported history_proven=true with no findings. record-history-recovery rejected the source with HISTORY_RECOVERY_NOT_APPLICABLE because no historical checkpoint gap exists. The separate completed-task PROOF_HOOK_FAILED remains unresolved; no proof or obligation was changed.",
+        "Validation refreshed release projections to 0.148.11; this changes the candidate tree.",
+        "qa verify todo reports unknown with no proofs or artifacts; 0.148.10 recover and regen captured no baseline."
       ],
       "inspected_files": [
+        ".decapod/OVERRIDE.md",
         ".decapod/config.toml",
         ".decapod/governance.json",
         ".decapod/managed/specs/VALIDATION.md",
@@ -334,7 +398,8 @@
       "next_transitions": [
         "Reauthor the selected files on the current accepted base. Test the documented completed-task recovery against the exact candidate.",
         "Refine plan and declare falsifiable checks",
-        "Stage authored changes, checkpoint and commit. Run the documented task recovery and full validation on the exact candidate."
+        "Stage authored changes, checkpoint and commit. Run the documented task recovery and full validation on the exact candidate.",
+        "retry supported proof recovery on 0.148.11"
       ],
       "repo_scope": [
         "root"

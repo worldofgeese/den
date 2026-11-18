@@ -312,9 +312,10 @@ deployed with the checkout.
 `nix-opengl-driver` one-shot sets the same link from the current generation, but
 only at boot and system reconfigure, so a Home Manager deploy that changed the
 drivers left the link stale. Home Manager's suggested `non-nixos-gpu-setup`
-relies on systemd-tmpfiles and has no effect on Guix. If the switch fails, the
-recipe restores the previous link, so the link keeps matching the active
-generation. If a Home Manager change removes the `new=` driver path from the
+relies on systemd-tmpfiles and has no effect on Guix. If the switch fails
+before activation installs the new packages, the recipe restores the previous
+link, so the link keeps matching the active generation. Activation is not
+transactional, so if it fails after installing them, the new drivers stay. If a Home Manager change removes the `new=` driver path from the
 activation script, the recipe warns and leaves the link alone instead of failing
 the deploy.
 

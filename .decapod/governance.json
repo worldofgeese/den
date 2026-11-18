@@ -111,6 +111,11 @@
       "id": "review-184",
       "summary": "Address pr-reviewer findings: GPU link soft-fails and is restored on a failed switch, lock discard is logged, hook script is tested and warns on renamed hooks",
       "input_digest": "sha256:e76eb1c340ba187606f1993592864c3d0416626b0d1d7d1fb592cbcfd68f144a"
+    },
+    {
+      "id": "review-184-codex",
+      "summary": "Keep new GPU drivers when activation failed after installing packages",
+      "input_digest": "sha256:6f888287f8a41b38d4ee5a3f9df2f6fa0f7d1c7d12609043056df29772ea96a3"
     }
   ],
   "intents": {

@@ -63,10 +63,13 @@ deploy-mahakala-hm-only:
     #!/usr/bin/env bash
     set -euo pipefail
     old_drivers=$(readlink /run/opengl-driver || true)
-    just _mahakala-gpu-link
+    gen=$(just _mahakala-gpu-link)
     if ! NIX_CONFIG="$(printf 'warn-dirty = false\nfallback = true\nextra-substituters = %s\nextra-trusted-public-keys = %s' '{{ mahakala-hm-caches }}' '{{ mahakala-hm-keys }}')" home-manager switch --flake "{{ repo-dir }}#worldofgeese"; then
-      # The old generation stays active, so its GPU drivers must too.
-      if [ -n "$old_drivers" ] && [ "$(readlink /run/opengl-driver || true)" != "$old_drivers" ]; then
+      # Activation is not transactional: once it has installed the new
+      # packages, they need the new drivers. Otherwise the old ones come back.
+      if grep -qsF "$(readlink -f "$gen/home-path")" "$(readlink -f ~/.nix-profile)"/manifest.*; then
+        echo "warning: activation failed after installing packages; kept the new GPU drivers" >&2
+      elif [ -n "$old_drivers" ] && [ "$(readlink /run/opengl-driver || true)" != "$old_drivers" ]; then
         sudo ln -sfT "$old_drivers" /run/opengl-driver
       fi
       exit 1
@@ -81,7 +84,8 @@ deploy-mahakala-hm-only:
 # link went stale and activation's checkExistingGpuDrivers warned "GPU drivers
 # require an update". Home Manager's suggested non-nixos-gpu-setup is the
 # systemd-tmpfiles route, which does nothing on Guix. The build is the one
-# `home-manager switch` would do next, so the switch reuses it.
+# `home-manager switch` would do next, so the switch reuses it. Prints the
+# generation's path.
 _mahakala-gpu-link:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -94,6 +98,7 @@ _mahakala-gpu-link:
     elif [ "$(readlink /run/opengl-driver || true)" != "$drivers" ]; then
       sudo ln -sfT "$drivers" /run/opengl-driver
     fi
+    echo "$gen"
 
 # Reboot mahakala to its desktop with no passphrase (guix/agent-unlock.sh).
 # The session comes up locked; release it with `just mahakala-session-unlock`.

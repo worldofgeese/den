@@ -101,6 +101,11 @@
       "id": "topgrade-current-main",
       "summary": "Topgrade syncs the checkout to origin/main before deploying, relinks GPU drivers before the HM switch, adapts Arch Distrobox pacman hooks, and skips Homebrew's redundant dependents check",
       "input_digest": "sha256:37cad1d27a7c007f0bc9e1744593f6349bc2a9a5d8e863fb8da4f6d385f5b791"
+    },
+    {
+      "id": "plan-approved",
+      "summary": "Plan intent recorded and approved under the user's standing authorization",
+      "input_digest": "sha256:aa8f6994f0169e133d5a37b72f38a99062cc54fe8d0cbd07826e9e90e4de284f"
     }
   ],
   "intents": {
@@ -125,18 +130,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
-      "intent": "Topgrade: deploy current main, refresh GPU link, quiet distrobox hooks",
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "Make a full unattended topgrade run on Mahakala free of repo-side errors and warnings (user directive: fix all errors/warnings except the Codeberg mirror warnings), without undoing #183's safety: deploy only current origin/main, relink GPU drivers before the HM switch, adapt Arch Distrobox pacman hooks to a rootless container, and skip Homebrew's redundant dependents check.",
+      "phases": [],
       "proof_hooks": [
-        "decapod validate"
+        "just check-topgrade"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Topgrade: deploy current main, refresh GPU link, quiet distrobox hooks",
       "todo_ids": [
         "cicd_01m7q2tfqb9p8mc9"
       ],
-      "updated_at": "1794997345Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1794999555Z"
     },
     "trajectory": {
       "active_boundaries": [

@@ -16,8 +16,9 @@ setup_pid=
 
 cleanup() {
   result=$?
-  if ((result)) && [[ -f $XDG_STATE_HOME/superwhisper/guix-daemon.log ]]; then
-    cat "$XDG_STATE_HOME/superwhisper/guix-daemon.log" >&2
+  if ((result)) && [[ -n ${XDG_STATE_HOME:-} ]]; then
+    daemon_log=$XDG_STATE_HOME/superwhisper/guix-daemon.log
+    [[ ! -f $daemon_log ]] || cat "$daemon_log" >&2
   fi
   if [[ -n $lock_holder_pid ]]; then
     kill -TERM "$lock_holder_pid" >/dev/null 2>&1 || true

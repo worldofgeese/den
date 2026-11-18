@@ -162,6 +162,11 @@
       "id": "superwhisper-decapod-0-148-9-bundle-01m7p",
       "summary": "Refresh Decapod 0.148.9 release-bound entrypoint fingerprints, managed Dockerfile pin and specs manifest after exact-candidate validation identified the publication bundle requirement.",
       "input_digest": "sha256:babb24274444e30971d7d4574a974e71dc5fdfa03bd582baf11dd0edffbc2bf0"
+    },
+    {
+      "id": "superwhisper-cleanup-trap-01m7p",
+      "summary": "Guard the Superwhisper regression cleanup trap when XDG_STATE_HOME is not yet set, preserving the original early failure; record current validation and canonicalize future trajectory path descriptions.",
+      "input_digest": "sha256:c60c5b5eb58d1975e704a02b31ccca7b09f7b8caf880e2da94eee13d11f7eb96"
     }
   ],
   "intents": {
@@ -222,7 +227,7 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:fd67a82c3b9992579fba6a30d7f466811fe38e82d11fd19d1f43c340bb2015c4",
+      "artifact_hash": "sha256:36187b1d82345974180e7576afa38debe6cba70e4482705e2cf473168429252d",
       "blockers": [
         "A person must review the current PR #177 head before merge; the owner has been asked to review the exact candidate."
       ],
@@ -268,6 +273,10 @@
           "status": "failed"
         },
         {
+          "name": "native_validation_ada6744c",
+          "status": "failed"
+        },
+        {
           "name": "prior_checkpoint_history",
           "status": "passed"
         },
@@ -296,15 +305,23 @@
           "status": "passed"
         },
         {
+          "name": "test_cleanup_guard",
+          "status": "unavailable"
+        },
+        {
           "name": "touchpad_claim_restoration",
           "status": "passed"
+        },
+        {
+          "name": "trajectory_path_correction",
+          "status": "partial"
         },
         {
           "name": "workspace_ensure",
           "status": "passed"
         }
       ],
-      "current_phase": "release-bound projection repair",
+      "current_phase": "review follow-up",
       "custody": {
         "events": [
           {
@@ -395,10 +412,17 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 14
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:15",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 15
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 14,
+        "next_sequence": 15,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -750,6 +774,38 @@
                 ],
                 "sequence": 14,
                 "validation_findings": []
+              },
+              {
+                "action": "review follow-up",
+                "command": "Decapod 0.148.9 validate on ada6744c: 191 passed, READINESS_BLOCKED by required human review",
+                "custody_event_id": "event:15",
+                "observations": [
+                  "scripts/test-omarchy-superwhisper.sh",
+                  "<external-path>",
+                  "scripts/test-omarchy-superwhisper.sh",
+                  ".decapod/governance.json",
+                  "Review found the EXIT trap could expand /home/worldofgeese/.local/state while unset and mask an early failure; the cleanup now checks that variable before reading the daemon log. The commit hook has not yet run on this edit.",
+                  "The canonical lock path is $XDG_STATE_HOME/den/app-list.lock. An earlier trajectory observation recorded the shell-expanded per-user value; this entry uses the variable form because trajectory records are append-only and the CLI exposes no removal operation."
+                ],
+                "proof_refs": [
+                  "native_validation_ada6744c",
+                  "test_cleanup_guard",
+                  "trajectory_path_correction"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 15,
+                "validation_findings": []
               }
             ]
           }
@@ -757,6 +813,7 @@
       },
       "declared_commands": [
         "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
+        "Decapod 0.148.9 validate on ada6744c: 191 passed, READINESS_BLOCKED by required human review",
         "Decapod 0.148.9 validate on deab6337: PUBLICATION_BUNDLE_CURRENCY",
         "Decapod 0.148.9 workspace ensure regenerated release-bound projections",
         "Decapod rpc --op specs.refresh",
@@ -783,7 +840,9 @@
         "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed.",
         "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
         "Package /nix/store/j0k79zsd5c8ldvd3jchd9cm0d3il4r0i-omarchy-4.5.0 built successfully with the new fd-8 guard regression in postFixup.",
+        "Review found the EXIT trap could expand /home/worldofgeese/.local/state while unset and mask an early failure; the cleanup now checks that variable before reading the daemon log. The commit hook has not yet run on this edit.",
         "The 0.148.9 workspace ensure CLI refreshed AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod and .decapod/managed/specs/.manifest.json; those generated files are staged without hand edits.",
+        "The canonical lock path is $XDG_STATE_HOME/den/app-list.lock. An earlier trajectory observation recorded the shell-expanded per-user value; this entry uses the variable form because trajectory records are append-only and the CLI exposes no removal operation.",
         "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
         "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
         "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
@@ -829,6 +888,7 @@
         "Checkpoint and commit exact-lock descriptor validation with its regression and spec updates, push, rerun current-head checks, and collect human review.",
         "Checkpoint and commit the Decapod 0.148.9 release bundle, push, rerun current-head validation and CI, and collect required human review.",
         "Checkpoint and commit the combined review fixes, push, reply substantively and resolve each handled thread, then finish hosted CI and merge under the owner exception.",
+        "Checkpoint and commit the early-cleanup guard and its spec correction, push, run current-head checks, and collect the required human review.",
         "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
         "Commit and push the fd-8 lock guard, rerun exact-candidate validation, and collect fresh CI plus required human review before merge.",
         "Commit and push the lock-bypass guard, rerun exact-candidate validation, and collect fresh CI plus the required human review before merge.",

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "52a0404e6924382c93186a74536cec2bd4e8d908",
+    "accepted_commit": "e07fbc75a86f1b022ab23d63fda64031f669ab39",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -92,34 +92,19 @@
     }
   },
   "change": {
-    "id": "change_01M7Q2VQACX0D5XZVEEQH9ZKZA",
-    "base_commit": "52a0404e6924382c93186a74536cec2bd4e8d908",
+    "id": "change_01M7QA7NEJP0APZ49A0ZK533SX",
+    "base_commit": "e07fbc75a86f1b022ab23d63fda64031f669ab39",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "topgrade-current-main",
-      "summary": "Topgrade syncs the checkout to origin/main before deploying, relinks GPU drivers before the HM switch, adapts Arch Distrobox pacman hooks, and skips Homebrew's redundant dependents check",
-      "input_digest": "sha256:37cad1d27a7c007f0bc9e1744593f6349bc2a9a5d8e863fb8da4f6d385f5b791"
-    },
-    {
-      "id": "plan-approved",
-      "summary": "Plan intent recorded and approved under the user's standing authorization",
-      "input_digest": "sha256:aa8f6994f0169e133d5a37b72f38a99062cc54fe8d0cbd07826e9e90e4de284f"
-    },
-    {
-      "id": "review-184",
-      "summary": "Address pr-reviewer findings: GPU link soft-fails and is restored on a failed switch, lock discard is logged, hook script is tested and warns on renamed hooks",
-      "input_digest": "sha256:e76eb1c340ba187606f1993592864c3d0416626b0d1d7d1fb592cbcfd68f144a"
-    },
-    {
-      "id": "review-184-codex",
-      "summary": "Keep new GPU drivers when activation failed after installing packages",
-      "input_digest": "sha256:6f888287f8a41b38d4ee5a3f9df2f6fa0f7d1c7d12609043056df29772ea96a3"
+      "id": "tobias-url",
+      "summary": "Point guix.tobias.gr substitute URL at its root",
+      "input_digest": "sha256:183795c2ef31435f16292b65d43041326201d0d8fde26d5e0f5f66039d5373a0"
     }
   ],
   "intents": {
-    "intent:change_01M7Q2VQACX0D5XZVEEQH9ZKZA": {
+    "intent:change_01M7QA7NEJP0APZ49A0ZK533SX": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -129,11 +114,11 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M7Q2VQACX0D5XZVEEQH9ZKZA",
+      "id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Topgrade: deploy current main, refresh GPU link, quiet distrobox hooks",
-      "refined_intent": "Topgrade: deploy current main, refresh GPU link, quiet distrobox hooks",
+      "raw_intent": "Point guix.tobias.gr substitute URL at its moved root",
+      "refined_intent": "Point guix.tobias.gr substitute URL at its moved root",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -146,40 +131,40 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Make a full unattended topgrade run on Mahakala free of repo-side errors and warnings (user directive: fix all errors/warnings except the Codeberg mirror warnings), without undoing #183's safety: deploy only current origin/main, relink GPU drivers before the HM switch, adapt Arch Distrobox pacman hooks to a rootless container, and skip Homebrew's redundant dependents check.",
+      "intent": "Fix the guix.tobias.gr substitute URL; the server moved its cache from /substitutes/ to the root, so Topgrade's guix pull warned on every run.",
       "phases": [],
       "proof_hooks": [
-        "just check-topgrade"
+        "just check-guix"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "Topgrade: deploy current main, refresh GPU link, quiet distrobox hooks",
+      "title": "Point guix.tobias.gr substitute URL at its moved root",
       "todo_ids": [
-        "cicd_01m7q2tfqb9p8mc9"
+        "fend_01m7qa4tftjxwzpe"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1794999555Z"
+      "updated_at": "1795005145Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:3dab74a2a3755e72f6797ad5f37052a4fc0f740060458500f44f1f404f6a0d81",
+      "artifact_hash": "sha256:1fedd8f6908a5fd4c33f847eb00301927d655a4c44179b8031d9b3188bccdd0e",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M7Q2VQACX0D5XZVEEQH9ZKZA",
+            "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M7Q2VQACX0D5XZVEEQH9ZKZA",
+            "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
             "kind": "refined",
             "sequence": 3
           }
@@ -193,7 +178,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M7Q2VQACX0D5XZVEEQH9ZKZA",
+      "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -201,10 +186,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M7Q2VQB2S5EHZ78DXP0CHKBS",
+      "run_id": "branch_01M7QA7NFKG3GRJJYXTZ13AN8D",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m7q2tfqb9p8mc9",
+      "task_id": "fend_01m7qa4tftjxwzpe",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

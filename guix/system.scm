@@ -57,7 +57,7 @@
                  (substitute-urls
                   (append (list "https://substitutes.nonguix.org"
                                 "https://cache-cdn.guix.moe"
-                                "https://guix.tobias.gr/substitutes/"
+                                "https://guix.tobias.gr"
                                 "https://guix.bordeaux.inria.fr")
                           %default-substitute-urls))
                  (authorized-keys

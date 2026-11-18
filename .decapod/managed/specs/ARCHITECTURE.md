@@ -330,6 +330,8 @@ when a masked hook is no longer shipped under that name. The Homebrew step disab
 A bare `brew upgrade` already upgrades every outdated formula, and the check
 only warned about tap formulae without bottles that the same run upgraded.
 
+The Guix daemon (`%my-services` in `guix/system.scm`) and the `guix-substitute-urls` variable in the `Justfile` both use `https://guix.tobias.gr` as a substitute server. In November 2026 the server moved its cache from `/substitutes/` to its root. The old path returned 404 for every narinfo, and each Topgrade `guix pull` warned that the server had failed.
+
 `guix/omarchy-session.sh` resolves the Home Manager profile at login.
 The session keeps its Omarchy tree and Hyprland executable from that profile.
 The Omarchy launcher uses the Quickshell executable from the same package.

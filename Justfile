@@ -2,7 +2,7 @@
 
 # Explicit Guix substituters (matches guix/system.scm + official defaults).
 # Passing --substitute-urls overrides daemon config until reconfigure applies new settings.
-guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.moe https://guix.tobias.gr/substitutes/ https://bordeaux.guix.gnu.org https://ci.guix.gnu.org"
+guix-substitute-urls := "https://substitutes.nonguix.org https://cache-cdn.guix.moe https://guix.tobias.gr https://bordeaux.guix.gnu.org https://ci.guix.gnu.org"
 
 # Guix System kernel: package (and module) name under guix-packages/.
 kernel := "linux-omarchy"

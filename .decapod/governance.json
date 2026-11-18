@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "8dbe18a69b81e738c35100a722291f73eb593460",
+    "accepted_commit": "edad7072e66db9d1f45ee7a5deffede796e4f442",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -75,133 +75,33 @@
     }
   },
   "change": {
-    "id": "change_01M7N3PCCN1J9MBAH3X1RY43V6",
-    "base_commit": "8dbe18a69b81e738c35100a722291f73eb593460",
+    "id": "change_01M7P717G51QB3QZZYWMF8Y9A4",
+    "base_commit": "edad7072e66db9d1f45ee7a5deffede796e4f442",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "headroom-test-portability": {
-      "statement": "The Headroom storage regression executes its bounded image-pull path on Linux with the locked Perl package.",
-      "falsifier": "The storage regression fails its image-pull assertions or the test uses an unavailable macOS-only Perl path.",
-      "status": "supported",
-      "proof_refs": [
-        "just check-headroom-storage"
-      ]
-    },
-    "touchpad-hook-behavior": {
-      "statement": "The post-resume hook rebinds only matching devices owned by hid-multitouch, and reports missing devices or failed writes.",
-      "falsifier": "The fake-sysfs regression observes an incorrect bind, missing error, or nonzero successful execution.",
-      "status": "supported",
-      "proof_refs": [
-        "just check-guix"
-      ]
-    }
   },
   "checkpoints": [
     {
-      "id": "superwhisper-delivery-01m7n3-final",
-      "summary": "Repair Guix Superwhisper setup with consent, owned rollback and shared app-list locking. Final package regressions, generic menu substitution check, repository checks and independent review passed. Owner authorizes a bounded Decapod publication exception; actual validation remains separate.",
-      "input_digest": "sha256:39f5f3d662045896f7a0ecb2031eb1785b073f8ae65668832d2aa72d5034eb4b",
-      "proof_refs": [
-        "final_package_build",
-        "generic_menu_substitution",
-        "independent_review",
-        "repository_checks"
-      ]
-    },
-    {
-      "id": "superwhisper-delivery-trajectory-recovery",
-      "summary": "Preserve initial validation failure and resolve stale execution blockers after the package repair passed. Product source and its successful checks are unchanged.",
-      "input_digest": "sha256:531d5cbc21e67625520ae79c8803a7d20ca675b77f49005cc7ad2ede6398e94a",
-      "proof_refs": [
-        "final_package_build",
-        "independent_review",
-        "repository_checks"
-      ]
-    },
-    {
-      "id": "superwhisper-hosted-review-fixes",
-      "summary": "Preserve app-command error status, prevent child lock-descriptor leaks, correct marker and product specs, and retain historical failures. Expanded package regressions passed; generated scope defect is tracked upstream in issue1760.",
-      "input_digest": "sha256:f28e3ecc3d7b7beab65a2176ca3a0a65631c63a98c7106700e9cad470ad3aa2c",
-      "proof_refs": [
-        "repository_checks",
-        "review_fix_package_build"
-      ]
-    },
-    {
-      "id": "superwhisper-main-sync-01m7nt",
-      "summary": "Merged the advanced main branch; regenerated the generated specs manifest through Decapod after the merge conflict; record current-head validation and CI next.",
-      "input_digest": "sha256:a478a791bc4e52d0c5edd98f43bba0a86b423b0b5b072ac5d7ae6d3564c5e5ca",
-      "proof_refs": [
-        "specs_refresh",
-        "workspace_ensure"
-      ]
-    },
-    {
-      "id": "superwhisper-lock-bypass-claims-01m7nx",
-      "summary": "Require the internal app-list lock bypass to inherit fd 8, add a regression for an exported flag without the descriptor, and preserve the two supported claims from main. The updated Omarchy package and regression suite passed.",
-      "input_digest": "sha256:78732b1770d2cc20c6095007290186934a959d9e64eec21f3ff8504ba4717835",
-      "proof_refs": [
-        "headroom_claim_restoration",
-        "lock_bypass_guard",
-        "superwhisper_package_build",
-        "touchpad_claim_restoration"
-      ]
-    },
-    {
-      "id": "superwhisper-project-check-01m7n3",
-      "summary": "Record the repository-wide project-check Gatekeeper failure without attributing it to Superwhisper; preserve exact publication readiness as false alongside the lock-bypass fix.",
-      "input_digest": "sha256:a1740ab0d3762637b4d222f0a2c968959a7a94b44a8b0b4f5f231910b8ffd03d"
-    },
-    {
-      "id": "superwhisper-lock-inode-guard-01m7nz",
-      "summary": "Require fd 8 to reference the exact app-list lock before honoring the internal bypass, add a held-lock regression for an unrelated descriptor, update all three Superwhisper living specs, and refresh their projections.",
-      "input_digest": "sha256:7d95015c1efa978dbfca6ba2814bfefb2f32f28ef8ffc6a1a2723d21a9428e9c"
-    },
-    {
-      "id": "superwhisper-decapod-0-148-9-bundle-01m7p",
-      "summary": "Refresh Decapod 0.148.9 release-bound entrypoint fingerprints, managed Dockerfile pin and specs manifest after exact-candidate validation identified the publication bundle requirement.",
-      "input_digest": "sha256:babb24274444e30971d7d4574a974e71dc5fdfa03bd582baf11dd0edffbc2bf0"
-    },
-    {
-      "id": "superwhisper-cleanup-trap-01m7p",
-      "summary": "Guard the Superwhisper regression cleanup trap when XDG_STATE_HOME is not yet set, preserving the original early failure; record current validation and canonicalize future trajectory path descriptions.",
-      "input_digest": "sha256:c60c5b5eb58d1975e704a02b31ccca7b09f7b8caf880e2da94eee13d11f7eb96"
-    },
-    {
-      "id": "owner-review-5b9bc259",
-      "summary": "Recorded the owner approval for exact PR head 5b9bc259 and cleared the resolved human-review blocker.",
-      "input_digest": "sha256:394bc8c69369c1187f344a34e760895dab2c39fc9b490156242e84505642aec0",
-      "proof_refs": [
-        "human_review"
-      ]
+      "id": "preserved-lock-and-inventory",
+      "summary": "Staged 25 flake input updates. Set the digest to the exact candidate inventory. Updated VALIDATION.md. Kept the root checkout unchanged. Full validation has not run.",
+      "input_digest": "sha256:7315432340e219804b105599d56f754a9a1127c172c6040cdacad0a0f4a15da4"
     }
   ],
   "intents": {
-    "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6": {
+    "intent:change_01M7P717G51QB3QZZYWMF8Y9A4": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "paths:[\"modules/omarchy.nix\"",
-        "\"scripts/test-omarchy-superwhisper.sh\"",
-        "\".decapod/config.toml\"",
-        "\".decapod/governance.json\"",
-        "\".decapod/managed/specs\"",
-        "\".decapod/managed/Dockerfile.decapod\"",
-        "\"AGENTS.md\"",
-        "\"CLAUDE.md\"",
-        "\"CODEX.md\"",
-        "\"GEMINI.md\"]"
+        "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+      "id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Deliver Superwhisper Guix setup under owner-authorized publication exception\n\nThe owner renewed authorization for any and all action needed to finish and requested creative alternatives. Reauthor the preserved Superwhisper repair on current main, retain regression coverage, run repository checks and independent review, attempt Decapod validation and report its actual failure. Use a bounded maintainer publication exception for the known unsupported proof inventory transition (Decapod issue 1738), without claiming Decapod readiness. Push, open PR, resolve review and merge. Do not change root checkout user state or local modules/omarchy-apps.json.",
-      "refined_intent": "Deliver Superwhisper Guix setup under owner-authorized publication exception\n\nThe owner renewed authorization for any and all action needed to finish and requested creative alternatives. Reauthor the preserved Superwhisper repair on current main, retain regression coverage, run repository checks and independent review, attempt Decapod validation and report its actual failure. Use a bounded maintainer publication exception for the known unsupported proof inventory transition (Decapod issue 1738), without claiming Decapod readiness. Push, open PR, resolve review and merge. Do not change root checkout user state or local modules/omarchy-apps.json.",
+      "raw_intent": "Integrate preserved proof-inventory and flake edits\n\nCheck current Decapod issue #1738 updates. Integrate the staged .decapod/config.toml accepted-source-digest edit and unstaged flake.lock updates from the root checkout in an isolated worktree. Preserve the root checkout, all ignored and untracked data, and report any remaining proof-profile failure without claiming readiness.",
+      "refined_intent": "Integrate preserved proof-inventory and flake edits\n\nCheck current Decapod issue #1738 updates. Integrate the staged .decapod/config.toml accepted-source-digest edit and unstaged flake.lock updates from the root checkout in an isolated worktree. Preserve the root checkout, all ignored and untracked data, and report any remaining proof-profile failure without claiming readiness.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -210,756 +110,152 @@
     "plan": {
       "constraints": {
         "file_touch_budget": null,
-        "forbidden_paths": []
+        "forbidden_paths": [
+          "modules/",
+          "scripts/",
+          "pkgs/",
+          "guix/",
+          "secrets/",
+          "flake.nix"
+        ]
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Deliver Superwhisper Guix setup under owner-authorized publication exception\n\nThe owner renewed authorization for any and all action needed to finish and requested creative alternatives. Reauthor the preserved Superwhisper repair on current main, retain regression coverage, run repository checks and independent review, attempt Decapod validation and report its actual failure. Use a bounded maintainer publication exception for the known unsupported proof inventory transition (Decapod issue 1738), without claiming Decapod readiness. Push, open PR, resolve review and merge. Do not change root checkout user state or local modules/omarchy-apps.json.",
+      "intent": "Check current updates to Decapod issue #1738. Integrate the root checkout source-inventory digest intent and the 25 flake.lock input updates on a branch based on merged main. Preserve the root checkout and ignored or untracked data. Set reviewed_sources_digest to the exact candidate inventory digest d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f. Update VALIDATION.md with the current policy and its limits. Run full validation. The user authorized a bounded exception for this known source-inventory transition. Record any failed proof. Do not claim Decapod readiness.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Deliver Superwhisper Guix setup under owner-authorized publication exception",
-      "todo_ids": [
-        "secu_01m7n3hgynnee4rw"
+      "stop_conditions": [
+        "Never reset or overwrite the root checkout. Do not include ignored or untracked files. Never report publication_ready after a failed gate."
       ],
-      "unknowns": [],
+      "title": "Integrate the preserved config and flake changes",
+      "todo_ids": [
+        "code_01m7p6xa2dk4gda3"
+      ],
+      "unknowns": [
+        "Issue #1738 remains open. Decapod 0.148.9 still has no supported target-side source-inventory migration path."
+      ],
       "unresolved_contradictions": [],
-      "updated_at": "1794931624Z"
+      "updated_at": "1794969009Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
-        "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
+        "Keep the root checkout read-only. Include only .decapod/config.toml, flake.lock, authored validation spec, and Decapod-owned governance state."
       ],
-      "artifact_hash": "sha256:6228cce796950aa9bfb0a4ec45610ff90855adfb62788d19502603420b3fb7df",
+      "artifact_hash": "sha256:6e3902210fb4e7f0f221b907afd83126467a0ba1b27884743c087949a6b3111f",
       "checks": [
         {
-          "name": "exact_lock_regression",
-          "status": "unavailable"
-        },
-        {
-          "name": "final_formatting",
+          "name": "current_source_digest",
           "status": "passed"
         },
         {
-          "name": "final_package_build",
-          "status": "passed"
-        },
-        {
-          "name": "generic_menu_substitution",
-          "status": "passed"
-        },
-        {
-          "name": "headroom_claim_restoration",
-          "status": "passed"
-        },
-        {
-          "name": "human_review",
-          "status": "passed"
-        },
-        {
-          "name": "independent_review",
-          "status": "passed"
-        },
-        {
-          "name": "initial_package_build",
-          "status": "failed"
-        },
-        {
-          "name": "lock_bypass_guard",
-          "status": "passed"
-        },
-        {
-          "name": "native_validation_0_148_9",
-          "status": "failed"
-        },
-        {
-          "name": "native_validation_6f88849b",
-          "status": "failed"
-        },
-        {
-          "name": "native_validation_ada6744c",
-          "status": "failed"
-        },
-        {
-          "name": "prior_checkpoint_history",
-          "status": "passed"
-        },
-        {
-          "name": "project_check",
-          "status": "failed"
-        },
-        {
-          "name": "release_bundle_refresh",
-          "status": "passed"
-        },
-        {
-          "name": "repository_checks",
-          "status": "passed"
-        },
-        {
-          "name": "review_fix_package_build",
-          "status": "passed"
-        },
-        {
-          "name": "specs_refresh",
-          "status": "passed"
-        },
-        {
-          "name": "superwhisper_package_build",
-          "status": "passed"
-        },
-        {
-          "name": "test_cleanup_guard",
-          "status": "unavailable"
-        },
-        {
-          "name": "touchpad_claim_restoration",
-          "status": "passed"
-        },
-        {
-          "name": "trajectory_path_correction",
+          "name": "issue_1738_migration_path",
           "status": "partial"
-        },
-        {
-          "name": "workspace_ensure",
-          "status": "passed"
         }
       ],
-      "current_phase": "review follow-up",
+      "current_phase": "work",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "detail": "trajectory:branch_01M7P717HRNFYVF2PFD9Y51QA9",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
             "kind": "trajectory_step_recorded",
             "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:7",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 7
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:8",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 8
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:9",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 9
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:10",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 10
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:11",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 11
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:12",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 12
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:13",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 13
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:14",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 14
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:15",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 15
-          },
-          {
-            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "event_id": "event:16",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
-            "kind": "trajectory_step_recorded",
-            "sequence": 16
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 16,
+        "next_sequence": 4,
         "schema_version": "1.0.0",
         "trajectories": {
-          "branch_01M7N3PCF0W5TA90SB641FHX7G": {
+          "branch_01M7P717HRNFYVF2PFD9Y51QA9": {
             "evidence_only": true,
-            "id": "branch_01M7N3PCF0W5TA90SB641FHX7G",
-            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "id": "branch_01M7P717HRNFYVF2PFD9Y51QA9",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
             "steps": [
               {
-                "action": "change",
-                "command": "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
+                "action": "work",
+                "command": "git apply --3way --index preserved tracked changes",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "Owner explicitly authorized any and all action to finish, after being informed of the Decapod 1738 blocker; bounded publication exception uses actual code checks and review, never a fabricated validation receipt."
+                  ".decapod/config.toml",
+                  "flake.lock",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/governance.json",
+                  "agent.init reported inventory_digest=sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f and command_contract_digest=sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; status=proof_pending, merge_ready=false, proof_status=not_run"
                 ],
                 "proof_refs": [
-                  "initial_package_build"
+                  "issue_1738_migration_path",
+                  "current_source_digest"
                 ],
                 "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
+                  "root"
                 ],
                 "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "verify",
-                "command": "Final package build bcd97ri1w50y8lwnpblspqx3zrnqvl3h in progress; earlier package build with launcher annotation passed before the final common-lock fix.",
-                "custody_event_id": "event:5",
-                "observations": [
-                  "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder.",
-                  "Independent reviewer found omitted denApps placeholder substitution and app-list race; restored substitution and added shared state-directory app-list locking with a controlled generic-add regression."
-                ],
-                "proof_refs": [
-                  "repository_checks",
-                  "final_formatting",
-                  "independent_review",
-                  "final_package_build"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 5,
-                "validation_findings": []
-              },
-              {
-                "action": "verify",
-                "custody_event_id": "event:6",
-                "observations": [
-                  "Final package /nix/store/f6275p4gf5kjxaksdbnbhp3c75awjr4x-omarchy-4.5.0 built successfully with the postFixup Superwhisper tests and ShellCheck. All five generic app-menu scripts contain no unresolved denApps placeholder.",
-                  "Independent correctness reviewer: no remaining concrete findings; shared app-list lock and paused-deploy regression address both findings."
-                ],
-                "proof_refs": [
-                  "final_package_build",
-                  "independent_review",
-                  "generic_menu_substitution"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 6,
-                "validation_findings": []
-              },
-              {
-                "action": "trajectory.record",
-                "command": "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
-                "custody_event_id": "event:7",
-                "observations": [
-                  "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
-                  "Owner authorized the bounded publication exception. Prior suspected inventory-policy blocker is preserved as evidence and upstream issue 1738; exact validation now reports trajectory readiness first and has not established the suspected inventory failure on this candidate."
-                ],
-                "proof_refs": [
-                  "initial_package_build"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 7,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "custody_event_id": "event:8",
-                "observations": [
-                  "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
-                  "The scope fragments were generated from a valid explicit paths declaration by Decapod. todo edit exposes no scope repair. Upstream issue https://github.com/DecapodLabs/decapod/issues/1760 tracks the malformed projections. No generated field was hand-edited.",
-                  "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed."
-                ],
-                "proof_refs": [
-                  "initial_package_build"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 8,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "custody_event_id": "event:9",
-                "observations": [
-                  "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
-                  "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
-                  "Hosted review fixes preserve actual data: source marker is documented as user-managed; product identity leads INTENT.md; initial SC2016 failure remains failed, repaired package builds remain passed, and generated scope limitation is tracked in upstream issue1760."
-                ],
-                "proof_refs": [
-                  "review_fix_package_build"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 9,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "command": "git fetch origin main",
-                "custody_event_id": "event:10",
-                "observations": [
-                  ".decapod/managed/specs/.manifest.json",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/.manifest.json",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  "flake.lock",
-                  "flake.nix",
-                  "guix/system.scm",
-                  "modules/_pkgs/crucible-llm.nix",
-                  "modules/shared-devtools.nix",
-                  "origin/main advanced after PR creation; merge-tree found one conflict in the generated spec manifest; the current manifest was regenerated through Decapod RPC."
-                ],
-                "proof_refs": [
-                  "workspace_ensure",
-                  "specs_refresh"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 10,
-                "tool": "Decapod specs.refresh regenerated the merge-conflicted manifest",
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "command": "nix build --no-link --print-out-paths .#homeConfigurations.worldofgeese.config.programs.nixarchy.package",
-                "custody_event_id": "event:11",
-                "observations": [
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  ".decapod/governance.json",
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  ".decapod/governance.json",
-                  "Package /nix/store/j0k79zsd5c8ldvd3jchd9cm0d3il4r0i-omarchy-4.5.0 built successfully with the new fd-8 guard regression in postFixup.",
-                  "The two supported claims from accepted main are restored with their original text, status, and proof references; blocked touchpad recovery remains unresolved.",
-                  "verify-checkpoints --base-branch main reported disposition=proven with no findings for all four authored commits through 0f5a5629."
-                ],
-                "proof_refs": [
-                  "lock_bypass_guard",
-                  "superwhisper_package_build",
-                  "specs_refresh",
-                  "prior_checkpoint_history",
-                  "headroom_claim_restoration",
-                  "touchpad_claim_restoration"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 11,
-                "tool": "Decapod govern artifacts claim restored the supported Headroom and touchpad claims from main",
-                "validation_findings": []
-              },
-              {
-                "action": "PR review fixes",
-                "command": "decapod govern project-check --store repo --format json --refresh-specs --projections",
-                "custody_event_id": "event:12",
-                "observations": [
-                  "<external-path>",
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  ".decapod/governance.json",
-                  "Decapod project-check failed one repository-wide Gatekeeper scan with 261 dangerous patterns; its report lists no Superwhisper-specific failure. publication_ready=false."
-                ],
-                "proof_refs": [
-                  "project_check"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 12,
-                "validation_findings": []
-              },
-              {
-                "action": "PR review fixes",
-                "command": "Decapod validate on 6f88849b: READINESS_BLOCKED by stale human-review blocker for 0f5a5629",
-                "custody_event_id": "event:13",
-                "observations": [
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  "modules/omarchy.nix",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/.manifest.json",
-                  ".decapod/governance.json",
-                  "The validator reached repository readiness but did not run its proof suite because the trajectory still named the previous PR head. Recovery advice was to set the claimed owner identity and bind the existing branch using workspace ensure; the exact-lock code revision is not yet committed or tested.",
-                  "The wrapper now checks that fd 8 and /home/worldofgeese/.local/state/den/app-list.lock are the same file before accepting the internal bypass; regression covers a held setup lock with an unrelated fd 8."
-                ],
-                "proof_refs": [
-                  "native_validation_6f88849b",
-                  "exact_lock_regression",
-                  "specs_refresh"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 13,
-                "validation_findings": []
-              },
-              {
-                "action": "release-bound projection repair",
-                "command": "Decapod 0.148.9 validate on deab6337: PUBLICATION_BUNDLE_CURRENCY",
-                "custody_event_id": "event:14",
-                "observations": [
-                  "<external-path>",
-                  ".decapod/managed/specs/.manifest.json",
-                  "AGENTS.md",
-                  "CLAUDE.md",
-                  "CODEX.md",
-                  "GEMINI.md",
-                  ".decapod/managed/Dockerfile.decapod",
-                  ".decapod/managed/specs/.manifest.json",
-                  ".decapod/governance.json",
-                  "Exact-candidate validation reached 190 passing gates, then failed PUBLICATION_BUNDLE_CURRENCY: required release-bound entrypoints, managed Dockerfile pin and specs manifest were absent from this PR diff.",
-                  "The 0.148.9 workspace ensure CLI refreshed AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod and .decapod/managed/specs/.manifest.json; those generated files are staged without hand edits."
-                ],
-                "proof_refs": [
-                  "native_validation_0_148_9",
-                  "release_bundle_refresh"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 14,
-                "validation_findings": []
-              },
-              {
-                "action": "review follow-up",
-                "command": "Decapod 0.148.9 validate on ada6744c: 191 passed, READINESS_BLOCKED by required human review",
-                "custody_event_id": "event:15",
-                "observations": [
-                  "scripts/test-omarchy-superwhisper.sh",
-                  "<external-path>",
-                  "scripts/test-omarchy-superwhisper.sh",
-                  ".decapod/governance.json",
-                  "Review found the EXIT trap could expand /home/worldofgeese/.local/state while unset and mask an early failure; the cleanup now checks that variable before reading the daemon log. The commit hook has not yet run on this edit.",
-                  "The canonical lock path is $XDG_STATE_HOME/den/app-list.lock. An earlier trajectory observation recorded the shell-expanded per-user value; this entry uses the variable form because trajectory records are append-only and the CLI exposes no removal operation."
-                ],
-                "proof_refs": [
-                  "native_validation_ada6744c",
-                  "test_cleanup_guard",
-                  "trajectory_path_correction"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 15,
-                "validation_findings": []
-              },
-              {
-                "action": "review follow-up",
-                "custody_event_id": "event:16",
-                "observations": [
-                  "Owner reviewed and approved exact PR #177 head 5b9bc259961a1f3fb5192604503847264426e4a5 in conversation. Immediately before recording, GitHub PR #177, the isolated worktree, and the remote branch all pointed to that exact head; the worktree was clean."
-                ],
-                "proof_refs": [
-                  "human_review"
-                ],
-                "scope": [
-                  "\".decapod/config.toml\"",
-                  "\".decapod/governance.json\"",
-                  "\".decapod/managed/Dockerfile.decapod\"",
-                  "\".decapod/managed/specs\"",
-                  "\"AGENTS.md\"",
-                  "\"CLAUDE.md\"",
-                  "\"CODEX.md\"",
-                  "\"GEMINI.md\"]",
-                  "\"scripts/test-omarchy-superwhisper.sh\"",
-                  "paths:[\"modules/omarchy.nix\""
-                ],
-                "sequence": 16,
-                "validation_findings": []
+                "tool": "GitHub: fetch DecapodLabs/decapod issue 1738 and related issues 1762 and 1763",
+                "validation_findings": [
+                  "The user requests both tracked checkout edits in the candidate; the prior owner authorization covers the bounded exception for issue 1738. The exception does not claim Decapod readiness."
+                ]
               }
             ]
           }
         }
       },
       "declared_commands": [
-        "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
-        "Decapod 0.148.9 validate on ada6744c: 191 passed, READINESS_BLOCKED by required human review",
-        "Decapod 0.148.9 validate on deab6337: PUBLICATION_BUNDLE_CURRENCY",
-        "Decapod 0.148.9 workspace ensure regenerated release-bound projections",
-        "Decapod rpc --op specs.refresh",
-        "Decapod validate on 6f88849b: READINESS_BLOCKED by stale human-review blocker for 0f5a5629",
-        "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
-        "Final package build bcd97ri1w50y8lwnpblspqx3zrnqvl3h in progress; earlier package build with launcher annotation passed before the final common-lock fix.",
-        "decapod govern project-check --store repo --format json --refresh-specs --projections",
-        "git fetch origin main",
-        "git merge --no-edit origin/main",
-        "just check: in progress",
-        "nix build --no-link --print-out-paths .#homeConfigurations.worldofgeese.config.programs.nixarchy.package",
-        "nix build homeConfigurations.worldofgeese.config.programs.nixarchy.package: first build failed SC2016, targeted child-Bash annotation added and rebuild started"
+        "decapod rpc --op agent.init",
+        "git apply --3way --index preserved tracked changes"
       ],
-      "destination": "Merge the repaired Superwhisper setup under the renewed owner authority",
+      "destination": "pull request",
       "evidence": [
-        "Decapod project-check failed one repository-wide Gatekeeper scan with 261 dangerous patterns; its report lists no Superwhisper-specific failure. publication_ready=false.",
-        "Exact-candidate validation reached 190 passing gates, then failed PUBLICATION_BUNDLE_CURRENCY: required release-bound entrypoints, managed Dockerfile pin and specs manifest were absent from this PR diff.",
-        "Final package /nix/store/f6275p4gf5kjxaksdbnbhp3c75awjr4x-omarchy-4.5.0 built successfully with the postFixup Superwhisper tests and ShellCheck. All five generic app-menu scripts contain no unresolved denApps placeholder.",
-        "Hosted review fixes preserve actual data: source marker is documented as user-managed; product identity leads INTENT.md; initial SC2016 failure remains failed, repaired package builds remain passed, and generated scope limitation is tracked in upstream issue1760.",
-        "Independent correctness reviewer: no remaining concrete findings; shared app-list lock and paused-deploy regression address both findings.",
-        "Independent reviewer found omitted denApps placeholder substitution and app-list race; restored substitution and added shared state-directory app-list locking with a controlled generic-add regression.",
-        "Owner authorized the bounded publication exception. Prior suspected inventory-policy blocker is preserved as evidence and upstream issue 1738; exact validation now reports trajectory readiness first and has not established the suspected inventory failure on this candidate.",
-        "Owner explicitly authorized any and all action to finish, after being informed of the Decapod 1738 blocker; bounded publication exception uses actual code checks and review, never a fabricated validation receipt.",
-        "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed.",
-        "Owner reviewed and approved exact PR #177 head 5b9bc259961a1f3fb5192604503847264426e4a5 in conversation. Immediately before recording, GitHub PR #177, the isolated worktree, and the remote branch all pointed to that exact head; the worktree was clean.",
-        "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
-        "Package /nix/store/j0k79zsd5c8ldvd3jchd9cm0d3il4r0i-omarchy-4.5.0 built successfully with the new fd-8 guard regression in postFixup.",
-        "Review found the EXIT trap could expand /home/worldofgeese/.local/state while unset and mask an early failure; the cleanup now checks that variable before reading the daemon log. The commit hook has not yet run on this edit.",
-        "The 0.148.9 workspace ensure CLI refreshed AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod and .decapod/managed/specs/.manifest.json; those generated files are staged without hand edits.",
-        "The canonical lock path is $XDG_STATE_HOME/den/app-list.lock. An earlier trajectory observation recorded the shell-expanded per-user value; this entry uses the variable form because trajectory records are append-only and the CLI exposes no removal operation.",
-        "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
-        "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
-        "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
-        "The scope fragments were generated from a valid explicit paths declaration by Decapod. todo edit exposes no scope repair. Upstream issue https://github.com/DecapodLabs/decapod/issues/1760 tracks the malformed projections. No generated field was hand-edited.",
-        "The two supported claims from accepted main are restored with their original text, status, and proof references; blocked touchpad recovery remains unresolved.",
-        "The validator reached repository readiness but did not run its proof suite because the trajectory still named the previous PR head. Recovery advice was to set the claimed owner identity and bind the existing branch using workspace ensure; the exact-lock code revision is not yet committed or tested.",
-        "The wrapper now checks that fd 8 and /home/worldofgeese/.local/state/den/app-list.lock are the same file before accepting the internal bypass; regression covers a held setup lock with an unrelated fd 8.",
-        "just check exited 0: derivation paths, Guix and touchpad tests, formatting, shellcheck, override checks, all 24 pi gate cases, gateway tests, all 11 Headroom cases, deploy backup tests. Darwin evaluation explicitly skipped without a remote builder.",
-        "origin/main advanced after PR creation; merge-tree found one conflict in the generated spec manifest; the current manifest was regenerated through Decapod RPC.",
-        "verify-checkpoints --base-branch main reported disposition=proven with no findings for all four authored commits through 0f5a5629."
+        "agent.init reported inventory_digest=sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f and command_contract_digest=sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; status=proof_pending, merge_ready=false, proof_status=not_run"
       ],
       "inspected_files": [
-        ".decapod/governance.json",
-        ".decapod/managed/specs/.manifest.json",
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        "<external-path>",
-        "modules/omarchy.nix",
-        "scripts/test-omarchy-superwhisper.sh"
+        ".decapod/config.toml",
+        ".decapod/managed/specs/VALIDATION.md",
+        "flake.lock"
       ],
-      "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+      "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
       "modified_files": [
+        ".decapod/config.toml",
         ".decapod/governance.json",
-        ".decapod/managed/Dockerfile.decapod",
-        ".decapod/managed/specs/.manifest.json",
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        "AGENTS.md",
-        "CLAUDE.md",
-        "CODEX.md",
-        "GEMINI.md",
-        "flake.lock",
-        "flake.nix",
-        "guix/system.scm",
-        "modules/_pkgs/crucible-llm.nix",
-        "modules/omarchy.nix",
-        "modules/shared-devtools.nix",
-        "scripts/test-omarchy-superwhisper.sh"
+        ".decapod/managed/specs/VALIDATION.md"
       ],
       "next_transitions": [
-        "Apply hosted review fixes, rebuild the affected package with added regressions, then checkpoint, commit, push and finish the review threads.",
-        "Checkpoint and commit exact-lock descriptor validation with its regression and spec updates, push, rerun current-head checks, and collect human review.",
-        "Checkpoint and commit the Decapod 0.148.9 release bundle, push, rerun current-head validation and CI, and collect required human review.",
-        "Checkpoint and commit the combined review fixes, push, reply substantively and resolve each handled thread, then finish hosted CI and merge under the owner exception.",
-        "Checkpoint and commit the early-cleanup guard and its spec correction, push, run current-head checks, and collect the required human review.",
-        "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
-        "Commit and push the fd-8 lock guard, rerun exact-candidate validation, and collect fresh CI plus required human review before merge.",
-        "Commit and push the lock-bypass guard, rerun exact-candidate validation, and collect fresh CI plus the required human review before merge.",
-        "Commit candidate after checkpoint, collect remaining package and review results, then run plain Decapod validation and preserve its actual result before publication.",
-        "Commit the main sync, push, rerun exact-candidate validation, and collect current-head CI and review evidence before merge.",
-        "Pass package regressions and repository checks, collect independent review, checkpoint candidate, attempt exact validation, publish and merge under owner exception.",
         "Refine plan and declare falsifiable checks",
-        "Rerun Decapod validation on the exact approved candidate; if it passes, merge PR #177 and close the tracked bead."
+        "Review authored validation spec, checkpoint the exact candidate, run full decapod validate, then follow its precise result."
       ],
       "repo_scope": [
-        "\".decapod/config.toml\"",
-        "\".decapod/governance.json\"",
-        "\".decapod/managed/Dockerfile.decapod\"",
-        "\".decapod/managed/specs\"",
-        "\"AGENTS.md\"",
-        "\"CLAUDE.md\"",
-        "\"CODEX.md\"",
-        "\"GEMINI.md\"]",
-        "\"scripts/test-omarchy-superwhisper.sh\"",
-        "paths:[\"modules/omarchy.nix\""
+        "paths:[\".decapod/config.toml\",\"flake.lock\",\".decapod/managed/specs/VALIDATION.md\",\".decapod/governance.json\"]",
+        "root"
       ],
-      "run_id": "branch_01M7N3PCF0W5TA90SB641FHX7G",
+      "run_id": "branch_01M7P717HRNFYVF2PFD9Y51QA9",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "secu_01m7n3hgynnee4rw",
+      "task_id": "code_01m7p6xa2dk4gda3",
       "tool_calls": [
-        "Decapod govern artifacts claim restored the supported Headroom and touchpad claims from main",
-        "Decapod specs.refresh regenerated the merge-conflicted manifest"
+        "GitHub: fetch DecapodLabs/decapod issue 1738 and related issues 1762 and 1763"
       ],
-      "unresolved_assumptions": []
+      "unresolved_assumptions": [
+        "The user requests both tracked checkout edits in the candidate; the prior owner authorization covers the bounded exception for issue 1738. The exception does not claim Decapod readiness."
+      ]
     }
   },
   "legacy_digests": {

@@ -106,6 +106,18 @@
         "git-diff-review",
         "specs-refresh"
       ]
+    },
+    {
+      "id": "root-code-01m7p6-014810-proof-recovery",
+      "summary": "Record the exact Decapod 0.148.10 proof blocker, failed recover and regen attempts, absent historical proof, and upstream issue evidence. The 0.148.10 release bundle is current; no readiness claim is made.",
+      "input_digest": "sha256:efc77094349b58e8e780f7d479ed1b5e945471fb095518b5aa9bf78ab9346584",
+      "proof_refs": [
+        "exact-candidate-validation",
+        "issue-1781-6974209068",
+        "no-historical-proof",
+        "qa-verify-recover",
+        "qa-verify-regen"
+      ]
     }
   ],
   "intents": {
@@ -167,14 +179,15 @@
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch",
+        "Do not create a PR or bypass the failed proof hook. Preserve the original root checkout and current candidate branch.",
         "Keep the original root checkout untouched; preserve the source-inventory digest and flake.lock updates on this isolated branch.",
         "Keep the root checkout at its original HEAD and preserve its staged config and unstaged flake.lock edits; no untracked or ignored data enters the candidate; the #1738 exception does not establish Decapod readiness.",
         "Keep the root checkout read-only. Include only .decapod/config.toml, flake.lock, authored validation spec, and Decapod-owned governance state."
       ],
-      "artifact_hash": "sha256:f070d32a4e5ad8a4c8afc30b08596b585c7c4943ca4704040b4a041da28d132e",
+      "artifact_hash": "sha256:c8313c91bb0ce2716c83bb81902988311ed196c71c86bf91a5e24951e2d64c15",
       "blockers": [
-        "PROOF_HOOK_FAILED: completed task secu_01m7n3hgynnee4rw has no canonical verification proof; supported recovery remains unresolved.",
-        "PUBLICATION_BUNDLE_CURRENCY: the validator refreshed four entrypoint fingerprints, the managed Dockerfile pin, and the specs manifest; these must be committed and revalidated."
+        "PROOF_HOOK_FAILED: completed task secu_01m7n3hgynnee4rw has no canonical verification proof.",
+        "VALIDATION_CHILD_FAILED: recover and regen both report PROOF_HOOK_FAILED and READINESS_BLOCKED, capture no baseline, and refer back to the aggregate failure."
       ],
       "checks": [
         {
@@ -202,11 +215,31 @@
           "status": "passed"
         },
         {
+          "name": "exact_candidate_validation",
+          "status": "failed"
+        },
+        {
+          "name": "historical_commit_proof",
+          "status": "failed"
+        },
+        {
           "name": "issue_1738_migration_path",
           "status": "partial"
         },
         {
           "name": "plan-execution-readiness",
+          "status": "passed"
+        },
+        {
+          "name": "qa_verify_recover",
+          "status": "failed"
+        },
+        {
+          "name": "qa_verify_regen",
+          "status": "failed"
+        },
+        {
+          "name": "release_bundle_currency",
           "status": "passed"
         },
         {
@@ -224,6 +257,10 @@
         {
           "name": "specs_refresh",
           "status": "passed"
+        },
+        {
+          "name": "task_proof_baseline",
+          "status": "failed"
         }
       ],
       "current_phase": "validation",
@@ -268,10 +305,24 @@
             "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
             "kind": "trajectory_step_recorded",
             "sequence": 7
+          },
+          {
+            "detail": "trajectory:branch_01M7P717HRNFYVF2PFD9Y51QA9",
+            "event_id": "event:8",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 8
+          },
+          {
+            "detail": "trajectory:branch_01M7P717HRNFYVF2PFD9Y51QA9",
+            "event_id": "event:9",
+            "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
+            "kind": "trajectory_step_recorded",
+            "sequence": 9
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 7,
+        "next_sequence": 9,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7P717HRNFYVF2PFD9Y51QA9": {
@@ -401,6 +452,65 @@
                 "validation_findings": [
                   "The generated release-bound refresh is required by the latest validator and must be included in the next candidate."
                 ]
+              },
+              {
+                "action": "validation",
+                "command": "Decapod 0.148.10 validate --format json on c2e34b23",
+                "custody_event_id": "event:8",
+                "observations": [
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "modules/omarchy.nix",
+                  "scripts/test-omarchy-superwhisper.sh",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/governance.json",
+                  "Exact candidate c2e34b23277c11778597f5d734130988d21dc321 validated with Decapod 0.148.10: 191 checks passed, one PROOF_HOOK_FAILED, publication_ready=false.",
+                  "qa verify recover and qa verify regen both failed with VALIDATION_CHILD_FAILED. qa verify todo remains unknown with zero proofs and artifacts. qa verify commit for the original task commit returned VALIDATION_HISTORY: no canonical full validation proof was recorded.",
+                  "Issue #1781 updated with latest-release recovery evidence at comment 6974209068. Issue #1738 updated with the bounded owner-approved source-inventory result at comment 6974267200; neither issue has an upstream fix."
+                ],
+                "proof_refs": [
+                  "exact_candidate_validation",
+                  "release_bundle_currency",
+                  "qa_verify_recover",
+                  "qa_verify_regen",
+                  "task_proof_baseline",
+                  "historical_commit_proof"
+                ],
+                "scope": [
+                  "Existing .decapod/config.toml digest, flake.lock refresh, validation spec, and Decapod-generated release-bound files.",
+                  "Integrate only the preserved .decapod/config.toml and flake.lock edits plus the authored validation spec and required Decapod governance projections.",
+                  "paths:[\".decapod/config.toml\",\"flake.lock\",\".decapod/managed/specs/VALIDATION.md\",\".decapod/governance.json\"]",
+                  "root"
+                ],
+                "sequence": 8,
+                "validation_findings": [
+                  "The full validation remains blocked until Decapod records canonical proof for the completed task or provides a supported recovery path."
+                ]
+              },
+              {
+                "action": "validation",
+                "custody_event_id": "event:9",
+                "observations": [
+                  "Latest candidate c2e34b23277c11778597f5d734130988d21dc321 has one blocker: PROOF_HOOK_FAILED; the earlier PUBLICATION_BUNDLE_CURRENCY blocker is cleared by the committed 0.148.10 refresh."
+                ],
+                "proof_refs": [
+                  "release_bundle_currency",
+                  "exact_candidate_validation",
+                  "qa_verify_recover",
+                  "qa_verify_regen",
+                  "task_proof_baseline",
+                  "historical_commit_proof"
+                ],
+                "scope": [
+                  "Exact candidate c2e34b23277c11778597f5d734130988d21dc321 and completed Superwhisper proof task secu_01m7n3hgynnee4rw.",
+                  "Existing .decapod/config.toml digest, flake.lock refresh, validation spec, and Decapod-generated release-bound files.",
+                  "Integrate only the preserved .decapod/config.toml and flake.lock edits plus the authored validation spec and required Decapod governance projections.",
+                  "paths:[\".decapod/config.toml\",\"flake.lock\",\".decapod/managed/specs/VALIDATION.md\",\".decapod/governance.json\"]",
+                  "root"
+                ],
+                "sequence": 9,
+                "validation_findings": []
               }
             ]
           }
@@ -408,6 +518,10 @@
       },
       "declared_commands": [
         "DECAPOD_AGENT_ID=root decapod rpc --op agent.init reported inventory_digest sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f",
+        "Decapod 0.148.10 qa verify recover with current task artifacts",
+        "Decapod 0.148.10 qa verify regen with current task artifacts",
+        "Decapod 0.148.10 qa verify todo secu_01m7n3hgynnee4rw",
+        "Decapod 0.148.10 validate --format json on c2e34b23",
         "ce-code-review mode:agent base:edad7072e66db9d1f45ee7a5deffede796e4f442 completed lite with zero actionable findings; validation pending",
         "ce-test-browser mode:pipeline mapped zero affected routes because no UI-facing files changed",
         "commit hook just check passed",
@@ -415,6 +529,7 @@
         "decapod rpc --op agent.init",
         "decapod rpc --op specs.refresh",
         "decapod validate --format json on 054fe8d",
+        "env -u GIT_EXEC_PATH Decapod 0.148.10 qa verify commit b5cf37c32ab62aa91b812ac2bc7af29a28dea1aa",
         "git apply --3way --index preserved tracked changes",
         "git commit fe68dbbfa21c03ae0f12822b5766f3991651b534 completed with exit 0",
         "nix run Decapod 0.148.10 docs ingest"
@@ -422,13 +537,17 @@
       "destination": "pull request",
       "evidence": [
         "Decapod 0.148.10 validation on exact candidate 054fe8d returned publication_ready=false and fail_count=2: PROOF_HOOK_FAILED and PUBLICATION_BUNDLE_CURRENCY. The validator refreshed release-bound files through its supported self-heal path.",
+        "Exact candidate c2e34b23277c11778597f5d734130988d21dc321 validated with Decapod 0.148.10: 191 checks passed, one PROOF_HOOK_FAILED, publication_ready=false.",
         "Issue #1738 remains open with no newer update than 2026-11-18T00:46:19Z. Issue #1781 remains open; new comments discuss diagnostic source and substring matching but provide no recovery fix.",
+        "Issue #1781 updated with latest-release recovery evidence at comment 6974209068. Issue #1738 updated with the bounded owner-approved source-inventory result at comment 6974267200; neither issue has an upstream fix.",
+        "Latest candidate c2e34b23277c11778597f5d734130988d21dc321 has one blocker: PROOF_HOOK_FAILED; the earlier PUBLICATION_BUNDLE_CURRENCY blocker is cleared by the committed 0.148.10 refresh.",
         "agent.init receipt 01M7P9NH0MK2GT41E0X1EKEPSV; inventory_digest sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f",
         "agent.init reported inventory_digest=sha256:d5f90dd832716f3e14385e65805b869a76b05cca429cba9cf172b608251da46f and command_contract_digest=sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; status=proof_pending, merge_ready=false, proof_status=not_run",
         "candidate commit fe68dbbfa21c03ae0f12822b5766f3991651b534; git commit hook completed all configured checks and exited 0",
         "changed paths are .decapod/config.toml, flake.lock, authored VALIDATION.md and Decapod-owned governance projections; no browser routes are affected",
         "lite review artifact /tmp/compound-engineering-1000/ce-code-review/20261118-035913-18da8f3a/review.json; no actionable findings; exact-candidate validation remains pending",
         "plan gate output marker EXECUTION_READY; issue 1738 is a recorded stop condition, not an unresolved unknown",
+        "qa verify recover and qa verify regen both failed with VALIDATION_CHILD_FAILED. qa verify todo remains unknown with zero proofs and artifacts. qa verify commit for the original task commit returned VALIDATION_HISTORY: no canonical full validation proof was recorded.",
         "root HEAD ed1f4bb1c773f65208bd568db1ce1c94ec88675e; root status still contains only the original staged .decapod/config.toml and unstaged flake.lock edits"
       ],
       "inspected_files": [
@@ -436,12 +555,17 @@
         ".decapod/config.toml",
         ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/.manifest.json",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
         ".decapod/managed/specs/VALIDATION.md",
         "AGENTS.md",
         "CLAUDE.md",
         "CODEX.md",
         "GEMINI.md",
-        "flake.lock"
+        "flake.lock",
+        "modules/omarchy.nix",
+        "scripts/test-omarchy-superwhisper.sh"
       ],
       "intent_id": "intent:change_01M7P717G51QB3QZZYWMF8Y9A4",
       "modified_files": [
@@ -459,11 +583,14 @@
       "next_transitions": [
         "Checkpoint and commit current governance, run plain decapod validate on the exact resulting candidate, and preserve its full report.",
         "Checkpoint and commit the 0.148.10 release-bound files, then rerun full validation on the exact commit.",
+        "Preserve the failed proof evidence. Resume only when canonical proof or a supported recovery path becomes available.",
+        "Preserve the failed proof evidence. Resume validation only after an upstream-supported recovery path or independently recorded canonical proof becomes available.",
         "Refine plan and declare falsifiable checks",
         "Review authored validation spec, checkpoint the exact candidate, run full decapod validate, then follow its precise result.",
         "Review the exact candidate, checkpoint and commit updated governance, then run full decapod validate and preserve its exact result."
       ],
       "repo_scope": [
+        "Exact candidate c2e34b23277c11778597f5d734130988d21dc321 and completed Superwhisper proof task secu_01m7n3hgynnee4rw.",
         "Existing .decapod/config.toml digest, flake.lock refresh, validation spec, and Decapod-generated release-bound files.",
         "Integrate only the preserved .decapod/config.toml and flake.lock edits plus the authored validation spec and required Decapod governance projections.",
         "paths:[\".decapod/config.toml\",\"flake.lock\",\".decapod/managed/specs/VALIDATION.md\",\".decapod/governance.json\"]",
@@ -478,6 +605,7 @@
         "reclaimed expired lease for existing task as its assigned root agent; workspace ensure rebound the same isolated branch"
       ],
       "unresolved_assumptions": [
+        "The full validation remains blocked until Decapod records canonical proof for the completed task or provides a supported recovery path.",
         "The generated release-bound refresh is required by the latest validator and must be included in the next candidate.",
         "The user requests both tracked checkout edits in the candidate; the prior owner authorization covers the bounded exception for issue 1738. The exception does not claim Decapod readiness."
       ]

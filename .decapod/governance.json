@@ -158,6 +158,11 @@
       "proof_refs": [
         "scripts/test_topgrade_agent_skills.py"
       ]
+    },
+    {
+      "id": "rootless-podman-cgroup-group",
+      "summary": "Add the user to Guix's cgroup group so rootless Podman/Distrobox can create container cgroups; owner approved the human cgroup review on 2026-11-18.",
+      "input_digest": "sha256:fed8c831d02b23b06903a9d85ac0180abf9464f91de9f417de4094bed79f4c57"
     }
   ],
   "intents": {

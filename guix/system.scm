@@ -402,7 +402,10 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
                  (name username)
                  (group "users")
                  (home-directory (string-append "/home/" username))
-                 (supplementary-groups '("wheel" "netdev" "audio" "video" "plugdev")))
+                 ;; rootless-podman-service-type hands /sys/fs/cgroup to the
+                 ;; "cgroup" group; rootless containers need membership to
+                 ;; create their cgroups.
+                 (supplementary-groups '("cgroup" "wheel" "netdev" "audio" "video" "plugdev")))
                 %base-user-accounts))
   (sudoers-file (plain-file "sudoers" "\
 root ALL=(ALL) ALL

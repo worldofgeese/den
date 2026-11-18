@@ -286,6 +286,13 @@ Normal Claude sessions keep their hooks, and Signet remains off by default.
 repository. It rejects unexpected list output. Topgrade does not purge the Trash.
 It also leaves Podman images intact: an unused tagged image can belong to
 another workload even when no container currently references it.
+Guix's `rootless-podman-service-type` runs `cgroups2-fs-owner`, which makes
+`/sys/fs/cgroup` `root:cgroup` mode 775 after boot. The user account in
+`guix/system.scm` is therefore a `cgroup` group member, as the Guix manual
+documents. Without that membership, crun cannot create the per-container
+cgroup that the Distrobox `arch` box needs, and both Distrobox Topgrade steps
+fail. Group membership replaces the reviewed and rejected design of a sudo
+rule that moved PIDs into a delegated cgroup.
 
 `guix/omarchy-session.sh` resolves the Home Manager profile at login.
 The session keeps its Omarchy tree and Hyprland executable from that profile.

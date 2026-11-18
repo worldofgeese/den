@@ -268,6 +268,18 @@ The GitHub CLI update step selects unpinned skills with GitHub source metadata.
 `scripts/topgrade-gh-skills.sh` backs up each selected skill before its update.
 It uses a forced dry run to check that each source skill still exists.
 It reports a skipped source check or update as a failure.
+`scripts/topgrade-agent-skills.mjs` replaces the built-in agent skills step.
+It inventories global skill roots through the installed skills package and
+backs up each existing resolved root and the active global lock before updating.
+The private backups preserve nested symlinks as links, not their targets.
+The updater may still replace live local edits; the snapshots make them
+recoverable. Inventory, backup, or overlapping backup-path failures stop the
+update. The guard rejects invalid or obsolete locks and flags entries that the
+updater cannot check, while still attempting checkable entries. It detects
+unchecked entries from the snapshot; a concurrent lock edit may not be reflected.
+The guard also rejects the updater's current failure and warning markers even
+when it exits successfully; a message in an unrecognized format may escape that
+check. It prefers an installed `skills` executable and otherwise uses `npx`.
 Claude plugin updates use `scripts/topgrade-claude-plugins.sh` in bare mode.
 Normal Claude sessions keep their hooks, and Signet remains off by default.
 `scripts/topgrade-hyprpm.sh` updates Hyprland plugins only when its list names a
@@ -665,7 +677,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `bdc985cc7d7d5c0f566f8ab4a60752d424ef6db1c58e9c5bf87ab0cd0637aab0`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (16 files), `terraform/` (1 files)
+- Repository signal fingerprint: `7a08dde919e5f7bdf87d4e3739d5b88f6e84bc3bdb8980e630dccc275b86467f`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (17 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

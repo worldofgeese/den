@@ -481,13 +481,14 @@
             show_distribution_summary = false;
             # Guix System updates Tailscale; its own updater cannot write to
             # the immutable Guix store.
-            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "node" "emacs" "claude_code" "pi" "system" "distrobox" "a_m" "tailscale" "hyprpm" "github_cli_skills" "claude_code_plugins"];
+            disable = ["nix" "home_manager" "containers" "helm" "guix" "bun" "node" "emacs" "claude_code" "pi" "system" "distrobox" "a_m" "tailscale" "hyprpm" "github_cli_skills" "claude_code_plugins" "skills"];
           };
           commands = {
             "Distrobox (arch)" = "distrobox-upgrade arch";
             "Homebrew (arch distrobox)" = "LC_ALL=C LANG=C distrobox enter arch -- bash --login -c 'export HOMEBREW_NO_ASK=1; brew update && brew upgrade'";
             "Hyprland plugins" = "bash ${../scripts/topgrade-hyprpm.sh}";
             "GitHub CLI managed skills" = "bash ${../scripts/topgrade-gh-skills.sh}";
+            "Agent skills" = "node ${../scripts/topgrade-agent-skills.mjs}";
             "Claude Code plugins" = "bash ${../scripts/topgrade-claude-plugins.sh}";
           };
           post_commands = {

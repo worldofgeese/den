@@ -345,7 +345,7 @@ check-headroom-storage:
     nix shell --inputs-from . nixpkgs#python3 nixpkgs#jq nixpkgs#perl --command python3 scripts/test-headroom-storage.py
 
 check-topgrade:
-    nix shell --inputs-from . nixpkgs#bash nixpkgs#coreutils nixpkgs#python3 nixpkgs#jq --command python3 -B -m unittest discover -s scripts -p 'test_topgrade_*.py'
+    nix shell --inputs-from . nixpkgs#bash nixpkgs#coreutils nixpkgs#python3 nixpkgs#jq nixpkgs#nodejs --command python3 -B -m unittest discover -s scripts -p 'test_topgrade_*.py'
 
 # Tests for the store copy that `just deploy-darwin` makes when a deploy
 # changes Decapod (scripts/decapod-deploy-backup.sh). Stub `nix` and `sqlite3`

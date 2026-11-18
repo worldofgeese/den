@@ -28,6 +28,7 @@ in {
   autoPrunePodman = settings.post_commands ? "Prune Podman images";
   autoCollectNix = settings.post_commands ? "Garbage collect Nix";
   flatpakCleanup = settings.post_commands."Remove unused Flatpak runtimes";
+  distrobox = settings.commands."Distrobox (arch)";
 }
 """
 
@@ -79,6 +80,11 @@ class TopgradeConfigTest(unittest.TestCase):
             shlex.split(self.settings["flatpakCleanup"]),
             ["flatpak", "uninstall", "--user", "--unused", "-y"],
         )
+
+    def test_distrobox_hooks_are_adapted_before_the_upgrade(self):
+        hooks, upgrade = self.settings["distrobox"].split(" && ")
+        self.assertRegex(hooks, r"^distrobox enter arch -- sudo bash -s < /nix/store/\S+-topgrade-arch-distrobox-hooks\.sh$")
+        self.assertEqual(upgrade, "distrobox-upgrade arch")
 
 
 if __name__ == "__main__":

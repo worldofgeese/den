@@ -167,6 +167,14 @@
       "id": "superwhisper-cleanup-trap-01m7p",
       "summary": "Guard the Superwhisper regression cleanup trap when XDG_STATE_HOME is not yet set, preserving the original early failure; record current validation and canonicalize future trajectory path descriptions.",
       "input_digest": "sha256:c60c5b5eb58d1975e704a02b31ccca7b09f7b8caf880e2da94eee13d11f7eb96"
+    },
+    {
+      "id": "owner-review-5b9bc259",
+      "summary": "Recorded the owner approval for exact PR head 5b9bc259 and cleared the resolved human-review blocker.",
+      "input_digest": "sha256:394bc8c69369c1187f344a34e760895dab2c39fc9b490156242e84505642aec0",
+      "proof_refs": [
+        "human_review"
+      ]
     }
   ],
   "intents": {
@@ -227,10 +235,7 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:36187b1d82345974180e7576afa38debe6cba70e4482705e2cf473168429252d",
-      "blockers": [
-        "A person must review the current PR #177 head before merge; the owner has been asked to review the exact candidate."
-      ],
+      "artifact_hash": "sha256:6228cce796950aa9bfb0a4ec45610ff90855adfb62788d19502603420b3fb7df",
       "checks": [
         {
           "name": "exact_lock_regression",
@@ -250,6 +255,10 @@
         },
         {
           "name": "headroom_claim_restoration",
+          "status": "passed"
+        },
+        {
+          "name": "human_review",
           "status": "passed"
         },
         {
@@ -419,10 +428,17 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 15
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:16",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 16
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 15,
+        "next_sequence": 16,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -806,6 +822,30 @@
                 ],
                 "sequence": 15,
                 "validation_findings": []
+              },
+              {
+                "action": "review follow-up",
+                "custody_event_id": "event:16",
+                "observations": [
+                  "Owner reviewed and approved exact PR #177 head 5b9bc259961a1f3fb5192604503847264426e4a5 in conversation. Immediately before recording, GitHub PR #177, the isolated worktree, and the remote branch all pointed to that exact head; the worktree was clean."
+                ],
+                "proof_refs": [
+                  "human_review"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 16,
+                "validation_findings": []
               }
             ]
           }
@@ -838,6 +878,7 @@
         "Owner authorized the bounded publication exception. Prior suspected inventory-policy blocker is preserved as evidence and upstream issue 1738; exact validation now reports trajectory readiness first and has not established the suspected inventory failure on this candidate.",
         "Owner explicitly authorized any and all action to finish, after being informed of the Decapod 1738 blocker; bounded publication exception uses actual code checks and review, never a fabricated validation receipt.",
         "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed.",
+        "Owner reviewed and approved exact PR #177 head 5b9bc259961a1f3fb5192604503847264426e4a5 in conversation. Immediately before recording, GitHub PR #177, the isolated worktree, and the remote branch all pointed to that exact head; the worktree was clean.",
         "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
         "Package /nix/store/j0k79zsd5c8ldvd3jchd9cm0d3il4r0i-omarchy-4.5.0 built successfully with the new fd-8 guard regression in postFixup.",
         "Review found the EXIT trap could expand /home/worldofgeese/.local/state while unset and mask an early failure; the cleanup now checks that variable before reading the daemon log. The commit hook has not yet run on this edit.",
@@ -895,7 +936,8 @@
         "Commit candidate after checkpoint, collect remaining package and review results, then run plain Decapod validation and preserve its actual result before publication.",
         "Commit the main sync, push, rerun exact-candidate validation, and collect current-head CI and review evidence before merge.",
         "Pass package regressions and repository checks, collect independent review, checkpoint candidate, attempt exact validation, publish and merge under owner exception.",
-        "Refine plan and declare falsifiable checks"
+        "Refine plan and declare falsifiable checks",
+        "Rerun Decapod validation on the exact approved candidate; if it passes, merge PR #177 and close the tracked bead."
       ],
       "repo_scope": [
         "\".decapod/config.toml\"",

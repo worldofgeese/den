@@ -157,6 +157,11 @@
       "id": "superwhisper-lock-inode-guard-01m7nz",
       "summary": "Require fd 8 to reference the exact app-list lock before honoring the internal bypass, add a held-lock regression for an unrelated descriptor, update all three Superwhisper living specs, and refresh their projections.",
       "input_digest": "sha256:7d95015c1efa978dbfca6ba2814bfefb2f32f28ef8ffc6a1a2723d21a9428e9c"
+    },
+    {
+      "id": "superwhisper-decapod-0-148-9-bundle-01m7p",
+      "summary": "Refresh Decapod 0.148.9 release-bound entrypoint fingerprints, managed Dockerfile pin and specs manifest after exact-candidate validation identified the publication bundle requirement.",
+      "input_digest": "sha256:babb24274444e30971d7d4574a974e71dc5fdfa03bd582baf11dd0edffbc2bf0"
     }
   ],
   "intents": {
@@ -217,7 +222,7 @@
         "Current claimed task and isolated work branch",
         "Product work stays in this isolated worktree. Local app-selection state and root checkout edits stay untouched."
       ],
-      "artifact_hash": "sha256:b9e08e2472d5e35dcf598c927b51d0521f5e4239a5516486e49ff8608c2f3612",
+      "artifact_hash": "sha256:fd67a82c3b9992579fba6a30d7f466811fe38e82d11fd19d1f43c340bb2015c4",
       "blockers": [
         "A person must review the current PR #177 head before merge; the owner has been asked to review the exact candidate."
       ],
@@ -255,6 +260,10 @@
           "status": "passed"
         },
         {
+          "name": "native_validation_0_148_9",
+          "status": "failed"
+        },
+        {
           "name": "native_validation_6f88849b",
           "status": "failed"
         },
@@ -265,6 +274,10 @@
         {
           "name": "project_check",
           "status": "failed"
+        },
+        {
+          "name": "release_bundle_refresh",
+          "status": "passed"
         },
         {
           "name": "repository_checks",
@@ -291,7 +304,7 @@
           "status": "passed"
         }
       ],
-      "current_phase": "PR review fixes",
+      "current_phase": "release-bound projection repair",
       "custody": {
         "events": [
           {
@@ -375,10 +388,17 @@
             "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
             "kind": "trajectory_step_recorded",
             "sequence": 13
+          },
+          {
+            "detail": "trajectory:branch_01M7N3PCF0W5TA90SB641FHX7G",
+            "event_id": "event:14",
+            "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
+            "kind": "trajectory_step_recorded",
+            "sequence": 14
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 13,
+        "next_sequence": 14,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7N3PCF0W5TA90SB641FHX7G": {
@@ -694,6 +714,42 @@
                 ],
                 "sequence": 13,
                 "validation_findings": []
+              },
+              {
+                "action": "release-bound projection repair",
+                "command": "Decapod 0.148.9 validate on deab6337: PUBLICATION_BUNDLE_CURRENCY",
+                "custody_event_id": "event:14",
+                "observations": [
+                  "<external-path>",
+                  ".decapod/managed/specs/.manifest.json",
+                  "AGENTS.md",
+                  "CLAUDE.md",
+                  "CODEX.md",
+                  "GEMINI.md",
+                  ".decapod/managed/Dockerfile.decapod",
+                  ".decapod/managed/specs/.manifest.json",
+                  ".decapod/governance.json",
+                  "Exact-candidate validation reached 190 passing gates, then failed PUBLICATION_BUNDLE_CURRENCY: required release-bound entrypoints, managed Dockerfile pin and specs manifest were absent from this PR diff.",
+                  "The 0.148.9 workspace ensure CLI refreshed AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod and .decapod/managed/specs/.manifest.json; those generated files are staged without hand edits."
+                ],
+                "proof_refs": [
+                  "native_validation_0_148_9",
+                  "release_bundle_refresh"
+                ],
+                "scope": [
+                  "\".decapod/config.toml\"",
+                  "\".decapod/governance.json\"",
+                  "\".decapod/managed/Dockerfile.decapod\"",
+                  "\".decapod/managed/specs\"",
+                  "\"AGENTS.md\"",
+                  "\"CLAUDE.md\"",
+                  "\"CODEX.md\"",
+                  "\"GEMINI.md\"]",
+                  "\"scripts/test-omarchy-superwhisper.sh\"",
+                  "paths:[\"modules/omarchy.nix\""
+                ],
+                "sequence": 14,
+                "validation_findings": []
               }
             ]
           }
@@ -701,6 +757,8 @@
       },
       "declared_commands": [
         "Applied preserved repair onto current origin/main 8dbe18a6 without policy edits",
+        "Decapod 0.148.9 validate on deab6337: PUBLICATION_BUNDLE_CURRENCY",
+        "Decapod 0.148.9 workspace ensure regenerated release-bound projections",
         "Decapod rpc --op specs.refresh",
         "Decapod validate on 6f88849b: READINESS_BLOCKED by stale human-review blocker for 0f5a5629",
         "Exact commit 52b3ebf7 plain validate: 192 passed, one publication_readiness failure due to the explicit trajectory blocker. Clear resolved execution blockers while preserving measured failure evidence, then retry.",
@@ -715,6 +773,7 @@
       "destination": "Merge the repaired Superwhisper setup under the renewed owner authority",
       "evidence": [
         "Decapod project-check failed one repository-wide Gatekeeper scan with 261 dangerous patterns; its report lists no Superwhisper-specific failure. publication_ready=false.",
+        "Exact-candidate validation reached 190 passing gates, then failed PUBLICATION_BUNDLE_CURRENCY: required release-bound entrypoints, managed Dockerfile pin and specs manifest were absent from this PR diff.",
         "Final package /nix/store/f6275p4gf5kjxaksdbnbhp3c75awjr4x-omarchy-4.5.0 built successfully with the postFixup Superwhisper tests and ShellCheck. All five generic app-menu scripts contain no unresolved denApps placeholder.",
         "Hosted review fixes preserve actual data: source marker is documented as user-managed; product identity leads INTENT.md; initial SC2016 failure remains failed, repaired package builds remain passed, and generated scope limitation is tracked in upstream issue1760.",
         "Independent correctness reviewer: no remaining concrete findings; shared app-list lock and paused-deploy regression address both findings.",
@@ -724,6 +783,7 @@
         "Owner publication exception remains explicit; no native Decapod readiness or VERIFIED status is claimed.",
         "PR review requested retaining the initial SC2016 build failure as failed. This field now preserves that historical failure; final_package_build separately records the repaired successful package. Earlier command entries with in-progress text are timestamped historical observations, not current pending checks.",
         "Package /nix/store/j0k79zsd5c8ldvd3jchd9cm0d3il4r0i-omarchy-4.5.0 built successfully with the new fd-8 guard regression in postFixup.",
+        "The 0.148.9 workspace ensure CLI refreshed AGENTS.md, CLAUDE.md, CODEX.md, GEMINI.md, .decapod/managed/Dockerfile.decapod and .decapod/managed/specs/.manifest.json; those generated files are staged without hand edits.",
         "The failed initial package build was repaired with the targeted SC2016 annotation. The same package build command passed afterward, and the final shared-lock package build passed. This updates current check state; the initial failure remains in prior evidence.",
         "The first review-fix build exposed a hardcoded jq exit-4 assumption. The test now measures the pinned jq parse-error status and requires exact wrapper preservation. Contention returns 75 and deployment failure returns 1 without busy advice.",
         "The new descriptor regression failed against the previous package with exit 98 and Unexpected app-list lock descriptor in superwhisper. The repaired package /nix/store/z4wzax54wgsjgfmkkpdpbmdmv9vra634-omarchy-4.5.0 built successfully and passed all generated-script regressions.",
@@ -747,10 +807,15 @@
       "intent_id": "intent:change_01M7N3PCCN1J9MBAH3X1RY43V6",
       "modified_files": [
         ".decapod/governance.json",
+        ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/ARCHITECTURE.md",
         ".decapod/managed/specs/INTENT.md",
         ".decapod/managed/specs/INTERFACES.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "CODEX.md",
+        "GEMINI.md",
         "flake.lock",
         "flake.nix",
         "guix/system.scm",
@@ -762,6 +827,7 @@
       "next_transitions": [
         "Apply hosted review fixes, rebuild the affected package with added regressions, then checkpoint, commit, push and finish the review threads.",
         "Checkpoint and commit exact-lock descriptor validation with its regression and spec updates, push, rerun current-head checks, and collect human review.",
+        "Checkpoint and commit the Decapod 0.148.9 release bundle, push, rerun current-head validation and CI, and collect required human review.",
         "Checkpoint and commit the combined review fixes, push, reply substantively and resolve each handled thread, then finish hosted CI and merge under the owner exception.",
         "Checkpoint the trajectory correction, commit, and rerun exact-candidate validation before PR publication.",
         "Commit and push the fd-8 lock guard, rerun exact-candidate validation, and collect fresh CI plus required human review before merge.",

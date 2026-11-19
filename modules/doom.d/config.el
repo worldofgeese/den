@@ -128,6 +128,33 @@ Prompts for source type: book (page table) or conversation (bullet list)."
   ;; Activate howm-mode on any .org file opened under howm-directory
   (add-hook 'find-file-hook #'howm-set-mode)
 
+  ;; Save-triggered sync, v2 (ADR-0006 addendum, 2026-11-19): replaces
+  ;; git-auto-commit-mode, whose synchronous per-file commit left a stale
+  ;; index.lock that wedged every sync layer silently for 18 days. A save
+  ;; arms a 10s debounce that runs bin/howm-sync asynchronously: repo-wide,
+  ;; flock-serialised against every other sync actor, self-healing, logged.
+  (defvar howm-auto-sync-timer nil)
+
+  (defun howm-auto-sync-trigger ()
+    "Run bin/howm-sync 10s from now, re-arming on every save."
+    (when howm-auto-sync-timer
+      (cancel-timer howm-auto-sync-timer))
+    (setq howm-auto-sync-timer
+          (run-at-time 10 nil
+                       (lambda ()
+                         (let ((script (and (boundp 'howm-directory)
+                                            (expand-file-name "bin/howm-sync"
+                                                              howm-directory))))
+                           (when (and script (file-executable-p script))
+                             (start-process "howm-sync" nil script)))))))
+
+  (define-minor-mode howm-auto-sync-mode
+    "Debounced repo-wide sync on save (replaces git-auto-commit-mode)."
+    :lighter " howm-sync"
+    (if howm-auto-sync-mode
+        (add-hook 'after-save-hook #'howm-auto-sync-trigger nil t)
+      (remove-hook 'after-save-hook #'howm-auto-sync-trigger t)))
+
   ;; Evil-mode shadows action-lock's C-m binding; re-bind RET in normal state
   (evil-define-key 'normal howm-mode-map (kbd "RET") #'action-lock-magic-return)
   (evil-define-key 'normal howm-mode-map (kbd "TAB") #'action-lock-goto-next-link)

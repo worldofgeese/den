@@ -8,8 +8,12 @@
 ;; howm: personal wiki / note-taking (LLM-wiki substrate)
 (package! howm)
 
-;; git-auto-commit-mode: auto-commit on save for backup
-(package! git-auto-commit-mode)
+;; git-auto-commit-mode was removed 2026-11-19 (ADR-0006 addendum): its
+;; synchronous per-file commit was the source of the stale index.lock that
+;; killed every sync layer for 18 days, and a second save-triggered
+;; mechanism would race the serialised one. Save-triggered sync now runs
+;; debounced and asynchronously through bin/howm-sync (howm-auto-sync-mode
+;; in config.el).
 
 ;; denote: predictable file-naming + signatures for folgezettel
 (package! denote)

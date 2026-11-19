@@ -23,13 +23,18 @@
     # scripts/update-rust-tools.sh on every release. Since 0.136.3, upstream CI
     # also publishes that package to decapod.cachix.org on release merges
     # (DecapodLabs/decapod#1600; modules/M-02877/darwin.nix trusts the cache).
+    # The URL pins a release tag (like pr-reviewer below): the cache only
+    # carries release revisions, so a floating `nix flake update` can land on a
+    # master revision whose crate hash upstream has not verified — that exact
+    # failure broke the 2026-11-19 lock bump (decapod-0.148.3, stale cargoHash,
+    # build fell back to source and failed). Pin releases; bump deliberately.
     # Deliberately WITHOUT `follows`: den's nixpkgs or rust-overlay would make a
     # different derivation from the cached one, and every bump would compile
     # Decapod again (measured on 2026-11-10 with 0.136.3). So upstream's
     # nixpkgs pin is a second nixpkgs tree in the lock. When upstream moves
     # that pin, M-02877 fetches the new tree once to evaluate the package
     # (about 8.5 minutes under Defender; ARCHITECTURE.md).
-    decapod.url = "github:DecapodLabs/decapod";
+    decapod.url = "github:DecapodLabs/decapod/v0.150.2";
     # The daemon that reviews our pull requests; its flake exposes
     # packages.default. The URL pins a release tag, so den keeps pinning
     # releases and flake.lock pins the revision and every hash.

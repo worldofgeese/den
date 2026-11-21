@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it; at this revision it is 0.148.3. Decapod reaches
+`AGENTS.md` names it; at this revision it is 0.158.0. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -128,8 +128,18 @@ blocked by the accepted proof contract. Do not repin tools or narrow required
 checks in a candidate to bypass that boundary. DecapodLabs/decapod#1736 tracks
 per-platform executables, DecapodLabs/decapod#1738 tracks separately authorized
 policy migration, and DecapodLabs/decapod#1740 tracks target-to-proof mapping
-and shared dependency fanout. Until a supported accepted-target transition is
-available, retain the accepted contract and report the blocker.
+and shared dependency fanout. Decapod 0.158.0 adds a bounded transition for a
+change to the accepted source inventory (DecapodLabs/decapod#1826, which closed
+DecapodLabs/decapod#1738). Inspect the complete inventory from
+`decapod rpc --op agent.init`, then update `reviewed_sources_digest` to its
+`inventory_digest` and commit the candidate. Run `decapod validate` to obtain
+the exact transition ID. A core-trust maintainer must approve that ID with
+`decapod govern policy approve --id <transition-id> --scope
+repo.pr-readiness.v1`. The approval binds the accepted base, candidate, source
+and command digests. It expires after 900 seconds by default. Rerun full
+validation after approval. Keep `source_coverage` and
+`reviewed_commands_digest` unchanged unless the reviewed contract itself
+changes.
 
 Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
 `GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another

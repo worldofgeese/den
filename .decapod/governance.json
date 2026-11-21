@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "e07fbc75a86f1b022ab23d63fda64031f669ab39",
+    "accepted_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -92,19 +92,19 @@
     }
   },
   "change": {
-    "id": "change_01M7QA7NEJP0APZ49A0ZK533SX",
-    "base_commit": "e07fbc75a86f1b022ab23d63fda64031f669ab39",
+    "id": "change_01M7YEFKS13YERR6RRW2F95FDM",
+    "base_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "tobias-url",
-      "summary": "Point guix.tobias.gr substitute URL at its root",
-      "input_digest": "sha256:183795c2ef31435f16292b65d43041326201d0d8fde26d5e0f5f66039d5373a0"
+      "id": "released-policy-transition-candidate",
+      "summary": "Preserve 25 flake inputs and record the measured source digest for the independent policy decision.",
+      "input_digest": "sha256:ab8912d951239f70bd863d7733a4935d17d3048a5b64697d9c841c233897e8ff"
     }
   ],
   "intents": {
-    "intent:change_01M7QA7NEJP0APZ49A0ZK533SX": {
+    "intent:change_01M7YEFKS13YERR6RRW2F95FDM": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -114,11 +114,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+      "id": "intent:change_01M7YEFKS13YERR6RRW2F95FDM",
+      "instruction_origin": {
+        "source_ref": "caller:unverified"
+      },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Point guix.tobias.gr substitute URL at its moved root",
-      "refined_intent": "Point guix.tobias.gr substitute URL at its moved root",
+      "raw_intent": "Apply the released proof inventory transition to saved den edits\n\nCarry the still-pending lockfile input updates from 5d5b398f onto current accepted main, preserving newer accepted changes including the Decapod pin. Reconcile the source digest without changing required commands or coverage. Produce the exact candidate for the maintainer policy decision, then recover the Superwhisper task proof and validate before publication.",
+      "refined_intent": "Apply the released proof inventory transition to saved den edits\n\nCarry the still-pending lockfile input updates from 5d5b398f onto current accepted main, preserving newer accepted changes including the Decapod pin. Reconcile the source digest without changing required commands or coverage. Produce the exact candidate for the maintainer policy decision, then recover the Superwhisper task proof and validate before publication.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -131,65 +134,139 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Fix the guix.tobias.gr substitute URL; the server moved its cache from /substitutes/ to the root, so Topgrade's guix pull warned on every run.",
+      "intent": "Carry the pending flake input updates from 5d5b398f onto current main. Preserve the newer Decapod pin, required commands, executions and coverage. Record the candidate inventory and obtain the supported policy decision for its exact commit. Recover the existing Superwhisper task proof and run full validation before publication.",
       "phases": [],
       "proof_hooks": [
-        "just check-guix"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "The updated lock pins and source inventory leave the implementation boundaries and Superwhisper setup paths described here unchanged.",
+          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
+          "spec_material_hash": "7759227743f971a8514b5995d276c7aaf47b544b4206cf5a52daea3013f8de06"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "No command signature, consumer interface, CI workflow, or validation coverage declaration changes in this candidate.",
+          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
+          "spec_material_hash": "d93fd430b66f8747325edd98e8b877b0e603e5d56f6e0ea3a96ea05f7c90530a"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "The candidate changes the source digest only. The accepted authorization, credentials, and required check declarations remain in force.",
+          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
+          "spec_material_hash": "e3e848ecc5f5450ef38d1e0822c62010fd927f545672d0d99b6d71fcccf3ede8"
+        }
+      ],
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Point guix.tobias.gr substitute URL at its moved root",
+      "stop_conditions": [
+        "Use only a current maintainer policy approval accepted by Decapod for the exact candidate. Hold PR creation until full validation passes."
+      ],
+      "title": "Apply the released proof inventory transition to saved den edits",
       "todo_ids": [
-        "fend_01m7qa4tftjxwzpe"
+        "code_01m7yeeq4kzbm5q8"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1795005145Z"
+      "updated_at": "1795244535Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:1fedd8f6908a5fd4c33f847eb00301927d655a4c44179b8031d9b3188bccdd0e",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:79c85e4f483b007fc387bb1948aeaf0c95a9a57aa0100a59a12ec93ed1b3012d",
+      "checks": [
+        {
+          "name": "lock-preservation",
+          "status": "passed"
+        }
+      ],
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+            "intent_id": "intent:change_01M7YEFKS13YERR6RRW2F95FDM",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+            "intent_id": "intent:change_01M7YEFKS13YERR6RRW2F95FDM",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M7YEFKT894KJB8S256Z69J9J",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M7YEFKS13YERR6RRW2F95FDM",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
-        "schema_version": "1.0.0",
-        "trajectories": {}
+        "next_sequence": 4,
+        "schema_version": "1.1.0",
+        "trajectories": {
+          "branch_01M7YEFKT894KJB8S256Z69J9J": {
+            "evidence_only": true,
+            "id": "branch_01M7YEFKT894KJB8S256Z69J9J",
+            "intent_id": "intent:change_01M7YEFKS13YERR6RRW2F95FDM",
+            "steps": [
+              {
+                "action": "validation",
+                "custody_event_id": "event:4",
+                "observations": [
+                  ".decapod/config.toml",
+                  "flake.lock",
+                  ".decapod/config.toml",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "Three-way comparison carried the 25 pending nodes from 5d5b398f and kept all accepted changes on f9778347, including the v0.150.2 pin.",
+                  "Decapod 0.158.0 measured source digest sha256:a91594931f4589b27a17c6d5396fc8994c24e7a2916a55c7f77d8441beffaf13. The accepted required command digest did not change. The exact policy approval is still pending."
+                ],
+                "proof_refs": [
+                  "lock-preservation"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
-      "modified_files": [],
+      "evidence": [
+        "Decapod 0.158.0 measured source digest sha256:a91594931f4589b27a17c6d5396fc8994c24e7a2916a55c7f77d8441beffaf13. The accepted required command digest did not change. The exact policy approval is still pending.",
+        "Three-way comparison carried the 25 pending nodes from 5d5b398f and kept all accepted changes on f9778347, including the v0.150.2 pin."
+      ],
+      "inspected_files": [
+        ".decapod/config.toml"
+      ],
+      "intent_id": "intent:change_01M7YEFKS13YERR6RRW2F95FDM",
+      "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/managed/specs/VALIDATION.md",
+        "flake.lock"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M7QA7NFKG3GRJJYXTZ13AN8D",
+      "run_id": "branch_01M7YEFKT894KJB8S256Z69J9J",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "fend_01m7qa4tftjxwzpe",
+      "task_id": "code_01m7yeeq4kzbm5q8",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

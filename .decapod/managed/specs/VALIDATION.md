@@ -61,7 +61,7 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it; at this revision it is 0.148.3. Decapod reaches
+`AGENTS.md` names it; this candidate uses Decapod 0.158.0. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -130,6 +130,19 @@ per-platform executables, DecapodLabs/decapod#1738 tracks separately authorized
 policy migration, and DecapodLabs/decapod#1740 tracks target-to-proof mapping
 and shared dependency fanout. Until a supported accepted-target transition is
 available, retain the accepted contract and report the blocker.
+
+Decapod 0.155.0 introduced a governed transition for an accepted
+`repo.pr-readiness.v1` source inventory. Measure the candidate with
+`decapod rpc --op agent.init`. Record the measured source digest in
+`.decapod/config.toml`. Keep the command digest if the commands and coverage
+stay the same. Commit the candidate before you request approval.
+
+The maintainer approves the exact transition in the canonical policy ledger.
+Decapod binds the approval to the accepted base, candidate commit, and proof
+digests. A new commit or base requires a new approval. After approval, recover
+any missing task proof, then use full validation to establish publication
+readiness. The lockfile update keeps the accepted Decapod v0.150.2 input pin.
+The release markers identify the controller that generated the entrypoints.
 
 Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
 `GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another

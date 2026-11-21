@@ -1541,17 +1541,39 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 
 ## Flake Input Updates
 
-The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-13 it changed 7 nodes of `flake.lock`.
+The nightly bump (`scripts/bump-flake-inputs.sh`) rewrites this section. On 2026-11-21 it changed 29 nodes of `flake.lock`.
 
 | Node | Before | After |
 |---|---|---|
-| `decapod` | fc1e2b9 (2026-11-12) | 6f1d2a3 (2026-11-13) |
-| `den` | a66a778 (2026-11-11) | cbe76f2 (2026-11-12) |
-| `devenv` | 215e857 (2026-11-11) | 9eaaab8 (2026-11-12) |
-| `llm-agents` | 1156328 (2026-11-12) | 860075d (2026-11-13) |
-| `nixarchy` | a4757e4 (2026-11-12) | b08ff2f (2026-11-13) |
-| `nixpkgs_7` | 9397dcb (2026-11-11) | 2074cc6 (2026-11-12) |
-| `rust-overlay_3` | d1e30fd (2026-11-12) | 8bbfc85 (2026-11-12) |
+| `bun2nix` | 07a5bfc (2026-09-21) | b8243c1 (2026-11-20) |
+| `crucible-src` | 59f576c (2026-11-17) | 07ac4bb (2026-11-20) |
+| `den` | cbe76f2 (2026-11-12) | 27efd74 (2026-11-21) |
+| `devenv` | 9eaaab8 (2026-11-12) | ba35fb7 (2026-11-21) |
+| `doomemacs` | 7ccac7f (2026-11-06) | 759fb66 (2026-11-17) |
+| `emacs-overlay` | d6b7a17 (2026-11-11) | 882675c (2026-11-18) |
+| `ewm` | 57394a2 (2026-11-11) | 62e6c3e (2026-11-20) |
+| `gliff` | 32bb062 (2026-11-05) | 9d93732 (2026-11-12) |
+| `helium` | ee8c73c (2026-11-10) | 6b7088a (2026-11-18) |
+| `home-manager` | 82ce401 (2026-11-10) | 2b13c9c (2026-11-18) |
+| `home-manager_6` | 095fef2 (2026-10-28) | a1293da (2026-11-15) |
+| `llm-agents` | 860075d (2026-11-13) | a59764a (2026-11-21) |
+| `mcp-servers-nix` | 094e3ba (2026-11-04) | 47945d9 (2026-11-11) |
+| `microvm` | b7bd556 (2026-10-29) | 194a254 (2026-11-13) |
+| `nix-doom-emacs-unstraightened` | 1d5c120 (2026-11-11) | 261743a (2026-11-18) |
+| `nixarchy` | b08ff2f (2026-11-13) | f28b49d (2026-11-20) |
+| `nixarchy-ghtui` | 3fb9c8d (2026-10-20) | 53b1b0a (2026-11-20) |
+| `nixarchy-gltui` | 8445d25 (2026-10-20) | 81be198 (2026-11-20) |
+| `nixarchy-herdr` | affd985 (2026-10-20) | c16db87 (2026-11-17) |
+| `nixarchy-microvm` | ca0bc01 (2026-10-20) | 61610c6 (2026-11-17) |
+| `nixarchy-pkg` | b7786c2 (2026-10-20) | 08be59b (2026-11-17) |
+| `nixpkgs-python315` | 1c872b8 (2026-11-15) | 9996594 (2026-11-20) |
+| `nixpkgs_2` | 4fe25e1 (2026-11-06) | 19cfded (2026-11-19) |
+| `nixpkgs_6` | 177d054 (2026-11-09) | 0bb8272 (2026-11-19) |
+| `nixpkgs_7` | 2074cc6 (2026-11-12) | 9996594 (2026-11-20) |
+| `rust-overlay_3` | 8bbfc85 (2026-11-12) | a5c9999 (2026-11-20) |
+| `sops-nix` | b18e01c (2026-11-02) | 11e5885 (2026-11-14) |
+| `treefmt-nix_2` | 0d6d739 (2026-10-13) | a0a97e3 (2026-11-20) |
+| `zen-browser` | 7ae4b41 (2026-11-12) | 7b74559 (2026-11-19) |
 
 ## Limited NAS Recovery Evidence
 

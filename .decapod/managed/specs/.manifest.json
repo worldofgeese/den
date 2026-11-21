@@ -8,8 +8,8 @@
     "secrets-handling"
   ],
   "capability_definition_version": "1.0.0",
-  "config_input_hash": "61d288f07980885049eb1195893a98a5cbbf58d39fee28511d3d0587ae06dd33",
-  "spec_input_hash": "8390d5f00f52eb4dde2a280a8e028c56de849f528c713d79738dca02b95ea304",
+  "config_input_hash": "07aad0bf99b75c5f6b04fb9bd29e5c7a9cca806f63ff7503ca1b922a31d2229a",
+  "spec_input_hash": "0a79a3596339c44fce9831a59093ad4caae5cd1035c7b2dc8dbc92e4d835d4fe",
   "decapod_release": "0.148.3",
   "entrypoints": [
     {
@@ -77,7 +77,7 @@
     {
       "path": ".decapod/managed/specs/OPERATIONS.md",
       "template_hash": "0636ac7163dd3a9369fbe46b80df87ecfd43f3f6215c0b761876d9e57236956c",
-      "content_hash": "e547132b0f4b3f10e89166711b13ef32528f407b197205b96e8b8e0c442166dc",
+      "content_hash": "c1db985973d00230cdf4236db8c2a852061d25232b958c24016bab992a15bfdf",
       "fingerprint": ""
     },
     {

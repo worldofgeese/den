@@ -140,6 +140,10 @@ and command digests. It expires after 900 seconds by default. Rerun full
 validation after approval. Keep `source_coverage` and
 `reviewed_commands_digest` unchanged unless the reviewed contract itself
 changes.
+Before validation, the governed plan state must be `APPROVED` or `DONE`. An
+`EXECUTING` state returns `NEEDS_PLAN_APPROVAL`. Use
+`decapod govern plan approve` after review to set `APPROVED`. Do not mark an
+incomplete phase complete to clear this gate.
 
 Git exports `GIT_DIR`, `GIT_INDEX_FILE` and related variables to hooks, and
 `GIT_DIR` overrides `git -C`. So nothing that a hook runs may run git on another

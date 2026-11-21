@@ -106,6 +106,15 @@
         "agent.init inventory digest sha256:3a29f225727badecc00bfc0fe5db413cecf86f46f4d77a15b2e455a49d52fede",
         "just check passed"
       ]
+    },
+    {
+      "id": "decapod-plan-gate-docs",
+      "summary": "Document the plan approval gate required by Decapod 0.158.0 validation",
+      "input_digest": "sha256:f46c6b07704ce2dea857f25836a7403aa1e074b6e2312f219f42342723af8356",
+      "proof_refs": [
+        "Decapod 0.158.0 NEEDS_PLAN_APPROVAL validation finding",
+        "plan status APPROVED; phase remains incomplete"
+      ]
     }
   ],
   "intents": {
@@ -165,7 +174,7 @@
         "just check and decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "EXECUTING",
+      "state": "APPROVED",
       "stop_conditions": [],
       "title": "Update and deploy Decapod from Cachix",
       "todo_ids": [
@@ -173,13 +182,13 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1795049407Z"
+      "updated_at": "1795245626Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:6fd254495c7ef2d3a097387b938f26af821a643a5ef32f541f7441a31a9441a3",
+      "artifact_hash": "sha256:f171dc74e531588636eff28705b3ee5f3c1dea791097eb83a51e3c76049185fc",
       "blockers": [
         "The source-inventory transition needs a core-trust maintainer approval bound to the exact candidate commit."
       ],
@@ -237,6 +246,10 @@
           "status": "unavailable"
         },
         {
+          "name": "plan approval gate",
+          "status": "passed"
+        },
+        {
           "name": "policy.control maintainer approval",
           "status": "unavailable"
         },
@@ -263,6 +276,10 @@
         {
           "name": "reviewed source digest matches current inventory",
           "status": "unavailable"
+        },
+        {
+          "name": "validation spec documents the plan approval gate",
+          "status": "passed"
         }
       ],
       "current_phase": "update-decapod-input",
@@ -335,10 +352,24 @@
             "intent_id": "intent:change_01M7RM2Q5ZQ66160KMG9PTHZG9",
             "kind": "trajectory_step_recorded",
             "sequence": 11
+          },
+          {
+            "detail": "trajectory:branch_01M7RM2Q78MGV4J507VNJ74K2Q",
+            "event_id": "event:12",
+            "intent_id": "intent:change_01M7RM2Q5ZQ66160KMG9PTHZG9",
+            "kind": "trajectory_step_recorded",
+            "sequence": 12
+          },
+          {
+            "detail": "trajectory:branch_01M7RM2Q78MGV4J507VNJ74K2Q",
+            "event_id": "event:13",
+            "intent_id": "intent:change_01M7RM2Q5ZQ66160KMG9PTHZG9",
+            "kind": "trajectory_step_recorded",
+            "sequence": 13
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 11,
+        "next_sequence": 13,
         "schema_version": "1.0.0",
         "trajectories": {
           "branch_01M7RM2Q78MGV4J507VNJ74K2Q": {
@@ -505,6 +536,41 @@
                 ],
                 "sequence": 11,
                 "validation_findings": []
+              },
+              {
+                "action": "update-decapod-input",
+                "command": "decapod govern plan approve=passed",
+                "custody_event_id": "event:12",
+                "observations": [
+                  ".decapod/governance.json",
+                  "Initial decapod validate reported NEEDS_PLAN_APPROVAL for the existing EXECUTING plan; the task already had user approval, no plan questions or unresolved contradictions, and state is now APPROVED."
+                ],
+                "proof_refs": [
+                  "plan approval gate"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 12,
+                "validation_findings": []
+              },
+              {
+                "action": "update-decapod-input",
+                "command": "decapod rpc --op specs.refresh=passed",
+                "custody_event_id": "event:13",
+                "observations": [
+                  ".decapod/managed/specs/VALIDATION.md",
+                  ".decapod/managed/specs/.manifest.json",
+                  "Decapod 0.158.0 validation returned NEEDS_PLAN_APPROVAL for EXECUTING plans; current plan is APPROVED and its phase remains incomplete."
+                ],
+                "proof_refs": [
+                  "validation spec documents the plan approval gate"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 13,
+                "validation_findings": []
               }
             ]
           }
@@ -512,8 +578,10 @@
       },
       "declared_commands": [
         "decapod docs ingest=passed",
+        "decapod govern plan approve=passed",
         "decapod rpc --op agent.init=inventory reported; source digest needs reconciliation",
         "decapod rpc --op agent.init=proof_pending; inventory and command digest consistent",
+        "decapod rpc --op specs.refresh=passed",
         "decapod system migrations --format json=no pending migrations",
         "gh release view --repo DecapodLabs/decapod --json tagName,publishedAt,url=passed",
         "git fetch origin main=passed",
@@ -525,6 +593,8 @@
       "evidence": [
         "Current accepted base f97783476e81bfbc91d342a865b32cccb6b12c7c; candidate Decapod tag v0.158.0 revision ade5e9467f2bc2da550fcad172fc32ddf065886a; source inventory sha256:3a29f225727badecc00bfc0fe5db413cecf86f46f4d77a15b2e455a49d52fede; command digest sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1.",
         "Current inventory sha256:1e8d681a62b3fe9ae7f949c74cebf898771101df1f9fc93a87abed0856290faa; command contract sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1; v0.158.0 docs prescribe exact, bounded transition approval.",
+        "Decapod 0.158.0 validation returned NEEDS_PLAN_APPROVAL for EXECUTING plans; current plan is APPROVED and its phase remains incomplete.",
+        "Initial decapod validate reported NEEDS_PLAN_APPROVAL for the existing EXECUTING plan; the task already had user approval, no plan questions or unresolved contradictions, and state is now APPROVED.",
         "Rebased candidate onto origin/main f97783476e81bfbc91d342a865b32cccb6b12c7c; the only changed discovered sources are flake.nix and flake.lock; config digest matches inventory 3a29f225727badecc00bfc0fe5db413cecf86f46f4d77a15b2e455a49d52fede.",
         "origin/main advanced from 8a22a8a9 to f9778347 and now pins v0.150.2; accepted reviewed_sources_digest is sha256:d6844db78fb0b44bc0685b4faf1559fa1c3399532022b4388b623666586c3d57."
       ],
@@ -540,6 +610,7 @@
       "intent_id": "intent:change_01M7RM2Q5ZQ66160KMG9PTHZG9",
       "modified_files": [
         ".decapod/config.toml",
+        ".decapod/governance.json",
         ".decapod/managed/Dockerfile.decapod",
         ".decapod/managed/specs/.manifest.json",
         ".decapod/managed/specs/VALIDATION.md",
@@ -552,7 +623,9 @@
       ],
       "next_transitions": [
         "Checkpoint and commit the exact v0.158.0 candidate, then run governed validation",
+        "Checkpoint the plan-gate specification and commit the approved plan state",
         "Commit and run validation to obtain the exact source-policy transition ID",
+        "Commit plan approval and rerun validation for the exact candidate",
         "Pin the latest released Decapod and refresh its projections",
         "Rebase on origin/main and pin v0.158.0 in the flake input and lock",
         "Refine plan and declare falsifiable checks"

@@ -1,5 +1,5 @@
-<!-- decapod-release: 0.148.3 -->
-<!-- decapod-fingerprint: 9001b74b093f5ed0f07bb22eb5d6d4cf2b9357f78b0229abadd8641144494242 -->
+<!-- decapod-release: 0.164.0 -->
+<!-- decapod-fingerprint: 7a6d643ef6210c80add35d0e4677b3e86f70aba5ff2284e88b1b2a5d33e257f3 -->
 # CLAUDE.md - Agent Entrypoint
 
 You are working in a Decapod-managed repository.
@@ -63,7 +63,7 @@ Treat `.decapod/managed/specs/*` as the acting agent's authored interpretation o
 
 Living specs describe the configured project from purpose to architecture to implementation depth. Lead with the whole product and its users, outcomes, and boundaries; explain components and source-grounded behavior next. A narrow task updates the relevant part without replacing project-wide identity. Cite repository paths and symbols, distinguish implemented behavior from plans and gaps, and treat generated templates/capabilities as obligations rather than proof of runtime guarantees.
 
-Stop if requirements are ambiguous or conflicting.
+Investigate ordinary ambiguity via bounded reflection (`decapod govern plan reflect`) and ask the human only when escalation admission confirms irreducible ambiguity, conflicting requirements, or missing authority.
 <!-- decapod-validator-anchors
 Strict Dependency: You are strictly bound to the Decapod control plane
 Strict Dependency: You are strictly bound to the Decapod governance kernel

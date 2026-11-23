@@ -28,6 +28,11 @@ Generated interface specs should include:
 | `TODO` | `TODO` | `TODO` | `TODO` | `TODO` |
 
 ## Inbound Contracts
+- `decapod validate` selects the Alejandra and ShellCheck executable paths
+  for `linux-x86_64` or `macos-aarch64` from the required repository
+  profile in `.decapod/config.toml`. Both hosts use the same reviewed
+  arguments and workflow coverage. An undeclared platform or a missing
+  pinned executable blocks local readiness.
 - The Superwhisper installer accepts `--background` and retains the Cloud/Offline confirmation prompt.
   Before confirmation, it explains that Cloud sends audio, transcripts, and required
   context to the selected provider. Superwhisper-hosted Cloud models process content

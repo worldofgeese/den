@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "e07fbc75a86f1b022ab23d63fda64031f669ab39",
+    "accepted_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -92,19 +92,19 @@
     }
   },
   "change": {
-    "id": "change_01M7QA7NEJP0APZ49A0ZK533SX",
-    "base_commit": "e07fbc75a86f1b022ab23d63fda64031f669ab39",
+    "id": "change_01M8362BPK6196F7B56FGYCEJ9",
+    "base_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "tobias-url",
-      "summary": "Point guix.tobias.gr substitute URL at its root",
-      "input_digest": "sha256:183795c2ef31435f16292b65d43041326201d0d8fde26d5e0f5f66039d5373a0"
+      "id": "carry-0164-diagnostics-from-current-main",
+      "summary": "Preserve the pending dependency updates and use the released Decapod recovery diagnostics from this branch's first commit.",
+      "input_digest": "sha256:895333121656f2bc0efc2c91a85666668eb52cb2d169007788bffbcf37174e77"
     }
   ],
   "intents": {
-    "intent:change_01M7QA7NEJP0APZ49A0ZK533SX": {
+    "intent:change_01M8362BPK6196F7B56FGYCEJ9": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -114,11 +114,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+      "id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+      "instruction_origin": {
+        "source_ref": "caller:unverified"
+      },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Point guix.tobias.gr substitute URL at its moved root",
-      "refined_intent": "Point guix.tobias.gr substitute URL at its moved root",
+      "raw_intent": "Validate preserved flake inputs with Decapod 0.164.0\n\nCarry the candidate flake inputs and proposed proof source digest onto current accepted main with one canonical 0.164.0 release commit. Preserve the earlier branch and checkpoints. Obtain exact maintainer approval and use corrected proof recovery diagnostics before publication.",
+      "refined_intent": "Validate preserved flake inputs with Decapod 0.164.0\n\nCarry the candidate flake inputs and proposed proof source digest onto current accepted main with one canonical 0.164.0 release commit. Preserve the earlier branch and checkpoints. Obtain exact maintainer approval and use corrected proof recovery diagnostics before publication.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -131,54 +134,111 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Fix the guix.tobias.gr substitute URL; the server moved its cache from /substitutes/ to the root, so Topgrade's guix pull warned on every run.",
+      "intent": "Preserve the exact candidate dependency pins and proof configuration from 08a34f6b on current main. Use canonical 0.164.0 projections from the first commit. Obtain independent approval of the changed source inventory, recover the historical task proof, and validate this exact candidate before publication.",
       "phases": [],
       "proof_hooks": [
-        "just check-guix"
+        "decapod validate"
       ],
       "schema_version": "1.1.0",
+      "spec_reviews": [
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/ARCHITECTURE.md",
+          "reason": "The candidate updates the pinned dependency versions, with the Decapod package pin and host implementation boundaries retained.",
+          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
+          "spec_material_hash": "7759227743f971a8514b5995d276c7aaf47b544b4206cf5a52daea3013f8de06"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/INTERFACES.md",
+          "reason": "The source digest changes. The existing validation commands, coverage, and application interfaces do not change.",
+          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
+          "spec_material_hash": "d93fd430b66f8747325edd98e8b877b0e603e5d56f6e0ea3a96ea05f7c90530a"
+        },
+        {
+          "disposition": "unchanged_with_reason",
+          "path": ".decapod/managed/specs/SECURITY.md",
+          "reason": "The approved command set and trust boundaries stay the same. An independent acceptance must cover the source inventory transition.",
+          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
+          "spec_material_hash": "e3e848ecc5f5450ef38d1e0822c62010fd927f545672d0d99b6d71fcccf3ede8"
+        }
+      ],
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Point guix.tobias.gr substitute URL at its moved root",
+      "stop_conditions": [
+        "Hold publication when policy approval or full validation is missing. Preserve the earlier branch, root checkout, and required commands."
+      ],
+      "title": "Validate preserved flake inputs with Decapod 0.164.0",
       "todo_ids": [
-        "fend_01m7qa4tftjxwzpe"
+        "code_01m8361p32aax1cy"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1795005145Z"
+      "updated_at": "1795403431Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:1fedd8f6908a5fd4c33f847eb00301927d655a4c44179b8031d9b3188bccdd0e",
+      "artifact_hash": "sha256:278dd12d7185abbe8b51246242716697016bb2f4dba0943d701eeb60070fa890",
       "checks": [],
-      "current_phase": "intent",
+      "current_phase": "validation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
-        "schema_version": "1.0.0",
-        "trajectories": {}
+        "next_sequence": 4,
+        "schema_version": "1.1.0",
+        "trajectories": {
+          "branch_01M8362BQEWN3N9V57BAF6QM3D": {
+            "evidence_only": true,
+            "id": "branch_01M8362BQEWN3N9V57BAF6QM3D",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "steps": [
+              {
+                "action": "validation",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "The 0.164.0 controller rejected the earlier 0.158.0 templates in 08a34f6b even after a tip refresh. Preserve both earlier commits. Reauthor the exact saved lockfile and config on f9778347 with only canonical 0.164.0 templates in this branch.",
+                  "Upstream #1892 fixed misleading recovery diagnostics. The previous work unit had no manifest. Full validation and a matching maintainer transition approval remain necessary."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "The 0.164.0 controller rejected the earlier 0.158.0 templates in 08a34f6b even after a tip refresh. Preserve both earlier commits. Reauthor the exact saved lockfile and config on f9778347 with only canonical 0.164.0 templates in this branch.",
+        "Upstream #1892 fixed misleading recovery diagnostics. The previous work unit had no manifest. Full validation and a matching maintainer transition approval remain necessary."
+      ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M7QA7NEJP0APZ49A0ZK533SX",
+      "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -186,10 +246,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M7QA7NFKG3GRJJYXTZ13AN8D",
+      "run_id": "branch_01M8362BQEWN3N9V57BAF6QM3D",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "fend_01m7qa4tftjxwzpe",
+      "task_id": "code_01m8361p32aax1cy",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

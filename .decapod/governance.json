@@ -113,6 +113,11 @@
       "id": "code_01m8361p32aax1cy-linux-native",
       "summary": "Keep both required checks and bind native runtimes for Linux and Apple Silicon. Pin Decapod 0.164.0 without altering the other pending input revisions.",
       "input_digest": "sha256:4ec88d7ea02850ba4bfbc9dc200f01a94d212009f5d921d3af5b03756789063c"
+    },
+    {
+      "id": "code_01m8361p32aax1cy-review-release-pin",
+      "summary": "Correct the stale version in the validation spec after review of den#186.",
+      "input_digest": "sha256:910348ed5db56a136f73458b37f7c9d1cb05d1dea1a13a2c99f9f7795e16b054"
     }
   ],
   "intents": {
@@ -191,7 +196,7 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:7e5b1ed4c963f176e2f5aa82707928b72f8b11bbf08b3d53857948df5e9048cd",
+      "artifact_hash": "sha256:ac54ebeb610186a2b3fa33c19c602e6ff3413ca46e407117faf6180bec7e53f8",
       "checks": [
         {
           "name": "pinned-linux-toolchain-files",
@@ -206,7 +211,7 @@
           "status": "failed"
         }
       ],
-      "current_phase": "implementation",
+      "current_phase": "review",
       "custody": {
         "events": [
           {
@@ -241,10 +246,17 @@
             "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
             "kind": "trajectory_step_recorded",
             "sequence": 6
+          },
+          {
+            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
+            "event_id": "event:7",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "kind": "trajectory_step_recorded",
+            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 6,
+        "next_sequence": 7,
         "schema_version": "1.1.0",
         "trajectories": {
           "branch_01M8362BQEWN3N9V57BAF6QM3D": {
@@ -306,6 +318,21 @@
                 ],
                 "sequence": 6,
                 "validation_findings": []
+              },
+              {
+                "action": "review",
+                "custody_event_id": "event:7",
+                "observations": [
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "PR #186 review found a stale 0.150.2 sentence in the spec. Removed the contradiction with the current 0.164.0 inputs. Full validation passed 194 checks on 14b88de8 before publication. The documentation correction needs its own exact-candidate validation."
+                ],
+                "proof_refs": [],
+                "scope": [
+                  "Preserve the pending flake input updates and correct the native readiness tool selection for Linux and Apple Silicon.",
+                  "root"
+                ],
+                "sequence": 7,
+                "validation_findings": []
               }
             ]
           }
@@ -316,6 +343,7 @@
       "evidence": [
         "After exact operator approval, two recovery attempts failed with READINESS_BLOCKED. Filesystem trace showed snapshot preparation reached Alejandra executable validation then cleaned up without observations. Both configured executables are Mach-O arm64.",
         "Nix resolved both Linux executables under the candidate nixpkgs lock. The configured runtime files are canonical existing files. Compared candidate flake.lock to 6956226d and only the decapod node differs.",
+        "PR #186 review found a stale 0.150.2 sentence in the spec. Removed the contradiction with the current 0.164.0 inputs. Full validation passed 194 checks on 14b88de8 before publication. The documentation correction needs its own exact-candidate validation.",
         "Reported sanitized diagnostic and root cause in DecapodLabs/decapod#1892 comment 7090745315.",
         "The 0.164.0 controller rejected the earlier 0.158.0 templates in 08a34f6b even after a tip refresh. Preserve both earlier commits. Reauthor the exact saved lockfile and config on f9778347 with only canonical 0.164.0 templates in this branch.",
         "Upstream #1892 fixed misleading recovery diagnostics. The previous work unit had no manifest. Full validation and a matching maintainer transition approval remain necessary."

@@ -149,8 +149,8 @@ The maintainer approves the exact transition in the canonical policy ledger.
 Decapod binds the approval to the accepted base, candidate commit, and proof
 digests. A new commit or base requires a new approval. After approval, recover
 any missing task proof, then use full validation to establish publication
-readiness. The lockfile update keeps the accepted Decapod v0.150.2 input pin.
-The release markers identify the controller that generated the entrypoints.
+readiness. The Decapod flake input and entrypoint release markers now agree
+on 0.164.0.
 
 From Decapod 0.158.2, recovery reports specific readiness errors and excludes
 lease warnings from its blocker labels. Use the specific recovery code to

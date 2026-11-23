@@ -61,7 +61,8 @@ The four generated agent entrypoints are release-bound projections of the instal
 
 ## Decapod Upgrades and the Merge Gate
 One Decapod release governs this repository. The `decapod-release` header of
-`AGENTS.md` names it; this candidate uses Decapod 0.164.0. Decapod reaches
+`AGENTS.md` names it and the `decapod` flake input also pins
+Decapod 0.164.0. Decapod reaches
 M-02877 only through the `decapod` flake input in the per-user profile. The
 cargo copy (`~/.cargo/bin/decapod`, which the topgrade cargo step kept at the
 newest crate) was removed on 2026-11-09. `cargo install-update` updates only
@@ -70,6 +71,13 @@ CI reads the header and installs exactly that release with `cargo binstall`,
 and the cache key holds the release. Until 2026-10-30, CI installed the newest
 crate and cached it by the hash of `AGENTS.md`, so the pin held only while that
 cache entry lived (den#61).
+
+Repository-local readiness keeps Alejandra and ShellCheck required in
+`.decapod/config.toml`. Decapod measures this host's pinned executables and
+declared runtime files, then runs both checks in an owned source snapshot.
+The command contract pins the declarations for both Linux x86-64 and Apple
+Silicon. Changing either declaration requires independent acceptance for the
+exact candidate, accepted base, and reviewed digests.
 
 The owner always wants the newest Decapod, with no hold and no downgrade
 (2026-11-09). The nightly bump moves the `decapod` flake input, and topgrade's

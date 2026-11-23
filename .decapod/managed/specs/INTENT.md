@@ -8,6 +8,7 @@
 - On Mahakala, use `just deploy-mahakala` to update and apply the Guix System, Guix Home, and Home Manager profiles. The boot configuration also requests the ath10k warm-only reset mode for the verified QCA6174 card.
 - On Mahakala, attempt a targeted touchpad rebind after resume to recover two-finger scrolling without changing power settings. The underlying fault remains unconfirmed.
 - Keep host/layer deployments target-local. `just deploy-mahakala-system` and its operational verification must not require M-02877; repository-wide publication checks remain governed by their accepted contract.
+- Let maintainers verify the same required local formatting and shell lint checks on Linux x86-64 and Apple Silicon before publishing a repository change.
 - Before unattended agent skill updates, keep recoverable copies of existing skills and report failed or unchecked sources.
 - On mahakala, GDM starts EWM through Home Manager's `ewm-start`. Nix supplies both Emacs and `ewm-core`, which must use compatible glibc versions.
 

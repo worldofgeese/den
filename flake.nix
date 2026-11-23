@@ -34,7 +34,7 @@
     # nixpkgs pin is a second nixpkgs tree in the lock. When upstream moves
     # that pin, M-02877 fetches the new tree once to evaluate the package
     # (about 8.5 minutes under Defender; ARCHITECTURE.md).
-    decapod.url = "github:DecapodLabs/decapod/v0.150.2";
+    decapod.url = "github:DecapodLabs/decapod/v0.164.0";
     # The daemon that reviews our pull requests; its flake exposes
     # packages.default. The URL pins a release tag, so den keeps pinning
     # releases and flake.lock pins the revision and every hash.

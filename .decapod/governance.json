@@ -96,11 +96,23 @@
     "base_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
     "target_base": "origin/main"
   },
+  "claims": {
+    "cross-platform-local-proof": {
+      "statement": "The same required Alejandra and ShellCheck checks select explicit native binaries on Linux x86-64 and macOS arm64.",
+      "falsifier": "Either required check loses coverage, selects an executable for the wrong platform, or cannot be measured in native readiness.",
+      "status": "open"
+    }
+  },
   "checkpoints": [
     {
       "id": "carry-0164-diagnostics-from-current-main",
       "summary": "Preserve the pending dependency updates and use the released Decapod recovery diagnostics from this branch's first commit.",
       "input_digest": "sha256:895333121656f2bc0efc2c91a85666668eb52cb2d169007788bffbcf37174e77"
+    },
+    {
+      "id": "code_01m8361p32aax1cy-linux-native",
+      "summary": "Keep both required checks and bind native runtimes for Linux and Apple Silicon. Pin Decapod 0.164.0 without altering the other pending input revisions.",
+      "input_digest": "sha256:4ec88d7ea02850ba4bfbc9dc200f01a94d212009f5d921d3af5b03756789063c"
     }
   ],
   "intents": {
@@ -134,7 +146,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Preserve the exact candidate dependency pins and proof configuration from 08a34f6b on current main. Use canonical 0.164.0 projections from the first commit. Obtain independent approval of the changed source inventory, recover the historical task proof, and validate this exact candidate before publication.",
+      "intent": "Preserve the pending flake input revisions and align the Decapod flake pin with 0.164.0. Use approved platform-specific installations of the same two required checks on x86-64 Linux and Apple Silicon. Obtain independent acceptance for the exact source and command transition, recover the historical task proof, and validate the candidate before publication.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -142,23 +154,23 @@
       "schema_version": "1.1.0",
       "spec_reviews": [
         {
-          "disposition": "unchanged_with_reason",
+          "disposition": "updated",
           "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "The candidate updates the pinned dependency versions, with the Decapod package pin and host implementation boundaries retained.",
+          "reason": "Document the release-aligned repository validator and platform-specific native proof selection.",
           "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
-          "spec_material_hash": "7759227743f971a8514b5995d276c7aaf47b544b4206cf5a52daea3013f8de06"
+          "spec_material_hash": "d7261b4c9e6974e7cd2b78de543dbaa8061be94d7b815c3040c836db3e370450"
         },
         {
-          "disposition": "unchanged_with_reason",
+          "disposition": "updated",
           "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "The source digest changes. The existing validation commands, coverage, and application interfaces do not change.",
+          "reason": "Document the release-aligned repository validator and platform-specific native proof selection.",
           "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
-          "spec_material_hash": "d93fd430b66f8747325edd98e8b877b0e603e5d56f6e0ea3a96ea05f7c90530a"
+          "spec_material_hash": "edbc23d1c13b5f39859a4ac1413188c313c59ef446a52738eac78a9fa5c596d5"
         },
         {
           "disposition": "unchanged_with_reason",
           "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "The approved command set and trust boundaries stay the same. An independent acceptance must cover the source inventory transition.",
+          "reason": "The same two commands and source coverage remain required. Selecting explicitly pinned executables leaves the external-action and independent-approval trust boundaries unchanged.",
           "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
           "spec_material_hash": "e3e848ecc5f5450ef38d1e0822c62010fd927f545672d0d99b6d71fcccf3ede8"
         }
@@ -173,15 +185,28 @@
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1795403431Z"
+      "updated_at": "1795404677Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:278dd12d7185abbe8b51246242716697016bb2f4dba0943d701eeb60070fa890",
-      "checks": [],
-      "current_phase": "validation",
+      "artifact_hash": "sha256:7e5b1ed4c963f176e2f5aa82707928b72f8b11bbf08b3d53857948df5e9048cd",
+      "checks": [
+        {
+          "name": "pinned-linux-toolchain-files",
+          "status": "passed"
+        },
+        {
+          "name": "preserved-lock-nodes",
+          "status": "passed"
+        },
+        {
+          "name": "proof-recovery-on-linux",
+          "status": "failed"
+        }
+      ],
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
@@ -202,10 +227,24 @@
             "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
             "kind": "trajectory_step_recorded",
             "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 4,
+        "next_sequence": 6,
         "schema_version": "1.1.0",
         "trajectories": {
           "branch_01M8362BQEWN3N9V57BAF6QM3D": {
@@ -226,6 +265,47 @@
                 ],
                 "sequence": 4,
                 "validation_findings": []
+              },
+              {
+                "action": "implementation",
+                "custody_event_id": "event:5",
+                "observations": [
+                  ".decapod/config.toml",
+                  "After exact operator approval, two recovery attempts failed with READINESS_BLOCKED. Filesystem trace showed snapshot preparation reached Alejandra executable validation then cleaned up without observations. Both configured executables are Mach-O arm64.",
+                  "Reported sanitized diagnostic and root cause in DecapodLabs/decapod#1892 comment 7090745315."
+                ],
+                "proof_refs": [
+                  "proof-recovery-on-linux"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "implementation",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".decapod/config.toml",
+                  "flake.nix",
+                  "flake.lock",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  ".decapod/managed/specs/VALIDATION.md",
+                  "Nix resolved both Linux executables under the candidate nixpkgs lock. The configured runtime files are canonical existing files. Compared candidate flake.lock to 6956226d and only the decapod node differs."
+                ],
+                "proof_refs": [
+                  "pinned-linux-toolchain-files",
+                  "preserved-lock-nodes"
+                ],
+                "scope": [
+                  "Preserve the pending flake input updates and correct the native readiness tool selection for Linux and Apple Silicon.",
+                  "root"
+                ],
+                "sequence": 6,
+                "validation_findings": []
               }
             ]
           }
@@ -234,16 +314,30 @@
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [
+        "After exact operator approval, two recovery attempts failed with READINESS_BLOCKED. Filesystem trace showed snapshot preparation reached Alejandra executable validation then cleaned up without observations. Both configured executables are Mach-O arm64.",
+        "Nix resolved both Linux executables under the candidate nixpkgs lock. The configured runtime files are canonical existing files. Compared candidate flake.lock to 6956226d and only the decapod node differs.",
+        "Reported sanitized diagnostic and root cause in DecapodLabs/decapod#1892 comment 7090745315.",
         "The 0.164.0 controller rejected the earlier 0.158.0 templates in 08a34f6b even after a tip refresh. Preserve both earlier commits. Reauthor the exact saved lockfile and config on f9778347 with only canonical 0.164.0 templates in this branch.",
         "Upstream #1892 fixed misleading recovery diagnostics. The previous work unit had no manifest. Full validation and a matching maintainer transition approval remain necessary."
       ],
-      "inspected_files": [],
+      "inspected_files": [
+        ".decapod/config.toml"
+      ],
       "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-      "modified_files": [],
+      "modified_files": [
+        ".decapod/config.toml",
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        ".decapod/managed/specs/VALIDATION.md",
+        "flake.lock",
+        "flake.nix"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
+        "Preserve the pending flake input updates and correct the native readiness tool selection for Linux and Apple Silicon.",
         "root"
       ],
       "run_id": "branch_01M8362BQEWN3N9V57BAF6QM3D",

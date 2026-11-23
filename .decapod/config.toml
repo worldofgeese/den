@@ -40,22 +40,22 @@ validation_buildkite_preflights = false
 
 [proof.required_profile]
 id = "repo.pr-readiness.v1"
-reviewed_sources_digest = "sha256:a91594931f4589b27a17c6d5396fc8994c24e7a2916a55c7f77d8441beffaf13"
+reviewed_sources_digest = "sha256:bf456cf8249de21c1593dd1643d2ac1aa1e7850176b23f1069c8e9bbee84ea54"
 
 [[proof.commands]]
 name = "fmt"
-command = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra"
+command = "alejandra"
 args = ["--check", "flake.nix", "modules/", "secrets/", "guix/", "guix-packages/", "pkgs/"]
 required = true
 
 [[proof.commands]]
 name = "shellcheck"
-command = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
+command = "shellcheck"
 args = ["scripts/bump-flake-inputs.sh", "scripts/cask-app-preflight.sh", "scripts/check-decapod-overrides.sh", "scripts/check-drvpaths.sh", "scripts/decapod-deploy-backup.sh", "scripts/decapod-validate-ci.sh", "scripts/deploy-freshness.sh", "scripts/gc-remote.sh", "scripts/hm-app-signing.sh", "scripts/test-decapod-deploy-backup.sh", "scripts/test-omarchy-share.sh", "scripts/test-pi-gateway-provider.sh", "scripts/upgrade-cachyos-kernel.sh"]
 required = true
 
 [proof.repository_contract]
-reviewed_commands_digest = "sha256:5d333049e91f48687180eddacae365c1c7ff388641f05c751a8d83bc6508fad1"
+reviewed_commands_digest = "sha256:b21b0ad1d9aec2cec77a07b51bc9c44cff43222a3261779927dd230043514fa5"
 source_coverage = [
     { source = ".github/workflows/bump.yml", ci_only = true, reason = "A nightly and manual job. It opens the flake-input bump PR and checks no candidate. The bump PR gets the same checks as other PRs." },
     { source = ".github/workflows/dagger.yml", ci_only = true, reason = "It runs dagger check in a container engine on GitHub-hosted runners. The repository profile has no container engine, no Nix daemon and no network." },
@@ -65,18 +65,50 @@ source_coverage = [
 ]
 
 [proof.repository_contract.executions.fmt]
-program = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra"
-toolchain_files = { alejandra = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra" }
 environment = {}
 directory = "."
 timeout_seconds = 300
 
+[proof.repository_contract.executions.fmt.platforms.linux-x86_64]
+program = "/nix/store/rcdrd2jd2g8fnhy87khmm89z2hswg8ci-alejandra-4.1.0/bin/alejandra"
+
+[proof.repository_contract.executions.fmt.platforms.linux-x86_64.toolchain_files]
+libc = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/libc.so.6"
+libgcc_s = "/nix/store/qk6cz4ba571znqrsyhma192y8h50yi05-gcc-16.2.0-libgcc/lib/libgcc_s.so.1"
+loader = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/ld-linux-x86-64.so.2"
+
+[proof.repository_contract.executions.fmt.platforms.macos-aarch64]
+program = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra"
+toolchain_files = { alejandra = "/nix/store/h2a5rp9w02cd2ml1wd7yh3lbbsc4rp55-alejandra-4.1.0/bin/alejandra" }
+
 [proof.repository_contract.executions.shellcheck]
-program = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
-toolchain_files = { shellcheck = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck" }
 environment = {}
 directory = "."
 timeout_seconds = 300
+
+[proof.repository_contract.executions.shellcheck.platforms.linux-x86_64]
+program = "/nix/store/yrynapygpcy20zxrwr15n1g769vk59ji-shellcheck-0.11.0-bin/bin/shellcheck"
+
+[proof.repository_contract.executions.shellcheck.platforms.linux-x86_64.toolchain_files]
+libbz2 = "/nix/store/930sd5x7lp8xnwvzk2fpzg5ffwbjgbcz-bzip2-1.0.8/lib/libbz2.so.1.0.8"
+libc = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/libc.so.6"
+libdl = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/libdl.so.2"
+libdw = "/nix/store/pccp92fz19awp8wl8ni89wb4pzc47r8x-elfutils-0.195/lib/libdw-0.195.so"
+libelf = "/nix/store/pccp92fz19awp8wl8ni89wb4pzc47r8x-elfutils-0.195/lib/libelf-0.195.so"
+libffi = "/nix/store/zy879gpqy4w1yyzf1q0cbfkpa9fvs7xf-libffi-3.8.0/lib/libffi.so.8.5.0"
+libgmp = "/nix/store/f10r84amd0qjc5dp5k4abrmp8f4wx584-gmp-with-cxx-6.3.0/lib/libgmp.so.10.5.0"
+liblzma = "/nix/store/5n1qsd423q10dlscj3k4np04imfv4nm2-xz-5.8.4/lib/liblzma.so.5.8.4"
+libm = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/libm.so.6"
+libnuma = "/nix/store/i835y8b4g9rkw94jiswhbc4hwi9dknna-numactl-2.0.18/lib/libnuma.so.1.0.0"
+libpthread = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/libpthread.so.0"
+librt = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/librt.so.1"
+libz = "/nix/store/kp68n1q6r8lzpf5mxjmfasn3zq2pql4x-zlib-1.3.2/lib/libz.so.1.3.2"
+libzstd = "/nix/store/2a69456iqj6rzzc2ys7l2yypsv1w6l5m-zstd-1.5.7/lib/libzstd.so.1.5.7"
+loader = "/nix/store/r3hvhzl5fxhrgn0rfy5g7rda17702pj4-glibc-2.44-57/lib/ld-linux-x86-64.so.2"
+
+[proof.repository_contract.executions.shellcheck.platforms.macos-aarch64]
+program = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck"
+toolchain_files = { shellcheck = "/nix/store/7i826r202acdz8c2q6hsggy44s1rkk0k-shellcheck-0.11.0-bin/bin/shellcheck" }
 
 [custody]
 isolation = "worktree"

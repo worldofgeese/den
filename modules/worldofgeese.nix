@@ -4,7 +4,11 @@
   ...
 }: {
   den.aspects.worldofgeese = {
-    homeManager = {pkgs, ...}: {
+    homeManager = {
+      pkgs,
+      lib,
+      ...
+    }: {
       imports = [inputs.helium.homeModules.default];
       home.username = "worldofgeese";
       home.homeDirectory = "/home/worldofgeese";
@@ -39,6 +43,21 @@
           <dir prefix="relative">.guix-home/profile/share/fonts</dir>
         </fontconfig>
       '';
+
+      # Same staleness hazard as the Guix Home side (guix/home-configuration.scm,
+      # 'fontconfig-cache-reset): Nix store directories also carry mtime
+      # 1970-01-01, so fontconfig's mtime-keyed caches never notice a profile
+      # swap and keep naming font files that were deleted.  Measured 2026-11-24:
+      # fc-match sans-serif answered a NotoSans[wdth,wght].ttf that did not
+      # exist, and every Chromium window rendered zero glyphs while shapes and
+      # images painted normally.  fc-cache -f rescans regardless of mtime.
+      home.activation.fontconfigCacheReset = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        if [ -e "$HOME/.config/fontconfig/fonts.conf" ]; then
+          FONTCONFIG_FILE="$HOME/.config/fontconfig/fonts.conf" \
+            ${pkgs.fontconfig}/bin/fc-cache -f
+        fi
+      '';
+
       targets.genericLinux.enable = true;
       targets.genericLinux.gpu.enable = true;
       xdg.mime.enable = true;

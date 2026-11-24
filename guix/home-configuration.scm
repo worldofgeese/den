@@ -625,6 +625,34 @@ download-buffer-size = 536870912
                "force-window=yes\n"
                "ytdl-format=bestvideo+bestaudio\n")))
 
+    ;; fontconfig keys each directory cache on that directory's mtime, and Guix
+    ;; store directories are all mtime 1970-01-01.  A new home generation swaps
+    ;; the symlink behind ~/.guix-home/profile/share/fonts to a different store
+    ;; path carrying the same epoch mtime, so fontconfig concludes the cache is
+    ;; still valid and keeps the old one -- which names font files the new
+    ;; generation no longer ships.  Measured 2026-11-24: fc-match sans-serif
+    ;; answered ~/.guix-home/profile/share/fonts/truetype/NotoSans[wdth,wght].ttf,
+    ;; a file that did not exist, and every Chromium window then rendered zero
+    ;; glyphs -- no error, no tofu, just missing text, while shapes and images
+    ;; painted normally.  `fc-cache -f' forces the rescan regardless of mtime
+    ;; (verified on a reproduction with the directory mtime pinned to epoch).
+    ;; Reconfigure is exactly the moment the font set changes, so invalidation
+    ;; belongs here rather than in a session-startup script, which would only
+    ;; repair the next login.
+    (simple-service 'fontconfig-cache-reset
+                    home-activation-service-type
+                    #~(let ((conf (string-append (getenv "HOME")
+                                                 "/.config/fontconfig/fonts.conf")))
+                        (if (file-exists? conf)
+                            (begin
+                              (setenv "FONTCONFIG_FILE" conf)
+                              (system* #$(file-append (specification->package "fontconfig")
+                                                      "/bin/fc-cache")
+                                       "-f"))
+                            (format (current-error-port)
+                                    "fontconfig-cache-reset: ~a not found, skipped~%"
+                                    conf))))
+
     (simple-service 'extended-fontconfig
                     home-fontconfig-service-type
                     (list
@@ -635,9 +663,15 @@ download-buffer-size = 536870912
                      ;; Include system fontconfig conf.d for base rendering rules
                      '(include "/run/current-system/profile/etc/fonts/conf.d")
 
-                     ;; Cache directories
+                     ;; Cache directory.  Only the user-writable one: the
+                     ;; second entry used to be "/var/cache/fontconfig", which
+                     ;; is mode 1777 and root-owned, so anything root ever wrote
+                     ;; there would be stale permanently (see the cache-reset
+                     ;; activation below -- staleness is not self-healing here)
+                     ;; and un-clearable by the user.  It had never been
+                     ;; populated when this was written on 2026-11-24, so
+                     ;; dropping it loses nothing.
                      '(cachedir "~/.cache/fontconfig")
-                     '(cachedir "/var/cache/fontconfig")
 
                      ;; === Rendering settings (ArchWiki "Hinted fonts" consensus) ===
                      ;; Enable antialiasing

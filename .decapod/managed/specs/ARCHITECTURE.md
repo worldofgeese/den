@@ -6,6 +6,10 @@ Composable repository architecture with explicit boundaries and proof-backed del
 ## What This Project Is
 Den defines host and agent configurations across Nix and Guix. Host modules adapt shared facts to each platform.
 The Justfile owns operational entrypoints. Decapod owns work isolation, governance, and publication proof.
+The `decapod` flake input supplies the repository's release-bound validator.
+`.decapod/config.toml` keeps the required local checks and their arguments
+common across platforms and pins the corresponding Nix executables for each
+supported validation host.
 
 Architectural principles:
 - **Simplicity**: Keep components focused and reusable.

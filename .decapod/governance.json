@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
+    "accepted_commit": "64deed5120c77d96f4876df2e28556cf9803a206",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -12,6 +12,11 @@
       "review_policy": "Reviewers must check that every claim remains falsifiable, evidence status is bounded by observed evidence, proof references resolve, and schema compatibility is preserved."
     },
     "unresolved": {
+      "claim:cross-platform-local-proof": {
+        "falsifier": "Either required check loses coverage, selects an executable for the wrong platform, or cannot be measured in native readiness.",
+        "statement": "The same required Alejandra and ShellCheck checks select explicit native binaries on Linux x86-64 and macOS arm64.",
+        "status": "open"
+      },
       "claim:paphos-firmware-cycle": {
         "falsifier": "After deploy, a staged kernel or pending capsule is not booted within a day, or the journal shows 'Outside of configured reboot window, skipping.' at a 05:00 run.",
         "statement": "paphos applies LVFS firmware at 04:30 and reboots for a pending capsule at 06:00 inside its window, and its upgrade reboots land inside 05:00-06:30.",
@@ -92,36 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8362BPK6196F7B56FGYCEJ9",
-    "base_commit": "f97783476e81bfbc91d342a865b32cccb6b12c7c",
+    "id": "change_01M8ADJ4F3M3E1TKSTPN48MSQE",
+    "base_commit": "64deed5120c77d96f4876df2e28556cf9803a206",
     "target_base": "origin/main"
-  },
-  "claims": {
-    "cross-platform-local-proof": {
-      "statement": "The same required Alejandra and ShellCheck checks select explicit native binaries on Linux x86-64 and macOS arm64.",
-      "falsifier": "Either required check loses coverage, selects an executable for the wrong platform, or cannot be measured in native readiness.",
-      "status": "open"
-    }
   },
   "checkpoints": [
     {
-      "id": "carry-0164-diagnostics-from-current-main",
-      "summary": "Preserve the pending dependency updates and use the released Decapod recovery diagnostics from this branch's first commit.",
-      "input_digest": "sha256:895333121656f2bc0efc2c91a85666668eb52cb2d169007788bffbcf37174e77"
-    },
-    {
-      "id": "code_01m8361p32aax1cy-linux-native",
-      "summary": "Keep both required checks and bind native runtimes for Linux and Apple Silicon. Pin Decapod 0.164.0 without altering the other pending input revisions.",
-      "input_digest": "sha256:4ec88d7ea02850ba4bfbc9dc200f01a94d212009f5d921d3af5b03756789063c"
-    },
-    {
-      "id": "code_01m8361p32aax1cy-review-release-pin",
-      "summary": "Correct the stale version in the validation spec after review of den#186.",
-      "input_digest": "sha256:910348ed5db56a136f73458b37f7c9d1cb05d1dea1a13a2c99f9f7795e16b054"
+      "id": "cicd_01m8adgrc83gr0dj",
+      "summary": "Add the nixpkgs ChatGPT/Codex desktop app to the Omarchy Home Manager app list; build and just check passed.",
+      "input_digest": "sha256:271b501ca5f4e65edb2c368bce557f140637b8b2484cafb7c1d9322f81b37b8f"
     }
   ],
   "intents": {
-    "intent:change_01M8362BPK6196F7B56FGYCEJ9": {
+    "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -131,247 +119,76 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+      "id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Validate preserved flake inputs with Decapod 0.164.0\n\nCarry the candidate flake inputs and proposed proof source digest onto current accepted main with one canonical 0.164.0 release commit. Preserve the earlier branch and checkpoints. Obtain exact maintainer approval and use corrected proof recovery diagnostics before publication.",
-      "refined_intent": "Validate preserved flake inputs with Decapod 0.164.0\n\nCarry the candidate flake inputs and proposed proof source digest onto current accepted main with one canonical 0.164.0 release commit. Preserve the earlier branch and checkpoints. Obtain exact maintainer approval and use corrected proof recovery diagnostics before publication.",
+      "raw_intent": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
+      "refined_intent": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Preserve the pending flake input revisions and align the Decapod flake pin with 0.164.0. Use approved platform-specific installations of the same two required checks on x86-64 Linux and Apple Silicon. Obtain independent acceptance for the exact source and command transition, recover the historical task proof, and validate the candidate before publication.",
-      "phases": [],
+      "constraints": {},
+      "intent": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "spec_reviews": [
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/ARCHITECTURE.md",
-          "reason": "Document the release-aligned repository validator and platform-specific native proof selection.",
-          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
-          "spec_material_hash": "d7261b4c9e6974e7cd2b78de543dbaa8061be94d7b815c3040c836db3e370450"
-        },
-        {
-          "disposition": "updated",
-          "path": ".decapod/managed/specs/INTERFACES.md",
-          "reason": "Document the release-aligned repository validator and platform-specific native proof selection.",
-          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
-          "spec_material_hash": "edbc23d1c13b5f39859a4ac1413188c313c59ef446a52738eac78a9fa5c596d5"
-        },
-        {
-          "disposition": "unchanged_with_reason",
-          "path": ".decapod/managed/specs/SECURITY.md",
-          "reason": "The same two commands and source coverage remain required. Selecting explicitly pinned executables leaves the external-action and independent-approval trust boundaries unchanged.",
-          "reviewed_code_fingerprint": "82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff",
-          "spec_material_hash": "e3e848ecc5f5450ef38d1e0822c62010fd927f545672d0d99b6d71fcccf3ede8"
-        }
-      ],
-      "state": "APPROVED",
-      "stop_conditions": [
-        "Hold publication when policy approval or full validation is missing. Preserve the earlier branch, root checkout, and required commands."
-      ],
-      "title": "Validate preserved flake inputs with Decapod 0.164.0",
+      "state": "DRAFT",
+      "title": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
       "todo_ids": [
-        "code_01m8361p32aax1cy"
+        "cicd_01m8adgrc83gr0dj"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1795404677Z"
+      "updated_at": "1795646099Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:ac54ebeb610186a2b3fa33c19c602e6ff3413ca46e407117faf6180bec7e53f8",
-      "checks": [
-        {
-          "name": "pinned-linux-toolchain-files",
-          "status": "passed"
-        },
-        {
-          "name": "preserved-lock-nodes",
-          "status": "passed"
-        },
-        {
-          "name": "proof-recovery-on-linux",
-          "status": "failed"
-        }
-      ],
-      "current_phase": "review",
+      "artifact_hash": "sha256:352b696f715df6785c8f56bfac25855ab91060de3f72e7641cf4e1e883970db3",
+      "checks": [],
+      "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "intent_id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
+            "intent_id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
             "kind": "refined",
             "sequence": 3
-          },
-          {
-            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
-            "event_id": "event:4",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-            "kind": "trajectory_step_recorded",
-            "sequence": 4
-          },
-          {
-            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
-            "event_id": "event:5",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-            "kind": "trajectory_step_recorded",
-            "sequence": 5
-          },
-          {
-            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
-            "event_id": "event:6",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-            "kind": "trajectory_step_recorded",
-            "sequence": 6
-          },
-          {
-            "detail": "trajectory:branch_01M8362BQEWN3N9V57BAF6QM3D",
-            "event_id": "event:7",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-            "kind": "trajectory_step_recorded",
-            "sequence": 7
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 7,
+        "next_sequence": 3,
         "schema_version": "1.1.0",
-        "trajectories": {
-          "branch_01M8362BQEWN3N9V57BAF6QM3D": {
-            "evidence_only": true,
-            "id": "branch_01M8362BQEWN3N9V57BAF6QM3D",
-            "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-            "steps": [
-              {
-                "action": "validation",
-                "custody_event_id": "event:4",
-                "observations": [
-                  "The 0.164.0 controller rejected the earlier 0.158.0 templates in 08a34f6b even after a tip refresh. Preserve both earlier commits. Reauthor the exact saved lockfile and config on f9778347 with only canonical 0.164.0 templates in this branch.",
-                  "Upstream #1892 fixed misleading recovery diagnostics. The previous work unit had no manifest. Full validation and a matching maintainer transition approval remain necessary."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 4,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:5",
-                "observations": [
-                  ".decapod/config.toml",
-                  "After exact operator approval, two recovery attempts failed with READINESS_BLOCKED. Filesystem trace showed snapshot preparation reached Alejandra executable validation then cleaned up without observations. Both configured executables are Mach-O arm64.",
-                  "Reported sanitized diagnostic and root cause in DecapodLabs/decapod#1892 comment 7090745315."
-                ],
-                "proof_refs": [
-                  "proof-recovery-on-linux"
-                ],
-                "scope": [
-                  "root"
-                ],
-                "sequence": 5,
-                "validation_findings": []
-              },
-              {
-                "action": "implementation",
-                "custody_event_id": "event:6",
-                "observations": [
-                  ".decapod/config.toml",
-                  "flake.nix",
-                  "flake.lock",
-                  ".decapod/managed/specs/INTENT.md",
-                  ".decapod/managed/specs/ARCHITECTURE.md",
-                  ".decapod/managed/specs/INTERFACES.md",
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "Nix resolved both Linux executables under the candidate nixpkgs lock. The configured runtime files are canonical existing files. Compared candidate flake.lock to 6956226d and only the decapod node differs."
-                ],
-                "proof_refs": [
-                  "pinned-linux-toolchain-files",
-                  "preserved-lock-nodes"
-                ],
-                "scope": [
-                  "Preserve the pending flake input updates and correct the native readiness tool selection for Linux and Apple Silicon.",
-                  "root"
-                ],
-                "sequence": 6,
-                "validation_findings": []
-              },
-              {
-                "action": "review",
-                "custody_event_id": "event:7",
-                "observations": [
-                  ".decapod/managed/specs/VALIDATION.md",
-                  "PR #186 review found a stale 0.150.2 sentence in the spec. Removed the contradiction with the current 0.164.0 inputs. Full validation passed 194 checks on 14b88de8 before publication. The documentation correction needs its own exact-candidate validation."
-                ],
-                "proof_refs": [],
-                "scope": [
-                  "Preserve the pending flake input updates and correct the native readiness tool selection for Linux and Apple Silicon.",
-                  "root"
-                ],
-                "sequence": 7,
-                "validation_findings": []
-              }
-            ]
-          }
-        }
+        "trajectories": {}
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [
-        "After exact operator approval, two recovery attempts failed with READINESS_BLOCKED. Filesystem trace showed snapshot preparation reached Alejandra executable validation then cleaned up without observations. Both configured executables are Mach-O arm64.",
-        "Nix resolved both Linux executables under the candidate nixpkgs lock. The configured runtime files are canonical existing files. Compared candidate flake.lock to 6956226d and only the decapod node differs.",
-        "PR #186 review found a stale 0.150.2 sentence in the spec. Removed the contradiction with the current 0.164.0 inputs. Full validation passed 194 checks on 14b88de8 before publication. The documentation correction needs its own exact-candidate validation.",
-        "Reported sanitized diagnostic and root cause in DecapodLabs/decapod#1892 comment 7090745315.",
-        "The 0.164.0 controller rejected the earlier 0.158.0 templates in 08a34f6b even after a tip refresh. Preserve both earlier commits. Reauthor the exact saved lockfile and config on f9778347 with only canonical 0.164.0 templates in this branch.",
-        "Upstream #1892 fixed misleading recovery diagnostics. The previous work unit had no manifest. Full validation and a matching maintainer transition approval remain necessary."
-      ],
-      "inspected_files": [
-        ".decapod/config.toml"
-      ],
-      "intent_id": "intent:change_01M8362BPK6196F7B56FGYCEJ9",
-      "modified_files": [
-        ".decapod/config.toml",
-        ".decapod/managed/specs/ARCHITECTURE.md",
-        ".decapod/managed/specs/INTENT.md",
-        ".decapod/managed/specs/INTERFACES.md",
-        ".decapod/managed/specs/VALIDATION.md",
-        "flake.lock",
-        "flake.nix"
-      ],
+      "evidence": [],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
+      "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
-        "Preserve the pending flake input updates and correct the native readiness tool selection for Linux and Apple Silicon.",
         "root"
       ],
-      "run_id": "branch_01M8362BQEWN3N9V57BAF6QM3D",
+      "run_id": "branch_01M8ADJ4FTFXYFHEXSD95PBJ15",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8361p32aax1cy",
+      "task_id": "cicd_01m8adgrc83gr0dj",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

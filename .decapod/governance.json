@@ -106,6 +106,11 @@
       "id": "cicd_01m8adgrc83gr0dj",
       "summary": "Add the nixpkgs ChatGPT/Codex desktop app to the Omarchy Home Manager app list; build and just check passed.",
       "input_digest": "sha256:271b501ca5f4e65edb2c368bce557f140637b8b2484cafb7c1d9322f81b37b8f"
+    },
+    {
+      "id": "cicd_01m8adgrc83gr0dj-validated",
+      "summary": "Bind the completed ChatGPT desktop change and passed local proof to the current commit.",
+      "input_digest": "sha256:271b501ca5f4e65edb2c368bce557f140637b8b2484cafb7c1d9322f81b37b8f"
     }
   ],
   "intents": {

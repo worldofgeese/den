@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "64deed5120c77d96f4876df2e28556cf9803a206",
+    "accepted_commit": "210004049d8eb60d4b147cb956daf8063cb57e55",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,24 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8ADJ4F3M3E1TKSTPN48MSQE",
-    "base_commit": "64deed5120c77d96f4876df2e28556cf9803a206",
+    "id": "change_01M8BAY6KFRAR14B2FZEGF9ZHA",
+    "base_commit": "210004049d8eb60d4b147cb956daf8063cb57e55",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "cicd_01m8adgrc83gr0dj",
-      "summary": "Add the nixpkgs ChatGPT/Codex desktop app to the Omarchy Home Manager app list; build and just check passed.",
-      "input_digest": "sha256:271b501ca5f4e65edb2c368bce557f140637b8b2484cafb7c1d9322f81b37b8f"
-    },
-    {
-      "id": "cicd_01m8adgrc83gr0dj-validated",
-      "summary": "Bind the completed ChatGPT desktop change and passed local proof to the current commit.",
-      "input_digest": "sha256:271b501ca5f4e65edb2c368bce557f140637b8b2484cafb7c1d9322f81b37b8f"
+      "id": "cicd_01m8bax7d8y8ec10-lock",
+      "summary": "Record the flake inputs refreshed and deployed by Topgrade; just check passes.",
+      "input_digest": "sha256:7d055611ec6847d96b89efa70ee8025b90fd0a39aa8bdf5cb4c7f52f82e4b78f"
     }
   ],
   "intents": {
-    "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE": {
+    "intent:change_01M8BAY6KFRAR14B2FZEGF9ZHA": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,14 +119,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
+      "id": "intent:change_01M8BAY6KFRAR14B2FZEGF9ZHA",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
-      "refined_intent": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
+      "raw_intent": "Validate and record the flake.lock input refresh produced by the requested Topgrade run, preserving the successfully deployed package updates",
+      "refined_intent": "Validate and record the flake.lock input refresh produced by the requested Topgrade run, preserving the successfully deployed package updates",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -139,36 +134,36 @@
   "sections": {
     "plan": {
       "constraints": {},
-      "intent": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
+      "intent": "Validate and record the flake.lock input refresh produced by the requested Topgrade run, preserving the successfully deployed package updates",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "DRAFT",
-      "title": "Install ChatGPT/Codex desktop app from nixpkgs chatgpt, validate, deploy on mahakala, and verify installation",
+      "title": "Validate and record the flake.lock input refresh produced by the requested Topgrade run, preserving the successfully deployed package updates",
       "todo_ids": [
-        "cicd_01m8adgrc83gr0dj"
+        "cicd_01m8bax7d8y8ec10"
       ],
-      "updated_at": "1795646099Z"
+      "updated_at": "1795676904Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:352b696f715df6785c8f56bfac25855ab91060de3f72e7641cf4e1e883970db3",
+      "artifact_hash": "sha256:f39b3d259e4a9d97f36d7f24cf093a2d795ef22fb5a3d54ad7ef13af19e1f2ca",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
+            "intent_id": "intent:change_01M8BAY6KFRAR14B2FZEGF9ZHA",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
+            "intent_id": "intent:change_01M8BAY6KFRAR14B2FZEGF9ZHA",
             "kind": "refined",
             "sequence": 3
           }
@@ -182,7 +177,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8ADJ4F3M3E1TKSTPN48MSQE",
+      "intent_id": "intent:change_01M8BAY6KFRAR14B2FZEGF9ZHA",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -190,10 +185,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8ADJ4FTFXYFHEXSD95PBJ15",
+      "run_id": "branch_01M8BAY6N1GG4QPJEA9GVDMKGP",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "cicd_01m8adgrc83gr0dj",
+      "task_id": "cicd_01m8bax7d8y8ec10",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

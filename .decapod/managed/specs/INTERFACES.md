@@ -62,6 +62,14 @@ Generated interface specs should include:
   only when the runtime owner file matches that token.
   It writes daemon output to `$XDG_STATE_HOME/superwhisper/guix-daemon.log`, with the standard XDG fallback.
   Removal preserves preferences, models, and history.
+- Home Manager installs `20-guix-superwhisper` under
+  `$XDG_CONFIG_HOME/omarchy/hooks/post-boot.d` (or `~/.config` when unset) only
+  when that path is absent, preserving user-owned hooks.
+  The hook calls `omarchy-superwhisper-autostart` through the current Home
+  Manager profile's Omarchy tree. The helper reads the selected
+  backend from `omarchy/defaults/dictation` and invokes the idempotent service
+  start only for `superwhisper`. A missing or different backend is a no-op;
+  autostart never invokes the dictation command or begins recording.
 - The `omarchy-den-apps` wrapper in `modules/omarchy.nix` uses `DEN_DIR`, then
   `$XDG_STATE_HOME/den/app-source`, then the main checkout.
   The optional marker is a user-managed source-directory symlink.

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
+    "accepted_commit": "28dcae4c6f75d95b32286d1e328dee94a1bd7e8a",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,41 +97,45 @@
     }
   },
   "change": {
-    "id": "change_01M8C6JW971B7TDBHR17ZQ85XY",
-    "base_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
+    "id": "change_01M8D2DEHT92P8FX4PJRWS8X0F",
+    "base_commit": "28dcae4c6f75d95b32286d1e328dee94a1bd7e8a",
     "target_base": "origin/main"
+  },
+  "claims": {
+    "superwhisper-autostart": {
+      "statement": "The post-boot helper starts only the selected Superwhisper daemon and never starts recording.",
+      "falsifier": "The packaged integration checks fail for selected, nonselected, missing, repeated, or recording behavior.",
+      "status": "open"
+    }
   },
   "checkpoints": [
     {
-      "id": "code_01m8c6j313f4mvh1-doom-wayland",
-      "summary": "Merge the reviewed Doom Wayland text clipboard residual and document its interface; focused behavior tests, just check, and Home Manager build pass.",
-      "input_digest": "sha256:2a8557dc1b6ee76da75d009971ceb2e6dad2b4a0a6ff784c8c11508b65db9bfa"
-    },
-    {
-      "id": "code_01m8c6j313f4mvh1-closeout",
-      "summary": "Record candidate dispositions and the validated Doom Wayland merge before worktree retirement.",
-      "input_digest": "sha256:321a2830d05e10f4919f46371f0f95e21608400b73298f200f69ec2792092fc5"
+      "id": "superwhisper-publication",
+      "summary": "Reauthor the Superwhisper post-boot helper, focused tests, and living specs without the machine-specific app selection.",
+      "input_digest": "sha256:83547d9061f851047a30dcfcaa9f4f25878ec53d13c9e738ed807922b642f382"
     }
   ],
   "intents": {
-    "intent:change_01M8C6JW971B7TDBHR17ZQ85XY": {
+    "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
         "Current claimed task and isolated work branch"
       ],
       "constraints": [
-        "root"
+        "modules/omarchy.nix",
+        "scripts/test-omarchy-superwhisper.sh",
+        ".decapod/managed/specs"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+      "id": "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
-      "refined_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "raw_intent": "Publish Superwhisper autostart without machine-local selection\n\nRecover selected source from local-only commit 428d7b3721afdaa693fdec07fb2d2e624ca3e709, preserve its terminal reflection receipt, and validate a separate shared change against main.",
+      "refined_intent": "Publish Superwhisper autostart without machine-local selection\n\nRecover selected source from local-only commit 428d7b3721afdaa693fdec07fb2d2e624ca3e709, preserve its terminal reflection receipt, and validate a separate shared change against main.",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -144,65 +148,124 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "intent": "Reauthor the tested Superwhisper daemon autostart and specs from local-only commit 428d7b3721afdaa693fdec07fb2d2e624ca3e709, without publishing its machine-specific selection or terminal-reflection history, and validate before integration.",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "stop_conditions": [
+        "Preserve the original terminal REFLECTION_BLOCKED receipt and local-only branch; do not claim its validation passed.",
+        "Do not publish the machine-specific app selection; do not record audio."
+      ],
+      "title": "Publish Superwhisper autostart without machine-local selection",
       "todo_ids": [
-        "code_01m8c6j313f4mvh1"
+        "code_01m8d2cacjmfs15d"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1795706510Z"
+      "updated_at": "1795735123Z"
     },
     "trajectory": {
       "active_boundaries": [
-        "Current claimed task and isolated work branch"
+        "Current claimed task and isolated work branch",
+        "Original local-only commit 428d7b3721afdaa693fdec07fb2d2e624ca3e709 and terminal reflection remain preserved; never publish its machine-specific selection."
       ],
-      "artifact_hash": "sha256:c6cf9d9356bcf3617f70a99c12ed8d3457c8bf282d0a3a3f7ed4bc6105d51f73",
-      "checks": [],
-      "current_phase": "intent",
+      "artifact_hash": "sha256:7a39cbbc438637a23fb52d0dedfe820bed7814ee669588645922934c79714700",
+      "checks": [
+        {
+          "name": "prior-decapod-validation",
+          "status": "unavailable"
+        }
+      ],
+      "current_phase": "implementation",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+            "intent_id": "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+            "intent_id": "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M8D2DEK13YM34SAP8MMDNDXD",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.1.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M8D2DEK13YM34SAP8MMDNDXD": {
+            "evidence_only": true,
+            "id": "branch_01M8D2DEK13YM34SAP8MMDNDXD",
+            "intent_id": "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F",
+            "steps": [
+              {
+                "action": "implementation",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "modules/omarchy.nix",
+                  "scripts/test-omarchy-superwhisper.sh",
+                  ".decapod/managed/specs/INTENT.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  ".decapod/managed/specs/INTERFACES.md",
+                  "The original task was blocked by REFLECTION_BLOCKED: obligations_regressed; local deployment and package checks were performed under a user-authorized local exception, not full Decapod validation.",
+                  "The documented record-history-recovery command returned HISTORY_RECOVERY_NOT_APPLICABLE because the source checkpoint has no observed historical evidence gap."
+                ],
+                "proof_refs": [
+                  "prior-decapod-validation"
+                ],
+                "scope": [
+                  ".decapod/managed/specs",
+                  "modules/omarchy.nix",
+                  "scripts/test-omarchy-superwhisper.sh"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
-      "evidence": [],
+      "evidence": [
+        "The documented record-history-recovery command returned HISTORY_RECOVERY_NOT_APPLICABLE because the source checkpoint has no observed historical evidence gap.",
+        "The original task was blocked by REFLECTION_BLOCKED: obligations_regressed; local deployment and package checks were performed under a user-authorized local exception, not full Decapod validation."
+      ],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
-      "modified_files": [],
+      "intent_id": "intent:change_01M8D2DEHT92P8FX4PJRWS8X0F",
+      "modified_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/INTENT.md",
+        ".decapod/managed/specs/INTERFACES.md",
+        "modules/omarchy.nix",
+        "scripts/test-omarchy-superwhisper.sh"
+      ],
       "next_transitions": [
-        "Refine plan and declare falsifiable checks"
+        "Refine plan and declare falsifiable checks",
+        "Refresh, checkpoint, and validate the separate shared candidate."
       ],
       "repo_scope": [
-        "root"
+        ".decapod/managed/specs",
+        "modules/omarchy.nix",
+        "scripts/test-omarchy-superwhisper.sh"
       ],
-      "run_id": "branch_01M8C6JW9VFMJZRFFX92XNHJMD",
+      "run_id": "branch_01M8D2DEK13YM34SAP8MMDNDXD",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8c6j313f4mvh1",
+      "task_id": "code_01m8d2cacjmfs15d",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

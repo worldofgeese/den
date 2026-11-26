@@ -430,6 +430,14 @@ flowchart LR
 - [ ] Failure-path tests cover retries/timeouts.
 - [ ] Docs/diagram/changelog updates included.
 
+## Ignore-only runtime-state changes
+
+For changes that only exclude generated runtime state, prove the boundary with
+`git check-ignore -v <representative-path>` in addition to `just check`. For the
+Swamp catalog, the representative paths are `.swamp/_extension_catalog.db` and
+its `-wal` and `-shm` files. The command must name the `.swamp/` rule in
+`.gitignore`; the catalog itself remains local and uncommitted.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

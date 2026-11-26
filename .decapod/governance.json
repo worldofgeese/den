@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "dc1f0f73d8862b44db81c8f13fa4886cf38953a8",
+    "accepted_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,24 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8BCNEYVWWDC62W4TVSNBFSD",
-    "base_commit": "dc1f0f73d8862b44db81c8f13fa4886cf38953a8",
+    "id": "change_01M8C6JW971B7TDBHR17ZQ85XY",
+    "base_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "perf_01m8bc4pzwq5v6e1-closeout",
-      "summary": "Close out the previously validated and published Swamp ignore change.",
-      "input_digest": "sha256:400b076e0d89c54ef63f5cf4464e25e5962709bbb1f8682f1a570c0c17273c7e"
-    },
-    {
-      "id": "perf_01m8bc4pzwq5v6e1-ignore-proof",
-      "summary": "Define the reproducible ignore-only proof for generated runtime state.",
-      "input_digest": "sha256:7e4979753117a6c26e25be7aa1bb8e6caa34fe6f177b38de27b515378f0d2708"
+      "id": "code_01m8c6j313f4mvh1-doom-wayland",
+      "summary": "Merge the reviewed Doom Wayland text clipboard residual and document its interface; focused behavior tests, just check, and Home Manager build pass.",
+      "input_digest": "sha256:2a8557dc1b6ee76da75d009971ceb2e6dad2b4a0a6ff784c8c11508b65db9bfa"
     }
   ],
   "intents": {
-    "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD": {
+    "intent:change_01M8C6JW971B7TDBHR17ZQ85XY": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,60 +119,51 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
+      "id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Perform safe custodial hygiene for home-manager-2y7: ignore .swamp, preserve all unresolved work, validate and publish only the .gitignore change",
-      "refined_intent": "Perform safe custodial hygiene for home-manager-2y7: ignore .swamp, preserve all unresolved work, validate and publish only the .gitignore change",
+      "raw_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "refined_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Perform safe custodial hygiene for home-manager-2y7: ignore .swamp, preserve all unresolved work, validate and publish only the .gitignore change",
-      "phases": [],
+      "constraints": {},
+      "intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Perform safe custodial hygiene for home-manager-2y7: ignore .swamp, preserve all unresolved work, validate and publish only the .gitignore change",
+      "state": "DRAFT",
+      "title": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
       "todo_ids": [
-        "perf_01m8bc4pzwq5v6e1"
+        "code_01m8c6j313f4mvh1"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1795678728Z"
+      "updated_at": "1795705893Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:82042ab06fd4ffa215b2b3ec16e95347559283311587d680feb48b3c0dce6861",
+      "artifact_hash": "sha256:c6cf9d9356bcf3617f70a99c12ed8d3457c8bf282d0a3a3f7ed4bc6105d51f73",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
+            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
+            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
             "kind": "refined",
             "sequence": 3
           }
@@ -191,7 +177,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
+      "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -199,10 +185,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8BCNEZFMEDW6C43RB4GBTPH",
+      "run_id": "branch_01M8C6JW9VFMJZRFFX92XNHJMD",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "perf_01m8bc4pzwq5v6e1",
+      "task_id": "code_01m8c6j313f4mvh1",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -492,6 +492,16 @@ Zerobyte 0.44 uses its organization recovery key for a new repository. `customPa
 
 `scripts/deploy-report.py [--dry-run]` writes issues titled `deploy: <host>: <step>` with the label `deploy-report` in `worldofgeese/den`. The title is the deduplication key. The report opens an issue for a new failing step and closes an open one when a reachable host passes that step. `--dry-run` prints the planned changes and writes nothing. Each NixOS host must provide `/etc/den-revision`, the `BUILD_ID` line of `/etc/os-release`, and SSH access from M-02877 as configured in `~/.ssh/config`.
 
+## Doom Wayland clipboard
+
+On Linux Wayland sessions with `wl-paste` available,
+`modules/doom.d/config.el` installs `my/wayland-paste` as Emacs's
+`interprogram-paste-function`. It requests UTF-8 text without a trailing
+newline and returns it only when it differs from the current kill-ring entry;
+unchanged clipboard text produces no insertion. This is a text interface only:
+image clipboard formats are attached to Codex as files rather than pasted as
+terminal input.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

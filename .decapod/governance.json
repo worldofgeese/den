@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "a51dcdb626115d19350538cecad24389b845d1c8",
+    "accepted_commit": "dc1f0f73d8862b44db81c8f13fa4886cf38953a8",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,24 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8BC58JTMZ6NPVTHCEAZGV57",
-    "base_commit": "a51dcdb626115d19350538cecad24389b845d1c8",
+    "id": "change_01M8BCNEYVWWDC62W4TVSNBFSD",
+    "base_commit": "dc1f0f73d8862b44db81c8f13fa4886cf38953a8",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "perf_01m8bc4pzwq5v6e1-gitignore",
-      "summary": "Ignore generated Swamp runtime state; git check-ignore and just check pass.",
-      "input_digest": "sha256:36b2a90447e70dbf3ea52b1e31917e3936b17535fc52a513453706e9253b6d3b"
-    },
-    {
-      "id": "perf_01m8bc4pzwq5v6e1-runtime-spec",
-      "summary": "Document the generated Swamp runtime-state boundary and refresh the living-spec manifest.",
-      "input_digest": "sha256:347cbfa9e5b5961ff7088bbf00800a0d9124b1a5251493ec415419ea2ce7fabf"
+      "id": "perf_01m8bc4pzwq5v6e1-closeout",
+      "summary": "Close out the previously validated and published Swamp ignore change.",
+      "input_digest": "sha256:400b076e0d89c54ef63f5cf4464e25e5962709bbb1f8682f1a570c0c17273c7e"
     }
   ],
   "intents": {
-    "intent:change_01M8BC58JTMZ6NPVTHCEAZGV57": {
+    "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,7 +119,7 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8BC58JTMZ6NPVTHCEAZGV57",
+      "id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
@@ -138,37 +133,46 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Perform safe custodial hygiene for home-manager-2y7: ignore .swamp, preserve all unresolved work, validate and publish only the .gitignore change",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Perform safe custodial hygiene for home-manager-2y7: ignore .swamp, preserve all unresolved work, validate and publish only the .gitignore change",
       "todo_ids": [
         "perf_01m8bc4pzwq5v6e1"
       ],
-      "updated_at": "1795678184Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1795678728Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:221823edda01145af7fa8469a6a017994b26c28956cff509dbc83c05d35e5733",
+      "artifact_hash": "sha256:82042ab06fd4ffa215b2b3ec16e95347559283311587d680feb48b3c0dce6861",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8BC58JTMZ6NPVTHCEAZGV57",
+            "intent_id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8BC58JTMZ6NPVTHCEAZGV57",
+            "intent_id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
             "kind": "refined",
             "sequence": 3
           }
@@ -182,7 +186,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8BC58JTMZ6NPVTHCEAZGV57",
+      "intent_id": "intent:change_01M8BCNEYVWWDC62W4TVSNBFSD",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -190,7 +194,7 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8BC58KD06BAAESSF1PBDA33",
+      "run_id": "branch_01M8BCNEZFMEDW6C43RB4GBTPH",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
       "task_id": "perf_01m8bc4pzwq5v6e1",

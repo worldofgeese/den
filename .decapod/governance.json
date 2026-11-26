@@ -106,6 +106,11 @@
       "id": "code_01m8c6j313f4mvh1-doom-wayland",
       "summary": "Merge the reviewed Doom Wayland text clipboard residual and document its interface; focused behavior tests, just check, and Home Manager build pass.",
       "input_digest": "sha256:2a8557dc1b6ee76da75d009971ceb2e6dad2b4a0a6ff784c8c11508b65db9bfa"
+    },
+    {
+      "id": "code_01m8c6j313f4mvh1-closeout",
+      "summary": "Record candidate dispositions and the validated Doom Wayland merge before worktree retirement.",
+      "input_digest": "sha256:321a2830d05e10f4919f46371f0f95e21608400b73298f200f69ec2792092fc5"
     }
   ],
   "intents": {
@@ -133,18 +138,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
       "todo_ids": [
         "code_01m8c6j313f4mvh1"
       ],
-      "updated_at": "1795705893Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1795706510Z"
     },
     "trajectory": {
       "active_boundaries": [

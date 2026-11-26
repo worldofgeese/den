@@ -1571,6 +1571,14 @@ The checkpoint caller passes offline tests for stale receipts, changed bindings,
 
 `paphos-loving-kypris-liveness` samples loving-kypris every 2 minutes from paphos, as two targets: the host and Home Assistant. A target that fails for 10 minutes without a break sends one Telegram alert. The alert repeats every 2 hours while the target stays down. The first passing sample sends a recovery message. The check only reports and never power-cycles. It checks that Telegram accepts each message. A failed alert or recovery message is sent again at the next sample, and the unit fails until delivery succeeds. `paphos-loving-kypris-liveness-notify-test` sends one TEST message to prove the path. The firmware job on paphos now fails on every `fwupdmgr` exit code except 0 and 2 (nothing to do), and `paphos-health-check` reports `firmware-update-failed`.
 
+## Runtime-state hygiene
+
+`.swamp/` contains the generated Swamp extension catalog database, WAL, and
+shared-memory files. It is local runtime state, not authored configuration, so
+`.gitignore` excludes the whole directory. Keep `git status` limited to
+intentional source changes; do not commit or delete this catalog as part of
+publication.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

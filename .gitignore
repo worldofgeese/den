@@ -73,6 +73,9 @@ result/
 # Cave agent worktrees and session scratch.
 .cave/
 
+# Swamp extension catalog runtime state.
+.swamp/
+
 # Graphiq knowledge-graph index (1.3M SQLite, regenerated on demand).
 .graphiq/
 

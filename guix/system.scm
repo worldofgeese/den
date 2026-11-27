@@ -164,11 +164,16 @@
     (sysctl-service-type
       config => (sysctl-configuration
                   (inherit config)
+                  ;; Keep the working set resident. The old 150/200 pair swapped
+                  ;; hot pages out and faulted them straight back (measured on
+                  ;; battery: ~10 of 15 GiB used, 6.4 GiB in swap), which is the
+                  ;; stutter this host showed. 10/50 reclaims page cache before
+                  ;; anon memory and keeps dentry/inode caches around.
                   (settings (append (sysctl-configuration-settings config)
-                    '(("vm.swappiness" . "150")
+                    '(("vm.swappiness" . "10")
                       ("vm.dirty_background_ratio" . "5")
                       ("vm.dirty_ratio" . "10")
-                      ("vm.vfs_cache_pressure" . "200")
+                      ("vm.vfs_cache_pressure" . "50")
                       ("vm.min_free_kbytes" . "65536")
                       ("vm.watermark_scale_factor" . "200"))))))
     (elogind-service-type config =>
@@ -641,9 +646,14 @@ root ALL=(ALL) ALL
              (tlp-configuration
               ;; Rewrites the removed vm.laptop_mode write; see the package above.
               (tlp tlp-without-laptop-mode)
-              ;; AC/charging: balanced performance (see .rpi/specs/power-thermal.md)
+              ;; Balanced performance on both AC and battery. The 8565U pinned
+              ;; to its 1.8 GHz base clock (no_turbo=1) cannot keep a browser
+              ;; plus an agent session responsive, and the watts saved there
+              ;; were spent again on swap I/O. Responsiveness wins on this
+              ;; machine; idle stays cheap because HWP/EPP ramps down on its own.
+              ;; See .rpi/specs/power-thermal.md.
               (cpu-boost-on-ac? #t)
-              (cpu-boost-on-bat? #f)
+              (cpu-boost-on-bat? #t)
               (cpu-scaling-governor-on-ac '("powersave"))
               (cpu-max-perf-on-ac 100)
               (sched-powersave-on-ac? #f)
@@ -652,13 +662,19 @@ root ALL=(ALL) ALL
               ;; Reduce charging heat and battery wear; resume charging below 75%, stop at 85%.
               (start-charge-thresh-bat0 75)
               (stop-charge-thresh-bat0 85)
-              (energy-perf-policy-on-bat "power")
+              ;; Both aliases, so tlp-configuration writes the same preference
+              ;; under either name; balance_performance still lets HWP drop to
+              ;; the lowest frequency when idle instead of holding a bias.
+              (energy-perf-policy-on-bat "balance_performance")
+              (cpu-energy-perf-policy-on-bat "balance_performance")
               (pcie-aspm-on-ac "powersave")
               ;; powersupersave adds the L1.1/L1.2 substates (NVMe, WiFi, the
               ;; PCH ports). Measured 2026-11-12 at idle: package C10 went from
               ;; 0% to 58% and package power from 0.83 W to 0.73 W, WiFi
-              ;; unaffected (0% loss). AC keeps powersave.
-              (pcie-aspm-on-bat "powersupersave")
+              ;; unaffected (0% loss). That is a power-only gain: the substates
+              ;; add return-from-L1 latency, so battery now uses plain
+              ;; powersave like AC. Idle watts are not worth the I/O latency.
+              (pcie-aspm-on-bat "powersave")
               (wifi-pwr-on-ac? #f)
               (wifi-pwr-on-bat? #t)
               (sound-power-save-on-ac 1)
@@ -714,12 +730,15 @@ root ALL=(ALL) ALL
               (sata-linkpwr-on-bat "med_power_with_dipm")))
     ;; Dell's platform_profile offers cool, quiet, balanced and performance;
     ;; there is no low-power, so the earlier PLATFORM_PROFILE_ON_BAT=low-power
-    ;; was never applied and battery stayed on balanced. quiet is the Dell
-    ;; equivalent power-profiles-daemon uses for power-saver.
+    ;; was never applied. quiet used to be selected for battery, but Dell's
+    ;; quiet lowers PL1/PL2 and the fan with them, which on an 8565U already
+    ;; pinned at 1.8 GHz turns browser + agent work into a stutter. Battery now
+    ;; uses balanced, same as AC: the EC keeps its full power budget, and
+    ;; HWP/EPP idle states still ramp the CPU down on their own.
     (simple-service 'tlp-platform-profile etc-service-type
       (list `("tlp.d/01-platform-profile.conf"
               ,(plain-file "01-platform-profile.conf"
-                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=quiet\n"))))
+                "PLATFORM_PROFILE_ON_AC=balanced\nPLATFORM_PROFILE_ON_BAT=balanced\n"))))
 
     (simple-service 'flatpak-hicolor-icon-index activation-service-type
                     #~(begin

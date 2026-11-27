@@ -123,6 +123,40 @@
         ++ [
           # gc — Gas City CLI proxied to remote container on loving-kypris
           (pkgs.writeShellScriptBin "gc" (builtins.readFile ../scripts/gc-remote.sh))
+
+          # OpenClaw desktop AppImage. Without an EGL vendor the app paints a
+          # blank window: appimage-run's bubblewrap FHS reaches
+          # /run/opengl-driver/share/glvnd/egl_vendor.d on Guix, a mesa whose
+          # libgallium needs GLIBC_2.43 while the sandbox carries nixpkgs'
+          # glibc, so every WebKitWebProcess aborts with "Could not create
+          # default EGL display: EGL_BAD_PARAMETER". Pointing the sandbox at
+          # nixpkgs' own mesa (same glibc lineage) and forcing llvmpipe makes
+          # WebKit start and the window paint. Refs: home-manager-zjz.
+          (pkgs.writeShellScriptBin "openclaw-desktop" ''
+            set -eu
+            opt="$HOME/.local/opt/openclaw-desktop"
+            appimage="$opt/OpenClaw-2026.11.10-amd64.AppImage"
+            if [ ! -f "$appimage" ]; then
+              echo "openclaw-desktop: $appimage is missing;" \
+                   "download the AppImage into $opt" >&2
+              exit 1
+            fi
+            mesa="${pkgs.mesa}"
+            export __EGL_VENDOR_LIBRARY_DIRS="$mesa/share/glvnd/egl_vendor.d"
+            export LIBGL_DRIVERS_PATH="$mesa/lib/dri"
+            export LIBGL_ALWAYS_SOFTWARE=1
+            export GALLIUM_DRIVER=llvmpipe
+            export OPENCLAW_CONFIG_PATH="''${XDG_CONFIG_HOME:-$HOME/.config}/openclaw-desktop/gateway.json"
+            # The endpoint/token stay in gateway.json; only refute a local-mode
+            # config, which the app would otherwise open its onboarding UI for.
+            if ! ${pkgs.jq}/bin/jq -es 'length == 1 and .[0].gateway.mode == "remote"' \
+                 "$OPENCLAW_CONFIG_PATH" >/dev/null 2>&1; then
+              printf 'openclaw-desktop: set gateway.mode to remote in %s\n' \
+                     "$OPENCLAW_CONFIG_PATH" >&2
+              exit 1
+            fi
+            exec ${pkgs.appimage-run}/bin/appimage-run "$appimage" "$@"
+          '')
         ];
 
       # openclaw's OpenAI device-code auth, driven over SSH against
@@ -290,29 +324,53 @@
                 }
       '';
 
-      # OpenClaw client (mahakala). The Linux desktop AppImage cannot render
-      # here: under `appimage-run`'s bubblewrap the FHS libglvnd vendor path is
-      # /run/opengl-driver/share/glvnd/egl_vendor.d, a hand-made symlink to a
-      # mesa whose libgallium needs GLIBC_2.43 while the sandbox runs 2.40, so
-      # every WebKitWebProcess aborts with "Could not create default EGL
-      # display: EGL_BAD_PARAMETER" (plus libsoup/GTK ABI mismatches). Vendor
-      # docs name the Control UI in a regular browser as the supported path for
-      # this -- it is also the only path that can do Talk (the embedded WebView
-      # gets no microphone). So the browser entry is the primary launcher; the
-      # AppImage and its config stay on disk untouched for when that stack is
-      # fixed. Swap Exec to `chromium --app=<url> --class=OpenClaw` for a
-      # chromeless window; plain xdg-open is used so no browser is hardcoded.
-      xdg.dataFile."applications/openclaw-control-ui.desktop".text = ''
-        [Desktop Entry]
-        Type=Application
-        Name=OpenClaw
-        Comment=OpenClaw Control UI (gateway ingress openclaw.hound-celsius.ts.net, tailnet only)
-        Exec=xdg-open https://openclaw.hound-celsius.ts.net
-        Icon=applications-internet
-        Terminal=false
-        Categories=Utility;
-        Keywords=openclaw;gateway;agent;
-      '';
+      # OpenClaw client (mahakala). Vendor docs name the Control UI in a
+      # regular browser as the supported path, and it is the only path that can
+      # do Talk (the embedded WebView gets no microphone), so the browser entry
+      # is the primary launcher. Swap Exec to `chromium --app=<url>
+      # --class=OpenClaw` for a chromeless window; plain xdg-open is used so no
+      # browser is hardcoded. The desktop AppImage is the secondary launcher,
+      # through the `openclaw-desktop` wrapper added above.
+      #
+      # The AppImage rewrites ~/.local/share/applications on launch: it writes
+      # openclaw-desktop-handler.desktop and can replace the Home Manager
+      # symlinks there. `force` makes activation reclaim these two entries
+      # instead of stopping on "existing file is in the way"; the handler file
+      # keeps its own name and is left to the app. A deleted symlink is
+      # recreated by the next deploy either way.
+      xdg.dataFile."applications/openclaw-control-ui.desktop" = {
+        force = true;
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=OpenClaw
+          Comment=OpenClaw Control UI (gateway ingress openclaw.hound-celsius.ts.net, tailnet only)
+          Exec=xdg-open https://openclaw.hound-celsius.ts.net
+          Icon=applications-internet
+          Terminal=false
+          Categories=Utility;
+          Keywords=openclaw;gateway;agent;
+        '';
+      };
+
+      # The AppImage client, distinct from the browser Control UI above. The
+      # embedded WebView cannot do Talk (no microphone), so this stays the
+      # secondary launcher.
+      xdg.dataFile."applications/openclaw-desktop.desktop" = {
+        force = true;
+        text = ''
+          [Desktop Entry]
+          Type=Application
+          Name=OpenClaw Desktop
+          Comment=OpenClaw desktop client (AppImage)
+          Exec=openclaw-desktop
+          Icon=${config.home.homeDirectory}/.local/opt/openclaw-desktop/OpenClaw.png
+          Terminal=false
+          Categories=Utility;
+          Keywords=openclaw;gateway;agent;
+          StartupWMClass=openclaw-desktop;
+        '';
+      };
 
       # The desktop app's gateway.json. Only the endpoint is declarative: the
       # token is a secret and never enters the nix store, so it stays in the

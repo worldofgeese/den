@@ -44,18 +44,27 @@
 
 ;;; Scrolling and cursor (Neomacs)
 ;; Neomacs presents at most one frame per vsync interval (~17 ms measured on the
-;; UHD 620) and charges a frame per wheel notch, so lines-per-notch is the only
-;; lever on how fast a wheel/touchpad scroll travels. Doom's default of 2 lines
-;; reads as glacial at that ceiling.
+;; UHD 620) and charges a frame per scroll command, so lines-per-notch is the
+;; only lever on how far one notch travels: 4 lines at the same ~34 ms as 2.
 (setq mouse-wheel-scroll-amount '(4 ((shift) . hscroll)))
-;; The default box cursor paints a solid block whenever it sits on whitespace
-;; (an empty *scratch* line at startup, trailing space), which reads as a blue
-;; rectangle rather than a caret. A 2px bar keeps the theme colour and stays
-;; legible over both glyphs and blanks.
-(setq-default cursor-type '(bar . 2))
-(after! evil
-  (setq evil-normal-state-cursor '(bar . 2)
-        evil-insert-state-cursor '(bar . 2)))
+;; pixel-scroll-precision-mode does not change that travel -- the amount
+;; multiplies the notch either way -- but it costs a second frame per notch
+;; (4 present frames vs 2 measured) and animates each notch over
+;; pixel-scroll-precision-interpolation-total-time, so a wheel spins through
+;; 100 ms of animation per click. Classic line scrolling is the faster path;
+;; the trade-off is that a trackpad then moves in whole lines instead of pixels.
+(defun my/neomacs-no-pixel-scroll ()
+  (when (fboundp 'pixel-scroll-precision-mode)
+    (pixel-scroll-precision-mode -1)))
+(my/neomacs-no-pixel-scroll)
+;; Nothing in the Doom or Neomacs Lisp enables the mode, so something native
+;; re-enables it once after every startup hook has run; an idle pass catches it.
+(add-hook 'doom-after-init-hook #'my/neomacs-no-pixel-scroll)
+(run-with-idle-timer 2 nil #'my/neomacs-no-pixel-scroll)
+;; Cursor is left at Doom's own defaults (box in normal state, bar in insert,
+;; cursor face #51afef). Neomacs paints one cursor shape per session and
+;; ignores cursor-type changes after startup, so overriding the shape here only
+;; replaced a working default with a guess -- do not set cursor-type.
 
 ;;; howm rewrites .howm-keys behind Emacs, so undo-fu-session's saved undo
 ;;; history never matches and it logs "discarding: file length mismatch".

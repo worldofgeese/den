@@ -1606,6 +1606,70 @@ shared-memory files. It is local runtime state, not authored configuration, so
 intentional source changes; do not commit or delete this catalog as part of
 publication.
 
+## Guix containers and the Shepherd PID handshake
+
+`guix/home-configuration.scm` starts Headroom and Signet through
+`home-oci-service-type`. That service runs `podman run --rm --replace` and then
+waits for the container's PID, which Shepherd reads through
+`make-forkexec-constructor … #:pid-file`. The generated entrypoint never passes
+`--pidfile` to podman, so the wait depends on the daemon writing
+`/run/<name>/<name>.pid` from inside the container — and Shepherd's default
+`pid-file-timeout` is 5 s. Measured on 2026-11-27, twice in a row:
+
+```
+PID file '/run/signet/signet.pid' did not show up; terminating process 31410.
+Service signet could not be started.
+```
+
+A start that times out that way is a *failed* start, and Shepherd does not retry
+failed starts (`respawn?` applies only after a successful one), so the service
+stays down until someone starts it. Both containers therefore pass
+`--pidfile ~/.local/state/<name>.pid` through `extra-arguments` and point
+`(pid-file …)` at the same path; podman writes the container's host PID within
+milliseconds, before the daemon has to do anything. Verify with
+`ls -l ~/.local/state/*.pid` and `herd status <name>`.
+
+Signet is `(auto-start? #t)` again. Between 2026-11-12 and 2026-11-27 it was `#f`
+as a second workaround, while the daemon was restarting in a ~2 s loop — 18 840
+*successful* starts in `~/.local/state/shepherd/shepherd.log` — because a stale
+PID 1 lock made the container exit immediately. `signet-lock-clean` fixes that at
+the root, and with auto-start off the Claude Code session-start and session-end
+hooks that call the `signet` shim failed for 15 days.
+
+### Headroom cannot bind 8787 on mahakala while Caveman owns it
+
+`gateway.json` publishes Headroom on `127.0.0.1:8787` for `mahakala`, but the
+Caveman proxy owns that port on this host: `~/.caveman/run/8787.json` carries
+`"owner":"wrap"`, and the listener is what `~/.pi/agent/models.json`,
+`~/.codex/config.toml` and Claude's
+`…/bili/http://127.0.0.1:8787/w/claude` chain all call. Headroom therefore fails
+at start with:
+
+```
+Error: pasta failed with exit code 1:
+Listen failed for HOST TCP port 127.0.0.1/8787: Address already in use
+```
+
+The container itself is healthy: `podman run … -p 127.0.0.1:8789:8787` served
+`/health` and `/healthz` with 200 on 2026-11-27, so port ownership is the only
+blocker. Moving Headroom to a spare port would create a second proxy that nothing
+calls, so the port assignment is a human decision — either Caveman leaves 8787 or
+`gateway.json` republishes Headroom elsewhere.
+
+## Boot-time warnings this system no longer emits
+
+`sh: vm.laptop_mode is deprecated. Ignoring setting.` came from TLP 1.9, not from
+Guix's `%default-sysctl-settings`: `func.d/15-tlp-func-disk` writes
+`/proc/sys/vm/laptop_mode` on every start, and `tlp-configuration` always serialises
+`DISK_IDLE_SECS_ON_*`, so the kernel dropped knob was written on every boot (470
+lines in `/var/log/messages`). Writing the same file by hand prints the same
+warning with the writer's own name, which is what identifies TLP as the source;
+`/etc/sysctl.conf` never contained the key. `tlp-without-laptop-mode` in
+`guix/system.scm` skips that one write. TLP does not re-apply USB state on
+`tlp init start`, so the webcam blacklist takes effect through the udev rule
+rather than at boot; check `cat /sys/bus/usb/devices/1-5/power/control` (expect
+`on`) after a replug.
+
 <!-- decapod:codebase-attestation:start -->
 
 ## Codebase Attestation

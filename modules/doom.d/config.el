@@ -42,6 +42,21 @@
   ;; Neomacs has loaded them by now and the session sets none, so drop it.
   (setenv "LD_LIBRARY_PATH" nil))
 
+;;; Scrolling and cursor (Neomacs)
+;; Neomacs presents at most one frame per vsync interval (~17 ms measured on the
+;; UHD 620) and charges a frame per wheel notch, so lines-per-notch is the only
+;; lever on how fast a wheel/touchpad scroll travels. Doom's default of 2 lines
+;; reads as glacial at that ceiling.
+(setq mouse-wheel-scroll-amount '(4 ((shift) . hscroll)))
+;; The default box cursor paints a solid block whenever it sits on whitespace
+;; (an empty *scratch* line at startup, trailing space), which reads as a blue
+;; rectangle rather than a caret. A 2px bar keeps the theme colour and stays
+;; legible over both glyphs and blanks.
+(setq-default cursor-type '(bar . 2))
+(after! evil
+  (setq evil-normal-state-cursor '(bar . 2)
+        evil-insert-state-cursor '(bar . 2)))
+
 ;;; howm rewrites .howm-keys behind Emacs, so undo-fu-session's saved undo
 ;;; history never matches and it logs "discarding: file length mismatch".
 (after! undo-fu-session

@@ -104,7 +104,7 @@
     # are what eval-exec.cachix.org and nix-wpe-webkit.cachix.org hold (the
     # cache is published per release tag only, so pin a tag), and a
     # cache miss means building WPE WebKit and the Rust tree locally.
-    neomacs.url = "github:eval-exec/neomacs/v0.0.20";
+    neomacs.url = "github:eval-exec/neomacs/v0.0.21";
     # Omarchy vendored for Nix. Only homeManagerModules.nixarchy is used:
     # nixosModules.nixarchy is unusable on Guix System, which has no
     # services.displayManager, security.pam.services or programs.hyprland --

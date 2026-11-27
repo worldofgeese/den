@@ -65,7 +65,9 @@
           ln -s neomacs $out/bin/emacs
           # GNU installs bin/emacs-VERSION and Doom-unstraightened's wrapper
           # deletes `emacs-*`, failing on an empty match; 31.1 is the
-          # emacs-version Neomacs reports.
+          # emacs-version Neomacs reports. v0.0.21 ships emacs-31.1 itself
+          # (upstream issue eval-exec/neomacs#747), so drop theirs first.
+          rm -f $out/bin/emacs-31.1
           ln -s neomacs $out/bin/emacs-31.1
         '';
         passthru = neomacsRaw.passthru or {};

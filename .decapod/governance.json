@@ -97,72 +97,105 @@
     }
   },
   "change": {
-    "id": "fend_01m8f7t5j13p62dt-mahakala-remediation",
+    "id": "change_01M8FCB8GD66F6Z3MKX72KQA5S",
     "base_commit": "d8f79992cf8002effc70121caa0a846ca07b4bbe",
     "target_base": "origin/main"
   },
   "claims": {
-    "container-pid-file-handshake": {
-      "statement": "Every Guix container service passes --pidfile for the same path it declares as (pid-file ...), so home Shepherd never waits on a file written inside the container",
-      "falsifier": "a container service's extra-arguments lack --pidfile, or herd start reports 'PID file ... did not show up' for a container whose podman run succeeds",
+    "openclaw-canonical-endpoint": {
+      "statement": "modules/workstation.nix launches the Control UI at https://openclaw.hound-celsius.ts.net and owns .gateway.remote.url = wss://openclaw.hound-celsius.ts.net in ~/.config/openclaw-desktop/gateway.json, preserving mode 0600 and the existing token",
+      "falsifier": "grep of modules/workstation.nix shows loving-kypris.hound-celsius.ts.net as the desktop file Exec or as openclaw_url, or the activation writes a token into the nix store",
       "status": "supported",
       "proof_refs": [
-        "guix/home-configuration.scm"
-      ]
-    },
-    "headroom-port-conflict": {
-      "statement": "Headroom cannot bind 127.0.0.1:8787 on mahakala while the Caveman proxy (owner: wrap) holds that port for every harness",
-      "falsifier": "podman run for headroom binds 8787 while ~/.caveman/run/8787.json lists a live pid on the same port",
-      "status": "open"
-    },
-    "no-laptop-mode-write": {
-      "statement": "TLP no longer writes /proc/sys/vm/laptop_mode, so no 'vm.laptop_mode is deprecated' line appears after the new tlp starts",
-      "falsifier": "a vm.laptop_mode line appears in /var/log/messages after the patched tlp starts",
-      "status": "supported",
-      "proof_refs": [
-        "guix/system.scm"
-      ]
-    },
-    "resolv-conf-single-writer": {
-      "statement": "tailscaled writes /etc/resolv.conf directly with no resolvconf on its wrapper PATH, and tailscale status shows no resolvconf signature-mismatch health warning",
-      "falsifier": "the wrapper still contains openresolv sbin, or tailscale status re-reports 'resolvconf: signature mismatch'",
-      "status": "supported",
-      "proof_refs": [
-        "guix/system.scm"
+        "commit:f32b5dfa",
+        "gate:just-check",
+        "pr:worldofgeese/den#189"
       ]
     }
   },
-  "checkpoints": [
-    {
-      "id": "specs-and-governance",
-      "summary": "Living specs record the pid-file handshake, resolv.conf ownership, headroom's port conflict and the TLP usb blacklist; governance carries the approved plan and four claims.",
-      "input_digest": "sha256:cfb696f53b49294d34f7bf5989136cb036c686cde6261c8ef680484d2e189cff"
+  "intents": {
+    "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S": {
+      "acceptance_criteria": [],
+      "assumptions": [],
+      "boundaries": [
+        "Current claimed task and isolated work branch"
+      ],
+      "constraints": [
+        "root"
+      ],
+      "created_sequence": 1,
+      "id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
+      "instruction_origin": {
+        "source_ref": "caller:unverified"
+      },
+      "out_of_scope": [],
+      "proof_requirements": [],
+      "raw_intent": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
+      "refined_intent": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
+      "status": "refined",
+      "updated_sequence": 3
     }
-  ],
+  },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": [
-          "modules/omarchy.nix",
-          "modules/workstation.nix"
-        ]
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Make the Guix system and home configuration build again, fix the container PID handshake so home Shepherd keeps headroom/signet up, give /etc/resolv.conf a single writer, stop TLP writing the removed vm.laptop_mode knob, and keep the webcam port out of runtime suspend; apply with a transactional reconfigure and report what remains blocked.",
-      "phases": [],
-      "proof_hooks": [],
-      "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Remediate mahakala: containers, DNS ownership, TLP sysctl, webcam",
-      "todo_ids": [
-        "fend_01m8f7t5j13p62dt"
+      "constraints": {},
+      "intent": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
+      "proof_hooks": [
+        "decapod validate"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1795812600Z"
+      "schema_version": "1.1.0",
+      "state": "DRAFT",
+      "title": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
+      "todo_ids": [
+        "apis_01m8fc9ya0vyxvvd"
+      ],
+      "updated_at": "1795812598Z"
+    },
+    "trajectory": {
+      "active_boundaries": [
+        "Current claimed task and isolated work branch"
+      ],
+      "artifact_hash": "sha256:571ec7b17e95865995e3ca7df75fb42200bad8ad7bae2f1c08628db0122f989d",
+      "checks": [],
+      "current_phase": "intent",
+      "custody": {
+        "events": [
+          {
+            "event_id": "event:2",
+            "intent_id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
+            "kind": "created",
+            "sequence": 2
+          },
+          {
+            "event_id": "event:3",
+            "intent_id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
+            "kind": "refined",
+            "sequence": 3
+          }
+        ],
+        "knowledge_candidates": [],
+        "next_sequence": 3,
+        "schema_version": "1.1.0",
+        "trajectories": {}
+      },
+      "declared_commands": [],
+      "destination": "pull request",
+      "evidence": [],
+      "inspected_files": [],
+      "intent_id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
+      "modified_files": [],
+      "next_transitions": [
+        "Refine plan and declare falsifiable checks"
+      ],
+      "repo_scope": [
+        "root"
+      ],
+      "run_id": "branch_01M8FCB8H3MVEZ4QWSEQYD00S0",
+      "schema_version": "1.1.0",
+      "shortcut_risk_signals": [],
+      "task_id": "apis_01m8fc9ya0vyxvvd",
+      "tool_calls": [],
+      "unresolved_assumptions": []
     }
   },
   "legacy_digests": {

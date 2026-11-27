@@ -306,8 +306,8 @@
         [Desktop Entry]
         Type=Application
         Name=OpenClaw
-        Comment=OpenClaw Control UI (gateway on loving-kypris, tailnet only)
-        Exec=xdg-open https://loving-kypris.hound-celsius.ts.net
+        Comment=OpenClaw Control UI (gateway ingress openclaw.hound-celsius.ts.net, tailnet only)
+        Exec=xdg-open https://openclaw.hound-celsius.ts.net
         Icon=applications-internet
         Terminal=false
         Categories=Utility;
@@ -317,14 +317,15 @@
       # The desktop app's gateway.json. Only the endpoint is declarative: the
       # token is a secret and never enters the nix store, so it stays in the
       # 0600 file, entered once by hand (the AppImage's own onboarding flow).
-      # Rewriting the URL is the point -- the previous value was
-      # wss://openclaw.hound-celsius.ts.net, a MagicDNS record for a
-      # decommissioned tailnet node, which resolves but goes nowhere.
+      # The endpoint is the canonical ingress name: openclaw.hound-celsius.ts.net
+      # is a Tailscale Service VIP that fronts the same gateway as
+      # loving-kypris.hound-celsius.ts.net, and the gateway's publicOrigin and
+      # Control UI allowlist carry the same name.
       # jq is addressed by store path because the activation PATH does not
       # necessarily carry the interactive profile.
       home.activation.installOpenclawDesktopConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
         openclaw_cfg="$HOME/.config/openclaw-desktop/gateway.json"
-        openclaw_url="wss://loving-kypris.hound-celsius.ts.net"
+        openclaw_url="wss://openclaw.hound-celsius.ts.net"
         ${pkgs.jq}/bin/jq --version >/dev/null 2>&1 || exit 0
         if [ -f "$openclaw_cfg" ]; then
           if ${pkgs.jq}/bin/jq -e . "$openclaw_cfg" >/dev/null 2>&1; then

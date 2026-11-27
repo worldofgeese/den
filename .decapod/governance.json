@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "b3162a0e7e43aefecaf04cbb752cf4d899f75b33",
+    "accepted_commit": "d8f79992cf8002effc70121caa0a846ca07b4bbe",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,12 +97,24 @@
     }
   },
   "change": {
-    "id": "change_01M8F6AZXJYY7FMT9HRV8A183Q",
-    "base_commit": "b3162a0e7e43aefecaf04cbb752cf4d899f75b33",
+    "id": "change_01M8FCB8GD66F6Z3MKX72KQA5S",
+    "base_commit": "d8f79992cf8002effc70121caa0a846ca07b4bbe",
     "target_base": "origin/main"
   },
+  "claims": {
+    "openclaw-canonical-endpoint": {
+      "statement": "modules/workstation.nix launches the Control UI at https://openclaw.hound-celsius.ts.net and owns .gateway.remote.url = wss://openclaw.hound-celsius.ts.net in ~/.config/openclaw-desktop/gateway.json, preserving mode 0600 and the existing token",
+      "falsifier": "grep of modules/workstation.nix shows loving-kypris.hound-celsius.ts.net as the desktop file Exec or as openclaw_url, or the activation writes a token into the nix store",
+      "status": "supported",
+      "proof_refs": [
+        "commit:f32b5dfa",
+        "gate:just-check",
+        "pr:worldofgeese/den#189"
+      ]
+    }
+  },
   "intents": {
-    "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q": {
+    "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,14 +124,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
+      "id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Restore and wrap Superwhisper for Guix Wayland",
-      "refined_intent": "Restore and wrap Superwhisper for Guix Wayland",
+      "raw_intent": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
+      "refined_intent": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -127,36 +139,36 @@
   "sections": {
     "plan": {
       "constraints": {},
-      "intent": "Restore and wrap Superwhisper for Guix Wayland",
+      "intent": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "DRAFT",
-      "title": "Restore and wrap Superwhisper for Guix Wayland",
+      "title": "Restore openclaw.hound-celsius.ts.net canonical endpoint in workstation.nix launcher and desktop gateway config",
       "todo_ids": [
-        "fend_01m8f6983cwt9v8f"
+        "apis_01m8fc9ya0vyxvvd"
       ],
-      "updated_at": "1795806298Z"
+      "updated_at": "1795812598Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:83723b53d8c6f3a8f0deaeee4aa5eb2db339b9f4e0b8c844aa5bd1918bf2acb2",
+      "artifact_hash": "sha256:571ec7b17e95865995e3ca7df75fb42200bad8ad7bae2f1c08628db0122f989d",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
+            "intent_id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
+            "intent_id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
             "kind": "refined",
             "sequence": 3
           }
@@ -170,7 +182,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
+      "intent_id": "intent:change_01M8FCB8GD66F6Z3MKX72KQA5S",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -178,10 +190,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8F6AZYSD1RNWZ9GSZ1ZGMKA",
+      "run_id": "branch_01M8FCB8H3MVEZ4QWSEQYD00S0",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "fend_01m8f6983cwt9v8f",
+      "task_id": "apis_01m8fc9ya0vyxvvd",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

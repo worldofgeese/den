@@ -110,6 +110,15 @@
           exposure = "direct";
           description = "NixOS, Home Manager and nix-darwin packages, options and docs";
         };
+        # Agent Tincan: teammate requests and the mesh roster. The absolute
+        # binary and the per-agent config are both needed — tincan defaults to
+        # client.json, which a host running several agents does not have.
+        mcpServers.agent-tincan = {
+          command = "${config.home.homeDirectory}/.local/bin/tincan";
+          args = ["mcp"];
+          env.TINCAN_CONFIG = "${config.home.homeDirectory}/.config/tincan/pi.json";
+          description = "Agent Tincan: ask teammates, read inbox and replies, mesh roster";
+        };
         removedPackages = ["npm:pi-mcp-adapter"];
       };
 
@@ -255,6 +264,11 @@
           search_mode = "fuzzy";
         };
       };
+
+      # Tells pi when Agent Tincan has teammate requests or replies waiting. It
+      # reuses `tincan hook claude-code` as a peek (it claims nothing) because
+      # tincan ships no pi hook of its own yet: https://github.com/mvanhorn/agent-tincan
+      home.file.".pi/agent/extensions/tincan-inbox.ts".source = ./pi-tincan-inbox.ts;
 
       # Guix Home owns ~/.bashrc on mahakala, so Home Manager cannot inject
       # Bash init snippets directly. Export one sourceable fragment instead.

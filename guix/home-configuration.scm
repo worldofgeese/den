@@ -90,6 +90,20 @@ yields the three-part form, e.g. 127.0.0.1:8787:8787."
                    ":"
                    (gateway-port->string container-port))))
 
+(define signet-image "ghcr.io/signet-ai/signet:0.214.27")
+
+;; Where the podman client records a container's host PID for its Shepherd
+;; service to find. See the (pid-file ...) comments on the containers below.
+(define (oci-container-pid-file name)
+  (string-append (getenv "HOME") "/.local/state/" name ".pid"))
+
+;; Every image these containers run. Acquired by the one-shot `oci-images`
+;; service declared below, not by the containers themselves: see the comment on
+;; that service for why a container must never do the first pull.
+(define oci-images
+  (list (gateway-ref "headroom" "image")
+        signet-image))
+
 (home-environment
  (packages (append
             (specifications->packages
@@ -277,6 +291,56 @@ mv \"$tmp\" \"$target\""))
               (oci-configuration
                (runtime 'podman)
                (runtime-cli "/run/current-system/profile/bin/podman"))))
+    ;; Pull every OCI image this configuration runs before any container starts,
+    ;; retrying while the network comes up.
+    ;;
+    ;; home-oci-service-type runs `podman run` as the service start and waits
+    ;; only a few seconds for the container's PID file. A start that still has to
+    ;; pull a missing image outlives that window, and Shepherd does not retry a
+    ;; failed start, so the service stays down until someone runs `herd start`.
+    ;; Measured on this host:
+    ;;   2026-11-26 20:01  headroom: no local image and DNS not yet up at login,
+    ;;                     so `--pull newer` died with
+    ;;                     "dial tcp: lookup ghcr.io: no such host" and the
+    ;;                     gateway stayed down for 24 h.
+    ;;   2026-11-27 20:57  signet: no local image and the pull outlived the start
+    ;;                     timeout, so Shepherd marked the service failed.
+    ;;
+    ;; Pulling here makes acquisition idempotent (a present image is reused) and
+    ;; tolerant of a late network: ten attempts ~15 s apart, then success anyway,
+    ;; so a registry outage delays container start-up instead of disabling the
+    ;; container for good. Both containers require this service, so neither ever
+    ;; starts against a missing image.
+    (simple-service
+     'oci-images
+     home-shepherd-service-type
+     (list
+      (shepherd-service
+       (provision '(oci-images))
+       (documentation
+        "Pull the OCI images the containers run, retrying while the network comes up")
+       (one-shot? #t)
+       (start #~(lambda _
+                  (define podman "/run/current-system/profile/bin/podman")
+                  (define (pull image)
+                    (let loop ((attempt 1))
+                      (cond ((zero? (system* podman "pull" "--quiet" image)) #t)
+                            ((< attempt 10)
+                             (format #t "oci-images: pull of ~a failed, retry ~a/10~%"
+                                     image attempt)
+                             (sleep 15)
+                             (loop (+ attempt 1)))
+                            (else
+                             (format #t "oci-images: giving up on ~a; the container will try again~%"
+                                     image)
+                             #t))))
+                  ;; Splice the elements into a real list: a bare '#$(oci-images)
+                  ;; puts the list itself in operator position and fails with
+                  ;; "Wrong type to apply".
+                  (for-each pull (list #$@oci-images))
+                  #t))
+       (stop #~(const #f)))))
+
     (simple-service 'headroom-proxy
                     home-oci-service-type
                     (oci-extension
@@ -352,7 +416,27 @@ mv \"$tmp\" \"$target\""))
                         ;; 125, and shepherd disabled the service for days.
                         (extra-arguments
                          (list "--pull" "newer"
-                               "-m" (gateway-ref "headroom" "memory")))
+                               "-m" (gateway-ref "headroom" "memory")
+                               ;; podman writes the container's host PID here at
+                               ;; once; see (pid-file ...) below.
+                               "--pidfile" (oci-container-pid-file "headroom")))
+                        ;; home-oci-service-type starts the container and then waits
+                        ;; up to 5 s (shepherd's default pid-file timeout) for a pid
+                        ;; file that, by default, the container writes inside its
+                        ;; own /run. A daemon that takes longer than 5 s to get there
+                        ;; is SIGTERMed and the service is left failed -- Shepherd
+                        ;; does not retry a failed start. Measured on 2026-11-27:
+                        ;;   PID file '/run/signet/signet.pid' did not show up;
+                        ;;   terminating process 31410.
+                        ;; twice in a row, while the daemon's own log showed it
+                        ;; starting normally. `podman run --pidfile' writes the
+                        ;; container's host PID immediately, so point both at the
+                        ;; same path and the handshake stops racing the daemon.
+                        (pid-file (oci-container-pid-file "headroom"))
+                        ;; Appended to the requirements home-oci-service-type adds
+                        ;; itself; oci-images owns the image pull, so this start
+                        ;; never waits on (or fails over) the registry.
+                        (requirement '(oci-images))
                         (respawn? #t)
                         (auto-start? #t)
                         (log-file
@@ -422,7 +506,7 @@ mv \"$tmp\" \"$target\""))
                       (list
                        (oci-container-configuration
                         (provision "signet")
-                        (image "ghcr.io/signet-ai/signet:0.214.27")
+                        (image signet-image)
                         (ports (list "127.0.0.1:3850:3850"))
                         (volumes (list (cons (string-append (getenv "HOME") "/.agents")
                                              "/data/agents")))
@@ -460,12 +544,39 @@ mv \"$tmp\" \"$target\""))
                         ;; Appended to the requirements home-oci-service-type
                         ;; adds itself (home-podman-volumes et al), not a
                         ;; replacement for them.
-                        (requirement '(signet-lock-clean))
+                        ;; oci-images owns the pull for the image this container
+                        ;; runs; signet-lock-clean clears the stale PID-1 lock
+                        ;; (both appended to the requirements home-oci-service-type
+                        ;; adds itself, not a replacement for them).
+                        (requirement '(signet-lock-clean oci-images))
+                        ;; See the (pid-file ...) note on headroom above: the
+                        ;; daemon needs longer than shepherd's 5 s default pid-file
+                        ;; timeout to write its own, and a timed-out start is never
+                        ;; retried. `podman run --pidfile' writes the container's
+                        ;; host PID at once, so the service no longer depends on
+                        ;; how fast the daemon gets to its lock.
+                        (extra-arguments
+                         (list "--pidfile" (oci-container-pid-file "signet")))
+                        (pid-file (oci-container-pid-file "signet"))
+                        ;; respawn? is for crashes, not for a failed start:
+                        ;; Shepherd only respawns a service that started once.
+                        ;; Before signet-lock-clean existed, every start read the
+                        ;; stale PID-1 lock and exited 0, so respawn? produced the
+                        ;; ~2 s restart loop described above -- 18 841 `Starting
+                        ;; service signet` lines in ~/.local/state/shepherd/
+                        ;; shepherd.log. That loop, not the daemon, was what ran
+                        ;; the fan hot and prompted `auto-start? #f` on 2026-11-12
+                        ;; for battery while travelling.
+                        ;;
+                        ;; auto-start? is back on because the loop's cause is
+                        ;; fixed and the daemon is load-bearing: Claude Code's
+                        ;; session-start/end and prompt hooks call the `signet`
+                        ;; shim, which podman-execs into this container, and every
+                        ;; one of them failed for the 15 days it was left stopped.
+                        ;; It can still be taken down with `herd stop signet` and
+                        ;; brought back with `herd start signet`.
                         (respawn? #t)
-                        ;; Off for battery while travelling (2026-11-12): a login
-                        ;; or `guix home reconfigure` would otherwise start it
-                        ;; again. Start it by hand with `herd start signet`.
-                        (auto-start? #f)
+                        (auto-start? #t)
                         (log-file
                          (string-append (getenv "HOME")
                                         "/.local/state/signet.log")))))))

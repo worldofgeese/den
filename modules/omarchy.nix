@@ -145,7 +145,10 @@
         set -euo pipefail
         if [[ -z ''${DEN_DIR:-} ]]; then
           den_source=''${XDG_STATE_HOME:-$HOME/.local/state}/den/app-source
-          if [[ ! -e $den_source && ! -L $den_source ]]; then
+          # -e follows the symlink, so a marker whose workspace was removed
+          # falls back to the main checkout instead of failing every
+          # app-list command.
+          if [[ ! -e $den_source ]]; then
             den_source=$HOME/.config/home-manager
           fi
           DEN_DIR=$den_source

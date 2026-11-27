@@ -465,8 +465,8 @@ unset SW_TEST_LOCK_HOLDER_PID
 echo 'superwhisper: consent, setup, failure, removal, dictation, and service checks pass'
 
 ln -sfn "$test_dir/missing-source" "$XDG_STATE_HOME/den/app-source"
-if "$den_apps" add ripgrep; then fail 'a missing app source silently changed main'; fi
-jq -e '. == ["jq"]' "$main_source/modules/omarchy-apps.json" >/dev/null
+[[ $("$den_apps" list) == jq ]] \
+  || fail 'a dangling app-source marker did not fall back to the main checkout'
 rm "$XDG_STATE_HOME/den/app-source"
 [[ $("$den_apps" list) == jq ]] || fail 'a missing marker did not fall back to the main checkout'
 echo 'den-apps: configured source, explicit override, rollback, and missing-source checks pass'

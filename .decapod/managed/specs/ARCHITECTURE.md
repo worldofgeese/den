@@ -736,7 +736,7 @@ Swamp authentication uses a private API-key file outside the repository. The ins
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (19 files), `terraform/` (1 files)
+- Repository signal fingerprint: `f8c5bb93d8015d31c23ef0a27e99bcdddbdd913e83783c675498269d924449b9`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (2 files), `scripts/` (19 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

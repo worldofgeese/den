@@ -1483,6 +1483,33 @@ Use structured logging (pino/winston) with request_id, actor, latency_ms, and er
 - Verification required after recovery: `/etc/nix/nix.conf` shows
   `download-attempts = 5`, and the deploy log has no `is disabled` lines.
 
+### OpenClaw Control UI unreachable from mahakala
+- Detect: the `OpenClaw` launcher opens a browser that never paints, or the
+  Control UI shows "Couldn't connect to loving-kypris.hound-celsius.ts.net".
+- First bounded checks (in this order):
+  1. `curl -fsS -o /dev/null -w '%{http_code}\n' https://loving-kypris.hound-celsius.ts.net/`
+     from mahakala -- `200` means the tailnet ingress is fine and the problem is
+     auth or pairing, anything else means ingress.
+  2. On loving-kypris: `systemctl --user is-active openclaw-gateway socat-proxy`,
+     `ss -ltn | grep 18790`, `tailscale serve status` (must show the 443 proxy to
+     `http://127.0.0.1:18790`), and
+     `podman exec openclaw-gateway curl -fsS http://127.0.0.1:18789/readyz`.
+  3. `journalctl --user -u openclaw-gateway -n 100` for `OpenClaw config is
+     invalid` (`status=78/CONFIG`: `gateway.publicOrigin` must be **https** for
+     anything but localhost) or the state-lock message.
+- Mitigate: re-apply `tailscale serve --bg --https=443 http://127.0.0.1:18790`
+  if serve config was lost; `systemctl --user reset-failed
+  openclaw-gateway && systemctl --user restart openclaw-gateway` after a crash
+  loop. Never delete lock files by hand -- use
+  `openclaw gateway recover-lock --confirm <fingerprint>` in a one-off container
+  on the gateway's volume.
+- Auth vs pairing: a fresh browser is a *new device*. Approve it with
+  `openclaw devices approve <request-id>` (`openclaw devices list` shows the
+  pending request and the requesting tailnet IP).
+- Verification after recovery: `/readyz` returns
+  `{"ready":true,"coreReady":true,"failing":[]}` and the Control UI renders the
+  session list.
+
 ## Release and Migration Readiness
 - [ ] Release artifact and schema versions are identified.
 - [ ] A breaking change has an explicit migration trigger and agent instruction.
@@ -1583,7 +1610,7 @@ publication.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (19 files), `terraform/` (1 files)
+- Repository signal fingerprint: `f8c5bb93d8015d31c23ef0a27e99bcdddbdd913e83783c675498269d924449b9`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (2 files), `scripts/` (19 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

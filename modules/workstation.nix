@@ -290,6 +290,62 @@
                 }
       '';
 
+      # OpenClaw client (mahakala). The Linux desktop AppImage cannot render
+      # here: under `appimage-run`'s bubblewrap the FHS libglvnd vendor path is
+      # /run/opengl-driver/share/glvnd/egl_vendor.d, a hand-made symlink to a
+      # mesa whose libgallium needs GLIBC_2.43 while the sandbox runs 2.40, so
+      # every WebKitWebProcess aborts with "Could not create default EGL
+      # display: EGL_BAD_PARAMETER" (plus libsoup/GTK ABI mismatches). Vendor
+      # docs name the Control UI in a regular browser as the supported path for
+      # this -- it is also the only path that can do Talk (the embedded WebView
+      # gets no microphone). So the browser entry is the primary launcher; the
+      # AppImage and its config stay on disk untouched for when that stack is
+      # fixed. Swap Exec to `chromium --app=<url> --class=OpenClaw` for a
+      # chromeless window; plain xdg-open is used so no browser is hardcoded.
+      xdg.dataFile."applications/openclaw-control-ui.desktop".text = ''
+        [Desktop Entry]
+        Type=Application
+        Name=OpenClaw
+        Comment=OpenClaw Control UI (gateway on loving-kypris, tailnet only)
+        Exec=xdg-open https://loving-kypris.hound-celsius.ts.net
+        Icon=applications-internet
+        Terminal=false
+        Categories=Utility;
+        Keywords=openclaw;gateway;agent;
+      '';
+
+      # The desktop app's gateway.json. Only the endpoint is declarative: the
+      # token is a secret and never enters the nix store, so it stays in the
+      # 0600 file, entered once by hand (the AppImage's own onboarding flow).
+      # Rewriting the URL is the point -- the previous value was
+      # wss://openclaw.hound-celsius.ts.net, a MagicDNS record for a
+      # decommissioned tailnet node, which resolves but goes nowhere.
+      # jq is addressed by store path because the activation PATH does not
+      # necessarily carry the interactive profile.
+      home.activation.installOpenclawDesktopConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+        openclaw_cfg="$HOME/.config/openclaw-desktop/gateway.json"
+        openclaw_url="wss://loving-kypris.hound-celsius.ts.net"
+        ${pkgs.jq}/bin/jq --version >/dev/null 2>&1 || exit 0
+        if [ -f "$openclaw_cfg" ]; then
+          if ${pkgs.jq}/bin/jq -e . "$openclaw_cfg" >/dev/null 2>&1; then
+            openclaw_tmp="$(mktemp)"
+            if ${pkgs.jq}/bin/jq --arg url "$openclaw_url" \
+                 '.gateway.remote.url = $url' "$openclaw_cfg" > "$openclaw_tmp"; then
+              install -m 600 "$openclaw_tmp" "$openclaw_cfg"
+            fi
+            rm -f "$openclaw_tmp"
+          fi
+        else
+          mkdir -p "$(dirname "$openclaw_cfg")"
+          printf '{\n  "gateway": {\n    "mode": "remote",\n    "remote": {\n      "url": "%s",\n      "transport": "direct"\n    }\n  }\n}\n' \
+            "$openclaw_url" > "$openclaw_cfg"
+          chmod 600 "$openclaw_cfg"
+          echo "openclaw: created $openclaw_cfg without a gateway token;" \
+               "paste the token from \`openclaw gateway auth-token --show\`" \
+               "(run on loving-kypris) into .gateway.remote.token" >&2
+        fi
+      '';
+
       xdg.configFile."autostart/synology-drive.desktop".text = ''
         [Desktop Entry]
         Name=Synology Drive Client

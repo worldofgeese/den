@@ -26,6 +26,37 @@ Generated interface specs should include:
 | Dependency | Purpose | SLA | Timeout | Circuit-Breaker |
 |---|---|---|---|---|
 | `TODO` | `TODO` | `TODO` | `TODO` | `TODO` |
+| OpenClaw Gateway `https://loving-kypris.hound-celsius.ts.net` | Control UI and device pairing for the OpenClaw agent gateway (loving-kypris) | tailnet-only, no public SLA | browser default; websocket reconnect is client-driven | none; the Control UI surfaces "Couldn't connect" and the desktop entry opens a browser without a runtime dependency |
+
+## OpenClaw Client Interface
+
+Mahakala reaches the OpenClaw gateway through exactly one path, and the
+Control UI in a browser is the supported client:
+
+```
+browser --https--> tailscale serve (:443, tailnet only)
+                 --> 127.0.0.1:18790 (published from openclaw-gateway)
+                 --> socat in the gateway netns
+                 --> 127.0.0.1:18789 (gateway, bind: loopback)
+```
+
+- Declared interface: `xdg.dataFile "applications/openclaw-control-ui.desktop"`
+  in `modules/workstation.nix` is the only "OpenClaw" launcher. It runs
+  `xdg-open https://loving-kypris.hound-celsius.ts.net`.
+- Desktop-app config: `~/.config/openclaw-desktop/gateway.json` is rendered by
+  `home.activation.installOpenclawDesktopConfig`, which owns
+  `.gateway.remote.url = wss://loving-kypris.hound-celsius.ts.net`. The gateway
+  token is never declarative; it stays inside that 0600 file and is entered once.
+- Auth is unchanged: `gateway.auth.mode = token`, `allowTailscale = false`, and
+  browser access additionally requires an approved device pairing
+  (`openclaw devices approve <request-id>` on the gateway host).
+- The published Linux desktop AppImage is NOT an interface: it cannot create an
+  EGL display under `appimage-run`'s bubblewrap on Guix System and the bundled
+  WebKit throws `undefined symbol: soup_uri_new`. See home-manager-1j8.
+- Failure semantics: an unreachable gateway is a tailnet/ingress fault, not an
+  auth fault -- diagnose with `tailscale serve status` on loving-kypris and
+  `curl -fsS https://loving-kypris.hound-celsius.ts.net/` from mahakala before
+  touching tokens.
 
 ## Inbound Contracts
 - `decapod validate` selects the Alejandra and ShellCheck executable paths
@@ -525,7 +556,7 @@ terminal input.
 
 ## Codebase Attestation
 
-- Repository signal fingerprint: `82bf3310998b3a036de71c6b0d4698432d558a564a334641bd3fa8b1475e03ff`
-- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (1 files), `scripts/` (19 files), `terraform/` (1 files)
+- Repository signal fingerprint: `f8c5bb93d8015d31c23ef0a27e99bcdddbdd913e83783c675498269d924449b9`
+- Significant implementation surfaces: `.beads/` (1 files), `.dagger/` (12 files), `.github/` (5 files), `README.md/` (1 files), `docs/` (2 files), `modules/` (2 files), `scripts/` (19 files), `terraform/` (1 files)
 - Refreshed from the current codebase by `decapod rpc --op specs.refresh`
 <!-- decapod:codebase-attestation:end -->

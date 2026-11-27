@@ -17,10 +17,11 @@
   facts = builtins.fromJSON (builtins.readFile ../gateway.json);
 
   # Published ports are keyed by entity, not by substrate, because the
-  # difference is per-machine: 8787 is container-internal-only on M-02877
-  # (published as 18787) but is also the host port on mahakala. Keying by
-  # entity puts both readings side by side in gateway.json instead of
-  # requiring a reader to already know which machine they are on.
+  # host port is a per-machine fact rather than a function of the container
+  # port: 8787 is container-internal on both machines and is published as
+  # 18787, while mahakala's 8787 host port belongs to a different process.
+  # Keying by entity puts both readings side by side in gateway.json instead
+  # of requiring a reader to already know which machine they are on.
   service = name: let
     raw = facts.${name};
 
@@ -30,7 +31,7 @@
 
     # An empty host means "all interfaces" and renders as a bare port pair
     # (`-p 18787:8787`). A non-empty host renders the three-part form,
-    # `127.0.0.1:8787:8787`. Every host now publishes on loopback
+    # `127.0.0.1:18787:8787`. Every host now publishes on loopback
     # (home-manager-zdo): headroom's `allowUnauthenticatedBind`
     # acknowledgement in gateway.json is honest only while that holds.
     publishSpec = entity: let

@@ -31,6 +31,10 @@ crash reports before startup, and select the backend only after successful
 configuration. If the preference write fails, the previous value remains and
 setup reports that accurately.
 Removal preserves preferences, models, and history.
+Home Manager installs the app itself from `nixarchy-apps.superwhisper`, so the
+CLI reaches `bin/superwhisper` through the profile.
+The package is wrapped, so the settings window opens and reads status with no
+manual environment variable.
 Package construction tests consent, setup failures, removal, dictation, daemon
 control, and the selection-gated post-boot start.
 

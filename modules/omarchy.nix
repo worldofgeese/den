@@ -66,7 +66,51 @@
       lib,
       ...
     }: let
-      nixarchyPkgs = pkgs.extend inputs.nixarchy.overlays.default;
+      # The Superwhisper release carries its own launcher and binary set. Both
+      # the CLI and the settings window dlopen libwayland-client, and the
+      # release RUNPATH holds no wayland store path, so the settings window
+      # aborted with "The wayland library could not be loaded" (measured
+      # 2026-11-27). Vulkan is dlopened the same way. Both library directories
+      # are appended to LD_LIBRARY_PATH for every entry point, so the CLI, the
+      # indicator, the workers and the settings window all get them.
+      #
+      # VK_ICD_FILENAMES stays unset. The Vulkan loader reads the Guix mesa
+      # ICDs through $XDG_DATA_DIRS on this deploy target, and the settings
+      # window opens with no ICD override (measured 2026-11-27).
+      #
+      # SUPERWHISPER_RUNTIME is exported before the app's own launcher runs,
+      # because the app falls back to `systemctl --user` when the variable is
+      # unset, and Guix System has no systemd user manager. A caller's value
+      # wins, so a test or a second profile can still redirect the socket.
+      #
+      # SUPERWHISPER_APP_DIR is the other half: the settings window runs
+      # `assets/omarchy-plugin/superwhisper-panel/status.py` through python3 to
+      # read the daemon, and it looks for that script under this variable
+      # first. Without it the window falls back to the build-time path
+      # /src/app/assets/... and shows "Could not read Superwhisper status"
+      # (measured with strace 2026-11-27). The app's own launcher sets this
+      # variable for the CLI, so only the directly launched binaries need it.
+      nixarchyPkgs = (pkgs.extend inputs.nixarchy.overlays.default).extend (_final: prev: let
+        superwhisper = prev.nixarchy-apps.superwhisper.overrideAttrs (old: {
+          nativeBuildInputs = (old.nativeBuildInputs or []) ++ [prev.makeWrapper];
+          postFixup =
+            (old.postFixup or "")
+            + ''
+              wrapSuperwhisper() {
+                wrapProgram "$1" \
+                  --suffix LD_LIBRARY_PATH : ${prev.lib.makeLibraryPath [prev.wayland prev.vulkan-loader]} \
+                  --set-default SUPERWHISPER_APP_DIR "$out/share/superwhisper/app" \
+                  --run 'export SUPERWHISPER_RUNTIME="''${SUPERWHISPER_RUNTIME:-''${XDG_RUNTIME_DIR:?}/superwhisper}"'
+              }
+              for program in "$out"/share/superwhisper/app/bin/*; do
+                wrapSuperwhisper "$program"
+              done
+              wrapSuperwhisper "$out/bin/superwhisper"
+            '';
+        });
+      in {
+        nixarchy-apps = prev.nixarchy-apps // {inherit superwhisper;};
+      });
       omarchy = nixarchyPkgs.omarchy;
 
       # Guix replacements for Omarchy's package, update, DNS, channel and

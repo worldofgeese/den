@@ -70,11 +70,22 @@ Generated interface specs should include:
   backend from `omarchy/defaults/dictation` and invokes the idempotent service
   start only for `superwhisper`. A missing or different backend is a no-op;
   autostart never invokes the dictation command or begins recording.
+- The Superwhisper package in `modules/omarchy-apps.json` is
+  `nixarchy-apps.superwhisper`, resolved against the extended overlay in
+  `modules/omarchy.nix`. The profile therefore provides `bin/superwhisper`.
+  Every entry point has `LD_LIBRARY_PATH` extended with the wayland and
+  vulkan-loader store directories. `SUPERWHISPER_RUNTIME` defaults to
+  `$XDG_RUNTIME_DIR/superwhisper` and `SUPERWHISPER_APP_DIR` defaults to the
+  package's app tree; an inherited value of either variable is kept.
+  `VK_ICD_FILENAMES` stays unset, so the Vulkan loader reads the Guix ICDs from
+  `$XDG_DATA_DIRS`.
 - The `omarchy-den-apps` wrapper in `modules/omarchy.nix` uses `DEN_DIR`, then
   `$XDG_STATE_HOME/den/app-source`, then the main checkout.
   The optional marker is a user-managed source-directory symlink.
   This change reads the marker; deployment does not create or update it.
-  A broken marker fails before changing the app list; it does not select the main checkout instead.
+  A marker whose target no longer exists falls back to the main checkout, so a
+  removed workspace does not break the app list. An explicit `DEN_DIR` that is
+  wrong still fails before changing the app list.
   Ordinary app-list operations acquire the Superwhisper setup lock for their
   complete deployment. Setup and removal pass an internal lock context to their
   app-list calls while the parent retains that lock. The wrapper accepts that

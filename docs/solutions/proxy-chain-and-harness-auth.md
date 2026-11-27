@@ -59,7 +59,9 @@ measurements.
 ### mahakala (Guix System + Guix Home) — headroom only
 
 headroom runs as a Guix Home OCI service under rootless podman
-(`guix/home-configuration.scm`), published on `127.0.0.1:8787`. mahakala runs
+(`guix/home-configuration.scm`), published on `127.0.0.1:18787`. The 8787 host
+port on mahakala belongs to caveman-proxy, so headroom cannot use it
+(`home-manager-y23`). mahakala runs
 no local-model-proxy and no Phoenix either. The gateway request log covers both
 machines.
 Its consumer is agent-shell inside Doom Emacs

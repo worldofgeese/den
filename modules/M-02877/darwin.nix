@@ -12,8 +12,8 @@
       ...
     }: let
       # Which machine's published ports to read out of the gateway aspect.
-      # 8787 is container-internal here and published as 18787; on mahakala
-      # the same logical port is also the host port. See gateway.json.
+      # 8787 is container-internal and published as 18787 on both machines;
+      # mahakala's 8787 host port belongs to another process. See gateway.json.
       entity = "M-02877";
 
       # Pull an image, but never let the pull decide whether the service runs.

@@ -44,7 +44,9 @@
 
 (define gateway-facts
   (call-with-input-file
-      (string-append (getenv "HOME") "/.config/home-manager/gateway.json")
+      ;; Relative to this file, so a worktree or branch build reads its own
+      ;; gateway.json instead of silently borrowing the main checkout's.
+      (string-append (dirname (current-filename)) "/../gateway.json")
     json->scm))
 
 (define (gateway-object-ref obj key)

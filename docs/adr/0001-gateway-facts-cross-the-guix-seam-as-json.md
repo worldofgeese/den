@@ -42,10 +42,11 @@ substrates read it:
 - Guile reads it directly in `guix/home-configuration.scm` via guile-json.
 
 Published ports are keyed by **entity** (`M-02877`, `mahakala`) rather than by
-substrate, because the difference is per-machine: 8787 is container-internal
-only on M-02877, where it is published as 18787, but is also the host port on
-mahakala. Keying by entity puts both readings side by side in one file instead
-of requiring a reader to already know which machine they are on.
+substrate, because the host port is a per-machine fact rather than a function
+of the container port: 8787 is container-internal on both machines and is
+published as 18787, while mahakala's 8787 host port belongs to another process.
+Keying by entity puts both readings side by side in one file instead of
+requiring a reader to already know which machine they are on.
 
 `gateway.json` holds no secret — only the *name* of one. The key crosses to
 consumers as a **command** that prints it at agent-process start.

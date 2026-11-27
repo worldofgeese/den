@@ -38,8 +38,8 @@
 
     # headroom rewrites prior turns and forwards upstream, so pointing the
     # harnesses at its loopback port is what makes a prefix cache hit across
-    # them. Same address agent-shell already uses; entity-keyed because 8787 is
-    # the host port on mahakala but container-internal on M-02877.
+    # them. Same address agent-shell already uses; entity-keyed because the
+    # published host port is a per-machine fact (18787 on both today).
     baseUrl = gateway.headroom.loopbackUrl (
       if pkgs.stdenv.hostPlatform.isDarwin
       then "M-02877"

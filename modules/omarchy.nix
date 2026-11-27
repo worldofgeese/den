@@ -194,6 +194,14 @@
         echo "Superwhisper did not become ready. Read $log." >&2
         exit 1
       '';
+      superwhisperAutostart = pkgs.writeShellScript "omarchy-superwhisper-autostart" ''
+        set -euo pipefail
+
+        selection=''${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/defaults/dictation
+        if [[ -f $selection ]] && [[ $(<"$selection") == superwhisper ]]; then
+          ${superwhisperService} start
+        fi
+      '';
       superwhisperInstall = pkgs.writeShellScript "omarchy-install-dictation-superwhisper" ''
         set -euo pipefail
 
@@ -920,6 +928,7 @@
                       --replace-quiet @table@ "$out/share/omarchy/nixarchy-arch-packages.tsv"
                   '')
                   guixPkgScriptDrvs)}
+                install -Dm755 ${superwhisperAutostart} "$out/share/omarchy/bin/omarchy-superwhisper-autostart"
 
                 # Timezones from tzdata instead of timedatectl, applied by
                 # rewriting (timezone ...) in den's guix/system.scm.
@@ -1010,11 +1019,13 @@
                     ${superwhisperService} ${denApps} \
                     "$out/share/omarchy/bin/omarchy-install-dictation-superwhisper" \
                     "$out/share/omarchy/bin/omarchy-remove-dictation-superwhisper" \
-                    "$out/share/omarchy/bin/omarchy-dictation-superwhisper"
+                    "$out/share/omarchy/bin/omarchy-dictation-superwhisper" \
+                    "$out/share/omarchy/bin/omarchy-superwhisper-autostart"
                 OMARCHY_PATH="$out/share/omarchy" \
                   PATH=${lib.makeBinPath [pkgs.util-linux pkgs.psmisc pkgs.python3 pkgs.ripgrep pkgs.jq pkgs.shellcheck]}:$PATH \
                   ${pkgs.bash}/bin/bash ${../scripts/test-omarchy-superwhisper.sh} \
-                    "$out/share/omarchy" ${superwhisperService} ${denApps} ${pkgs.psmisc}/bin/fuser
+                    "$out/share/omarchy" ${superwhisperService} ${denApps} ${pkgs.psmisc}/bin/fuser \
+                    "$out/share/omarchy/bin/omarchy-superwhisper-autostart"
               '';
           });
       };
@@ -1069,6 +1080,19 @@
             # per session from Omarchy's own post-boot hook instead.
             omarchy-theme-set-gnome || true
             omarchy-cursor-set || true
+          ''
+        } "$hook"
+        fi
+      '';
+
+      home.activation.omarchyGuixSuperwhisperHook = lib.hm.dag.entryAfter ["nixarchySeed"] ''
+        hook_dir="${config.xdg.configHome}/omarchy/hooks/post-boot.d"
+        hook="$hook_dir/20-guix-superwhisper"
+        if [ ! -e "$hook" ]; then
+          run mkdir -p "$hook_dir"
+          run install -m 644 ${
+          pkgs.writeText "omarchy-post-boot-superwhisper" ''
+            "$HOME/.local/state/nix/profiles/home-manager/home-path/share/omarchy/bin/omarchy-superwhisper-autostart"
           ''
         } "$hook"
         fi

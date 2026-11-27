@@ -126,6 +126,9 @@ This project's architecture consists of the following key layers/directories:
   The service uses `setsid` and `flock`, with bounded startup and shutdown checks.
   Removal signals only processes that hold the private daemon lock.
   Dictation starts the daemon on demand and does not need a systemd user manager.
+  A Home Manager activation adds a non-overwriting Omarchy post-boot hook that
+  invokes an autostart helper. The helper starts the daemon only when the
+  Superwhisper dictation backend is selected; it does not begin a recording.
   The app wrapper uses explicit `DEN_DIR`, then `$XDG_STATE_HOME/den/app-source`,
   then the main checkout.
   An explicit override or optional user-managed marker selects the intended checkout.

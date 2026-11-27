@@ -24,12 +24,15 @@ Key operating facts:
 ## Superwhisper on mahakala
 On mahakala, the Superwhisper setup menu uses the Guix integration in `modules/omarchy.nix`.
 The user selects Cloud or Offline before installation and startup.
+When Superwhisper is the selected dictation backend, an Omarchy post-boot hook
+starts its daemon without beginning a recording.
 After confirmation, setup and removal serialize with app-list changes, disable
 crash reports before startup, and select the backend only after successful
 configuration. If the preference write fails, the previous value remains and
 setup reports that accurately.
 Removal preserves preferences, models, and history.
-Package construction tests consent, setup failures, removal, dictation, and daemon control.
+Package construction tests consent, setup failures, removal, dictation, daemon
+control, and the selection-gated post-boot start.
 
 ## Product View
 ```mermaid

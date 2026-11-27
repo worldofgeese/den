@@ -27,7 +27,7 @@
         sonnet = "eu.anthropic.claude-sonnet-5-5";
         haiku = "eu.anthropic.claude-haiku-4-5-20251001-v1:0";
       };
-      # Neomacs (reports emacs-version 31.1) on Linux. Pinned to v0.0.20, the
+      # Neomacs (reports emacs-version 31.1) on Linux. Pinned to v0.0.21, the
       # newest build in eval-exec.cachix.org (it publishes release tags only).
       # Two v0.0.20 gaps are papered over here without touching the cached
       # derivation: it ships no meta.platforms, which nixpkgs' Emacs wrapper
@@ -38,6 +38,11 @@
       neomacsRaw = inputs.neomacs.packages.${pkgs.stdenv.hostPlatform.system}.default;
       dropQUnderScript = bin:
         pkgs.writeShellScript "neomacs-${bin}" ''
+          # Until v0.0.22 the Cranelift JIT logs every compiled function's IR at
+          # INFO, and the packaged wrapper exports RUST_LOG=info, so each launch
+          # wrote ~1 MB of raw CLIF to stdout (eval-exec/neomacs#865, fixed on
+          # main in 788754a366). Warnings and errors keep printing.
+          export RUST_LOG="''${RUST_LOG:-warn}"
           for a in "$@"; do
             case "$a" in
               -script | --script)
@@ -117,6 +122,12 @@
             fd
             gnupg
             unzip
+            # ispell.el shells out to one of these; without them every
+            # spell-check call fails with "No plain word-list found" because
+            # ispell-program-name is unset and no dictionary is installed.
+            # aspellWithDicts is required: a separate aspellDicts.en is not on
+            # aspell's data-dir, so plain aspell would see no dictionaries.
+            (aspellWithDicts (dicts: [dicts.en]))
           ])
           ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [pkgs.pinentry-gnome3];
         emacsPackageOverrides = eself: esuper: let

@@ -66,6 +66,17 @@
 ;; ignores cursor-type changes after startup, so overriding the shape here only
 ;; replaced a working default with a guess -- do not set cursor-type.
 
+;;; Spell checking
+;; aspell comes from extraBinPackages. Two things are needed on top: nothing
+;; calls `ispell-set-spellchecker-params' before the first spell check, so
+;; `ispell-dictionary-alist' has no entries, `ispell-get-coding-system'
+;; returns nil, and aspell is exec'd as `aspell -a -m --encoding=nil' (dies with
+;; `The encoding "nil" is not known ... aspell/nil.cset').
+(with-eval-after-load 'ispell
+  (setq ispell-dictionary "en_US")
+  (when (fboundp 'ispell-set-spellchecker-params)
+    (ispell-set-spellchecker-params)))
+
 ;;; howm rewrites .howm-keys behind Emacs, so undo-fu-session's saved undo
 ;;; history never matches and it logs "discarding: file length mismatch".
 (after! undo-fu-session

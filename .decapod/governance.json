@@ -132,6 +132,13 @@
       ]
     }
   },
+  "checkpoints": [
+    {
+      "id": "specs-and-governance",
+      "summary": "Living specs record the pid-file handshake, resolv.conf ownership, headroom's port conflict and the TLP usb blacklist; governance carries the approved plan and four claims.",
+      "input_digest": "sha256:cfb696f53b49294d34f7bf5989136cb036c686cde6261c8ef680484d2e189cff"
+    }
+  ],
   "sections": {
     "plan": {
       "constraints": {

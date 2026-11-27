@@ -126,9 +126,19 @@ This project's architecture consists of the following key layers/directories:
   The service uses `setsid` and `flock`, with bounded startup and shutdown checks.
   Removal signals only processes that hold the private daemon lock.
   Dictation starts the daemon on demand and does not need a systemd user manager.
+  A Home Manager activation adds a non-overwriting Omarchy post-boot hook that
+  invokes an autostart helper. The helper starts the daemon only when the
+  Superwhisper dictation backend is selected; it does not begin a recording.
+  The same module extends the nixarchy overlay and wraps the Superwhisper
+  derivation. Every entry point gets the wayland and vulkan-loader directories
+  on `LD_LIBRARY_PATH`, because the release dlopens both and its RUNPATH names
+  neither. The wrapper also defaults `SUPERWHISPER_APP_DIR` and
+  `SUPERWHISPER_RUNTIME`; a caller value wins in both cases.
   The app wrapper uses explicit `DEN_DIR`, then `$XDG_STATE_HOME/den/app-source`,
   then the main checkout.
   An explicit override or optional user-managed marker selects the intended checkout.
+  A marker whose target was removed falls back to the main checkout; -e follows
+  the symlink, so a deleted Decapod workspace does not break the app list.
   This module reads the marker; deployment does not create it automatically.
   Setup and removal serialize on a private app-list lock before changing the
   app list, preferences, daemon, or dictation selection; the service closes the

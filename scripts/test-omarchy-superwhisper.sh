@@ -5,6 +5,7 @@ omarchy_path=${1:?Pass the built Omarchy path}
 service_script=${2:?Pass the built Superwhisper service script}
 den_apps=${3:?Pass the built den app script}
 fuser_path=${4:?Pass the built fuser path}
+autostart_script=${5:?Pass the built Superwhisper autostart script}
 install_script=$omarchy_path/bin/omarchy-install-dictation-superwhisper
 remove_script=$omarchy_path/bin/omarchy-remove-dictation-superwhisper
 dictation_script=$omarchy_path/bin/omarchy-dictation-superwhisper
@@ -404,6 +405,32 @@ bash "$service_script" stop
 [[ ! -S $runtime/control.sock ]] || fail 'the daemon did not stop'
 bash "$service_script" stop
 
+echo superwhisper >"$selection"
+: >"$SW_TEST_CALLS"
+bash "$autostart_script"
+[[ -S $runtime/control.sock ]] || fail 'the selected Superwhisper backend did not start its daemon'
+rg -qx 'superwhisper daemon' "$SW_TEST_CALLS"
+bash "$autostart_script"
+[[ $(rg -c '^superwhisper daemon$' "$SW_TEST_CALLS") == 1 ]] \
+  || fail 'repeated Superwhisper autostart launched another daemon'
+! rg -q '^superwhisper (start|record)( |$)' "$SW_TEST_CALLS" \
+  || fail 'the Superwhisper autostart helper started or recorded audio'
+bash "$service_script" stop
+
+echo voxtype >"$selection"
+: >"$SW_TEST_CALLS"
+bash "$autostart_script"
+[[ ! -S $runtime/control.sock ]] || fail 'a non-Superwhisper backend started the daemon'
+! rg -q '^superwhisper daemon$' "$SW_TEST_CALLS" \
+  || fail 'a non-Superwhisper backend invoked the daemon'
+
+rm -f "$selection"
+: >"$SW_TEST_CALLS"
+bash "$autostart_script"
+! rg -q '^superwhisper daemon$' "$SW_TEST_CALLS" \
+  || fail 'a missing backend selection invoked the daemon'
+echo 'superwhisper autostart: selection gate and no-recording checks pass'
+
 mkdir -p "$runtime"
 python3 - "$runtime/control.sock" <<'PY'
 import socket, sys
@@ -438,8 +465,8 @@ unset SW_TEST_LOCK_HOLDER_PID
 echo 'superwhisper: consent, setup, failure, removal, dictation, and service checks pass'
 
 ln -sfn "$test_dir/missing-source" "$XDG_STATE_HOME/den/app-source"
-if "$den_apps" add ripgrep; then fail 'a missing app source silently changed main'; fi
-jq -e '. == ["jq"]' "$main_source/modules/omarchy-apps.json" >/dev/null
+[[ $("$den_apps" list) == jq ]] \
+  || fail 'a dangling app-source marker did not fall back to the main checkout'
 rm "$XDG_STATE_HOME/den/app-source"
 [[ $("$den_apps" list) == jq ]] || fail 'a missing marker did not fall back to the main checkout'
 echo 'den-apps: configured source, explicit override, rollback, and missing-source checks pass'

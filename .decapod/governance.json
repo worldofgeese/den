@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
+    "accepted_commit": "b3162a0e7e43aefecaf04cbb752cf4d899f75b33",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,24 +97,12 @@
     }
   },
   "change": {
-    "id": "change_01M8C6JW971B7TDBHR17ZQ85XY",
-    "base_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
+    "id": "change_01M8F6AZXJYY7FMT9HRV8A183Q",
+    "base_commit": "b3162a0e7e43aefecaf04cbb752cf4d899f75b33",
     "target_base": "origin/main"
   },
-  "checkpoints": [
-    {
-      "id": "code_01m8c6j313f4mvh1-doom-wayland",
-      "summary": "Merge the reviewed Doom Wayland text clipboard residual and document its interface; focused behavior tests, just check, and Home Manager build pass.",
-      "input_digest": "sha256:2a8557dc1b6ee76da75d009971ceb2e6dad2b4a0a6ff784c8c11508b65db9bfa"
-    },
-    {
-      "id": "code_01m8c6j313f4mvh1-closeout",
-      "summary": "Record candidate dispositions and the validated Doom Wayland merge before worktree retirement.",
-      "input_digest": "sha256:321a2830d05e10f4919f46371f0f95e21608400b73298f200f69ec2792092fc5"
-    }
-  ],
   "intents": {
-    "intent:change_01M8C6JW971B7TDBHR17ZQ85XY": {
+    "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,60 +112,51 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+      "id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
-      "refined_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "raw_intent": "Restore and wrap Superwhisper for Guix Wayland",
+      "refined_intent": "Restore and wrap Superwhisper for Guix Wayland",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
-      "phases": [],
+      "constraints": {},
+      "intent": "Restore and wrap Superwhisper for Guix Wayland",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "state": "DRAFT",
+      "title": "Restore and wrap Superwhisper for Guix Wayland",
       "todo_ids": [
-        "code_01m8c6j313f4mvh1"
+        "fend_01m8f6983cwt9v8f"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1795706510Z"
+      "updated_at": "1795806298Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:c6cf9d9356bcf3617f70a99c12ed8d3457c8bf282d0a3a3f7ed4bc6105d51f73",
+      "artifact_hash": "sha256:83723b53d8c6f3a8f0deaeee4aa5eb2db339b9f4e0b8c844aa5bd1918bf2acb2",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+            "intent_id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+            "intent_id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
             "kind": "refined",
             "sequence": 3
           }
@@ -191,7 +170,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+      "intent_id": "intent:change_01M8F6AZXJYY7FMT9HRV8A183Q",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -199,10 +178,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8C6JW9VFMJZRFFX92XNHJMD",
+      "run_id": "branch_01M8F6AZYSD1RNWZ9GSZ1ZGMKA",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8c6j313f4mvh1",
+      "task_id": "fend_01m8f6983cwt9v8f",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

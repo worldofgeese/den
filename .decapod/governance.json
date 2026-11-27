@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
+    "accepted_commit": "521c86717023d548d6741699131cc408952c0308",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,24 +97,12 @@
     }
   },
   "change": {
-    "id": "change_01M8C6JW971B7TDBHR17ZQ85XY",
-    "base_commit": "ad002afc5efe6fe3c62da3f2550095c48ee85967",
+    "id": "change_01M8F864J60K01BKB4ZX1BJ6XJ",
+    "base_commit": "521c86717023d548d6741699131cc408952c0308",
     "target_base": "origin/main"
   },
-  "checkpoints": [
-    {
-      "id": "code_01m8c6j313f4mvh1-doom-wayland",
-      "summary": "Merge the reviewed Doom Wayland text clipboard residual and document its interface; focused behavior tests, just check, and Home Manager build pass.",
-      "input_digest": "sha256:2a8557dc1b6ee76da75d009971ceb2e6dad2b4a0a6ff784c8c11508b65db9bfa"
-    },
-    {
-      "id": "code_01m8c6j313f4mvh1-closeout",
-      "summary": "Record candidate dispositions and the validated Doom Wayland merge before worktree retirement.",
-      "input_digest": "sha256:321a2830d05e10f4919f46371f0f95e21608400b73298f200f69ec2792092fc5"
-    }
-  ],
   "intents": {
-    "intent:change_01M8C6JW971B7TDBHR17ZQ85XY": {
+    "intent:change_01M8F864J60K01BKB4ZX1BJ6XJ": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,60 +112,51 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+      "id": "intent:change_01M8F864J60K01BKB4ZX1BJ6XJ",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
-      "refined_intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "raw_intent": "OpenClaw: reach the gateway over the tailnet and land the mahakala client declaratively",
+      "refined_intent": "OpenClaw: reach the gateway over the tailnet and land the mahakala client declaratively",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {
-        "file_touch_budget": null,
-        "forbidden_paths": []
-      },
-      "deferred_questions": [],
-      "human_questions": [],
-      "intent": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
-      "phases": [],
+      "constraints": {},
+      "intent": "OpenClaw: reach the gateway over the tailnet and land the mahakala client declaratively",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "APPROVED",
-      "stop_conditions": [],
-      "title": "Deeply review and resolve the remaining secondary worktrees for home-manager-2y7: merge valuable residuals, discard obsolete content, and retire all secondary checkouts safely",
+      "state": "DRAFT",
+      "title": "OpenClaw: reach the gateway over the tailnet and land the mahakala client declaratively",
       "todo_ids": [
-        "code_01m8c6j313f4mvh1"
+        "code_01m8f84kawp67jsm"
       ],
-      "unknowns": [],
-      "unresolved_contradictions": [],
-      "updated_at": "1795706510Z"
+      "updated_at": "1795808236Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:c6cf9d9356bcf3617f70a99c12ed8d3457c8bf282d0a3a3f7ed4bc6105d51f73",
+      "artifact_hash": "sha256:6bed4bfe689d54a146544dac3029a82cad20fe400b7efecebbb43c269510cc49",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+            "intent_id": "intent:change_01M8F864J60K01BKB4ZX1BJ6XJ",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+            "intent_id": "intent:change_01M8F864J60K01BKB4ZX1BJ6XJ",
             "kind": "refined",
             "sequence": 3
           }
@@ -191,7 +170,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8C6JW971B7TDBHR17ZQ85XY",
+      "intent_id": "intent:change_01M8F864J60K01BKB4ZX1BJ6XJ",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -199,10 +178,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8C6JW9VFMJZRFFX92XNHJMD",
+      "run_id": "branch_01M8F864KB3QK4ECHEHQYVDJWV",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8c6j313f4mvh1",
+      "task_id": "code_01m8f84kawp67jsm",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

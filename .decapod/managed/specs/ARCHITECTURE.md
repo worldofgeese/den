@@ -267,6 +267,8 @@ mahakala also keeps a permanent 12 GiB swapfile, `/swapfile`, declared in `swap-
 
 Because swap is the zstd zram device, the kernel arguments add `zswap.enabled=0`: zswap in front of zram compressed every swapped page twice. The sysctl settings add `vm.page-cluster=0`, so a swap fault reads one page instead of a readahead of 8, which on zram is only decompression work.
 
+The kernel arguments also add `mitigations=off`, which turns off the CPU speculative-execution mitigations (retbleed, spectre_v2 IBRS, MDS, MMIO, SSB and the rest) on this i7-8565U. It is a user-approved speed-over-security tradeoff from 2026-11-28; OPERATIONS.md records the risk and the revert.
+
 The LUKS root `cryptroot` is mapped with `(arguments '(#:allow-discards? #t))` on `luks-device-mapping` (the pinned Guix deprecates `luks-device-mapping-with-options`), and `fstrim-service-type` from `(gnu services linux)` trims weekly with its default schedule. Before this, dm-0 reported `discard_max_bytes=0`, so the SK hynix PC401 NVMe never saw a discard. The flag applies only after a reconfigure and a reboot. Allowing discards leaks which blocks are free through the encryption layer; that is the accepted cost.
 
 `avahi-service-type` is deleted from `%desktop-services`. Nothing resolves mDNS here (nsswitch hosts is `files dns`, there is no cups), and the daemon used about 32 CPU-minutes in 30 hours while restarting often.

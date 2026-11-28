@@ -1418,6 +1418,18 @@ Slot 0, the user's passphrase, is never modified.
 Deep sleep is the default (`mem_sleep_default=deep`). Overnight S3 drained
 about 98 mAh/h.
 
+The kernel boots with `mitigations=off` (`guix/system.scm`,
+`kernel-arguments`). The user explicitly chose speed over security on
+2026-11-28. On this i7-8565U (Whiskey Lake) the argument turns off
+retbleed=IBRS, spectre_v2 IBRS, the MDS and MMIO clear-CPU-buffers, the SSB
+prctl and the other CPU vulnerability mitigations. Those cost most on
+syscall- and context-switch-heavy work such as builds and agent tool loops.
+The accepted risk: a local process or JavaScript in a browser can use a
+speculative-execution attack to read kernel or other-process memory. The
+argument applies only after `just deploy-mahakala-system` and a reboot; check
+it with `grep . /sys/devices/system/cpu/vulnerabilities/*`. To revert, delete
+`mitigations=off` from the kernel arguments, redeploy and reboot.
+
 After a reported S3 resume, two-finger scrolling stopped while pointer
 movement and clicks worked. Raw input showed two finger contacts, while
 libinput classified the second as a palm (`palm detected (tool-palm)`).

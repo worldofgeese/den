@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "25e6f33de561a7af1d7c15640c493b65287edb09",
+    "accepted_commit": "6ba8a7f920a34203c3bff51894356cb0f5f3cf74",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,12 +97,12 @@
     }
   },
   "change": {
-    "id": "change_01M8FEDE8Y7H1530YVK518S8KR",
-    "base_commit": "25e6f33de561a7af1d7c15640c493b65287edb09",
+    "id": "change_01M8FZKFF4E2DT30M407PKXATJ",
+    "base_commit": "6ba8a7f920a34203c3bff51894356cb0f5f3cf74",
     "target_base": "origin/main"
   },
   "intents": {
-    "intent:change_01M8FEDE8Y7H1530YVK518S8KR": {
+    "intent:change_01M8FZKFF4E2DT30M407PKXATJ": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,14 +112,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8FEDE8Y7H1530YVK518S8KR",
+      "id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "fix(guix): publish mahakala headroom on 18787",
-      "refined_intent": "fix(guix): publish mahakala headroom on 18787",
+      "raw_intent": "pi-chain: toggle extension layers by file placement",
+      "refined_intent": "pi-chain: toggle extension layers by file placement",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -127,36 +127,36 @@
   "sections": {
     "plan": {
       "constraints": {},
-      "intent": "fix(guix): publish mahakala headroom on 18787",
+      "intent": "pi-chain: toggle extension layers by file placement",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "DRAFT",
-      "title": "fix(guix): publish mahakala headroom on 18787",
+      "title": "pi-chain: toggle extension layers by file placement",
       "todo_ids": [
-        "bugs_01m8feck35c6ydxx"
+        "code_01m8fzj5de4178ac"
       ],
-      "updated_at": "1795814766Z"
+      "updated_at": "1795832790Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:df160eb5bd680457d547d2a17f29376d448b424ce231b30d37ca4aa5ed68ec48",
+      "artifact_hash": "sha256:172836c3c133d56cbf3115dffde1fb3223af08abd8fb42143c05232b58140f86",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8FEDE8Y7H1530YVK518S8KR",
+            "intent_id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8FEDE8Y7H1530YVK518S8KR",
+            "intent_id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
             "kind": "refined",
             "sequence": 3
           }
@@ -170,7 +170,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8FEDE8Y7H1530YVK518S8KR",
+      "intent_id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -178,10 +178,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8FEDE9KF1031BCK6ZERVP2E",
+      "run_id": "branch_01M8FZKFG27ZJ0M7V0G2BTDH1H",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "bugs_01m8feck35c6ydxx",
+      "task_id": "code_01m8fzj5de4178ac",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

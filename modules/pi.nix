@@ -41,6 +41,276 @@
     pi = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
     agentDir = "${config.home.homeDirectory}/.pi/agent";
     declaredMcp = pkgs.writeText "pi-mcp-servers.json" (builtins.toJSON {mcpServers = cfg.mcpServers;});
+
+    # The compression chain: which optional token-saving layers pi loads.
+    # chain.json records the user's choice. Activation seeds it once and
+    # applies it; `pi-chain` flips one layer at runtime. Both use chainShell,
+    # so the two can never diverge. Activation never rewrites an existing
+    # chain.json, which is what makes a runtime toggle survive a switch.
+    chainState = "${agentDir}/chain.json";
+    chainDefaults = {
+      rtk = true;
+      billion-context = true;
+      context-mode = false;
+      caveman = false;
+      headroom = false;
+    };
+    chainShell = ''
+      # --- pi compression chain (piChain activation and pi-chain share this) ---
+      chain=${lib.escapeShellArg chainState}
+      settings=${lib.escapeShellArg "${agentDir}/settings.json"}
+      chain_defaults=${lib.escapeShellArg (builtins.toJSON chainDefaults)}
+      console_extension=${lib.escapeShellArg "${config.home.homeDirectory}/.local/share/opencode-console/cli/pi-extension.js"}
+      ext_dir=${lib.escapeShellArg "${agentDir}/extensions"}
+      ext_off_dir=${lib.escapeShellArg "${agentDir}/extensions-off"}
+      rtk_extension=${lib.escapeShellArg "${agentDir}/extensions/rtk.ts"}
+      caveman_extension=${lib.escapeShellArg "${agentDir}/extensions/caveman-native.js"}
+
+      pi_chain_warn() {
+        printf 'pi-chain: %s\n' "$*" >&2
+      }
+
+      # pi auto-discovers every extension file in ext_dir, so presence there is
+      # what turns a discovered extension on; a settings entry only adds one.
+      # Toggling therefore moves the file between ext_dir and ext_off_dir,
+      # which keeps it, so enabling again restores it instead of reinstalling.
+      pi_chain_ext() {
+        local path="$1" want="$2" parked
+        parked="$ext_off_dir/$(basename -- "$path")"
+        if [ "$want" = true ]; then
+          [ -e "$path" ] && return 0
+          if [ ! -e "$parked" ]; then
+            pi_chain_warn "$path is not installed; install that layer once (rtk install / caveman enable pi), then enable it"
+            return 0
+          fi
+          if [ -n "''${DRY_RUN:-}" ]; then
+            echo "would move $parked back to $path"
+            return 0
+          fi
+          mkdir -p -- "$ext_dir"
+          mv -- "$parked" "$path" || pi_chain_warn "could not restore $path"
+          return 0
+        fi
+        [ -e "$path" ] || return 0
+        if [ -n "''${DRY_RUN:-}" ]; then
+          echo "would move $path to $ext_off_dir"
+          return 0
+        fi
+        mkdir -p -- "$ext_off_dir"
+        mv -- "$path" "$parked" || pi_chain_warn "could not move $path out of $ext_dir"
+      }
+
+      # Apply the extension layers by file placement.
+      pi_chain_extensions() {
+        local chain_json
+        chain_json="$(pi_chain_json)"
+        pi_chain_ext "$rtk_extension" "$(printf '%s' "$chain_json" | ${jq} -r '.rtk // false')"
+        pi_chain_ext "$caveman_extension" "$(printf '%s' "$chain_json" | ${jq} -r '.caveman // false')"
+      }
+
+      # The chain as JSON: the state file when it exists, else the seed.
+      pi_chain_json() {
+        if [ -e "$chain" ]; then
+          cat -- "$chain"
+        else
+          printf '%s\n' "$chain_defaults"
+        fi
+      }
+
+      # Write the seed once. An existing chain.json is the user's and stays.
+      pi_chain_seed() {
+        if [ -e "$chain" ]; then
+          return 0
+        fi
+        if [ -n "''${DRY_RUN:-}" ]; then
+          echo "would write $chain"
+          return 0
+        fi
+        mkdir -p -- "$(dirname -- "$chain")"
+        if (umask 077 && printf '%s\n' "$chain_defaults" >"$chain.hm-tmp") && mv -- "$chain.hm-tmp" "$chain"; then
+          return 0
+        fi
+        pi_chain_warn "could not write $chain"
+        return 1
+      }
+
+      # Rewrite only packages, extensions and defaultProvider in settings.json
+      # from the chain; every other key is left as it is.
+      pi_chain_apply() {
+        local chain_json current merged summary
+        chain_json="$(pi_chain_json)"
+        if ! printf '%s' "$chain_json" | ${jq} -e 'type == "object"' >/dev/null 2>&1; then
+          pi_chain_warn "$chain is not a JSON object; left $settings unchanged"
+          return 1
+        fi
+        current='{}'
+        if [ -e "$settings" ]; then
+          current="$(cat -- "$settings")"
+        fi
+        if ! merged="$(printf '%s' "$current" | ${jq} --argjson c "$chain_json" \
+            --arg console "$console_extension" \
+            --arg rtk "$rtk_extension" \
+            --arg caveman "$caveman_extension" '
+              . + {
+                packages: [
+                  (if ($c["billion-context"] // false) then "npm:billion-context" else empty end),
+                  (if ($c["context-mode"] // false) then "npm:context-mode" else empty end)
+                ],
+                # rtk and caveman are switched by file placement, so drop any
+                # entry an older chain wrote for them instead of adding one.
+                extensions: ((
+                  [(.extensions[]?) | select(. != $console and . != $rtk and . != $caveman)]
+                  + [$console]
+                ) | unique),
+                defaultProvider: (if ($c["headroom"] // false) then "lego-claude" else "opencode-go" end)
+              }')"; then
+          pi_chain_warn "$settings is not valid JSON; left it unchanged"
+          return 1
+        fi
+        if [ -e "$settings" ] && [ "$merged" = "$(${jq} . "$settings")" ]; then
+          return 0
+        fi
+        if [ -n "''${DRY_RUN:-}" ]; then
+          echo "would write $settings"
+          return 0
+        fi
+        mkdir -p -- "$(dirname -- "$settings")"
+        if ! { (umask 077 && printf '%s\n' "$merged" >"$settings.hm-tmp") && mv -- "$settings.hm-tmp" "$settings"; }; then
+          pi_chain_warn "could not write $settings"
+          return 1
+        fi
+        summary="$(printf '%s' "$merged" | ${jq} -r '"packages=" + (if (.packages | length) == 0 then "none" else (.packages | join(",")) end) + " provider=" + .defaultProvider')"
+        echo "pi-chain: updated $settings ($summary)"
+      }
+
+      # settings.json first, then the extension files: a failure part way
+      # leaves the recorded choice readable instead of half applied.
+      pi_chain_apply_all() {
+        pi_chain_apply
+        pi_chain_extensions
+      }
+    '';
+    chainCli = pkgs.writeShellScriptBin "pi-chain" ''
+      # pi-chain — turn the optional layers of pi's compression chain on or off.
+      #
+      # ${chainState} is the single source of truth: `enable` and `disable`
+      # change one boolean there, then apply the chain to
+      # ${agentDir}/settings.json, on exactly the code path that the Home
+      # Manager `piChain` activation uses. A switch seeds that file when it is
+      # absent and never overwrites it, so a runtime toggle survives the next
+      # switch.
+      #
+      # A layer that adds a package (billion-context, context-mode) only
+      # changes settings.json: install the npm package with
+      # `pi install npm:<name>` if pi reports it missing.
+      #
+      # rtk and caveman are extensions, and pi auto-discovers every file in
+      # ${agentDir}/extensions. Presence there is the switch, so this script
+      # moves the file between extensions/ and extensions-off/ rather than
+      # writing a settings entry; `pi install`-style entries are additive and
+      # can never switch a discovered extension off.
+      set -euo pipefail
+
+      ${chainShell}
+
+      layers="rtk billion-context context-mode caveman headroom"
+
+      layer_description() {
+        case "$1" in
+          rtk) echo "extension: rewrite bash calls through rtk to cut tool-output tokens" ;;
+          billion-context) echo "package: billion-context compression between turns" ;;
+          context-mode) echo "package: context-mode context tooling" ;;
+          caveman) echo "extension: caveman prompt and reply compression proxy" ;;
+          headroom) echo "provider: route requests through lego-claude (Headroom)" ;;
+          *) return 1 ;;
+        esac
+      }
+
+      layer_contribution() {
+        case "$1" in
+          rtk) echo "$rtk_extension" ;;
+          billion-context) echo "npm:billion-context" ;;
+          context-mode) echo "npm:context-mode" ;;
+          caveman) echo "$caveman_extension" ;;
+          headroom) echo "lego-claude (instead of opencode-go)" ;;
+        esac
+      }
+
+      usage() {
+        cat <<'EOF'
+      usage: pi-chain <command>
+
+        status           each layer, its state, and the result applied to settings.json
+        list             the layer names with one-line descriptions
+        enable <name>    turn one layer on and apply it now
+        disable <name>   turn one layer off and apply it now
+      EOF
+      }
+
+      case "''${1:-status}" in
+        list)
+          for name in $layers; do
+            printf '%-16s %s\n' "$name" "$(layer_description "$name")"
+          done
+          ;;
+        status)
+          chain_json="$(pi_chain_json)"
+          printf '%-16s %-4s %s\n' layer state contributes
+          for name in $layers; do
+            if printf '%s' "$chain_json" | ${jq} -e --arg k "$name" '.[$k] // false' >/dev/null; then
+              printf '%-16s %-4s %s\n' "$name" on "$(layer_contribution "$name")"
+            else
+              printf '%-16s %-4s %s\n' "$name" off -
+            fi
+          done
+          printf '\n'
+          # For an extension layer the file is the truth, so say when the
+          # recorded choice and the installed file disagree (a `caveman enable
+          # pi` or `pi install` can put one back behind this script's back).
+          for name in rtk caveman; do
+            case "$name" in
+              rtk) path="$rtk_extension" ;;
+              caveman) path="$caveman_extension" ;;
+            esac
+            if printf '%s' "$chain_json" | ${jq} -e --arg k "$name" '.[$k] // false' >/dev/null; then
+              [ -e "$path" ] || echo "note: $name is on but $path is missing; install it once, then run pi-chain enable $name"
+            else
+              [ ! -e "$path" ] || echo "note: $name is off but $path is still loaded; run pi-chain disable $name to apply it"
+            fi
+          done
+          printf '\n'
+          if [ -e "$settings" ]; then
+            ${jq} -r '"packages:        " + ((.packages // []) | if length == 0 then "none" else join(", ") end), "extensions:      " + ((.extensions // []) | if length == 0 then "none" else join(", ") end), "defaultProvider: " + (.defaultProvider // "unset")' "$settings"
+          else
+            echo "settings: $settings does not exist yet"
+          fi
+          ;;
+        enable|disable)
+          name="''${2:-}"
+          if ! layer_description "$name" >/dev/null 2>&1; then
+            printf 'pi-chain: unknown layer: %s\nvalid layers: %s\n' "''${name:-<none given>}" "$layers" >&2
+            exit 2
+          fi
+          pi_chain_seed
+          if [ "$1" = enable ]; then value=true; else value=false; fi
+          updated="$(pi_chain_json | ${jq} --arg k "$name" --argjson v "$value" '.[$k] = $v')"
+          if [ -n "''${DRY_RUN:-}" ]; then
+            echo "would write $chain"
+          else
+            (umask 077 && printf '%s\n' "$updated" >"$chain.hm-tmp") && mv -- "$chain.hm-tmp" "$chain"
+          fi
+          pi_chain_apply_all
+          ;;
+        help|-h|--help)
+          usage
+          ;;
+        *)
+          printf 'pi-chain: unknown command: %s\n' "$1" >&2
+          usage >&2
+          exit 2
+          ;;
+      esac
+    '';
   in {
     options.piAgent = {
       mcpServers = lib.mkOption {
@@ -94,6 +364,8 @@
         '';
       };
     };
+
+    config.home.packages = [chainCli];
 
     config.home.activation = {
       piMcpServers = lib.hm.dag.entryAfter ["writeBoundary"] ''
@@ -152,6 +424,14 @@
             run pi remove "$have" || warnEcho "pi: could not remove $have"
           fi
         done
+      '';
+
+      # After piPackages: `pi install` rewrites `packages` in settings.json,
+      # and the chain owns that key. chain.json is seeded only when absent.
+      piChain = lib.hm.dag.entryAfter ["writeBoundary" "piPackages"] ''
+        ${chainShell}
+        pi_chain_seed
+        pi_chain_apply_all
       '';
 
       # After piPackages, because `pi install` and `pi remove` rewrite

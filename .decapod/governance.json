@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ebac9662246364a282758563af30b043da923ea9",
+    "accepted_commit": "423e15b032f662f81c4bb6343f3680fd8cc234ec",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,12 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8G7351A8A82FAXTC07C9B66",
-    "base_commit": "ebac9662246364a282758563af30b043da923ea9",
+    "id": "change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+    "base_commit": "423e15b032f662f81c4bb6343f3680fd8cc234ec",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "tbr-power-limits",
+      "summary": "20 W sustained PL1 via MMIO at boot/resume/AC, AC EPP 64, undervolt reapplied on resume; built /gnu/store/8gbi3cix2mvpgpaadqj8fgd5w49sz4aq-system",
+      "input_digest": "sha256:f54616084d13910a42ff3ee1f5526a0bac17364bdba38e2adcd0393ebd0d24b2"
+    }
+  ],
   "intents": {
-    "intent:change_01M8G7351A8A82FAXTC07C9B66": {
+    "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,14 +119,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8G7351A8A82FAXTC07C9B66",
+      "id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Install android-tools on mahakala for adb over Tailscale\n\nAdd android-tools to modules/shared-devtools.nix so adb drives the Android phone's wireless debugging over the tailnet. Deploy mahakala Home Manager profile.",
-      "refined_intent": "Install android-tools on mahakala for adb over Tailscale\n\nAdd android-tools to modules/shared-devtools.nix so adb drives the Android phone's wireless debugging over the tailnet. Deploy mahakala Home Manager profile.",
+      "raw_intent": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
+      "refined_intent": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -127,61 +134,122 @@
   "sections": {
     "plan": {
       "constraints": {},
-      "intent": "Install android-tools on mahakala for adb over Tailscale\n\nAdd android-tools to modules/shared-devtools.nix so adb drives the Android phone's wireless debugging over the tailnet. Deploy mahakala Home Manager profile.",
+      "intent": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "DRAFT",
-      "title": "Install android-tools on mahakala for adb over Tailscale",
+      "title": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
       "todo_ids": [
-        "data_01m8g6xwzmtmps0s"
+        "code_01m8h9j7g016ar8m"
       ],
-      "updated_at": "1795840644Z"
+      "updated_at": "1795876812Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:263db1a34742c4747c850213acf0ec42be35d5fc7a45d3750507089ce184c846",
-      "checks": [],
+      "artifact_hash": "sha256:e95dfe054f0cd01a4a3eaecfe8759a22ab1b89df958cc997dbb5fa27687ff686",
+      "checks": [
+        {
+          "name": "guix-system-build",
+          "status": "passed"
+        },
+        {
+          "name": "hook-guild-compile",
+          "status": "passed"
+        },
+        {
+          "name": "just-check",
+          "status": "passed"
+        },
+        {
+          "name": "tlp-conf-epp64",
+          "status": "passed"
+        }
+      ],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8G7351A8A82FAXTC07C9B66",
+            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8G7351A8A82FAXTC07C9B66",
+            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M8H9JXVQ257EWV6JQZD0J65F",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.1.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M8H9JXVQ257EWV6JQZD0J65F": {
+            "evidence_only": true,
+            "id": "branch_01M8H9JXVQ257EWV6JQZD0J65F",
+            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "guix/system.scm",
+                  "guix/touchpad-resume.scm",
+                  "guix/system.scm",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".rpi/specs/power-thermal.md"
+                ],
+                "proof_refs": [
+                  "just-check",
+                  "guix-system-build",
+                  "tlp-conf-epp64",
+                  "hook-guild-compile"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M8G7351A8A82FAXTC07C9B66",
-      "modified_files": [],
+      "inspected_files": [
+        "guix/system.scm",
+        "guix/touchpad-resume.scm"
+      ],
+      "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        ".rpi/specs/power-thermal.md",
+        "guix/system.scm"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8G73524PPZC1GNZC0EN9RY2",
+      "run_id": "branch_01M8H9JXVQ257EWV6JQZD0J65F",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "data_01m8g6xwzmtmps0s",
+      "task_id": "code_01m8h9j7g016ar8m",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

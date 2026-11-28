@@ -116,6 +116,67 @@
    "touchpad-resume-rebind"
    #~(primitive-load #$(local-file "touchpad-resume.scm"))))
 
+;; CPU power settings shared by the boot service (cpu-undervolt), the elogind
+;; resume hook and the AC udev rule below. Change a value here only.
+;;
+;; Undervolt: core and cache move together on this CPU. Stepped search
+;; 2026-11-12 (stress-ng --verify, turbo on, on AC and on battery): -90 and
+;; -100 passed, -110 hung under single-core turbo. -90 keeps 20 mV of margin
+;; and survived repeated AC plug/unplug under load.
+(define %undervolt-arguments
+  '("--core" "-90" "--cache" "-90" "--gpu" "-50" "--analogio" "0" "--uncore" "0"))
+
+(define undervolt-command
+  (file-append (specification->package "undervolt") "/bin/undervolt"))
+
+;; Sustained package power limit (PL1). Dell firmware enforces it through
+;; intel-rapl-mmio:0 constraint_0 (long_term) at 15 W; the MSR PL1 of 51 W has
+;; no effect. Measured 2026-11-28, stress-ng matrixprod, 8 threads, 90 s, AC:
+;; 15 W = 2400 MHz, 73C, 3042 ops/s; 20 W = 2800 MHz, 87C, 3987 ops/s (+31%);
+;; 25 W = 3000 MHz, 90C, 3964 ops/s (thermal-bound, no gain over 20 W).
+;; Firmware may reassert 15 W after S3 resume and on AC plug/unplug, so the
+;; value is written at boot, on resume and on every AC change.
+;; Revert: set this to 15000000 (the firmware default) or drop the three users
+;; (cpu-undervolt, cpu-power-resume-reapply, 90-cpu-power-limit-ac.rules).
+(define %sustained-power-limit-file
+  "/sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw")
+(define %sustained-power-limit-uw 20000000)
+
+;; Writes %sustained-power-limit-uw. Fails softly: a missing or unwritable
+;; sysfs file only logs to stderr and exits 0, so neither boot, resume nor
+;; udev treats it as an error.
+(define set-sustained-power-limit
+  (program-file
+   "set-sustained-power-limit"
+   #~(let ((file #$%sustained-power-limit-file)
+           (value #$(number->string %sustained-power-limit-uw)))
+       (if (file-exists? file)
+           (catch #t
+             (lambda ()
+               (call-with-output-file file
+                 (lambda (port) (display value port))))
+             (lambda (key . args)
+               (format (current-error-port)
+                       "set-sustained-power-limit: cannot write ~a: ~a ~s~%"
+                       file key args)))
+           (format (current-error-port)
+                   "set-sustained-power-limit: ~a missing, skipped~%" file)))))
+
+;; elogind system-sleep hook. The undervolt lives in MSR 0x150, which may
+;; reset across S3, and firmware may restore the 15 W PL1, so "post" applies
+;; both again. Failures are logged to stderr and never block resume.
+(define cpu-power-resume-reapply
+  (program-file
+   "cpu-power-resume-reapply"
+   #~(when (and (pair? (cdr (command-line)))
+                (string=? "post" (cadr (command-line))))
+       (let ((status (apply system* #$undervolt-command '#$%undervolt-arguments)))
+         (unless (zero? status)
+           (format (current-error-port)
+                   "cpu-power-resume-reapply: undervolt exited with ~a~%"
+                   status)))
+       (system* #$set-sustained-power-limit))))
+
 
 (define %my-services
   (modify-services %desktop-services
@@ -193,7 +254,8 @@
                                                  (handle-lid-switch-external-power 'suspend)
                                                  (handle-lid-switch 'suspend)
                                                  (system-sleep-hook-files
-                                                  (list touchpad-resume-rebind))))
+                                                  (list touchpad-resume-rebind
+                                                        cpu-power-resume-reapply))))
     (dbus-root-service-type config =>
                             (dbus-configuration
                              (inherit config)
@@ -597,6 +659,18 @@ root ALL=(ALL) ALL
                             "ACTION==\"add\", SUBSYSTEM==\"pci\", "
                             "DRIVERS==\"ath10k_pci\", "
                             "ATTR{power/control}=\"on\"\n"))))
+    ;; Firmware may reassert the 15 W sustained limit on AC plug/unplug, so
+    ;; every AC change writes %sustained-power-limit-uw again (absolute store
+    ;; path, no herd from udev). See set-sustained-power-limit above; revert by
+    ;; deleting this service.
+    (simple-service 'cpu-power-limit-ac udev-service-type
+                    (list (file->udev-rule
+                           "90-cpu-power-limit-ac.rules"
+                           (mixed-text-file
+                            "90-cpu-power-limit-ac.rules"
+                            "ACTION==\"change\", SUBSYSTEM==\"power_supply\", "
+                            "KERNEL==\"AC\", "
+                            "RUN+=\"" set-sustained-power-limit "\"\n"))))
     (service gnome-desktop-service-type
               (gnome-desktop-configuration
                (utilities
@@ -678,8 +752,17 @@ root ALL=(ALL) ALL
               (cpu-scaling-governor-on-ac '("powersave"))
               (cpu-max-perf-on-ac 100)
               (sched-powersave-on-ac? #f)
-              (energy-perf-policy-on-ac "balance_performance")
-              (cpu-energy-perf-policy-on-ac "balance_performance")
+              ;; AC uses EPP 64 (TLP 1.9 accepts 0-255) instead of
+              ;; balance_performance (128). Measured 2026-11-28, single-thread
+              ;; 50 ms task after 300 ms idle, median: balance_performance
+              ;; about 44-57 ms, EPP 64 about 22 ms. Idle package power on AC
+              ;; rose from about 4 W to about 7 W. performance (0) was rejected:
+              ;; about 19 ms, but it idles at 12-17 W and runs hotter.
+              ;; hwp_dynamic_boost made no difference. Battery stays on
+              ;; balance_performance. Revert: set both back to
+              ;; "balance_performance".
+              (energy-perf-policy-on-ac "64")
+              (cpu-energy-perf-policy-on-ac "64")
               ;; Reduce charging heat and battery wear; resume charging below 75%, stop at 85%.
               (start-charge-thresh-bat0 75)
               (stop-charge-thresh-bat0 85)
@@ -915,18 +998,23 @@ COMMIT
                      (shepherd-service
                       (provision '(cpu-undervolt))
                       (requirement '(file-systems udev user-processes kernel-module-loader))
-                      (documentation "Apply CPU/GPU undervolt via MSR 0x150.")
+                      (documentation "Apply CPU/GPU undervolt via MSR 0x150, then the sustained power limit.")
                       (one-shot? #t)
+                      ;; Undervolt values and the 20 W PL1 are defined once near
+                      ;; the top of this file (%undervolt-arguments,
+                      ;; %sustained-power-limit-uw). The PL1 write runs even if
+                      ;; the undervolt fails; the service status stays the
+                      ;; undervolt's. The powercap file may appear after the MSR
+                      ;; device, so wait for it too.
                       (start #~(make-system-constructor
                                 (string-append
                                  "for i in 1 2 3 4 5 6 7 8 9 10; do [ -e /dev/cpu/0/msr ] && break; sleep 1; done && "
-                                 #$(file-append (specification->package "undervolt") "/bin/undervolt")
-                                 ;; Core and cache move together on this CPU. Stepped
-                                 ;; search 2026-11-12 (stress-ng --verify, turbo on, on AC
-                                 ;; and on battery): -90 and -100 passed, -110 hung under
-                                 ;; single-core turbo. -90 keeps 20 mV of margin and
-                                 ;; survived repeated AC plug/unplug under load.
-                                 " --core -90 --cache -90 --gpu -50 --analogio 0 --uncore 0")))
+                                 #$undervolt-command " "
+                                 #$(string-join %undervolt-arguments " ")
+                                 "; status=$?; "
+                                 "for i in 1 2 3 4 5 6 7 8 9 10; do [ -e " #$%sustained-power-limit-file " ] && break; sleep 1; done; "
+                                 #$set-sustained-power-limit "; "
+                                 "exit $status")))
                       (stop #~(const #f)))))
     ;; Single-use guarantee for agent-unlock (see its package above): kill
     ;; LUKS slot 7 and wipe the ESP key on every boot, and record whether this

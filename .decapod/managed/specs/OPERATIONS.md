@@ -169,8 +169,21 @@ Do these steps in order:
 7. If recover changes tracked files, checkpoint and commit them.
 
 Do not prune or reopen a todo to get past the proof gate. Do not weaken a
-gate. On 2026-11-28 we used this procedure for five todos from PRs #188,
-#198, #200 and #201, and for the ChatGPT desktop diagnosis todo.
+gate.
+
+Recover runs a child `decapod validate`, and it does not show the child
+output. Two causes blocked recover on mahakala on 2026-11-28:
+- The Guix shell exports `GIT_EXEC_PATH`. Historical proof refuses ambient
+  Git overrides, so the child reports `READINESS_BLOCKED`. Run recover with
+  `env -u GIT_EXEC_PATH -u GIT_EDITOR -u GIT_SSL_CAINFO`.
+- `reviewed_sources_digest` in `.decapod/config.toml` was older than the
+  source inventory on `main`. Readiness then reports
+  `PROOF_PROFILE_RECONCILIATION_REQUIRED`. A new digest from
+  `decapod rpc --op agent.init` (`inventory_digest`) changes the accepted
+  contract. The rule `decapod.policy.accepted_repository_contract` then
+  needs a maintainer approval, `decapod govern policy approve --id
+  <transition-id> --scope repo.pr-readiness.v1` (#1738). An agent must not
+  approve its own transition.
 
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd

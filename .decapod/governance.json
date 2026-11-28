@@ -111,6 +111,11 @@
       "id": "verify-recover-inventory",
       "summary": "Re-pin reviewed_sources_digest after review: since 14b88de8 only Justfile, flake.nix, flake.lock and two test scripts changed; no workflow changed, so source_coverage stays correct",
       "input_digest": "sha256:a5e24833449cd86a6256941022bfb56b5683fdeaea0e21021e04086ceea4b65e"
+    },
+    {
+      "id": "verify-recover-blockers",
+      "summary": "Document the two recover blockers: ambient GIT_EXEC_PATH and the accepted-contract transition approval (#1738)",
+      "input_digest": "sha256:ed367060c01c58605040dc7432c7ce8a47e473e5e362195f676b965f203508f0"
     }
   ],
   "intents": {
@@ -164,11 +169,15 @@
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:6ccebc6b063c6493e8d4cd051483dbf8cdbe80cfd6748ca0c1ea90bd724eb193",
+      "artifact_hash": "sha256:0fa6e463a10f4b3d56f41b61713743f9cc74f91181799925a9c71b8b202f3615",
       "checks": [
         {
           "name": "inventory-review",
           "status": "passed"
+        },
+        {
+          "name": "recover",
+          "status": "failed"
         },
         {
           "name": "specs.refresh",
@@ -203,10 +212,17 @@
             "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
             "kind": "trajectory_step_recorded",
             "sequence": 5
+          },
+          {
+            "detail": "trajectory:branch_01M8HB9X740ZFRH3SE4941Y6J9",
+            "event_id": "event:6",
+            "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
+            "kind": "trajectory_step_recorded",
+            "sequence": 6
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 5,
+        "next_sequence": 6,
         "schema_version": "1.1.0",
         "trajectories": {
           "branch_01M8HB9X740ZFRH3SE4941Y6J9": {
@@ -247,6 +263,21 @@
                   "root"
                 ],
                 "sequence": 5,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:6",
+                "observations": [
+                  ".decapod/managed/specs/OPERATIONS.md"
+                ],
+                "proof_refs": [
+                  "recover"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 6,
                 "validation_findings": []
               }
             ]

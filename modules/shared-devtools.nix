@@ -262,6 +262,12 @@
           auto_sync = lib.mkDefault true;
           sync_frequency = "5m";
           search_mode = "fuzzy";
+          # Atuin Threads: capture/sync coding-agent sessions (needs the daemon).
+          daemon = {
+            enabled = true;
+            autostart = true;
+          };
+          threads.capture = true;
         };
       };
 

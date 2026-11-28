@@ -5,9 +5,9 @@
 #
 # Runs forever as a shepherd service (see container-updater in
 # home-configuration.scm). Once a day, for each entry: pull IMAGE, and if the
-# running CONTAINER is on an older image id, restart the shepherd SERVICE that
-# owns it -- but only when that service is running, so a service the user
-# stopped stays stopped. Signet's memory directory is snapshotted first,
+# running CONTAINER is on an older image id, restart CONTAINER and the shepherd
+# SERVICE that owns it -- but only when that service is running, so a service
+# the user stopped stays stopped. Signet's memory directory is snapshotted first,
 # because a new signet may migrate memories.db with no way back.
 #
 # A wall-clock stamp file, not `sleep 86400`: sleep does not count time spent
@@ -40,6 +40,16 @@ snapshot_memory() {
   done
 }
 
+wait_stopped() {
+  # $1: service. Wait at most 30 s until shepherd no longer reports it running.
+  n=0
+  while herd status "$1" 2>/dev/null | grep -q 'It is running'; do
+    [ "$n" -ge 30 ] && return 1
+    sleep 1
+    n=$((n + 1))
+  done
+}
+
 update_one() {
   service=$1 container=$2 image=$3
   if ! podman pull --quiet "$image" >/dev/null; then
@@ -58,14 +68,28 @@ update_one() {
   fi
   old=$(printf '%.12s' "$running")
   log "$service: $old -> $(printf '%.12s' "$latest"), restarting"
-  if [ "$service" = signet ]; then
-    # Stop first so the snapshot is not taken from a live SQLite database.
-    herd stop "$service"
-    snapshot_memory "$old" || return 0
-    herd start "$service" || log "$service: start FAILED"
-  else
-    herd restart "$service" || log "$service: restart FAILED"
+  # Do not use `herd stop` or `herd restart` here. On an OCI service they fail
+  # with "setsid: Operation not permitted" (guix issue #12581, fix in guix PR
+  # #12601). Stop the container with podman instead. Shepherd sees the
+  # `podman run` process stop and marks the service stopped. If shepherd
+  # respawns it, that is harmless: `podman run --replace` uses the new :latest
+  # image. Go back to `herd restart` when the pinned guix has that fix.
+  if ! podman stop -t 30 "$container" >/dev/null; then
+    log "$service: podman stop FAILED"
+    return 0
   fi
+  if ! wait_stopped "$service"; then
+    log "$service: still running 30 s after podman stop"
+    if [ "$service" = signet ]; then
+      log "$service: no snapshot from a live database; leaving it"
+      return 0
+    fi
+  fi
+  if [ "$service" = signet ]; then
+    # Snapshot after the stop, so it is not taken from a live SQLite database.
+    snapshot_memory "$old" || return 0
+  fi
+  herd start "$service" >/dev/null || log "$service: start FAILED"
 }
 
 run_all() {

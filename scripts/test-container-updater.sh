@@ -21,14 +21,26 @@ case "$1 $2" in
   "pull --quiet") case "$3" in *bad*) exit 1 ;; esac ;;
   "inspect -f") case "$4" in same) echo sameid ;; *) echo oldid1234567890abc ;; esac ;;
   "image inspect") case "$5" in *same*) echo sameid ;; *) echo newid0987654321xyz ;; esac ;;
+  "stop -t") touch "$HOME/stopped-$4" ;;
 esac
 EOF
 cat > "$tmp/bin/herd" <<'EOF'
 #!/bin/sh
 echo "herd $*" >> "$HOME/calls"
-if [ "$1" = status ]; then
-  if [ "$2" = stopped ]; then echo "It is stopped."; else echo "It is running since now"; fi
-fi
+case "$1" in
+  status)
+    # Shepherd marks the service stopped once its container is stopped.
+    if [ "$2" = stopped ] || [ -e "$HOME/stopped-$2" ]; then
+      echo "It is stopped."
+    else
+      echo "It is running since now"
+    fi ;;
+  start)
+    for d in "$HOME"/.agents/memory.bak-oldid*; do
+      [ -e "$d" ] && echo "snapshot exists at start $2" >> "$HOME/calls"
+    done ;;
+  stop|restart) exit 1 ;;  # Fails live with EPERM (guix #12581).
+esac
 EOF
 # First sleep (the start-up delay) returns; the second ends the loop.
 cat > "$tmp/bin/sleep" <<'EOF'
@@ -53,15 +65,20 @@ check() { # description, command...
   if "$@"; then echo "PASS: $what"; else echo "FAIL: $what"; fail=1; fi
 }
 calls=$home/calls
-check "changed running service is restarted" grep -qx 'herd restart headroom' "$calls"
-check "signet is stopped, snapshotted, then started" \
-  bash -c "grep -A1 -x 'herd stop signet' '$calls' | grep -qx 'herd start signet'"
+check "changed container is stopped, then its service started" \
+  bash -c "grep -A2 -x 'podman stop -t 30 headroom' '$calls' | grep -qx 'herd start headroom'"
+check "signet container is stopped, then signet started" \
+  bash -c "grep -A2 -x 'podman stop -t 30 signet' '$calls' | grep -qx 'herd start signet'"
+check "signet snapshot taken before start" grep -qx 'snapshot exists at start signet' "$calls"
+check "herd stop and herd restart never called" bash -c "! grep -Eq '^herd (stop|restart) ' '$calls'"
 check "signet snapshot taken" test -f "$home/.agents/memory.bak-oldid1234567-$(date +%F)/memories.db"
 check "only three snapshots kept" test "$(find "$home/.agents" -maxdepth 1 -name 'memory.bak-*' | wc -l)" -eq 3
 check "oldest snapshot removed" test ! -e "$home/.agents/memory.bak-old1-2020"
 check "failed pull does not stop the loop" grep -q 'img/same:latest' "$calls"
-check "stopped service is not started" bash -c "! grep -Eq 'herd (re)?start stopped' '$calls'"
-check "up-to-date service is not restarted" bash -c "! grep -Eq 'herd (restart|stop) same' '$calls'"
+check "stopped service is not touched" \
+  bash -c "! grep -Eq '^(herd (re)?start|herd stop|podman stop -t 30) stopped$' '$calls'"
+check "up-to-date service is not touched" \
+  bash -c "! grep -Eq '^(herd (re)?start|herd stop|podman stop -t 30) same$' '$calls'"
 check "dangling images pruned" grep -qx 'podman image prune -f' "$calls"
 check "stamp written" test -f "$home/.local/state/container-updater.stamp"
 

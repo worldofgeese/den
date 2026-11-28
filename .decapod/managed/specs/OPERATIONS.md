@@ -1675,6 +1675,27 @@ keeping the three newest `memory.bak-*` directories (by mtime, so a manual
 backup with that prefix counts too). If the copy fails, signet is left stopped
 rather than started on a new image without a backup.
 
+The updater does not use `herd stop` or `herd restart`. On this machine they
+fail for an OCI service with `In procedure setsid: Operation not permitted`
+(guix issue [#12581](https://codeberg.org/guix/guix/issues/12581)).
+`container-action` in `gnu/services/containers.scm` runs `exec-command` in
+the shepherd process. The user shepherd is a session leader, so `setsid` fails.
+The open fix is guix PR [#12601](https://codeberg.org/guix/guix/pulls/12601).
+The updater runs `podman stop -t 30 <container>`, waits at most 30 s until
+`herd status <service>` no longer shows `It is running`, takes the signet
+snapshot, and then runs `herd start <service>`. If shepherd respawned the
+service, `herd start` does nothing, and `podman run --replace` already uses the
+new `:latest` image. Go back to `herd restart` when the pinned guix has the fix.
+
+The same bug keeps an OCI service at "Replacement pending" after
+`guix home reconfigure`, because shepherd cannot stop it. To apply the new
+service definition by hand:
+
+1. `podman stop <container>`
+2. `herd unload root <service>` (this works when the service is stopped)
+3. `herd eval root '(register-services (list (load "<new shepherd-<service>.scm>")))'`
+4. `herd start <service>`
+
 Tradeoff: there is no rollback by pin. To go back, stop the service, restore the
 snapshot over `~/.agents/memory`, and run the old image by id or tag
 (`podman images` lists what prune has not removed yet). Large version jumps that

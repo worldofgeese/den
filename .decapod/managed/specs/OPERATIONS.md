@@ -545,7 +545,8 @@ panes had no `SIGNET_*`, and pi fell back to the personal daemon as agent
 its old environment: start it again in a new pane.
 
 The live personal daemon still reported 0.238.0 on 2026-11-10. The source
-now selects the digest-pinned 1.0.1 security release. A pin change alone does not update
+selected the digest-pinned 1.0.1 security release, and now selects `:latest`.
+A tag or pin change alone does not update
 an existing container: `podman container exists signet` skips creation.
 The host CLI is exported from that container, so both versions move together.
 
@@ -1654,6 +1655,53 @@ as a second workaround, while the daemon was restarting in a ~2 s loop — 18 84
 PID 1 lock made the container exit immediately. `signet-lock-clean` fixes that at
 the root, and with auto-start off the Claude Code session-start and session-end
 hooks that call the `signet` shim failed for 15 days.
+
+### Guix containers track :latest
+
+Headroom (`gateway.json` `headroom.image`) and Signet (`signet-image`) run
+`:latest` with no digest pin, on mahakala and on M-02877 alike. Headroom also
+starts with `--pull newer`, so any restart can move it. On mahakala the
+`container-updater` home service checks once a day: an hourly loop runs the
+check when `~/.local/state/container-updater.stamp` is older than 24 hours, so
+suspend and reboots do not postpone it forever (a plain `sleep 86400` stops
+counting while suspended). The first check waits 10 minutes after login.
+
+For each entry it pulls the image (a failed pull is logged and retried next
+run), restarts the service only if the container's image id differs **and** the
+service is running — a stopped or disabled service stays that way — then runs
+`podman image prune -f`. Before a signet restart it stops signet and copies
+`~/.agents/memory` to `~/.agents/memory.bak-<old-image-id-12>-<YYYY-MM-DD>`,
+keeping the three newest `memory.bak-*` directories (by mtime, so a manual
+backup with that prefix counts too). If the copy fails, signet is left stopped
+rather than started on a new image without a backup.
+
+The updater does not use `herd stop` or `herd restart`. On this machine they
+fail for an OCI service with `In procedure setsid: Operation not permitted`
+(guix issue [#12581](https://codeberg.org/guix/guix/issues/12581)).
+`container-action` in `gnu/services/containers.scm` runs `exec-command` in
+the shepherd process. The user shepherd is a session leader, so `setsid` fails.
+The open fix is guix PR [#12601](https://codeberg.org/guix/guix/pulls/12601).
+The updater runs `podman stop -t 30 <container>`, waits at most 30 s until
+`herd status <service>` no longer shows `It is running`, takes the signet
+snapshot, and then runs `herd start <service>`. If shepherd respawned the
+service, `herd start` does nothing, and `podman run --replace` already uses the
+new `:latest` image. Go back to `herd restart` when the pinned guix has the fix.
+
+The same bug keeps an OCI service at "Replacement pending" after
+`guix home reconfigure`, because shepherd cannot stop it. To apply the new
+service definition by hand:
+
+1. `podman stop <container>`
+2. `herd unload root <service>` (this works when the service is stopped)
+3. `herd eval root '(register-services (list (load "<new shepherd-<service>.scm>")))'`
+4. `herd start <service>`
+
+Tradeoff: there is no rollback by pin. To go back, stop the service, restore the
+snapshot over `~/.agents/memory`, and run the old image by id or tag
+(`podman images` lists what prune has not removed yet). Large version jumps that
+migrate `memories.db` — such as 0.214.x to 1.0 — should be done by hand once,
+with a backup of `~/.agents`, before the updater takes over. Watch
+`~/.local/state/container-updater.log`.
 
 ### Headroom cannot bind 8787 on mahakala while Caveman owns it
 

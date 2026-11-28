@@ -46,7 +46,8 @@
   "promptCache": {"short": 300},
 
   "headroom": {
-    "image": "ghcr.io/headroomlabs-ai/headroom:0.44.0@sha256:10ef5f71c4cae3a02ca28107dfcf379aa73314ff26544c1f9988140e71f732f4",
+    "_image": "Tracks :latest on purpose, with no digest pin and so no rollback. Guix's container-updater pulls daily and restarts headroom when the image changed; darwin.nix pulls on every launch.",
+    "image": "ghcr.io/headroomlabs-ai/headroom:latest",
     "containerPort": 8787,
     "mode": "cache",
     "http2": "off",

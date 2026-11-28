@@ -380,10 +380,10 @@ team server runs 0.24.0 since LEGO/devrel-infra#711. Chorus 0.24.0 adds Agent
 Teams, the `chorus_request_review` tool, a `review` role and an optional
 `proposalUuid` for `chorus_recommend_team_agent`, and an optional `ideaUuid` on
 tasks. All of them are additive, so 0.23.0 clients kept working against the
-0.24.0 server until den moved. The personal Signet image is pinned to
-`ghcr.io/signet-ai/signet:1.0.1` by digest in `modules/M-02877/darwin.nix`.
-Its image supplies both the CLI and daemon. The pin takes effect only when
-the container is recreated. Preserve the private workspace and stop the named
+0.24.0 server until den moved. The personal Signet image in `modules/M-02877/darwin.nix` is
+`ghcr.io/signet-ai/signet:latest`, like every other container (it was 1.0.1 by
+digest). Its image supplies both the CLI and daemon. The tag is resolved only
+when the container is recreated; nothing on the Mac re-pulls a running box. Preserve the private workspace and stop the named
 job, then rename and stop the old container so the `signet` name is free.
 Keep that container until the new daemon, migration, scoped recall, and
 connector checks pass. Rollback restores the workspace backup as well as the
@@ -557,7 +557,7 @@ terminal input.
 
 ## Guix host interfaces on mahakala
 
-Three interfaces in `guix/system.scm` and `guix/home-configuration.scm` carry
+Four interfaces in `guix/system.scm` and `guix/home-configuration.scm` carry
 ownership that is easy to break:
 
 - `~/.local/state/<name>.pid` is the handshake between `podman run` and the home
@@ -583,6 +583,18 @@ ownership that is easy to break:
   (`/sys/bus/usb/devices/1-5/power/control` is `on`) and its udev rule re-applies
   the setting on every re-enumeration, so the port is no longer suspended out from
   under the device. Do not remove the blacklist as cosmetic noise.
+- `oci-containers` in `guix/home-configuration.scm` is the one list of
+  `(shepherd-service container-name image)` entries. `oci-images` pulls each
+  image at login and `container-updater` runs
+  `guix/container-updater.sh <service> <container> <image> …` with the same
+  entries. A container added without an entry is neither pre-pulled nor kept
+  current. The updater compares `podman inspect -f '{{.Image}}' <container>`
+  with `podman image inspect -f '{{.Id}}' <image>` and calls `herd restart`
+  (for signet `herd stop`, snapshot, `herd start`) only on a service whose
+  `herd status` says `It is running`. It logs to
+  `~/.local/state/container-updater.log` and stamps
+  `~/.local/state/container-updater.stamp`; `just check-container-updater`
+  tests it against stubs.
 
 <!-- decapod:codebase-attestation:start -->
 

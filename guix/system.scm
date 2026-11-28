@@ -1,4 +1,6 @@
 (use-modules (gnu)
+             ;; Only for (delete avahi-service-type) below.
+             ((gnu services avahi) #:select (avahi-service-type))
              (gnu services shepherd)
              (gnu services containers)
              (gnu services linux)
@@ -117,6 +119,10 @@
 
 (define %my-services
   (modify-services %desktop-services
+    ;; Nothing uses mDNS here: nsswitch hosts is "files dns" and there is no
+    ;; cups. avahi-daemon still burned ~32 CPU-minutes in 30 hours and
+    ;; restarted often, so drop it.
+    (delete avahi-service-type)
     (guix-service-type
      config => (guix-configuration
                  (inherit config)
@@ -169,13 +175,17 @@
                   ;; battery: ~10 of 15 GiB used, 6.4 GiB in swap), which is the
                   ;; stutter this host showed. 10/50 reclaims page cache before
                   ;; anon memory and keeps dentry/inode caches around.
+                  ;; vm.page-cluster=0: swap lives on zram, where reading 8
+                  ;; neighbouring pages ahead (the default of 3) only costs
+                  ;; decompression work; fault in one page at a time.
                   (settings (append (sysctl-configuration-settings config)
                     '(("vm.swappiness" . "10")
                       ("vm.dirty_background_ratio" . "5")
                       ("vm.dirty_ratio" . "10")
                       ("vm.vfs_cache_pressure" . "50")
                       ("vm.min_free_kbytes" . "65536")
-                      ("vm.watermark_scale_factor" . "200"))))))
+                      ("vm.watermark_scale_factor" . "200")
+                      ("vm.page-cluster" . "0"))))))
     (elogind-service-type config =>
                           (elogind-configuration (inherit config)
                                                  (handle-power-key 'suspend)
@@ -461,7 +471,9 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
   ;; ~11 s and ~27 s), and udev coldplug, so every service and the desktop,
   ;; waited behind it: Hyprland started ~30 s after the kernel. With 1000 ms the
   ;; camera enumerates at ~2 s and Hyprland starts at ~11 s (2026-11-12).
-  (kernel-arguments (cons "usbcore.initial_descriptor_timeout=1000 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep" %default-kernel-arguments))
+  ;; zswap.enabled=0: swap is the zstd zram device below, so zswap in front
+  ;; of it compressed every swapped page twice.
+  (kernel-arguments (cons "usbcore.initial_descriptor_timeout=1000 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep zswap.enabled=0" %default-kernel-arguments))
   ;; wireless-regdb: linux-omarchy requires a signed regulatory.db
   ;; (CFG80211_REQUIRE_SIGNED_REGDB); without it cfg80211 logs "failed to load
   ;; regulatory.db" at every boot and stays on the restrictive world domain.
@@ -530,6 +542,8 @@ root ALL=(ALL) ALL
                     %base-packages))
   (services
    (cons*
+    ;; Weekly TRIM of the NVMe; needs #:allow-discards? on cryptroot below.
+    (service fstrim-service-type)
     (service zram-device-service-type
              (zram-device-configuration
               (size "8G")
@@ -1034,7 +1048,10 @@ COMMIT
   (mapped-devices (list (mapped-device
                          (source (uuid "c667edf6-fb07-4ce4-bd62-060d7b835cd3"))
                          (target "cryptroot")
-                         (type luks-device-mapping))))
+                         (type luks-device-mapping)
+                         ;; Pass discards through dm-crypt so fstrim reaches
+                         ;; the NVMe (without it dm-0 discard_max_bytes=0).
+                         (arguments '(#:allow-discards? #t)))))
   (file-systems (cons* (file-system
                          (mount-point "/boot/efi")
                          (device (uuid "2C9C-4D34" 'fat32))

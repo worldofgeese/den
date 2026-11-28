@@ -667,15 +667,17 @@
                   tries=0
                 done
 
-                # The image owns both the CLI and daemon version. A pin change
-                # does not replace an existing container. Back up ~/.agents,
-                # stop this job, then rename and stop the old container before
-                # restarting this job. Keep it until verification passes.
-                # Rollback restores both the old container name and workspace data.
+                # The image owns both the CLI and daemon version. It tracks
+                # :latest like every other container, but only a newly created
+                # box pulls it: an existing container keeps its image. To move
+                # to a newer one, back up ~/.agents, stop this job, then rename
+                # and stop the old container before restarting this job. Keep
+                # it until verification passes. Rollback restores both the old
+                # container name and workspace data.
                 podman container exists signet ||
                   DBX_CONTAINER_MANAGER=podman "$bin/distrobox" create --yes --no-entry --unshare-netns \
                     --name signet \
-                    --image ghcr.io/signet-ai/signet:1.0.1@sha256:947db6870de086227ae968ac72d7b2246466435e1a87052c74fad0a9fe06a292 \
+                    --image ghcr.io/signet-ai/signet:latest \
                     --volume "$home/.agents:/data/agents" \
                     --volume /var/folders:/var/folders \
                     --additional-flags "--publish 127.0.0.1:3850:3850 --env SIGNET_DAEMON_ENTRYPOINT=0 --env SIGNET_PATH=/data/agents --env SIGNET_BIND=0.0.0.0 --env SIGNET_PORT=3850"

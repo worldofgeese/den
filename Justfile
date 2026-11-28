@@ -75,6 +75,15 @@ deploy-mahakala-hm-only:
       exit 1
     fi
     update-desktop-database ~/.local/share/applications
+    # A switch replaces the shepherd service definitions, so shepherd reports
+    # "Replacement pending (restart to upgrade)" and any service that stops after
+    # that can no longer be started: it comes back `disabled`, and `herd start`
+    # fails with "Service X is currently disabled". Re-enable the long-lived
+    # daemons here so a deploy never leaves one unstartable. Bit us on
+    # 2026-11-28: signet sat stopped until `herd enable signet` was run by hand.
+    for svc in signet headroom; do
+      herd enable "$svc" >/dev/null 2>&1 || true
+    done
     just cachix-push || echo "warning: cachix push failed; cache is stale but the deploy succeeded" >&2
 
 # Point /run/opengl-driver at the GPU drivers of the generation about to be

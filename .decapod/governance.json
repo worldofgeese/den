@@ -116,6 +116,11 @@
       "id": "container-updater-podman-stop",
       "summary": "Stop OCI containers with podman stop, not herd stop or restart, which fail with setsid EPERM (guix issue 12581). Update the test and the OPERATIONS note.",
       "input_digest": "sha256:53954ec6f3e4d46c668831f8b6ed4a6a5b0c2121fcf625fdc3a41cc742cce5eb"
+    },
+    {
+      "id": "rebase-main-pr197",
+      "summary": "Rebase onto origin/main (PR 197); refreshed specs manifest",
+      "input_digest": "sha256:a31621d8e85e7652e9d60919c44956d3ed03d311a0e21d94c89446e30bce3d28"
     }
   ],
   "intents": {

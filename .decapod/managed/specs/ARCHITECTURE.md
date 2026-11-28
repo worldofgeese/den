@@ -249,6 +249,8 @@ An adapter that fails its own installation tests remains uninstalled rather than
 
 The system configuration is `guix/system.scm`. The home configuration is `guix/home-configuration.scm`. System deploy and kernel recipes use `justfile_directory()` so an isolated worktree supplies its own source files.
 
+Home Manager takes the shared user tools from `modules/shared-devtools.nix`. That list holds `herdr-core` (`hc`) for the Herdr phone app and the separate `herdr` terminal program.
+
 `just deploy-mahakala-system` reconfigures only the Guix System generation from this checkout. Unlike the composite `just deploy-mahakala` recipe, it does not pull channels, update the shared Nix flake, or invoke M-02877. Repository-wide publication proof remains a separate contract.
 
 The elogind configuration packages `guix/touchpad-resume.scm` as a system-sleep hook. After resume it rebinds the matching touchpad only when `hid-multitouch` owns it, and reports missing devices or failed writes. The user confirmed that two-finger scrolling works after sleep. The fault's cause and whether the hook performed the rebind remain unverified.

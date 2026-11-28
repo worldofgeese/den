@@ -106,6 +106,11 @@
       "id": "mitigations-off",
       "summary": "Boot mahakala with mitigations=off (user-approved speed over security); comment and specs document risk and revert",
       "input_digest": "sha256:814cb1c2748d8bb0adaa020fa2e1fad8733c7b9e0da63d9d7d450b1716aadc8a"
+    },
+    {
+      "id": "mitigations-off-plan",
+      "summary": "Approve plan for mitigations=off (user-authorized)",
+      "input_digest": "sha256:1a6a93b9832bdb9a240eeed1a5d8baae6d4b9942e7644dba272f8690348c8ae6"
     }
   ],
   "intents": {
@@ -133,18 +138,27 @@
   },
   "sections": {
     "plan": {
-      "constraints": {},
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
       "intent": "mitigations=off on mahakala",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
+      "state": "APPROVED",
+      "stop_conditions": [],
       "title": "mitigations=off on mahakala",
       "todo_ids": [
         "code_01m8g2awbg8ydea3"
       ],
-      "updated_at": "1795835761Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1795836459Z"
     },
     "trajectory": {
       "active_boundaries": [

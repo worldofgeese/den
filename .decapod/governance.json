@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "ebf79234bd63f10403d186698967213640a2783d",
+    "accepted_commit": "90e4adc7ea22fe6ae8d169ba11255f6f70fa36e7",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,12 +97,34 @@
     }
   },
   "change": {
-    "id": "change_01M8G0R06VMMRZ1BVHHETNPBTA",
-    "base_commit": "ebf79234bd63f10403d186698967213640a2783d",
+    "id": "change_01M8FVE8CCT2B585ZKJZSS1AGK",
+    "base_commit": "90e4adc7ea22fe6ae8d169ba11255f6f70fa36e7",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "3ni-perf",
+      "summary": "perf: TRIM on LUKS, drop avahi, zswap off, page-cluster 0; containers on :latest with daily container-updater",
+      "input_digest": "sha256:d89d65436be6c2ebf77e8c3b89cd1e9357f3e2b103e08918da452b953b88dad6"
+    },
+    {
+      "id": "3ni-perf-rebased",
+      "summary": "rebased on origin/main 6ba8a7f9; refreshed spec manifest; plan approved",
+      "input_digest": "sha256:b252c394efb3dca461008bc6343e2dbb715b68c0864bb23a8d3cc74f52cd9fff"
+    },
+    {
+      "id": "container-updater-podman-stop",
+      "summary": "Stop OCI containers with podman stop, not herd stop or restart, which fail with setsid EPERM (guix issue 12581). Update the test and the OPERATIONS note.",
+      "input_digest": "sha256:53954ec6f3e4d46c668831f8b6ed4a6a5b0c2121fcf625fdc3a41cc742cce5eb"
+    },
+    {
+      "id": "rebase-main-pr197",
+      "summary": "Rebase onto origin/main (PR 197); refreshed specs manifest",
+      "input_digest": "sha256:a31621d8e85e7652e9d60919c44956d3ed03d311a0e21d94c89446e30bce3d28"
+    }
+  ],
   "intents": {
-    "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA": {
+    "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,76 +134,209 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
+      "id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "pi-chain: pair provider with a served model",
-      "refined_intent": "pi-chain: pair provider with a served model",
+      "raw_intent": "home-manager-3ni perf trim + containers latest",
+      "refined_intent": "home-manager-3ni perf trim + containers latest",
       "status": "refined",
       "updated_sequence": 3
     }
   },
   "sections": {
     "plan": {
-      "constraints": {},
-      "intent": "pi-chain: pair provider with a served model",
+      "constraints": {
+        "file_touch_budget": null,
+        "forbidden_paths": []
+      },
+      "deferred_questions": [],
+      "human_questions": [],
+      "intent": "home-manager-3ni perf trim + containers latest",
+      "phases": [],
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
-      "state": "DRAFT",
-      "title": "pi-chain: pair provider with a served model",
+      "state": "APPROVED",
+      "stop_conditions": [],
+      "title": "home-manager-3ni perf trim + containers latest",
       "todo_ids": [
-        "code_01m8g0qfbvf1321x"
+        "test_01m8fvd3017aj4x1"
       ],
-      "updated_at": "1795833987Z"
+      "unknowns": [],
+      "unresolved_contradictions": [],
+      "updated_at": "1795829372Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:5bce8a804fc00c249966c3c2c2f589fe6260b211974f74185f6c60d706da7c6d",
-      "checks": [],
+      "artifact_hash": "sha256:f0ab824f956bdeda525316e4abfc62ed32cc6a31ee91327119b19697b38abdd3",
+      "checks": [
+        {
+          "name": "check-container-updater",
+          "status": "passed"
+        },
+        {
+          "name": "check-shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "guix home build -n",
+          "status": "passed"
+        },
+        {
+          "name": "guix-home-build",
+          "status": "passed"
+        },
+        {
+          "name": "guix-system-build-n",
+          "status": "passed"
+        },
+        {
+          "name": "just check",
+          "status": "passed"
+        },
+        {
+          "name": "just check-container-updater",
+          "status": "passed"
+        },
+        {
+          "name": "just check-shellcheck",
+          "status": "passed"
+        },
+        {
+          "name": "just-check",
+          "status": "passed"
+        }
+      ],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
+            "intent_id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
+            "intent_id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M8FVE8DFS277N4FBGYQJX3CT",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
+          },
+          {
+            "detail": "trajectory:branch_01M8FVE8DFS277N4FBGYQJX3CT",
+            "event_id": "event:5",
+            "intent_id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
+            "kind": "trajectory_step_recorded",
+            "sequence": 5
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 5,
         "schema_version": "1.1.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M8FVE8DFS277N4FBGYQJX3CT": {
+            "evidence_only": true,
+            "id": "branch_01M8FVE8DFS277N4FBGYQJX3CT",
+            "intent_id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "guix/system.scm",
+                  "guix/home-configuration.scm",
+                  "modules/M-02877/darwin.nix",
+                  "gateway.json",
+                  "guix/system.scm",
+                  "guix/home-configuration.scm",
+                  "guix/container-updater.sh",
+                  "gateway.json",
+                  "modules/M-02877/darwin.nix",
+                  "Justfile",
+                  "scripts/test-container-updater.sh"
+                ],
+                "proof_refs": [
+                  "guix-system-build-n",
+                  "guix-home-build",
+                  "just-check",
+                  "check-container-updater",
+                  "check-shellcheck"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              },
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:5",
+                "observations": [
+                  "guix/container-updater.sh",
+                  "guix/container-updater.sh",
+                  "scripts/test-container-updater.sh",
+                  ".decapod/managed/specs/OPERATIONS.md"
+                ],
+                "proof_refs": [
+                  "just check-container-updater",
+                  "just check-shellcheck",
+                  "just check",
+                  "guix home build -n"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 5,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
-      "modified_files": [],
+      "inspected_files": [
+        "gateway.json",
+        "guix/container-updater.sh",
+        "guix/home-configuration.scm",
+        "guix/system.scm",
+        "modules/M-02877/darwin.nix"
+      ],
+      "intent_id": "intent:change_01M8FVE8CCT2B585ZKJZSS1AGK",
+      "modified_files": [
+        ".decapod/managed/specs/OPERATIONS.md",
+        "Justfile",
+        "gateway.json",
+        "guix/container-updater.sh",
+        "guix/home-configuration.scm",
+        "guix/system.scm",
+        "modules/M-02877/darwin.nix",
+        "scripts/test-container-updater.sh"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8G0R07FY28H8ZR0HVBNDK1Z",
+      "run_id": "branch_01M8FVE8DFS277N4FBGYQJX3CT",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8g0qfbvf1321x",
+      "task_id": "test_01m8fvd3017aj4x1",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

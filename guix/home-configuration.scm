@@ -92,19 +92,26 @@ yields the three-part form, e.g. 127.0.0.1:8787:8787."
                    ":"
                    (gateway-port->string container-port))))
 
-(define signet-image "ghcr.io/signet-ai/signet:0.214.27")
+;; :latest on purpose, like headroom's image in gateway.json: the
+;; container-updater service below pulls it daily and restarts signet when the
+;; image changed. There is no digest pin and no rollback; the updater snapshots
+;; ~/.agents/memory before each signet restart instead.
+(define signet-image "ghcr.io/signet-ai/signet:latest")
 
 ;; Where the podman client records a container's host PID for its Shepherd
 ;; service to find. See the (pid-file ...) comments on the containers below.
 (define (oci-container-pid-file name)
   (string-append (getenv "HOME") "/.local/state/" name ".pid"))
 
-;; Every image these containers run. Acquired by the one-shot `oci-images`
-;; service declared below, not by the containers themselves: see the comment on
-;; that service for why a container must never do the first pull.
-(define oci-images
-  (list (gateway-ref "headroom" "image")
-        signet-image))
+;; Every container, as (shepherd-service container-name image). The one-shot
+;; `oci-images` service acquires the images, not the containers themselves: see
+;; the comment on that service for why a container must never do the first
+;; pull. `container-updater` keeps them current.
+(define oci-containers
+  (list (list "headroom" "headroom" (gateway-ref "headroom" "image"))
+        (list "signet" "signet" signet-image)))
+
+(define oci-images (map caddr oci-containers))
 
 (home-environment
  (packages (append
@@ -513,7 +520,8 @@ mv \"$tmp\" \"$target\""))
                         (volumes (list (cons (string-append (getenv "HOME") "/.agents")
                                              "/data/agents")))
                         ;; Both of these mirror modules/M-02877/darwin.nix, which
-                        ;; already sets them for the same image. Without them the
+                        ;; sets them for its own signet image (pinned separately
+                        ;; there, so it may not match this one). Without them the
                         ;; container runs but is not usable from the CLI:
                         ;;
                         ;;   SIGNET_DAEMON_ENTRYPOINT is deliberately NOT set to 0 here,
@@ -650,6 +658,36 @@ mv \"$tmp\" \"$target\""))
                                               "/run/current-system/profile/bin")))
                  #:log-file (string-append (getenv "HOME")
                                            "/.local/state/howm-sync-service.log")))
+       (stop #~(make-kill-destructor))
+       (respawn? #t)
+       (auto-start? #t))))
+
+    ;; Daily pull of every image in oci-containers; restarts a running
+    ;; container's service when its image changed, snapshotting signet's memory
+    ;; first. A sleep loop for the same reason as howm-sync above; the script
+    ;; explains why it checks a stamp file instead of sleeping a whole day.
+    (simple-service
+     'container-updater
+     home-shepherd-service-type
+     (list
+      (shepherd-service
+       (provision '(container-updater))
+       (documentation "Keep the OCI containers on their latest images")
+       (start #~(make-forkexec-constructor
+                 (list #$(file-append (specification->package "bash") "/bin/sh")
+                       #$(local-file "container-updater.sh")
+                       #$@(apply append oci-containers))
+                 #:environment-variables
+                 (append (default-environment-variables)
+                         (list (string-append "HOME=" (getenv "HOME"))
+                               ;; rootless podman and herd both find their
+                               ;; sockets under XDG_RUNTIME_DIR.
+                               "XDG_RUNTIME_DIR=/run/user/1000"
+                               (string-append "PATH="
+                                              (getenv "HOME") "/.guix-home/profile/bin:"
+                                              "/run/current-system/profile/bin")))
+                 #:log-file (string-append (getenv "HOME")
+                                           "/.local/state/container-updater.log")))
        (stop #~(make-kill-destructor))
        (respawn? #t)
        (auto-start? #t))))

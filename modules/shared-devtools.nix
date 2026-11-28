@@ -85,6 +85,8 @@
           # server.
           herdr
           herdr-core
+          # adb drives the Android phone over the tailnet.
+          android-tools
           # ACP agents query current NixOS, Home Manager, and nix-darwin data.
           mcp-nixos
           # Governance kernel, used on every host. Was Darwin-excluded and

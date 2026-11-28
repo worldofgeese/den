@@ -1063,7 +1063,6 @@ pi 1.4.0, and every tool at its latest release:
   JSON and logs, not prose. Headroom removed about 200k tokens over 224
   requests, mostly from content that the cache already held.
 
-
 #### The chain switch
 
 `modules/pi.nix` seeds `~/.pi/agent/chain.json` once and applies it, and

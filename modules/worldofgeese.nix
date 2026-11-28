@@ -18,6 +18,15 @@
         pkgs.nerd-fonts.fira-code
       ];
 
+      # pi's default compression chain (modules/pi.nix): rtk ships as an
+      # extension in chain.json, and billion-context is the only package.
+      # context-mode, caveman and headroom are opt-in per machine at runtime
+      # with `pi-chain enable <name>`, so they are not declared here.
+      #
+      # Declared in this aspect, not in shared-devtools.nix, because that
+      # aspect also configures M-02877 (darwin).
+      piAgent.packages = ["npm:billion-context"];
+
       programs.home-manager.enable = true;
       programs.helium = {
         enable = true;

@@ -1063,6 +1063,26 @@ pi 1.4.0, and every tool at its latest release:
   JSON and logs, not prose. Headroom removed about 200k tokens over 224
   requests, mostly from content that the cache already held.
 
+
+#### The chain switch
+
+`modules/pi.nix` seeds `~/.pi/agent/chain.json` once and applies it, and
+`pi-chain` edits that same file at runtime through the same shell code, so an
+activation and `pi-chain enable <layer>` cannot disagree. The seed is rtk and
+billion-context on, context-mode, caveman and headroom off.
+
+Extension layers switch by file placement, not by a settings entry. pi
+auto-discovers every file in `~/.pi/agent/extensions`, and an `extensions`
+entry is additive, so removing one does not stop pi from loading the file.
+`pi-chain disable rtk` therefore moves `rtk.ts` to
+`~/.pi/agent/extensions-off/`, and `enable` moves it back. `pi-chain status`
+prints a note whenever `chain.json` and the installed files disagree, which a
+`caveman enable pi` can cause.
+
+Package layers change `settings.json` `packages` only: pi installs what it
+lists, so the script writes the entry and never runs npm itself.
+`pi-chain enable headroom` sets `defaultProvider`, which is why the
+activation runs after `piPackages` — `pi install` rewrites the same file.
 #### billion-context (evaluated 2026-11-01, not installed)
 
 billion-context (ranxianglei/billion-context, MIT) lets the model fold old

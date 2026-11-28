@@ -1454,6 +1454,16 @@ programs come from the package list in `modules/shared-devtools.nix`. If
 `herdr-core` is missing, the phone reports "Herdr is not installed yet". The
 phone needs Tailscale SSH reachability to mahakala.
 
+### adb reaches the Android phone over wireless debugging (mahakala)
+
+The `adb` program comes from `android-tools` in `modules/shared-devtools.nix`.
+The phone is a tailnet peer, so its address is the tailnet IP or the MagicDNS
+name. Wireless debugging must be on in the Android developer options. Pairing
+happens once with `adb pair <address>:<pairing-port> <code>`, and the phone
+keeps the authorized key after that. A stable port needs one `adb tcpip 5555`
+call, and that setting resets on every reboot. No one has tested these steps on
+the phone.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

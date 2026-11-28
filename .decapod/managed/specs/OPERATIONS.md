@@ -1445,6 +1445,47 @@ exit with an error. The hook takes effect after
 `just deploy-mahakala-system`; an actual suspend/resume with the hook has not
 yet been verified.
 
+### Sustained power limit and AC EPP (mahakala)
+
+Dell firmware caps sustained package power through
+`/sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw`
+(`long_term`) at 15 W. The MSR PL1 of 51 W has no effect. Measured on
+2026-11-28 with stress-ng matrixprod, 8 threads for 90 s on AC: 15 W ran at
+2400 MHz, 73C, 3042 ops/s; 20 W at 2800 MHz, 87C, 3987 ops/s (+31%); 25 W at
+3000 MHz, 90C, 3964 ops/s, which is thermal-bound and no faster than 20 W.
+
+`guix/system.scm` defines the limit once (`%sustained-power-limit-uw`,
+20000000) together with the undervolt arguments (`%undervolt-arguments`). Three
+paths write it, because firmware may restore 15 W:
+
+- at boot, the `cpu-undervolt` one-shot service applies the undervolt, waits
+  up to 10 s for the powercap file and runs `set-sustained-power-limit`;
+- after S3 resume, the elogind `system-sleep` hook `cpu-power-resume-reapply`
+  re-applies the undervolt (MSR 0x150 may reset on S3) and the limit on
+  `post`;
+- on AC plug and unplug, `90-cpu-power-limit-ac.rules` matches
+  `ACTION=="change", SUBSYSTEM=="power_supply", KERNEL=="AC"` and runs the
+  same script by absolute store path.
+
+`set-sustained-power-limit` fails softly: a missing or unwritable file is
+logged to stderr and the script exits 0. Check the value with
+`cat /sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw`
+(expect `20000000`) after boot, resume and an AC change. Resume and AC-change
+behaviour has not been verified on the deployed system yet.
+
+TLP sets the HWP energy performance preference on AC to 64 instead of
+`balance_performance` (128); battery keeps `balance_performance`. For a bursty
+50 ms single-thread task after 300 ms idle, the median fell from about
+44-57 ms to about 22 ms, and idle package power on AC rose from about 4 W to
+about 7 W. `performance` (0) reached about 19 ms but idles at 12-17 W and runs
+hotter, so it was rejected. `hwp_dynamic_boost` made no difference. Check with
+`cat /sys/devices/system/cpu/cpu0/cpufreq/energy_performance_preference`
+(expect `64` on AC).
+
+To revert, set `%sustained-power-limit-uw` to 15000000 or remove its three
+users, set the two `*-energy-perf-policy-on-ac` fields back to
+`balance_performance`, and run `just deploy-mahakala-system`.
+
 ### Herdr phone app connects to herdr-core (mahakala)
 
 The Herdr phone app connects over SSH to `herdr-core`, whose command is `hc`.

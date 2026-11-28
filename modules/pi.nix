@@ -162,7 +162,11 @@
                   [(.extensions[]?) | select(. != $console and . != $rtk and . != $caveman)]
                   + [$console]
                 ) | unique),
-                defaultProvider: (if ($c["headroom"] // false) then "lego-claude" else "opencode-go" end)
+                # A provider and a model are one choice: OpenCode Go does not
+                # serve claude-sonnet-5-5, so the model has to move with the
+                # provider or the default pair fails on the first request.
+                defaultProvider: (if ($c["headroom"] // false) then "lego-claude" else "opencode-go" end),
+                defaultModel: (if ($c["headroom"] // false) then "claude-sonnet-5-5" else "deepseek-v4.1-flash" end)
               }')"; then
           pi_chain_warn "$settings is not valid JSON; left it unchanged"
           return 1
@@ -280,7 +284,7 @@
           done
           printf '\n'
           if [ -e "$settings" ]; then
-            ${jq} -r '"packages:        " + ((.packages // []) | if length == 0 then "none" else join(", ") end), "extensions:      " + ((.extensions // []) | if length == 0 then "none" else join(", ") end), "defaultProvider: " + (.defaultProvider // "unset")' "$settings"
+            ${jq} -r '"packages:        " + ((.packages // []) | if length == 0 then "none" else join(", ") end), "extensions:      " + ((.extensions // []) | if length == 0 then "none" else join(", ") end), "defaultProvider: " + (.defaultProvider // "unset"), "defaultModel:    " + (.defaultModel // "unset")' "$settings"
           else
             echo "settings: $settings does not exist yet"
           fi

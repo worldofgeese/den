@@ -1081,8 +1081,14 @@ prints a note whenever `chain.json` and the installed files disagree, which a
 
 Package layers change `settings.json` `packages` only: pi installs what it
 lists, so the script writes the entry and never runs npm itself.
-`pi-chain enable headroom` sets `defaultProvider`, which is why the
-activation runs after `piPackages` — `pi install` rewrites the same file.
+
+A provider is only usable with a model it serves, so the chain sets
+`defaultProvider` and `defaultModel` as one pair: OpenCode Go with
+`deepseek-v4.1-flash`, or `lego-claude` with `claude-sonnet-5-5` when Headroom
+is on. OpenCode Go does not include `claude-sonnet-5-5`; a pair that mixes them
+fails on its first request with `Model ... isn't included in OpenCode Go`.
+That is why the activation runs after `piPackages` — `pi install` rewrites the
+same file.
 #### billion-context (evaluated 2026-11-01, not installed)
 
 billion-context (ranxianglei/billion-context, MIT) lets the model fold old

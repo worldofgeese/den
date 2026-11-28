@@ -1433,6 +1433,15 @@ exit with an error. The hook takes effect after
 `just deploy-mahakala-system`; an actual suspend/resume with the hook has not
 yet been verified.
 
+### Herdr phone app connects to herdr-core (mahakala)
+
+The Herdr phone app connects over SSH to `herdr-core`, whose command is `hc`.
+It does not connect to the `herdr` terminal program. `herdr` runs its own
+server, and the agents in a `herdr` pane do not appear on the phone. Both
+programs come from the package list in `modules/shared-devtools.nix`. If
+`herdr-core` is missing, the phone reports "Herdr is not installed yet". The
+phone needs Tailscale SSH reachability to mahakala.
+
 ## Service Level Objectives
 | SLI | SLO Target | Measurement Window | Owner |
 |---|---|---|---|

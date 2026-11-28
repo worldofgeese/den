@@ -80,7 +80,11 @@
           age
           # Pushes to the worldofgeese binary cache via `just cachix-push`.
           cachix
+          # herdr is the terminal program. The Herdr phone app connects over SSH
+          # to herdr-core (`hc`), which is a different program with its own
+          # server.
           herdr
+          herdr-core
           # ACP agents query current NixOS, Home Manager, and nix-darwin data.
           mcp-nixos
           # Governance kernel, used on every host. Was Darwin-excluded and

@@ -97,12 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8G2DTWJE1TKFY6WVHA139Z6",
+    "id": "change_01M8G2E4ARWD03W0BW2DP5BJMK",
     "base_commit": "c5d8528b3c1bb7acfebac1719f761b76d9b4282d",
     "target_base": "origin/main"
   },
+  "checkpoints": [
+    {
+      "id": "mitigations-off",
+      "summary": "Boot mahakala with mitigations=off (user-approved speed over security); comment and specs document risk and revert",
+      "input_digest": "sha256:814cb1c2748d8bb0adaa020fa2e1fad8733c7b9e0da63d9d7d450b1716aadc8a"
+    }
+  ],
   "intents": {
-    "intent:change_01M8G2DTWJE1TKFY6WVHA139Z6": {
+    "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,14 +119,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8G2DTWJE1TKFY6WVHA139Z6",
+      "id": "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "Install herdr-core on mahakala for the Herdr phone app\n\nAdd herdr-core to modules/shared-devtools.nix so hc is on PATH for the Herdr Android app over Tailscale SSH. Update living specs.",
-      "refined_intent": "Install herdr-core on mahakala for the Herdr phone app\n\nAdd herdr-core to modules/shared-devtools.nix so hc is on PATH for the Herdr Android app over Tailscale SSH. Update living specs.",
+      "raw_intent": "mitigations=off on mahakala",
+      "refined_intent": "mitigations=off on mahakala",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -127,61 +134,114 @@
   "sections": {
     "plan": {
       "constraints": {},
-      "intent": "Install herdr-core on mahakala for the Herdr phone app\n\nAdd herdr-core to modules/shared-devtools.nix so hc is on PATH for the Herdr Android app over Tailscale SSH. Update living specs.",
+      "intent": "mitigations=off on mahakala",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "DRAFT",
-      "title": "Install herdr-core on mahakala for the Herdr phone app",
+      "title": "mitigations=off on mahakala",
       "todo_ids": [
-        "code_01m8g23831vhry9q"
+        "code_01m8g2awbg8ydea3"
       ],
-      "updated_at": "1795835751Z"
+      "updated_at": "1795835761Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:d14b4b3740440120b619a1edff8d61fec4bfe4d6d19347703f9fbd9decef6bbb",
-      "checks": [],
+      "artifact_hash": "sha256:9013b599c442c10d6c2c730515fa70fc13dcc10b6d17b0559513fd0892b3da62",
+      "checks": [
+        {
+          "name": "guix-system-build-dry-run",
+          "status": "passed"
+        },
+        {
+          "name": "just-check",
+          "status": "passed"
+        }
+      ],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8G2DTWJE1TKFY6WVHA139Z6",
+            "intent_id": "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8G2DTWJE1TKFY6WVHA139Z6",
+            "intent_id": "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK",
             "kind": "refined",
             "sequence": 3
+          },
+          {
+            "detail": "trajectory:branch_01M8G2E4BMCNTRGFS68FY6Y6J1",
+            "event_id": "event:4",
+            "intent_id": "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK",
+            "kind": "trajectory_step_recorded",
+            "sequence": 4
           }
         ],
         "knowledge_candidates": [],
-        "next_sequence": 3,
+        "next_sequence": 4,
         "schema_version": "1.1.0",
-        "trajectories": {}
+        "trajectories": {
+          "branch_01M8G2E4BMCNTRGFS68FY6Y6J1": {
+            "evidence_only": true,
+            "id": "branch_01M8G2E4BMCNTRGFS68FY6Y6J1",
+            "intent_id": "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK",
+            "steps": [
+              {
+                "action": "trajectory.record",
+                "custody_event_id": "event:4",
+                "observations": [
+                  "guix/system.scm",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md",
+                  "guix/system.scm",
+                  ".decapod/managed/specs/OPERATIONS.md",
+                  ".decapod/managed/specs/ARCHITECTURE.md"
+                ],
+                "proof_refs": [
+                  "just-check",
+                  "guix-system-build-dry-run"
+                ],
+                "scope": [
+                  "root"
+                ],
+                "sequence": 4,
+                "validation_findings": []
+              }
+            ]
+          }
+        }
       },
       "declared_commands": [],
       "destination": "pull request",
       "evidence": [],
-      "inspected_files": [],
-      "intent_id": "intent:change_01M8G2DTWJE1TKFY6WVHA139Z6",
-      "modified_files": [],
+      "inspected_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "guix/system.scm"
+      ],
+      "intent_id": "intent:change_01M8G2E4ARWD03W0BW2DP5BJMK",
+      "modified_files": [
+        ".decapod/managed/specs/ARCHITECTURE.md",
+        ".decapod/managed/specs/OPERATIONS.md",
+        "guix/system.scm"
+      ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
       ],
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8G2DTXNQA8NPFZ4267CH28F",
+      "run_id": "branch_01M8G2E4BMCNTRGFS68FY6Y6J1",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8g23831vhry9q",
+      "task_id": "code_01m8g2awbg8ydea3",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

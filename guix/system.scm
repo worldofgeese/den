@@ -473,7 +473,14 @@ agent can reboot mahakala to a locked desktop without the disk passphrase.")
   ;; camera enumerates at ~2 s and Hyprland starts at ~11 s (2026-11-12).
   ;; zswap.enabled=0: swap is the zstd zram device below, so zswap in front
   ;; of it compressed every swapped page twice.
-  (kernel-arguments (cons "usbcore.initial_descriptor_timeout=1000 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep zswap.enabled=0" %default-kernel-arguments))
+  ;; mitigations=off: the user explicitly chose speed over security on
+  ;; 2026-11-28. On this i7-8565U (Whiskey Lake) it turns off retbleed=IBRS,
+  ;; spectre_v2 IBRS, the MDS and MMIO clear-CPU-buffers, the SSB prctl and
+  ;; the other mitigations, which cost most on syscall- and
+  ;; context-switch-heavy work. Risk: local or JavaScript speculative-execution
+  ;; attacks can read kernel or other-process memory. To revert, delete the
+  ;; argument and reboot.
+  (kernel-arguments (cons "usbcore.initial_descriptor_timeout=1000 ath10k_core.skip_otp=y snd_hda_intel.power_save=1 mce=dont_log_ce mem_sleep_default=deep zswap.enabled=0 mitigations=off" %default-kernel-arguments))
   ;; wireless-regdb: linux-omarchy requires a signed regulatory.db
   ;; (CFG80211_REQUIRE_SIGNED_REGDB); without it cfg80211 logs "failed to load
   ;; regulatory.db" at every boot and stays on the restrictive world domain.

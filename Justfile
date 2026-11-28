@@ -356,6 +356,7 @@ check: install-hooks
     just check-pi-decapod-gate
     just check-pi-gateway-provider
     just check-headroom-storage
+    just check-container-updater
     just check-decapod-deploy-backup
     just check-topgrade
 
@@ -388,6 +389,10 @@ check-pi-gateway-provider:
 # Exercise the rendered startup guard without touching live containers.
 check-headroom-storage:
     nix shell --inputs-from . nixpkgs#python3 nixpkgs#jq nixpkgs#perl --command python3 scripts/test-headroom-storage.py
+
+# Run the Guix container updater against stub podman/herd; touches nothing live.
+check-container-updater:
+    bash scripts/test-container-updater.sh
 
 check-topgrade:
     nix shell --inputs-from . nixpkgs#bash nixpkgs#coreutils nixpkgs#python3 nixpkgs#jq nixpkgs#nodejs --command python3 -B -m unittest discover -s scripts -p 'test_topgrade_*.py'
@@ -737,7 +742,7 @@ check-fmt:
 # flake.lock. The Decapod readiness contract and the Dagger check
 # ci:shellcheck run the same check.
 check-shellcheck:
-    nix run --inputs-from . nixpkgs#shellcheck -- scripts/*.sh
+    nix run --inputs-from . nixpkgs#shellcheck -- scripts/*.sh guix/container-updater.sh
 
 # The engine of the Dagger checks on a Mac: the release of
 # .dagger/modules/ci/dagger-module.toml (engineVersion), pinned by digest.

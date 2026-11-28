@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "6ba8a7f920a34203c3bff51894356cb0f5f3cf74",
+    "accepted_commit": "ebf79234bd63f10403d186698967213640a2783d",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,12 +97,12 @@
     }
   },
   "change": {
-    "id": "change_01M8FZKFF4E2DT30M407PKXATJ",
-    "base_commit": "6ba8a7f920a34203c3bff51894356cb0f5f3cf74",
+    "id": "change_01M8G0R06VMMRZ1BVHHETNPBTA",
+    "base_commit": "ebf79234bd63f10403d186698967213640a2783d",
     "target_base": "origin/main"
   },
   "intents": {
-    "intent:change_01M8FZKFF4E2DT30M407PKXATJ": {
+    "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -112,14 +112,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
+      "id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "pi-chain: toggle extension layers by file placement",
-      "refined_intent": "pi-chain: toggle extension layers by file placement",
+      "raw_intent": "pi-chain: pair provider with a served model",
+      "refined_intent": "pi-chain: pair provider with a served model",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -127,36 +127,36 @@
   "sections": {
     "plan": {
       "constraints": {},
-      "intent": "pi-chain: toggle extension layers by file placement",
+      "intent": "pi-chain: pair provider with a served model",
       "proof_hooks": [
         "decapod validate"
       ],
       "schema_version": "1.1.0",
       "state": "DRAFT",
-      "title": "pi-chain: toggle extension layers by file placement",
+      "title": "pi-chain: pair provider with a served model",
       "todo_ids": [
-        "code_01m8fzj5de4178ac"
+        "code_01m8g0qfbvf1321x"
       ],
-      "updated_at": "1795832790Z"
+      "updated_at": "1795833987Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:172836c3c133d56cbf3115dffde1fb3223af08abd8fb42143c05232b58140f86",
+      "artifact_hash": "sha256:5bce8a804fc00c249966c3c2c2f589fe6260b211974f74185f6c60d706da7c6d",
       "checks": [],
       "current_phase": "intent",
       "custody": {
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
+            "intent_id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
+            "intent_id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
             "kind": "refined",
             "sequence": 3
           }
@@ -170,7 +170,7 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [],
-      "intent_id": "intent:change_01M8FZKFF4E2DT30M407PKXATJ",
+      "intent_id": "intent:change_01M8G0R06VMMRZ1BVHHETNPBTA",
       "modified_files": [],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -178,10 +178,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8FZKFG27ZJ0M7V0G2BTDH1H",
+      "run_id": "branch_01M8G0R07FY28H8ZR0HVBNDK1Z",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8fzj5de4178ac",
+      "task_id": "code_01m8g0qfbvf1321x",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "baseline": {
-    "accepted_commit": "423e15b032f662f81c4bb6343f3680fd8cc234ec",
+    "accepted_commit": "3dd4d1a17fae42575b83fecb4467129039045ba0",
     "policy": {
       "change_control": {
         "requires_human_review": true,
@@ -97,24 +97,19 @@
     }
   },
   "change": {
-    "id": "change_01M8H9JXV4MV9WGHJYVQJPGW6M",
-    "base_commit": "423e15b032f662f81c4bb6343f3680fd8cc234ec",
+    "id": "change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
+    "base_commit": "3dd4d1a17fae42575b83fecb4467129039045ba0",
     "target_base": "origin/main"
   },
   "checkpoints": [
     {
-      "id": "tbr-power-limits",
-      "summary": "20 W sustained PL1 via MMIO at boot/resume/AC, AC EPP 64, undervolt reapplied on resume; built /gnu/store/8gbi3cix2mvpgpaadqj8fgd5w49sz4aq-system",
-      "input_digest": "sha256:f54616084d13910a42ff3ee1f5526a0bac17364bdba38e2adcd0393ebd0d24b2"
-    },
-    {
-      "id": "tbr-power-limits-2",
-      "summary": "plan approved; same material",
-      "input_digest": "sha256:8942092027427d0846e085cc761b18a7acffa237acd745f8185276a938570de5"
+      "id": "verify-recover-docs",
+      "summary": "Document the recovery of done-but-unverified todos for PROOF_HOOK_FAILED in OPERATIONS.md",
+      "input_digest": "sha256:e8e0cfbedb3630fbc081f3a07b4e7c5e1efb232b5add5dce2bd469c760380590"
     }
   ],
   "intents": {
-    "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M": {
+    "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER": {
       "acceptance_criteria": [],
       "assumptions": [],
       "boundaries": [
@@ -124,14 +119,14 @@
         "root"
       ],
       "created_sequence": 1,
-      "id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+      "id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
       "instruction_origin": {
         "source_ref": "caller:unverified"
       },
       "out_of_scope": [],
       "proof_requirements": [],
-      "raw_intent": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
-      "refined_intent": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
+      "raw_intent": "Recover verification baselines for 5 done-unverified todos (PROOF_HOOK_FAILED)",
+      "refined_intent": "Recover verification baselines for 5 done-unverified todos (PROOF_HOOK_FAILED)",
       "status": "refined",
       "updated_sequence": 3
     }
@@ -144,7 +139,7 @@
       },
       "deferred_questions": [],
       "human_questions": [],
-      "intent": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
+      "intent": "Recover verification baselines for 5 done-unverified todos (PROOF_HOOK_FAILED)",
       "phases": [],
       "proof_hooks": [
         "decapod validate"
@@ -152,34 +147,22 @@
       "schema_version": "1.1.0",
       "state": "APPROVED",
       "stop_conditions": [],
-      "title": "home-manager-tbr: 20W MMIO PL1, AC EPP 64, reapply undervolt on resume",
+      "title": "Recover verification baselines for 5 done-unverified todos (PROOF_HOOK_FAILED)",
       "todo_ids": [
-        "code_01m8h9j7g016ar8m"
+        "code_01m8hb9dygrppceg"
       ],
       "unknowns": [],
       "unresolved_contradictions": [],
-      "updated_at": "1795877220Z"
+      "updated_at": "1795878661Z"
     },
     "trajectory": {
       "active_boundaries": [
         "Current claimed task and isolated work branch"
       ],
-      "artifact_hash": "sha256:e95dfe054f0cd01a4a3eaecfe8759a22ab1b89df958cc997dbb5fa27687ff686",
+      "artifact_hash": "sha256:bf2f3e01bcc0e2b26dfd395d5b697df244b42b47ad870583874113bf39a7dd8b",
       "checks": [
         {
-          "name": "guix-system-build",
-          "status": "passed"
-        },
-        {
-          "name": "hook-guild-compile",
-          "status": "passed"
-        },
-        {
-          "name": "just-check",
-          "status": "passed"
-        },
-        {
-          "name": "tlp-conf-epp64",
+          "name": "specs.refresh",
           "status": "passed"
         }
       ],
@@ -188,20 +171,20 @@
         "events": [
           {
             "event_id": "event:2",
-            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+            "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
             "kind": "created",
             "sequence": 2
           },
           {
             "event_id": "event:3",
-            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+            "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
             "kind": "refined",
             "sequence": 3
           },
           {
-            "detail": "trajectory:branch_01M8H9JXVQ257EWV6JQZD0J65F",
+            "detail": "trajectory:branch_01M8HB9X740ZFRH3SE4941Y6J9",
             "event_id": "event:4",
-            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+            "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
             "kind": "trajectory_step_recorded",
             "sequence": 4
           }
@@ -210,26 +193,21 @@
         "next_sequence": 4,
         "schema_version": "1.1.0",
         "trajectories": {
-          "branch_01M8H9JXVQ257EWV6JQZD0J65F": {
+          "branch_01M8HB9X740ZFRH3SE4941Y6J9": {
             "evidence_only": true,
-            "id": "branch_01M8H9JXVQ257EWV6JQZD0J65F",
-            "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+            "id": "branch_01M8HB9X740ZFRH3SE4941Y6J9",
+            "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
             "steps": [
               {
                 "action": "trajectory.record",
                 "custody_event_id": "event:4",
                 "observations": [
-                  "guix/system.scm",
-                  "guix/touchpad-resume.scm",
-                  "guix/system.scm",
                   ".decapod/managed/specs/OPERATIONS.md",
-                  ".rpi/specs/power-thermal.md"
+                  ".decapod/OVERRIDE.md",
+                  ".decapod/managed/specs/OPERATIONS.md"
                 ],
                 "proof_refs": [
-                  "just-check",
-                  "guix-system-build",
-                  "tlp-conf-epp64",
-                  "hook-guild-compile"
+                  "specs.refresh"
                 ],
                 "scope": [
                   "root"
@@ -245,14 +223,12 @@
       "destination": "pull request",
       "evidence": [],
       "inspected_files": [
-        "guix/system.scm",
-        "guix/touchpad-resume.scm"
+        ".decapod/OVERRIDE.md",
+        ".decapod/managed/specs/OPERATIONS.md"
       ],
-      "intent_id": "intent:change_01M8H9JXV4MV9WGHJYVQJPGW6M",
+      "intent_id": "intent:change_01M8HB9X6EWGC4VTZJJ3MXF1ER",
       "modified_files": [
-        ".decapod/managed/specs/OPERATIONS.md",
-        ".rpi/specs/power-thermal.md",
-        "guix/system.scm"
+        ".decapod/managed/specs/OPERATIONS.md"
       ],
       "next_transitions": [
         "Refine plan and declare falsifiable checks"
@@ -260,10 +236,10 @@
       "repo_scope": [
         "root"
       ],
-      "run_id": "branch_01M8H9JXVQ257EWV6JQZD0J65F",
+      "run_id": "branch_01M8HB9X740ZFRH3SE4941Y6J9",
       "schema_version": "1.1.0",
       "shortcut_risk_signals": [],
-      "task_id": "code_01m8h9j7g016ar8m",
+      "task_id": "code_01m8hb9dygrppceg",
       "tool_calls": [],
       "unresolved_assumptions": []
     }

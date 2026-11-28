@@ -145,6 +145,33 @@ start the validation child from the plain upstream package with no
 and `passthru` are upstream's. Do not add the copy back unless a Decapod release
 brings the rejection back.
 
+### Recovering done-but-unverified todos (PROOF_HOOK_FAILED)
+Symptom: `decapod validate` reports PROOF_HOOK_FAILED. Some todos are done,
+but they have no verification baseline. `decapod qa verify recover --stale
+--json` lists these todos.
+
+The recover command runs only when the current validation snapshot passes.
+On `main` in the root checkout, validation stops with WORKSPACE_PROTECTION.
+So you cannot run recover there. Upstream added the recover path in
+DecapodLabs/decapod#1473 (PR #1482, v0.123.3).
+
+Do these steps in order:
+1. Add and claim a fresh todo.
+2. Run `decapod workspace ensure --branch agent/<agent>/<todo>-<topic>`.
+3. In the workspace, run `decapod govern plan approve`.
+4. Make a material change to an authored spec, then run
+   `decapod rpc --op specs.refresh`.
+5. Record a checkpoint with `decapod govern artifacts checkpoint`, stage
+   `.decapod/governance.json`, and commit.
+6. Run `decapod qa verify recover --json --artifact <todo>=<file> ...`.
+   Give one current artifact for each todo. Use a file that the PR of that
+   todo changed.
+7. If recover changes tracked files, checkpoint and commit them.
+
+Do not prune or reopen a todo to get past the proof gate. Do not weaken a
+gate. On 2026-11-28 we used this procedure for five todos from PRs #188,
+#198, #200 and #201, and for the ChatGPT desktop diagnosis todo.
+
 ### pr-reviewer (M-02877)
 `modules/M-02877/pr-reviewer.nix` runs the PR review daemon as the launchd
 agent `com.dktaohan.pr-reviewer`, built from the flake that
